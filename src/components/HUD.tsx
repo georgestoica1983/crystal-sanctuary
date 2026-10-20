@@ -61,7 +61,7 @@ export function getLiveStepNarratorText(
 ): string {
   if (simulation.steps.length <= 1) {
     return isSanctuary
-      ? "Step 1: 🌸 At Companion's starting tile — drag toward the Archway!"
+      ? "Step 1: 🌸 At Companion's starting tile — drag toward the Exit!"
       : "Step 1: 🛡️ At starting point — drag your path toward the Exit!";
   }
 
@@ -71,36 +71,36 @@ export function getLiveStepNarratorText(
   if (lastStep.isDead) {
     if (lastStep.cell.type === "ENEMY") {
       return isSanctuary
-        ? `Step ${stepNum}: 🌺 Briar (${lastStep.cell.value}) was too prickly! Magic reached 0.`
+        ? `Step ${stepNum}: 🌺 Thorn (${lastStep.cell.value}) was too prickly! Life reached 0.`
         : `Step ${stepNum}: 💀 Enemy (${lastStep.cell.value}) dealt lethal damage! HP reached 0.`;
     }
     if (lastStep.cell.type === "TRAP") {
       return isSanctuary
-        ? `Step ${stepNum}: 🌵 Stepped into Thistle (${lastStep.cell.value})! Magic reached 0.`
+        ? `Step ${stepNum}: ⚙️ Stepped into Spike (${lastStep.cell.value})! Life reached 0.`
         : `Step ${stepNum}: 💀 Stepped into Trap (${lastStep.cell.value})! HP reached 0.`;
     }
   }
 
   if (lastStep.trapDodgedDiagonally) {
     return isSanctuary
-      ? `Step ${stepNum}: ↗️ Diagonal Hop! Dodged 🌵 Thistle (${lastStep.cell.value}) for 0 damage!`
+      ? `Step ${stepNum}: ↗️ Diagonal Hop! Dodged ⚙️ Spike (${lastStep.cell.value}) for 0 damage!`
       : `Step ${stepNum}: ↗️ Diagonal Hop! Dodged ⚠️ Trap (${lastStep.cell.value}) for 0 damage!`;
   }
 
   if (lastStep.cell.type === "ENEMY") {
-    const briarName = isSanctuary ? "🌺 Briar" : "Enemy";
-    const magicName = isSanctuary ? "Magic" : "HP";
+    const briarName = isSanctuary ? "🌺 Thorn" : "Enemy";
+    const magicName = isSanctuary ? "Life" : "HP";
     const hpLoss = Math.abs(lastStep.hpDelta);
 
     if (lastStep.weaponBefore > 0 && lastStep.shieldBefore > 0) {
-      const wName = isSanctuary ? "☀️ Sunbeam" : "⚔️ Weapon";
-      const sName = isSanctuary ? "💧 Dew" : "🛡️ Shield";
+      const wName = isSanctuary ? "☀️ Power tile" : "⚔️ Weapon";
+      const sName = isSanctuary ? "🛡️ Shield" : "🛡️ Shield";
       return `Step ${stepNum}: ${wName} (${lastStep.weaponBefore}) + ${sName} (${lastStep.shieldBefore}) cleared ${briarName} (${lastStep.cell.value}) → ${hpLoss} ${magicName} lost!`;
     } else if (lastStep.weaponBefore > 0) {
-      const wName = isSanctuary ? "☀️ Sunbeam" : "⚔️ Weapon";
+      const wName = isSanctuary ? "☀️ Power tile" : "⚔️ Weapon";
       return `Step ${stepNum}: ${wName} (${lastStep.weaponBefore}) cleared ${briarName} (${lastStep.cell.value}) → ${hpLoss} ${magicName} lost!`;
     } else if (lastStep.shieldBefore > 0) {
-      const sName = isSanctuary ? "💧 Dew" : "🛡️ Shield";
+      const sName = isSanctuary ? "🛡️ Shield" : "🛡️ Shield";
       return `Step ${stepNum}: ${sName} (${lastStep.shieldBefore}) absorbed ${briarName} (${lastStep.cell.value}) → ${hpLoss} ${magicName} lost!`;
     } else {
       return `Step ${stepNum}: Cleared ${briarName} (${lastStep.cell.value}) → ${hpLoss} ${magicName} lost!`;
@@ -109,24 +109,24 @@ export function getLiveStepNarratorText(
 
   if (lastStep.cell.type === "SHIELD") {
     return isSanctuary
-      ? `Step ${stepNum}: 💧 Gathered +${lastStep.shieldDelta} Dew! (Total: ${lastStep.shieldAfter})`
+      ? `Step ${stepNum}: 🛡️ Gathered +${lastStep.shieldDelta} Shield! (Total: ${lastStep.shieldAfter})`
       : `Step ${stepNum}: 🛡️ Equipped +${lastStep.shieldDelta} Shield! (Total: ${lastStep.shieldAfter})`;
   }
 
   if (lastStep.cell.type === "WEAPON") {
     return isSanctuary
-      ? `Step ${stepNum}: ☀️ Soaked up +${lastStep.weaponDelta} Sunbeam! The next Briar will be easier.`
+      ? `Step ${stepNum}: ☀️ Soaked up +${lastStep.weaponDelta} Power tile! The next Thorn will be easier.`
       : `Step ${stepNum}: ⚔️ Picked up +${lastStep.weaponDelta} Weapon! Next attack hits hard.`;
   }
 
   if (lastStep.cell.type === "POTION") {
     if (lastStep.hpDelta === 0) {
       return isSanctuary
-        ? `Step ${stepNum}: 🍓 Sweet Berries (+${lastStep.cell.value})! Magic was already full (${lastStep.hpAfter}/${lastStep.hpAfter}).`
+        ? `Step ${stepNum}: 🍓 Sweet Berries (+${lastStep.cell.value})! Life was already full (${lastStep.hpAfter}/${lastStep.hpAfter}).`
         : `Step ${stepNum}: 🧪 Potion (+${lastStep.cell.value})! HP was already full.`;
     }
     return isSanctuary
-      ? `Step ${stepNum}: 🍓 Sweet Berries restored +${lastStep.hpDelta} Magic! (Now: ${lastStep.hpAfter})`
+      ? `Step ${stepNum}: 🍓 Sweet Berries restored +${lastStep.hpDelta} Life! (Now: ${lastStep.hpAfter})`
       : `Step ${stepNum}: 🧪 Potion restored +${lastStep.hpDelta} HP! (Now: ${lastStep.hpAfter})`;
   }
 
@@ -138,13 +138,13 @@ export function getLiveStepNarratorText(
 
   if (lastStep.cell.type === "TRAP") {
     return isSanctuary
-      ? `Step ${stepNum}: 🌵 Stepped into Thistle (${lastStep.cell.value})! Lost ${Math.abs(lastStep.hpDelta)} Magic directly.`
+      ? `Step ${stepNum}: ⚙️ Stepped into Spike (${lastStep.cell.value})! Lost ${Math.abs(lastStep.hpDelta)} Life directly.`
       : `Step ${stepNum}: ⚠️ Stepped onto Trap (${lastStep.cell.value})! Lost ${Math.abs(lastStep.hpDelta)} HP.`;
   }
 
   if (lastStep.cell.type === "EXIT") {
     return isSanctuary
-      ? `Step ${stepNum}: 🌈 Reached the Crystal Archway! Sanctuary restored!`
+      ? `Step ${stepNum}: 🌈 Reached the Crystal Exit! Sanctuary restored!`
       : `Step ${stepNum}: 🚪 Reached the Exit Portal! Sector clear!`;
   }
 
@@ -164,7 +164,7 @@ export function getSmartLethalCoachTip(
 
   if (deathCell?.type === "TRAP" && !deathStep?.trapDodgedDiagonally) {
     return isSanctuary
-      ? `💡 Tip: Thistles ignore Shield! Slice DIAGONALLY through (${deathCoord.row + 1},${deathCoord.col + 1}) to hop over it for 0 damage, or drag back to undo.`
+      ? `💡 Tip: Spikes ignore Shield! Slice DIAGONALLY through (${deathCoord.row + 1},${deathCoord.col + 1}) to hop over it for 0 damage, or drag back to undo.`
       : `💡 Tip: Traps ignore Shields! Slice DIAGONALLY through (${deathCoord.row + 1},${deathCoord.col + 1}) to hop over it for 0 damage, or drag back to undo.`;
   }
 
@@ -187,24 +187,24 @@ export function getSmartLethalCoachTip(
     if (unvisitedShields.length > 0) {
       const s = unvisitedShields[0];
       remedyStr = isSanctuary
-        ? `picking up the 💧${s.value} Dewdrop at (${s.row + 1},${s.col + 1})`
+        ? `picking up the 🛡️${s.value} Shield tile at (${s.row + 1},${s.col + 1})`
         : `picking up the 🛡️${s.value} Shield at (${s.row + 1},${s.col + 1})`;
     } else if (unvisitedWeapons.length > 0) {
       const w = unvisitedWeapons[0];
       remedyStr = isSanctuary
-        ? `grabbing the ☀️${w.value} Sunbeam at (${w.row + 1},${w.col + 1})`
+        ? `grabbing the ☀️${w.value} Power tile at (${w.row + 1},${w.col + 1})`
         : `grabbing the ⚔️${w.value} Weapon at (${w.row + 1},${w.col + 1})`;
     }
   }
 
   if (remedyStr) {
     return isSanctuary
-      ? `💡 Tip: You ran out of Magic at (${deathCoord.row + 1},${deathCoord.col + 1})! Try ${remedyStr} first, or drag back one tile to undo.`
+      ? `💡 Tip: You ran out of Life at (${deathCoord.row + 1},${deathCoord.col + 1})! Try ${remedyStr} first, or drag back one tile to undo.`
       : `💡 Tip: You ran out of HP at (${deathCoord.row + 1},${deathCoord.col + 1})! Try ${remedyStr} first, or drag back one tile to undo.`;
   }
 
   return isSanctuary
-    ? `💡 Tip: Ran out of Magic at (${deathCoord.row + 1},${deathCoord.col + 1}) (needs +${deficit} Magic)! Pick up Shields or Sunbeams first, or drag back one tile to undo.`
+    ? `💡 Tip: Ran out of Life at (${deathCoord.row + 1},${deathCoord.col + 1}) (needs +${deficit} Life)! Pick up Shields or Power tiles first, or drag back one tile to undo.`
     : `💡 Tip: Path lethal at (${deathCoord.row + 1},${deathCoord.col + 1}) (needs +${deficit} HP)! Gather Shields or Weapons first, or drag back one tile to undo.`;
 }
 
@@ -223,19 +223,19 @@ export function getThemeAwareModifierInfo(
       return {
         ...mod,
         name: "Honeyed Gems",
-        shortTag: "GEMS +1 MAGIC / BERRIES -1",
+        shortTag: "GEMS +1 LIFE / BERRIES -1",
         description:
-          "Every Gem restores +1 Magic today, but the Berries have turned sour and take 1 Magic.",
-        tacticalHint: "Walk through Gems to keep your Magic up, and skip the sour Berries.",
+          "Every Gem restores +1 Life today, but the Berries have turned sour and take 1 Life.",
+        tacticalHint: "Walk through Gems to keep your Life up, and skip the sour Berries.",
       };
     case "GLASS_ARMOR":
       return {
         ...mod,
-        name: "Frost Dew",
-        shortTag: "2x DEW / MELTS EVERY 3RD STEP",
+        name: "Frost Shield",
+        shortTag: "2x SHIELD / MELTS EVERY 3RD STEP",
         description:
-          "Dew is worth double, but any Dew you're carrying melts away every 3rd step.",
-        tacticalHint: "Gather Dew just 1–2 steps before a big Briar.",
+          "Shield is worth double, but any Shield you're carrying melts away every 3rd step.",
+        tacticalHint: "Gather Shield just 1–2 steps before a big Thorn.",
       };
     case "MOMENTUM":
       return {
@@ -243,8 +243,8 @@ export function getThemeAwareModifierInfo(
         name: "Sunlit Lanes",
         shortTag: "3+ STRAIGHT = +3 SUN",
         description:
-          "Walking 3+ tiles in a straight line gathers +3 Sunbeam.",
-        tacticalHint: "Line up a 3-tile straight walk before a big Briar.",
+          "Walking 3+ tiles in a straight line gathers +3 Power tile.",
+        tacticalHint: "Line up a 3-tile straight walk before a big Thorn.",
       };
     case "MIRROR_VERTICAL":
       return {
@@ -252,8 +252,8 @@ export function getThemeAwareModifierInfo(
         name: "Mirror Pond",
         shortTag: "UP/DOWN +2 / SIDEWAYS -1",
         description:
-          "Briars are 2 pricklier when you reach them from above or below, and 1 gentler from the side.",
-        tacticalHint: "Step into Briars from the left or right.",
+          "Thorns are 2 pricklier when you reach them from above or below, and 1 gentler from the side.",
+        tacticalHint: "Step into Thorns from the left or right.",
       };
     case "ORTHOGONAL_ONLY":
       return {
@@ -262,7 +262,7 @@ export function getThemeAwareModifierInfo(
         shortTag: "NO DIAGONALS",
         description:
           "Tall hedges block diagonal steps. Walk up, down, left and right only.",
-        tacticalHint: "You can't hop Thistles diagonally today — plan around them.",
+        tacticalHint: "You can't hop Spikes diagonally today — plan around them.",
       };
     case "NONE":
       return {
@@ -270,7 +270,7 @@ export function getThemeAwareModifierInfo(
         name: "Quiet Garden",
         shortTag: "8-WAY",
         description: "No special rules today. Wander in any of the eight directions.",
-        tacticalHint: "Diagonal hops let you slip past Thistles unharmed.",
+        tacticalHint: "Diagonal hops let you slip past Spikes unharmed.",
       };
     default:
       return mod;
@@ -379,7 +379,7 @@ export function CompanionDrawerModal({
                       className="font-bold px-1.5 py-0.5 rounded bg-black/40 border border-white/10 whitespace-nowrap"
                       style={{ color: cls.accentColor }}
                     >
-                      {cls.startingHp} {isSanctuary ? "Magic" : "HP"}
+                      {cls.startingHp} {isSanctuary ? "Life" : "HP"}
                     </span>
                   </div>
                 </div>
@@ -591,7 +591,7 @@ export function TopHUD({
       earned: stars.star1Survivor,
       label: isSanctuary ? "Star 1 (Keeper)" : "Star 1 (Survivor)",
       desc: isSanctuary
-        ? "Reach the Archway with Magic ≥ 1"
+        ? "Reach the Exit with Life ≥ 1"
         : "Reach EXIT with HP ≥ 1",
     },
     {
@@ -605,7 +605,7 @@ export function TopHUD({
       earned: stars.star3Flawless,
       label: isSanctuary ? "Star 3 (Full Bloom)" : "Star 3 (Flawless)",
       desc: isSanctuary
-        ? `Finish with Magic ≥ ${flawlessHp} OR restore 14+ tiles`
+        ? `Finish with Life ≥ ${flawlessHp} OR restore 14+ tiles`
         : `Finish with HP ≥ ${flawlessHp} OR visit 14+ cells`,
     },
   ];
@@ -632,8 +632,8 @@ export function TopHUD({
     const stats = [
       {
         key: "magic",
-        label: "Magic",
-        icon: <span className="text-[13px] leading-none" aria-hidden="true">✨</span>,
+        label: "Life",
+        icon: <span className="text-[13px] leading-none" aria-hidden="true">❤️</span>,
         value: (
           <>
             {hero.hp}
@@ -644,12 +644,12 @@ export function TopHUD({
       },
       {
         key: "dew",
-        label: "Dew",
+        label: "Shield",
         icon: <EntityIcon type="SHIELD" size={13} />,
         value: heroClassId === "VAMPIRE" ? "—" : hero.shield,
         color: "text-sky-300",
       },
-      { key: "sun", label: "Sun", icon: <EntityIcon type="WEAPON" size={13} />, value: hero.weapon, color: "text-amber-300" },
+      { key: "sun", label: "Power", icon: <EntityIcon type="WEAPON" size={13} />, value: hero.weapon, color: "text-amber-300" },
       { key: "gems", label: "Gems", icon: <EntityIcon type="GOLD" size={13} />, value: hero.gold, color: "text-yellow-200" },
     ];
     const menuRow =
@@ -1020,8 +1020,8 @@ export function TopHUD({
             {[
               {
                 key: "magic",
-                label: "Magic",
-                icon: <span className="text-[13px] leading-none">✨</span>,
+                label: "Life",
+                icon: <span className="text-[13px] leading-none">❤️</span>,
                 value: (
                   <>
                     {hero.hp}
@@ -1033,7 +1033,7 @@ export function TopHUD({
               },
               {
                 key: "dew",
-                label: "Dew",
+                label: "Shield",
                 icon: <EntityIcon type="SHIELD" size={14} />,
                 value: heroClassId === "VAMPIRE" ? "—" : hero.shield,
                 color: "text-[#38BDF8]",
@@ -1041,7 +1041,7 @@ export function TopHUD({
               },
               {
                 key: "sun",
-                label: "Sun",
+                label: "Power",
                 icon: <EntityIcon type="WEAPON" size={14} />,
                 value: hero.weapon,
                 color: "text-[#FBBF24]",
@@ -1167,7 +1167,7 @@ export function TopHUD({
         {/* Bottom of Row 2: The 4 Unified Stat Pills with EntityIcon */}
         {!(runOnly && !isInteractiveTutorial) && (
         <div className="grid grid-cols-4 gap-1.5">
-          {/* Magic / HP */}
+          {/* Life / HP */}
           <div
             className={`rounded-lg px-1.5 py-0.5 sm:py-1 flex items-center justify-between gap-0.5 min-w-0 border ${
               isSanctuary
@@ -1176,9 +1176,9 @@ export function TopHUD({
             }`}
           >
             <div className="flex items-center gap-1">
-              <span className="text-[11px] leading-none">{isSanctuary ? "✨" : "❤️"}</span>
+              <span className="text-[11px] leading-none">{isSanctuary ? "❤️" : "❤️"}</span>
               <span className="text-[9px] font-sans font-bold uppercase opacity-80">
-                {isSanctuary ? "MAGIC" : "HP"}
+                {isSanctuary ? "LIFE" : "HP"}
               </span>
             </div>
             <span className="text-xs font-mono font-black text-white">
@@ -1187,7 +1187,7 @@ export function TopHUD({
             </span>
           </div>
 
-          {/* Dew / SHD */}
+          {/* Shield / SHD */}
           <div
             className={`rounded-lg px-1.5 py-0.5 sm:py-1 flex items-center justify-between gap-0.5 min-w-0 border ${
               isSanctuary
@@ -1198,7 +1198,7 @@ export function TopHUD({
             <div className="flex items-center gap-1">
               <EntityIcon type="SHIELD" size={13} />
               <span className="text-[9px] font-sans font-bold uppercase opacity-80">
-                {isSanctuary ? "DEW" : "SHD"}
+                {isSanctuary ? "SHIELD" : "SHD"}
               </span>
             </div>
             <span className="text-xs font-mono font-black text-[#38BDF8]">
@@ -1210,7 +1210,7 @@ export function TopHUD({
             </span>
           </div>
 
-          {/* Sun / WPN */}
+          {/* Power / WPN */}
           <div
             className={`rounded-lg px-1.5 py-0.5 sm:py-1 flex items-center justify-between gap-0.5 min-w-0 border ${
               isSanctuary
@@ -1261,11 +1261,11 @@ export function TopHUD({
         {!isInteractiveTutorial && mode !== "RUN" && (
           <div className="text-[10px] font-sans text-indigo-100/80 leading-tight truncate">
             <span className="text-amber-300 font-bold">Goal:</span> reach the 🌈
-            Archway
+            Exit
             {stars.totalGoldNodesOnFloor > 0
               ? ` · ★ ${Math.ceil(stars.totalGoldNodesOnFloor * 0.8)}+ 💎`
               : ""}
-            {` · ★ finish with ${flawlessHp}+ ✨ or 14 tiles`}
+            {` · ★ finish with ${flawlessHp}+ ❤️ or 14 tiles`}
           </div>
         )}
 
@@ -1348,7 +1348,7 @@ export function TopHUD({
               <div className="flex items-center gap-1.5 min-w-0 flex-1">
                 {simulation.firstDeathCoord ? (
                   isSanctuary ? (
-                    <span className="text-sm shrink-0">✨</span>
+                    <span className="text-sm shrink-0">❤️</span>
                   ) : (
                     <AlertTriangle className="w-3.5 h-3.5 text-[#F43F5E] shrink-0 animate-pulse" />
                   )
@@ -1400,7 +1400,7 @@ export function TopHUD({
                       : "bg-[#0A0B14]/80 border-emerald-400/40 text-emerald-400"
                   }`}
                 >
-                  {isSanctuary ? "✨" : "HP:"} {simulation.projectedHp}/
+                  {isSanctuary ? "❤️" : "HP:"} {simulation.projectedHp}/
                   {hero.maxHp}
                 </span>
                 <span className="px-1.5 py-0.5 rounded bg-[#0A0B14]/80 border border-yellow-500/40 text-[#FACC15]">
@@ -1419,7 +1419,7 @@ export function TopHUD({
             </div>
           ) : (
             <div className="w-full flex items-center justify-between text-xs font-mono">
-              <span>✨ {retractNotice}</span>
+              <span>❤️ {retractNotice}</span>
               <span className="text-[10px] text-amber-300/80">Re-draw</span>
             </div>
           )}

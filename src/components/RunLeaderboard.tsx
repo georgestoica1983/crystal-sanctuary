@@ -122,7 +122,7 @@ export default function RunLeaderboardModal({
           </div>
           <div className="text-[11px] text-indigo-100/80">
             Every player&apos;s best Run, ranked by points. Scores are sent automatically when a
-            garden blooms and when a Run ends.
+            garden is cleared and when a Run ends.
           </div>
           <div className="flex items-center gap-1.5 text-[10px] font-mono text-indigo-200/70">
             {board?.configured ? (

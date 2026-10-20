@@ -21,7 +21,7 @@ export const PRACTICE_GARDEN_SEED = "practice-garden-v1";
 
 export interface LessonGoalStatus {
   ok: boolean;
-  /** Short live text, e.g. "Magic 10 → 7 (lose none)" */
+  /** Short live text, e.g. "Life 10 → 7 (lose none)" */
   detail: string;
 }
 
@@ -45,7 +45,7 @@ export interface RunLesson {
   ) => LessonGoalStatus;
   /** Shown after the goal is met: why it worked */
   success: string;
-  /** Shown when the line reached the Archway but missed the goal */
+  /** Shown when the line reached the Exit but missed the goal */
   failHint: string;
 }
 
@@ -98,13 +98,13 @@ export const RUN_LESSONS: RunLesson[] = [
     title: "Your first line",
     icon: "✍️",
     learn:
-      "Every stroke is one continuous line from your Companion 🐱 to the Archway 🌈. Nothing happens until you let go.",
+      "Draw one continuous line from the YOU tile 🐱 to the Exit 🌈. Nothing happens until you let go.",
     steps: [
-      "Put your finger on the KEEPER tile.",
-      "Without lifting, drag across the three 💎 Gems to the 🌈 Archway.",
-      "Let go on the Archway — your Companion walks the line.",
+      "Put your finger on the YOU tile.",
+      "Without lifting, drag across the three 💎 Gems to the 🌈 Exit.",
+      "Let go on the Exit — your cat walks the line.",
     ],
-    goalLabel: "Reach the Archway",
+    goalLabel: "Reach the Exit",
     hero: hero(10),
     grid: board("L1", [
       ". . . . .",
@@ -116,11 +116,11 @@ export const RUN_LESSONS: RunLesson[] = [
     solution: path([2, 0], [2, 1], [2, 2], [2, 3], [2, 4]),
     checkGoal: (sim) => ({
       ok: reached(sim),
-      detail: sim.endsOnExit ? "Ends on the Archway ✓" : "Keep going to the 🌈 Archway",
+      detail: sim.endsOnExit ? "Ends on the Exit ✓" : "Keep going to the 🌈 Exit",
     }),
     success:
-      "That's a stroke! The line started on your Companion, passed 3 Gems and ended on the Archway. If you let go anywhere else, the line just pulls back — nothing is lost.",
-    failHint: "End the line on the 🌈 Archway.",
+      "That's a line! It started on the YOU tile, passed 3 Gems and ended on the Exit. If you let go anywhere else, the line just pulls back — nothing is lost.",
+    failHint: "End the line on the 🌈 Exit.",
   },
   {
     id: "directions",
@@ -129,11 +129,11 @@ export const RUN_LESSONS: RunLesson[] = [
     learn:
       "A line can step to any neighbouring tile: up, down, left, right — and diagonally. It can't jump over a tile or visit one twice.",
     steps: [
-      "Start on the KEEPER (bottom left).",
-      "Go diagonally up-right, Gem by Gem, to the Archway (top right).",
+      "Start on the YOU tile (bottom left).",
+      "Go diagonally up-right, Gem by Gem, to the Exit (top right).",
       "Made a wrong step? Drag back onto the previous tile to undo it.",
     ],
-    goalLabel: "Collect all 3 Gems and reach the Archway",
+    goalLabel: "Collect all 3 Gems and reach the Exit",
     hero: hero(10),
     grid: board("L2", [
       ". . . . A",
@@ -156,13 +156,13 @@ export const RUN_LESSONS: RunLesson[] = [
     title: "Long lines score more",
     icon: "🧮",
     learn:
-      "A stroke scores Chips × Mult. Chips = the numbers of the tiles on the line. Mult = how many tiles the line has. So a long line scores far more than a short one.",
+      "A line scores Value × Length. Value = the numbers of the tiles on the line. Length = how many tiles the line has. So a long line scores far more than a short one.",
     steps: [
-      "The Archway is right next to you — but a 3-tile line scores almost nothing.",
-      "Instead, loop around the whole ring of Gems before entering the Archway.",
+      "The Exit is right next to you — but a 3-tile line scores almost nothing.",
+      "Instead, loop around the whole ring of Gems before entering the Exit.",
       "Watch the live score in the goal box grow as the line gets longer.",
     ],
-    goalLabel: "Score at least 200 in one stroke",
+    goalLabel: "Score at least 200 in one line",
     hero: hero(10),
     grid: board("L3", [
       "G2 G2 G2 G2 G2",
@@ -176,24 +176,24 @@ export const RUN_LESSONS: RunLesson[] = [
     ),
     checkGoal: (sim, b) => ({
       ok: reached(sim) && b.total >= 200,
-      detail: `${b.chips} Chips × ${b.mult} Mult = ${b.total.toLocaleString()} (need 200)`,
+      detail: `${b.chips} Value × ${b.mult} Length = ${b.total.toLocaleString()} (need 200)`,
     }),
     success:
-      "10 Gems × 2 = 20 Chips, and the line is 12 tiles, so Mult 12: 20 × 12 = 240. The short way would have been 2 × 3 = 6. Both Chips and Mult grow with length — that's the heart of scoring.",
-    failHint: "Make the line longer: go around every Gem before the Archway.",
+      "10 Gems × 2 = 20 Value, and the line is 12 tiles, so Length 12: 20 × 12 = 240. The short way would have been 2 × 3 = 6. Both Value and Length grow with length — that's the heart of scoring.",
+    failHint: "Make the line longer: go around every Gem before the Exit.",
   },
   {
     id: "briars",
-    title: "Briars cost Magic",
+    title: "Thorns cost Life",
     icon: "🌺",
     learn:
-      "✨ Magic is your life. A 🌺 Briar takes Magic equal to its number. Its number also counts as Chips.",
+      "❤️ Life is your health. A 🌺 Thorn takes Life equal to its number. Its number also counts as Value.",
     steps: [
-      "Look at Magic in the top row: 10/10.",
-      "Draw through the Briar 3 and the Gem to the Archway — but don't let go yet.",
-      "See how the preview shows Magic dropping to 7. Then let go.",
+      "Look at Life in the top row: 10/10.",
+      "Draw through the Thorn 3 and the Gem to the Exit — but don't let go yet.",
+      "See how the preview shows Life dropping to 7. Then let go.",
     ],
-    goalLabel: "Reach the Archway with at least 7 Magic",
+    goalLabel: "Reach the Exit with at least 7 Life",
     hero: hero(10),
     grid: board("L4", [
       ". . . . .",
@@ -205,23 +205,23 @@ export const RUN_LESSONS: RunLesson[] = [
     solution: path([2, 0], [2, 1], [2, 2], [2, 3]),
     checkGoal: (sim) => ({
       ok: reached(sim) && sim.finalStats.hp >= 7,
-      detail: `Magic 10 → ${sim.finalStats.hp}`,
+      detail: `Life 10 → ${sim.finalStats.hp}`,
     }),
     success:
-      "The Briar took 3 Magic, and its 3 became Chips. Magic only comes back from Berries — it never refills by itself, not even between gardens.",
-    failHint: "Reach the Archway through the Briar.",
+      "The Thorn took 3 Life, and its 3 became Value. Life only comes back from Berries — it never refills by itself, not even between gardens.",
+    failHint: "Reach the Exit through the Thorn.",
   },
   {
     id: "too-dangerous",
-    title: "Lines that would wilt",
+    title: "Lines that run out of Life",
     icon: "↩️",
     learn:
-      "If a line would bring your Magic to 0, it can't be walked: when you let go it pulls back. Read the preview before letting go.",
+      "If a line would bring your Life to 0, it can't be walked: when you let go it pulls back. Read the preview before letting go.",
     steps: [
-      "You have only 4 Magic. Draw straight through the Briar 6 to the Archway and let go — the line pulls back, because it would wilt you.",
-      "Now go the safe way: up over the three Gems and down to the Archway.",
+      "You have only 4 Life. Draw straight through the Thorn 6 to the Exit and let go — the line pulls back, because it would use up all your Life.",
+      "Now go the safe way: up over the three Gems and down to the Exit.",
     ],
-    goalLabel: "Reach the Archway safely",
+    goalLabel: "Reach the Exit safely",
     hero: hero(4),
     grid: board("L5", [
       ". . . . .",
@@ -233,24 +233,24 @@ export const RUN_LESSONS: RunLesson[] = [
     solution: path([2, 0], [1, 0], [1, 1], [1, 2], [2, 2]),
     checkGoal: (sim) => ({
       ok: reached(sim),
-      detail: sim.survives ? `Magic 4 → ${sim.finalStats.hp}` : "This line would wilt — go around",
+      detail: sim.survives ? `Life 4 → ${sim.finalStats.hp}` : "This line would run out of Life — go around",
     }),
     success:
-      "Going around was safe — and longer, so it scored more too. In real gardens the hard choice is how much Magic a bigger line is worth.",
-    failHint: "Go around the Briar.",
+      "Going around was safe — and longer, so it scored more too. In real gardens the hard choice is how much Life a bigger line is worth.",
+    failHint: "Go around the Thorn.",
   },
   {
     id: "sunbeams",
-    title: "Sunbeams weaken Briars",
+    title: "Power tiles weaken Thorns",
     icon: "☀️",
     learn:
-      "A ☀️ Sunbeam gives you Sun. The next Briar you walk into is weakened by your Sun: damage = Briar − Sun. Then your Sun fades to 0.",
+      "A ☀️ Power tile gives you Power. The next Thorn you walk into is weakened by your Power: damage = Thorn − Power. Then your Power fades to 0.",
     steps: [
-      "You have 4 Magic; the Briar has 5.",
-      "Step diagonally onto the Sunbeam 5 first, then into the Briar, then the Archway.",
-      "Watch Sun go to 5, then back to 0 after the Briar.",
+      "You have 4 Life; the Thorn has 5.",
+      "Step diagonally onto the Power tile 5 first, then into the Thorn, then the Exit.",
+      "Watch Power go to 5, then back to 0 after the Thorn.",
     ],
-    goalLabel: "Pass the Briar without losing any Magic",
+    goalLabel: "Pass the Thorn without losing any Life",
     hero: hero(4),
     grid: board("L6", [
       ". . . . .",
@@ -265,26 +265,26 @@ export const RUN_LESSONS: RunLesson[] = [
       return {
         ok: reached(sim) && hit && sim.finalStats.hp === start.hp,
         detail: hit
-          ? `Magic ${start.hp} → ${sim.finalStats.hp} (lose none)`
-          : "Your line must pass the Briar",
+          ? `Life ${start.hp} → ${sim.finalStats.hp} (lose none)`
+          : "Your line must pass the Thorn",
       };
     },
     success:
-      "Sun 5 − Briar 5 = 0 damage. Your Sun was then used up. Rule of thumb: pick up Sun right before the biggest Briar.",
-    failHint: "Take the Sunbeam before the Briar.",
+      "Power 5 − Thorn 5 = 0 damage. Your Power was then used up. Rule of thumb: pick up Power right before the biggest Thorn.",
+    failHint: "Take the Power tile before the Thorn.",
   },
   {
     id: "sun-fades",
-    title: "Sun fades after one Briar",
+    title: "Power fades after one Thorn",
     icon: "🌗",
     learn:
-      "Sun only protects against one Briar, then it's gone. To pass two Briars safely you need Sun again in between.",
+      "Power only protects against one Thorn, then it's gone. To pass two Thorns safely you need Power again in between.",
     steps: [
-      "There are two Briars on the way.",
-      "Take a Sunbeam before each Briar (zig-zag up and down).",
-      "The Gem in the middle is tempting — but it skips the second Sunbeam.",
+      "There are two Thorns on the way.",
+      "Take a Power tile before each Thorn (zig-zag up and down).",
+      "The Gem in the middle is tempting — but it skips the second Power tile.",
     ],
-    goalLabel: "Pass both Briars without losing Magic",
+    goalLabel: "Pass both Thorns without losing Life",
     hero: hero(10),
     grid: board("L7", [
       ". . . . .",
@@ -298,25 +298,25 @@ export const RUN_LESSONS: RunLesson[] = [
       const briars = visits(sim, "ENEMY").length;
       return {
         ok: reached(sim) && briars === 2 && sim.finalStats.hp === start.hp,
-        detail: `Briars passed ${briars}/2 · Magic ${start.hp} → ${sim.finalStats.hp}`,
+        detail: `Thorns passed ${briars}/2 · Life ${start.hp} → ${sim.finalStats.hp}`,
       };
     },
     success:
-      "Each Sunbeam covered one Briar. Sun does stack if you collect several before a Briar — but one Briar uses it all.",
-    failHint: "Collect a Sunbeam right before each Briar.",
+      "Each Power tile covered one Thorn. Power does stack if you collect several before a Thorn — but one Thorn uses it all.",
+    failHint: "Collect a Power tile right before each Thorn.",
   },
   {
     id: "dew",
-    title: "Dew is a lasting shield",
-    icon: "💧",
+    title: "Shield is a lasting shield",
+    icon: "🛡️",
     learn:
-      "💧 Dew soaks up Briar damage point for point. Unlike Sun, leftover Dew stays with you for the next Briar — and the next stroke.",
+      "🛡️ Shield soaks up Thorn damage point for point. Unlike Power, leftover Shield stays with you for the next Thorn — and the next line.",
     steps: [
-      "You have only 3 Magic and there are two Briars (3 and 2).",
-      "Collect the Dewdrop 5 first, then walk through both Briars.",
-      "Watch Dew go 5 → 2 → 0 while Magic stays at 3.",
+      "You have only 3 Life and there are two Thorns (3 and 2).",
+      "Collect the Shield tile 5 first, then walk through both Thorns.",
+      "Watch Shield go 5 → 2 → 0 while Life stays at 3.",
     ],
-    goalLabel: "Pass both Briars without losing Magic",
+    goalLabel: "Pass both Thorns without losing Life",
     hero: hero(3),
     grid: board("L8", [
       ". . . . .",
@@ -328,24 +328,24 @@ export const RUN_LESSONS: RunLesson[] = [
     solution: path([2, 0], [2, 1], [2, 2], [2, 3], [2, 4]),
     checkGoal: (sim, _b, start) => ({
       ok: reached(sim) && sim.finalStats.hp === start.hp,
-      detail: `Magic ${start.hp} → ${sim.finalStats.hp} · Dew left ${sim.finalStats.shield}`,
+      detail: `Life ${start.hp} → ${sim.finalStats.hp} · Shield left ${sim.finalStats.shield}`,
     }),
     success:
-      "5 Dew covered 3 + 2 damage. Dew carries over between strokes too, so a big Dewdrop late in a line protects your next stroke.",
-    failHint: "Collect the Dew first.",
+      "5 Shield covered 3 + 2 damage. Shield carries over between lines too, so a big Shield tile late in a line protects your next line.",
+    failHint: "Collect the Shield first.",
   },
   {
     id: "order",
-    title: "Sun first, then Dew, then Magic",
+    title: "Power first, then Shield, then Life",
     icon: "🔢",
     learn:
-      "When you hit a Briar: 1) Sun lowers it, 2) Dew absorbs what's left, 3) the rest comes off Magic.",
+      "When you hit a Thorn: 1) Power lowers it, 2) Shield absorbs what's left, 3) the rest comes off Life.",
     steps: [
-      "You have 5 Magic. The Briar is 7.",
-      "Walk Sunbeam 2 → Dewdrop 2 → Briar 7 → Archway.",
-      "Do the maths before letting go: 7 − 2 Sun = 5, − 2 Dew = 3 damage.",
+      "You have 5 Life. The Thorn is 7.",
+      "Walk Power tile 2 → Shield tile 2 → Thorn 7 → Exit.",
+      "Do the maths before letting go: 7 − 2 Power = 5, − 2 Shield = 3 damage.",
     ],
-    goalLabel: "Reach the Archway with exactly 2 Magic",
+    goalLabel: "Reach the Exit with exactly 2 Life",
     hero: hero(5),
     grid: board("L9", [
       ". . . . .",
@@ -357,23 +357,23 @@ export const RUN_LESSONS: RunLesson[] = [
     solution: path([2, 0], [2, 1], [2, 2], [2, 3], [2, 4]),
     checkGoal: (sim) => ({
       ok: reached(sim) && sim.finalStats.hp === 2,
-      detail: `Magic 5 → ${sim.survives ? sim.finalStats.hp : 0}`,
+      detail: `Life 5 → ${sim.survives ? sim.finalStats.hp : 0}`,
     }),
     success:
-      "Exactly: 7 − 2 = 5, Dew took 2, Magic took 3 → 2 left. Tap any tile (without dragging) to read what it does — handy for doing this maths in a real garden.",
-    failHint: "Use the Sunbeam and the Dewdrop before the Briar.",
+      "Exactly: 7 − 2 = 5, Shield took 2, Life took 3 → 2 left. Tap any tile (without dragging) to read what it does — handy for doing this maths in a real garden.",
+    failHint: "Use the Power tile and the Shield tile before the Thorn.",
   },
   {
     id: "berries",
-    title: "Berries restore Magic",
+    title: "Berries restore Life",
     icon: "🍓",
     learn:
-      "🍓 Berries give back Magic equal to their number — but never above your maximum. Healing past the maximum is wasted.",
+      "🍓 Berries give back Life equal to their number — but never above your maximum. Healing past the maximum is wasted.",
     steps: [
-      "You are hurt: 3 of 10 Magic. The Briar 6 would wilt you.",
-      "Eat the Berries 5 first, then pass the Briar.",
+      "You are hurt: 3 of 10 Life. The Thorn 6 would use up all your Life.",
+      "Eat the Berries 5 first, then pass the Thorn.",
     ],
-    goalLabel: "Reach the Archway through the Briar",
+    goalLabel: "Reach the Exit through the Thorn",
     hero: hero(3),
     grid: board("L10", [
       ". . . . .",
@@ -385,23 +385,23 @@ export const RUN_LESSONS: RunLesson[] = [
     solution: path([2, 0], [1, 1], [2, 2], [2, 3]),
     checkGoal: (sim) => ({
       ok: reached(sim) && visits(sim, "ENEMY").length > 0,
-      detail: sim.survives ? `Magic 3 → ${sim.finalStats.hp}` : "This line would wilt",
+      detail: sim.survives ? `Life 3 → ${sim.finalStats.hp}` : "This line would run out of Life",
     }),
     success:
-      "3 + 5 = 8 Magic, minus 6 = 2. With full Magic those Berries would have been wasted — save them for when you're hurt.",
-    failHint: "Eat the Berries before the Briar.",
+      "3 + 5 = 8 Life, minus 6 = 2. With full Life those Berries would have been wasted — save them for when you're hurt.",
+    failHint: "Eat the Berries before the Thorn.",
   },
   {
     id: "thistles",
-    title: "Thistles: go diagonal",
-    icon: "🌵",
+    title: "Spikes: go diagonal",
+    icon: "⚙️",
     learn:
-      "A 🌵 Thistle cuts straight into Magic — Dew and Sun don't help. But if you step onto it diagonally, you dodge it completely. It still scores Chips.",
+      "A ⚙️ Spike cuts straight into Life — Shield and Power don't help. But if you step onto it diagonally, you dodge it completely. It still scores Value.",
     steps: [
-      "Going straight through the Thistle 4 costs 4 Magic.",
-      "Instead, step up onto the Gem, then diagonally down onto the Thistle, then to the Archway.",
+      "Going straight through the Spike 4 costs 4 Life.",
+      "Instead, step up onto the Gem, then diagonally down onto the Spike, then to the Exit.",
     ],
-    goalLabel: "Cross the Thistle without losing Magic",
+    goalLabel: "Cross the Spike without losing Life",
     hero: hero(5),
     grid: board("L11", [
       ". . . . .",
@@ -416,26 +416,26 @@ export const RUN_LESSONS: RunLesson[] = [
       return {
         ok: reached(sim) && onThistle && sim.finalStats.hp === start.hp,
         detail: onThistle
-          ? `Magic ${start.hp} → ${sim.finalStats.hp}`
-          : "Your line must cross the Thistle",
+          ? `Life ${start.hp} → ${sim.finalStats.hp}`
+          : "Your line must cross the Spike",
       };
     },
     success:
-      "Diagonal entry = no damage, and the Thistle's 4 still counted as Chips. In real gardens, plan your line so Thistles are entered on a diagonal.",
-    failHint: "Enter the Thistle diagonally (from the Gem above).",
+      "Diagonal entry = no damage, and the Spike's 4 still counted as Value. In real gardens, plan your line so Spikes are entered on a diagonal.",
+    failHint: "Enter the Spike diagonally (from the Gem above).",
   },
   {
     id: "full-garden",
     title: "Put it all together",
     icon: "🌸",
     learn:
-      "A real garden is a full 5×5 board. The best lines are long, gather Sun before big Briars, keep Dew for later, and enter Thistles diagonally.",
+      "A real garden is a full 5×5 board. The best lines are long, gather Power before big Thorns, keep Shield for later, and enter Spikes diagonally.",
     steps: [
       "Plan a long line that passes many tiles.",
-      "Keep at least 4 Magic — in a real garden you'll need it for the next strokes.",
+      "Keep at least 4 Life — in a real garden you'll need it for the next lines.",
       "Stuck? Tap Show me.",
     ],
-    goalLabel: "Score at least 1,000 and keep 4+ Magic",
+    goalLabel: "Score at least 1,000 and keep 4+ Life",
     hero: hero(10, 2),
     grid: board("L12", [
       "G3 S4 B5 A T3",
@@ -450,10 +450,10 @@ export const RUN_LESSONS: RunLesson[] = [
     ),
     checkGoal: (sim, b) => ({
       ok: reached(sim) && b.total >= 1000 && sim.finalStats.hp >= 4,
-      detail: `Score ${b.total.toLocaleString()} / 1,000 · Magic ${sim.survives ? sim.finalStats.hp : 0} (keep 4+)`,
+      detail: `Score ${b.total.toLocaleString()} / 1,000 · Life ${sim.survives ? sim.finalStats.hp : 0} (keep 4+)`,
     }),
     success:
-      "That's how a strong stroke looks. Next: a real practice garden with several strokes, a score target, Weed-outs and the Shop.",
-    failHint: "Make the line longer, or protect more Magic with Sun and Dew.",
+      "That's how a strong line looks. Next: a real practice garden with several lines, a score target, Swaps and the Shop.",
+    failHint: "Make the line longer, or protect more Life with Power and Shield.",
   },
 ];

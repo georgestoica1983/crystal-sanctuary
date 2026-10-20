@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useId } from "react";
-import { Shield, Crown, Sparkles, Compass } from "lucide-react";
+import { Cat, Crown, Sparkles, Compass } from "lucide-react";
 import { EntityType, HeroClassId, SanctuaryCompanionId } from "@/types/game";
 
 export interface EntityIconProps {
@@ -24,7 +24,7 @@ export const ENTITY_COLORS: Record<string, string> = {
   POISON_POTION: "#A855F7",
   GOLD: "#EAB308",
   ENEMY: "#F43F5E",
-  TRAP: "#EC4899",
+  TRAP: "#CBD5E1",
   EXIT: "#A855F7",
   HERO: "#FDE047",
 };
@@ -74,7 +74,7 @@ export default function EntityIcon({
         ? Sparkles
         : isRogue
         ? Compass
-        : Shield;
+        : Cat;
 
       return (
         <div
@@ -90,33 +90,31 @@ export default function EntityIcon({
     }
 
     case "SHIELD": {
-      // 💧 Glossy cyan Dewdrop
+      // 🛡️ Glossy cyan Shield (blocks Thorn damage)
       return (
         <svg {...svgProps}>
           <defs>
-            <linearGradient id={`dew-${uid}`} x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id={`shield-${uid}`} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#A5F3FC" />
               <stop offset="55%" stopColor="#22D3EE" />
               <stop offset="100%" stopColor="#0E7490" />
             </linearGradient>
           </defs>
           <path
-            d="M12 2.5C12 2.5 5 10.2 5 15a7 7 0 0 0 14 0c0-4.8-7-12.5-7-12.5Z"
-            fill={`url(#dew-${uid})`}
+            d="M12 2.5 4.5 5.3v6.1c0 4.7 3.2 8.6 7.5 10.1 4.3-1.5 7.5-5.4 7.5-10.1V5.3Z"
+            fill={`url(#shield-${uid})`}
             stroke="#06B6D4"
             strokeWidth="1.4"
             strokeLinejoin="round"
           />
-          <ellipse
-            cx="9.4"
-            cy="14"
-            rx="1.6"
-            ry="2.6"
-            transform="rotate(-20 9.4 14)"
-            fill="#ECFEFF"
-            opacity="0.85"
+          <path
+            d="M12 5.4 7.4 7.1v4.3c0 2.9 1.9 5.4 4.6 6.6"
+            fill="none"
+            stroke="#ECFEFF"
+            strokeWidth="1.3"
+            strokeLinecap="round"
+            opacity="0.8"
           />
-          <circle cx="10.3" cy="18.2" r="0.8" fill="#ECFEFF" opacity="0.6" />
         </svg>
       );
     }
@@ -280,31 +278,23 @@ export default function EntityIcon({
     }
 
     case "TRAP": {
-      // 🌵 Spiky magenta Thistle head on a short stem
-      const spikes = Array.from({ length: 12 }, (_, i) => i * 30);
+      // ⚙️ Grey metal Spike (hurts when stepped on straight; dodge diagonally)
+      const spikes = Array.from({ length: 8 }, (_, i) => i * 45);
       return (
         <svg {...svgProps}>
-          <path
-            d="M12 15v7M12 19.5c-1.8-.2-3-1.1-3.6-2.6M12 18.6c1.8-.1 3-1 3.6-2.4"
-            stroke="#22C55E"
-            strokeWidth="1.4"
-            strokeLinecap="round"
-          />
           {spikes.map((deg) => (
             <path
               key={deg}
-              d="M12 1.5 13 6 11 6Z"
-              fill="#EC4899"
-              transform={`rotate(${deg} 12 9.5)`}
+              d="M12 1.2 14.1 7.4 9.9 7.4Z"
+              fill="#CBD5E1"
+              stroke="#64748B"
+              strokeWidth="0.6"
+              strokeLinejoin="round"
+              transform={`rotate(${deg} 12 12)`}
             />
           ))}
-          <circle cx="12" cy="9.5" r="4.6" fill="#9D174D" stroke="#EC4899" strokeWidth="1.3" />
-          <path
-            d="M9.6 8.4h4.8M9.3 10.4h5.4M10.4 12.2h3.2"
-            stroke="#FBCFE8"
-            strokeWidth="0.8"
-            strokeLinecap="round"
-          />
+          <circle cx="12" cy="12" r="5.2" fill="#475569" stroke="#CBD5E1" strokeWidth="1.3" />
+          <circle cx="10.4" cy="10.4" r="1.4" fill="#E2E8F0" opacity="0.8" />
         </svg>
       );
     }

@@ -76,7 +76,7 @@ export default function LineCompare({
   yourMagicCost: number;
   bestMagicCost: number | null;
 }) {
-  const cost = (n: number) => (n > 0 ? ` · ✨−${n}` : " · ✨±0");
+  const cost = (n: number) => (n > 0 ? ` · ❤️−${n}` : " · ❤️±0");
   const yourTier = getLineTier(yourPath.length);
   const bestTier = bestPath ? getLineTier(bestPath.length) : null;
   const ratio =
@@ -120,7 +120,7 @@ export default function LineCompare({
           <span className="font-black text-amber-200">
             {ratio ? `${ratio}×` : "more"}
           </span>{" "}
-          as much. Longer lines grow Chips and Mult together — but watch the ✨ Magic they cost.
+          as much. Longer lines grow Value and Length together — but watch the ❤️ Life they cost.
         </div>
       )}
     </div>

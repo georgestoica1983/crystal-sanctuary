@@ -276,8 +276,8 @@ export default function ShopModal({
             </span>
             {(upgrades.bonusMaxMagic > 0 || upgrades.bonusStartDew > 0) && (
               <span className="text-emerald-300 normal-case">
-                {upgrades.bonusMaxMagic > 0 && `✨ +${upgrades.bonusMaxMagic} Max Magic `}
-                {upgrades.bonusStartDew > 0 && `💧 +${upgrades.bonusStartDew} Dew`}
+                {upgrades.bonusMaxMagic > 0 && `❤️ +${upgrades.bonusMaxMagic} Max Life `}
+                {upgrades.bonusStartDew > 0 && `🛡️ +${upgrades.bonusStartDew} Shield`}
               </span>
             )}
           </div>

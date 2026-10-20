@@ -174,10 +174,12 @@ refused("lower score than replay", submit(clone(), base.score - 1));
   refused("more weed-outs than allowed", submit(log));
 }
 {
-  // Short safe lines never bloom the garden, so the 4 strokes run out
+  // Short safe lines never bloom the garden, so the 4 strokes run out.
+  // This seed was picked for the v2 boards, so the scenario runs on v2 rules
+  // (older logs must keep replaying with their own rules anyway).
   const seed = "run-1700000000004-5";
-  const run = createRunReplayer(seed, "KNIGHT");
-  const log: RunActionLog = { v: RUN_LOG_VERSION, seed, hero: "KNIGHT", a: [] };
+  const run = createRunReplayer(seed, "KNIGHT", 2);
+  const log: RunActionLog = { v: 2, seed, hero: "KNIGHT", a: [] };
   for (let i = 0; i < 5; i++) {
     const s = run.state;
     const line = findSurvivableHintPath(s.grid, s.startHero, RUN_MODIFIER, s.classId, s.relics, false);
@@ -218,7 +220,15 @@ refused("lower score than replay", submit(clone(), base.score - 1));
   refused("same actions on another seed", submit(log));
 }
 {
-  const withSale = botLogs.find((b) => b.log.a.some((a) => a.k === "x"));
+  // A bot only sells once its 5 slots are full, so look across a few more seeds
+  let withSale = botLogs.find((b) => b.log.a.some((a) => a.k === "x"));
+  for (let i = 0; !withSale && i < 12; i++) {
+    const extra = playBotRun(`run-1700000000100-${i}`, "KNIGHT", 14);
+    const replay = replayRun(JSON.parse(JSON.stringify(extra.log)));
+    if (extra.log.a.some((a) => a.k === "x") && replay.ok && replay.score === extra.expected) {
+      withSale = { log: extra.log, score: extra.expected };
+    }
+  }
   check("a bot Run sold a relic", Boolean(withSale));
   if (withSale) {
     const cloneSale = (): RunActionLog => JSON.parse(JSON.stringify(withSale.log));

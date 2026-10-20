@@ -19,7 +19,7 @@ import {
 
 const fmt = (n: number) => Math.round(n).toLocaleString();
 
-/** Season · garden, target, score bar, strokes and weed-outs */
+/** Season · garden, target, score bar, lines and weed-outs */
 export function RunHudStrip({
   garden,
   previewScore,
@@ -95,9 +95,9 @@ export function RunHudStrip({
       <div className="flex items-center justify-between gap-2 h-8">
         <div
           className="flex items-center gap-1.5 text-[12px] text-white/55"
-          aria-label={`${garden.strokesLeft} strokes left`}
+          aria-label={`${garden.strokesLeft} lines left`}
         >
-          <span>Strokes</span>
+          <span>Lines</span>
           {Array.from({ length: RUN_STROKES_PER_GARDEN }, (_, i) => (
             <span
               key={i}
@@ -120,7 +120,7 @@ export function RunHudStrip({
               : "bg-white/[0.05] border-white/[0.1] text-white/85"
           }`}
         >
-          <span aria-hidden="true">🌿</span> Weed-out · {garden.weedOutsLeft}
+          <span aria-hidden="true">🌿</span>{" "}Swap · {garden.weedOutsLeft}
         </button>
       </div>
       )}
@@ -143,7 +143,7 @@ export function RunHudStrip({
             onClick={onConfirmWeedOut}
             className="h-8 px-3 rounded-lg bg-lime-300 text-slate-950 text-[12px] font-bold disabled:opacity-40"
           >
-            Weed out {weedOutCount > 0 ? weedOutCount : ""}
+            Swap {weedOutCount > 0 ? weedOutCount : ""}
           </button>
         </div>
       )}
@@ -152,7 +152,7 @@ export function RunHudStrip({
   );
 }
 
-/** Tap up to 3 tiles on the board to swap them for new ones from the Seed Bag */
+/** Tap up to 3 tiles on the board to swap them for new ones from the Tile Bag */
 export function RunWeedOutOverlay({
   grid,
   selected,
@@ -177,7 +177,7 @@ export function RunWeedOutOverlay({
                   key={cell.id}
                   type="button"
                   disabled={locked}
-                  aria-label={`Weed out row ${r + 1} column ${c + 1}`}
+                  aria-label={`Swap row ${r + 1} column ${c + 1}`}
                   aria-pressed={on}
                   onClick={() => onToggle({ row: r, col: c })}
                   className={`rounded-xl transition ${
@@ -229,9 +229,9 @@ export function RunGardenClearModal({
   const { kind } = getRunGardenPosition(info.gardenIndex);
   const legendary = info.legendary ? RELIC_REGISTRY[info.legendary] : null;
   const lines = [
-    { label: `${getRunGardenKindLabel(kind)} bloomed`, value: info.clearReward },
+    { label: `${getRunGardenKindLabel(kind)} cleared`, value: info.clearReward },
     {
-      label: `Unused strokes (${info.strokesLeft})${
+      label: `Unused lines (${info.strokesLeft})${
         info.strokeBonus > info.strokesLeft ? " · 👒 ×2" : ""
       }`,
       value: info.strokeBonus,
@@ -255,7 +255,7 @@ export function RunGardenClearModal({
             {getRunGardenLabel(info.gardenIndex)}
           </div>
           <div className="text-2xl font-black text-emerald-100 drop-shadow-[0_0_12px_rgba(52,211,153,0.8)]">
-            Garden in bloom! 🌸
+            Garden cleared! 🌸
           </div>
           <div className="text-xs font-mono text-emerald-100/80 mt-0.5">
             {fmt(info.score)} / {fmt(info.target)}
@@ -319,17 +319,17 @@ const REASON_COPY: Record<RunEndReason, { title: string; body: string; icon: str
   MISSED_TARGET: {
     icon: "🥀",
     title: "Target missed",
-    body: "Your last stroke didn't reach this garden's target.",
+    body: "Your last line didn't reach this garden's target.",
   },
   NO_SAFE_LINE: {
     icon: "🪨",
     title: "No safe line",
-    body: "Your Magic can't carry the Companion to the Archway on this board, and no Weed-outs are left.",
+    body: "Your Life can't carry the Companion to the Exit on this board, and no Swaps are left.",
   },
   WILTED: {
     icon: "💫",
-    title: "Out of Magic",
-    body: "Your Companion ran out of Magic on that stroke.",
+    title: "Out of Life",
+    body: "Your Companion ran out of Life on that line.",
   },
   ENDED: {
     icon: "🌙",
@@ -390,7 +390,7 @@ export function RunOverModal({
             </div>
           )}
           <div className="flex justify-between">
-            <span className="text-zinc-300">Gardens bloomed</span>
+            <span className="text-zinc-300">Gardens cleared</span>
             <span className="font-black">{info.gardensCleared}</span>
           </div>
           <div className="flex justify-between">

@@ -17,7 +17,7 @@ interface ScoreTallyProps {
   parPercent?: number | null;
   isFinalFloor: boolean;
   clearReward?: number;
-  /** Run mode stroke tally: faster animation and garden-target wording */
+  /** Run mode line tally: faster animation and garden-target wording */
   quick?: boolean;
   scoreLabel?: string;
   runningTotalLabel?: string;
@@ -56,7 +56,7 @@ const fmt = (n: number) =>
   Number.isInteger(n) ? n.toLocaleString() : n.toLocaleString(undefined, { maximumFractionDigits: 2 });
 
 /**
- * Balatro-style floor tally: Chips lines tick in, Mult builds up, relic
+ * Balatro-style floor tally: Value lines tick in, Length builds up, relic
  * multipliers pop, then the garden score slams down with floating text.
  */
 export default function ScoreTally({
@@ -198,11 +198,11 @@ export default function ScoreTally({
           </div>
         </div>
 
-        {/* Chips × Mult boxes */}
+        {/* Value × Length boxes */}
         <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-1.5 min-[360px]:gap-2">
           <div className="rounded-xl border-2 border-sky-400 bg-sky-500/15 p-2 shadow-[0_0_18px_rgba(56,189,248,0.4)]">
             <div className="text-[9px] font-mono font-black uppercase text-sky-200 text-center">
-              Chips
+              Value
             </div>
             <motion.div
               key={`c-${stage >= 1}`}
@@ -230,7 +230,7 @@ export default function ScoreTally({
 
           <div className="rounded-xl border-2 border-rose-400 bg-rose-500/15 p-2 shadow-[0_0_18px_rgba(244,63,94,0.4)]">
             <div className="text-[9px] font-mono font-black uppercase text-rose-200 text-center">
-              Mult
+              Length
             </div>
             <motion.div
               key={`m-${stage >= 2}`}
@@ -255,7 +255,7 @@ export default function ScoreTally({
           </div>
         </div>
 
-        {/* Relic ×Mult pops */}
+        {/* Relic ×Length pops */}
         {breakdown.xMultSources.length > 0 && (
           <div className="flex flex-wrap justify-center gap-1.5 min-h-[28px]">
             {breakdown.xMultSources.map((x, i) => (

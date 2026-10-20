@@ -7,8 +7,8 @@ import { getLineTier, getNextLineTier, LINE_TIERS } from "@/lib/lineTiers";
 const fmt = (n: number) => Math.round(n).toLocaleString();
 
 /**
- * Live Chips × Mult meter above the board. Calm by default: one hint line
- * before drawing; while drawing, the score, the per-step gain, the Magic cost
+ * Live Value × Length meter above the board. Calm by default: one hint line
+ * before drawing; while drawing, the score, the per-step gain, the Life cost
  * and — only when it matters — the line tier, a short-line tip, or why the
  * line would wilt.
  */
@@ -26,25 +26,35 @@ export default function LineMeter({
   magicAfter,
   tilesOnBoard,
   showShortLineTip,
+  intro,
 }: {
-  /** Tiles in the line, counting the Companion's home tile and the Archway */
+  /** Tiles in the line, counting the Companion's home tile and the Exit */
   tiles: number;
   chips: number;
   mult: number;
   xMult: number;
   /** Points of the same line one step shorter */
   previousPoints: number;
-  /** Chips the newest tile added */
+  /** Value the newest tile added */
   lastTileValue: number;
   reachesArchway: boolean;
   wilts: boolean;
-  /** Why the line would wilt, e.g. "🌺6 − ☀️0 − 💧2 = 4 damage, you have 3 ✨" */
+  /** Why the line would wilt, e.g. "🌺6 − ☀️0 − 🛡️2 = 4 damage, you have 3 ❤️" */
   wiltReason?: string | null;
   magicNow: number;
   magicAfter: number;
   /** Walkable tiles on this board (for "N / M tiles") */
   tilesOnBoard: number;
   showShortLineTip: boolean;
+  /** A tile type seen for the first time: shown instead of the idle hint */
+  intro?: {
+    icon: React.ReactNode;
+    name: string;
+    text: string;
+    index: number;
+    total: number;
+    onNext: () => void;
+  } | null;
 }) {
   const drawing = tiles >= 2;
   const points = Math.round(chips * mult * xMult);
@@ -104,9 +114,26 @@ export default function LineMeter({
       className="relative w-full max-w-[430px] min-w-0 h-[64px] rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-1.5 flex flex-col justify-center"
       aria-live="polite"
     >
-      {!drawing ? (
+      {!drawing && intro ? (
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 shrink-0 flex items-center justify-center">{intro.icon}</div>
+          <div className="min-w-0 flex-1 text-[12.5px] leading-snug text-white/85">
+            <span className="text-[10px] font-semibold uppercase tracking-wide text-teal-200/80 block">
+              New tile{intro.total > 1 ? ` · ${intro.total - 1} more` : ""}
+            </span>
+            <b className="text-white">{intro.name}</b> {intro.text}
+          </div>
+          <button
+            type="button"
+            onClick={intro.onNext}
+            className="h-9 shrink-0 px-3 rounded-lg bg-teal-300 text-slate-950 text-[12px] font-bold active:scale-95"
+          >
+            {intro.total > 1 ? "Next" : "Got it"}
+          </button>
+        </div>
+      ) : !drawing ? (
         <div className="text-[12.5px] leading-snug text-white/60 text-center">
-          Drag from your Companion to the 🌈.{" "}
+          Drag from YOU 🐱 to the 🌈 Exit.{" "}
           <span className="text-amber-200/90">Longer lines score far more.</span>
         </div>
       ) : (
@@ -114,10 +141,10 @@ export default function LineMeter({
           <div className="flex items-baseline gap-2 min-w-0">
             <div className="flex items-baseline gap-1 font-mono shrink-0">
               <span className="text-[17px] font-black text-sky-300 leading-none">{fmt(chips)}</span>
-              <span className="text-[10px] text-white/40">chips</span>
+              <span className="text-[10px] text-white/40">value</span>
               <span className="text-[13px] text-white/40 mx-0.5">×</span>
               <span className="text-[17px] font-black text-rose-300 leading-none">{fmt(mult)}</span>
-              <span className="text-[10px] text-white/40">mult</span>
+              <span className="text-[10px] text-white/40">length</span>
               {xMult !== 1 && (
                 <span className="text-[11px] font-black text-fuchsia-300">×{Math.round(xMult * 100) / 100}</span>
               )}
@@ -141,12 +168,12 @@ export default function LineMeter({
                 transition={{ duration: 0.16 }}
                 className="text-emerald-200/90 whitespace-nowrap"
               >
-                {lastTileValue > 0 ? `+${lastTileValue} chips, ` : ""}+1 mult →{" "}
+                {lastTileValue > 0 ? `+${lastTileValue} value, ` : ""}+1 length →{" "}
                 <span className="font-black text-emerald-300">+{fmt(gain)}</span>
               </motion.span>
             </AnimatePresence>
             <span className="ml-auto shrink-0 whitespace-nowrap text-white/50">
-              <span className={magicCost > 0 ? "text-rose-200" : ""}>✨{magicCost > 0 ? `−${magicCost}` : "±0"}</span>
+              <span className={magicCost > 0 ? "text-rose-200" : ""}>❤️{magicCost > 0 ? `−${magicCost}` : "±0"}</span>
               {" · "}
               {tiles - 1}/{tilesOnBoard}
             </span>

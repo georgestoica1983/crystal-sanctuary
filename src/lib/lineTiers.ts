@@ -27,6 +27,24 @@ export function getNextLineTier(tiles: number): LineTier | null {
   return LINE_TIERS.find((t) => t.minTiles > tiles) ?? null;
 }
 
+/**
+ * One-line introductions shown the first time each tile type appears on a
+ * player's board (plain words; the tile picture is shown next to it).
+ */
+export const TILE_INTRO_ORDER = ["ENEMY", "GOLD", "WEAPON", "POTION", "SHIELD", "TRAP"] as const;
+export type IntroTileType = (typeof TILE_INTRO_ORDER)[number];
+export const TILE_INTROS: Record<IntroTileType, { name: string; text: string }> = {
+  ENEMY: { name: "Thorn", text: "costs ❤️ Life — the number shows how much." },
+  GOLD: { name: "Gem", text: "adds its number to your points." },
+  WEAPON: { name: "Power", text: "weakens the next Thorn you walk into." },
+  POTION: { name: "Berries", text: "give back ❤️ Life." },
+  SHIELD: { name: "Shield", text: "blocks Thorn damage, and it lasts." },
+  TRAP: { name: "Spike", text: "costs ❤️ Life — unless you step on it diagonally ↗." },
+};
+export const SEEN_TILE_INTROS_KEY = "ost_seen_tile_intros_v1";
+/** Until the first line is walked, home and the Exit pulse */
+export const FIRST_LINE_DONE_KEY = "ost_first_line_done_v1";
+
 /** A stroke this long counts as "learned long lines" for first-time tips */
 export const LONG_LINE_LEARNED_TILES = 12;
 export const LONG_LINE_LEARNED_KEY = "ost_long_line_learned_v1";

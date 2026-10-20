@@ -110,10 +110,15 @@ import { submitRunToLeaderboard } from "@/lib/runLeaderboard";
 import LineMeter from "@/components/LineMeter";
 import LineCompare from "@/components/LineCompare";
 import {
+  FIRST_LINE_DONE_KEY,
   LONG_LINE_LEARNED_KEY,
   LONG_LINE_LEARNED_TILES,
+  SEEN_TILE_INTROS_KEY,
   SHORT_LINE_NUDGE_TILES,
+  TILE_INTRO_ORDER,
+  TILE_INTROS,
 } from "@/lib/lineTiers";
+import EntityIcon from "@/components/EntityIcon";
 import {
   applyRunShopPurchase,
   applyRunShopReroll,
@@ -197,7 +202,7 @@ export default function OneStrokeTacticianPage() {
   const [legendaryAward, setLegendaryAward] = useState<RelicId | null>(null);
   // Loadout leaving each garden's Shop (saved with Daily progress)
   const shopLoadoutsRef = useRef<Array<DailyShopLoadout | null>>([]);
-  // Chips × Mult tally shown after a garden; what to do once it's dismissed
+  // Value × Length tally shown after a garden; what to do once it's dismissed
   const [tally, setTally] = useState<{
     breakdown: FloorScoreBreakdown;
     stars: FloorStarBreakdown;
@@ -224,7 +229,7 @@ export default function OneStrokeTacticianPage() {
     };
   } | null>(null);
   const afterTallyRef = useRef<(() => void) | null>(null);
-  // Run mode: the run's Seed Bag, the garden in play, and its screens
+  // Run mode: the run's Tile Bag, the garden in play, and its screens
   const [runBag, setRunBag] = useState<SeedTile[]>([]);
   const [runGarden, setRunGarden] = useState<RunGardenState | null>(null);
   const [runNoSafeLine, setRunNoSafeLine] = useState<boolean>(false);
@@ -256,6 +261,10 @@ export default function OneStrokeTacticianPage() {
   // First-time teaching: until a 12+ tile stroke, short lines get tips and the
   // stroke result compares your line with a long line on the same board
   const [longLineLearned, setLongLineLearned] = useState<boolean>(true);
+  // First-time teaching on the board: tile types already introduced, and
+  // whether a first line has ever been walked (until then home and Exit pulse)
+  const [seenTileIntros, setSeenTileIntros] = useState<string[] | null>(null);
+  const [firstLineDone, setFirstLineDone] = useState<boolean>(true);
   const compareTokenRef = useRef(0);
   const [pendingPostFloorStats, setPendingPostFloorStats] =
     useState<HeroStats | null>(null);
@@ -379,6 +388,13 @@ export default function OneStrokeTacticianPage() {
           Number(window.localStorage.getItem(RUN_LESSONS_PROGRESS_KEY)) || 0
         );
         setLongLineLearned(Boolean(window.localStorage.getItem(LONG_LINE_LEARNED_KEY)));
+        setFirstLineDone(Boolean(window.localStorage.getItem(FIRST_LINE_DONE_KEY)));
+        try {
+          const seen = JSON.parse(window.localStorage.getItem(SEEN_TILE_INTROS_KEY) || "[]");
+          setSeenTileIntros(Array.isArray(seen) ? seen : []);
+        } catch {
+          setSeenTileIntros([]);
+        }
         if (!window.localStorage.getItem(RUN_WELCOME_KEY)) setHelpMenu("welcome");
       } catch {
         setHelpMenu("welcome");
@@ -531,7 +547,7 @@ export default function OneStrokeTacticianPage() {
     activeRelicsForBoard,
   ]);
 
-  // Live Chips × Mult meter: this line and the same line one step shorter
+  // Live Value × Length meter: this line and the same line one step shorter
   const lineMeter = useMemo(() => {
     const len = drawnPath.length;
     const now = calculateFloorScoreBreakdown(simulation, floorStartHero, len, activeRelicsForBoard, relicScoreCtx);
@@ -714,7 +730,7 @@ export default function OneStrokeTacticianPage() {
         (sum, f) => sum + (f.stars?.totalStars ?? 0),
         0
       );
-      // Chips × Mult: the visit's score is the sum of its gardens' scores
+      // Value × Length: the visit's score is the sum of its gardens' scores
       const score = calculateRunScore(params.history);
       setFinalScore(score);
       const official = recordFinishedRun({
@@ -808,7 +824,7 @@ export default function OneStrokeTacticianPage() {
   }, [resetRunWithDungeon, finishRun, handleNotice]);
 
   /**
-   * Starts a fresh Run: a new seed, a new Seed Bag and Season 1's Small Garden.
+   * Starts a fresh Run: a new seed, a new Tile Bag and Season 1's Small Garden.
    */
   const startRun = useCallback(
     (overrideClassId?: HeroClassId, isTrial?: boolean, options?: { practice?: boolean }) => {
@@ -824,7 +840,7 @@ export default function OneStrokeTacticianPage() {
         seedKey: runSeed,
         dateKey: getTodayDateKey(),
         title: "Seasons Run",
-        lore: "Season after season the gardens grow wilder. Bloom each one before your strokes run out.",
+        lore: "Season after season the gardens grow wilder. Clear each one before your lines run out.",
         modifierId: "NONE",
         source: "deterministic-fallback",
         floors: [first.floor],
@@ -1006,9 +1022,9 @@ export default function OneStrokeTacticianPage() {
         const relic = getRelicDisplay(RELIC_REGISTRY[offer.relicId], true);
         handleNotice(`${relic.icon} ${relic.name} joins your relics!`);
       } else if (offer.stat === "MAX_MAGIC") {
-        handleNotice(`${SHOP_STAT_BOOSTS.MAX_MAGIC.icon} +2 Max Magic for this visit!`);
+        handleNotice(`${SHOP_STAT_BOOSTS.MAX_MAGIC.icon} +2 Max Life for this visit!`);
       } else if (offer.stat === "START_DEW") {
-        handleNotice(`${SHOP_STAT_BOOSTS.START_DEW.icon} +1 Dew at the start of every garden!`);
+        handleNotice(`${SHOP_STAT_BOOSTS.START_DEW.icon} +1 Shield at the start of every garden!`);
       }
       if (mode === "RUN") logRunAction({ k: "b", o: offer.id });
       setPendingPostFloorStats(next);
@@ -1130,6 +1146,8 @@ export default function OneStrokeTacticianPage() {
         runSeed: dungeon.seedKey,
         bag: runBag,
         gardenIndex: nextIndex,
+        // A resumed older Run keeps its own rules (it replays on the server)
+        logVersion: runLogRef.current?.v,
       });
       logRunAction({ k: "l", h: nextClassId });
       setDungeon((d) => ({ ...d, floors: [...d.floors.slice(0, nextIndex), next.floor] }));
@@ -1190,7 +1208,7 @@ export default function OneStrokeTacticianPage() {
     practiceStep,
   ]);
 
-  /** Dismiss the Chips × Mult tally and continue (Shop or results) */
+  /** Dismiss the Value × Length tally and continue (Shop or results) */
   const handleTallyContinue = useCallback(() => {
     const next = afterTallyRef.current;
     afterTallyRef.current = null;
@@ -1278,8 +1296,8 @@ export default function OneStrokeTacticianPage() {
   };
 
   /**
-   * After a refill or weed-out: if Magic can't carry any line to the Archway
-   * the garden is lost — unless a Weed-out can still change the board.
+   * After a refill or weed-out: if Life can't carry any line to the Exit
+   * the garden is lost — unless a Swap can still change the board.
    */
   const checkRunSafeLine = (
     grid: GridCell[][],
@@ -1293,7 +1311,7 @@ export default function OneStrokeTacticianPage() {
     }
     if (garden.weedOutsLeft > 0) {
       setRunNoSafeLine(true);
-      handleNotice("No safe line on this board — use a 🌿 Weed-out to swap tiles.");
+      handleNotice("No safe line on this board — use a 🌿 Swap to swap tiles.");
       return false;
     }
     endRunMode("NO_SAFE_LINE", garden, history, stats);
@@ -1308,7 +1326,7 @@ export default function OneStrokeTacticianPage() {
     const garden = runGarden;
     if (!garden) return;
     setTotalCellsVisited((prev) => prev + path.length - 1);
-    // Gems picked up on the board scored as Chips; the purse stays as it was
+    // Gems picked up on the board scored as Value; the purse stays as it was
     const strokeCtx = relicScoreCtx;
     const { breakdown, afterStroke, countersAfter } = scoreRunStroke(
       simResult,
@@ -1420,7 +1438,7 @@ export default function OneStrokeTacticianPage() {
     setTally({
       breakdown,
       stars: simResult.stars,
-      floorLabel: `Stroke ${strokeNumber}/${RUN_STROKES_PER_GARDEN} · ${getRunGardenLabel(garden.gardenIndex)}`,
+      floorLabel: `Line ${strokeNumber}/${RUN_STROKES_PER_GARDEN} · ${getRunGardenLabel(garden.gardenIndex)}`,
       runTotalBefore: garden.score,
       bossRuleId: bloomed ? garden.bossRuleId : undefined,
       parPercent: null,
@@ -1442,10 +1460,10 @@ export default function OneStrokeTacticianPage() {
           : null,
         target: garden.target,
         continueLabel: bloomed
-          ? "Garden in bloom! →"
+          ? "Garden cleared! →"
           : outOfStrokes
           ? "See the run →"
-          : "Next stroke →",
+          : "Next line →",
       },
     });
     afterTallyRef.current = () => {
@@ -1499,7 +1517,7 @@ export default function OneStrokeTacticianPage() {
     setLessonResult({
       ok: status.ok,
       text: status.ok ? lesson.success : `${lesson.failHint} (${status.detail})`,
-      scoreLine: `${breakdown.chips} Chips × ${breakdown.mult} Mult = ${breakdown.total.toLocaleString()} · Magic ${lesson.hero.hp} → ${sim.finalStats.hp}`,
+      scoreLine: `${breakdown.chips} Value × ${breakdown.mult} Length = ${breakdown.total.toLocaleString()} · Life ${lesson.hero.hp} → ${sim.finalStats.hp}`,
       isLast: lessonIndex === RUN_LESSONS.length - 1,
     });
   };
@@ -1507,6 +1525,25 @@ export default function OneStrokeTacticianPage() {
   lessonResolvedRef.current = lessonResolved;
   const lessonActiveRef = useRef(false);
   lessonActiveRef.current = lesson !== null;
+  const firstLineDoneRef = useRef(true);
+  firstLineDoneRef.current = firstLineDone;
+
+  // The next tile type on this board the player hasn't been introduced to
+  const tileIntroQueue =
+    mode === "RUN" && !lesson && seenTileIntros
+      ? TILE_INTRO_ORDER.filter(
+          (t) => !seenTileIntros.includes(t) && activeGrid.some((row) => row.some((c) => c.type === t))
+        )
+      : [];
+  const dismissTileIntro = (type: string) => {
+    const next = [...(seenTileIntros ?? []), type];
+    setSeenTileIntros(next);
+    try {
+      window.localStorage.setItem(SEEN_TILE_INTROS_KEY, JSON.stringify(next));
+    } catch {
+      // Ignore storage errors
+    }
+  };
 
   /** The garden reached its target: pay out Gems (and a Legendary for a Boss) */
   const runGardenBloomed = (
@@ -1621,7 +1658,7 @@ export default function OneStrokeTacticianPage() {
 
   /**
    * On startup: rebuild a Run saved on this device by replaying its action
-   * log (board, Seed Bag, score, purse, relics, Shop…) and continue it where
+   * log (board, Tile Bag, score, purse, relics, Shop…) and continue it where
    * it was left. A save that no longer replays is dropped with a notice.
    */
   const resumedRef = useRef(false);
@@ -1652,7 +1689,7 @@ export default function OneStrokeTacticianPage() {
       seedKey: r.seed,
       dateKey: getTodayDateKey(),
       title: "Seasons Run",
-      lore: "Season after season the gardens grow wilder. Bloom each one before your strokes run out.",
+      lore: "Season after season the gardens grow wilder. Clear each one before your lines run out.",
       modifierId: "NONE",
       source: "deterministic-fallback",
       floors: r.floors,
@@ -1719,7 +1756,7 @@ export default function OneStrokeTacticianPage() {
   };
 
   // Keep the Run in progress saved on this device after every committed
-  // stroke, Weed-out, Shop action and garden change (never practice/lessons)
+  // stroke, Swap, Shop action and garden change (never practice/lessons)
   useEffect(() => {
     if (!isMounted || mode !== "RUN" || lessonIndex !== null) return;
     const log = runLogRef.current;
@@ -1789,7 +1826,7 @@ export default function OneStrokeTacticianPage() {
             );
       if (!route || route.length < 2) {
         handleNotice(
-          "No safe line from here — try gathering Dew or Sunbeams first."
+          "No safe line from here — try gathering Shield or Power tiles first."
         );
         return;
       }
@@ -1807,7 +1844,7 @@ export default function OneStrokeTacticianPage() {
       const from = onRoute ? drawnPath.length : 1;
       const nextSteps = route.slice(from, from + 3);
       if (nextSteps.length === 0) {
-        handleNotice("You're already on a great line — head for the Archway.");
+        handleNotice("You're already on a great line — head for the Exit.");
         return;
       }
 
@@ -2003,6 +2040,15 @@ export default function OneStrokeTacticianPage() {
           return;
         }
 
+        if (!firstLineDoneRef.current) {
+          firstLineDoneRef.current = true;
+          setFirstLineDone(true);
+          try {
+            window.localStorage.setItem(FIRST_LINE_DONE_KEY, "1");
+          } catch {
+            // Ignore storage errors
+          }
+        }
         if (lessonActiveRef.current) {
           lessonResolvedRef.current(simResult, committedPath);
           return;
@@ -2083,7 +2129,7 @@ export default function OneStrokeTacticianPage() {
           return;
         }
 
-        // Chips × Mult tally, then the Sanctuary Shop (or the results)
+        // Value × Length tally, then the Sanctuary Shop (or the results)
         const isFinalFloor = currentFloorIndex >= totalFloorsInDungeon - 1;
         const bossRuleId = currentFloor.bossRuleId;
         // Clearing a Boss Garden with gardens still ahead earns a Legendary relic
@@ -2526,11 +2572,11 @@ export default function OneStrokeTacticianPage() {
               </span>
               <p className="flex-1 min-w-0 text-xs font-sans leading-snug text-amber-50">
                 {coachStep === 0 &&
-                  "Drag one continuous line from your Companion 🐱 to the glowing 🌈 Archway."}
+                  "Drag one continuous line from your Companion 🐱 to the glowing 🌈 Exit."}
                 {coachStep === 1 &&
-                  "The numbers show exactly what will happen before you let go. Briars 🌺 cost Magic; Dew 💧 and Sunbeams ☀️ protect you. Release on the Archway to walk it."}
+                  "The numbers show exactly what will happen before you let go. Thorns 🌺 cost Life; Shield 🛡️ and Power tiles ☀️ protect you. Release on the Exit to walk it."}
                 {coachStep === 2 &&
-                  "Lovely! Earn ★ for reaching the Archway, gathering 80% of the 💎, and keeping your Magic high. Match par for a ✦ Perfect garden."}
+                  "Lovely! Earn ★ for reaching the Exit, gathering 80% of the 💎, and keeping your Life high. Match par for a ✦ Perfect garden."}
               </p>
               <button
                 type="button"
@@ -2645,7 +2691,7 @@ export default function OneStrokeTacticianPage() {
             )
           )}
 
-          {/* Live Chips × Mult meter (Run and lessons) */}
+          {/* Live Value × Length meter (Run and lessons) */}
           {mode === "RUN" &&
             !isInteractiveTutorial &&
             (lesson || (runGarden && !(phase === "DEFEAT" && runOver === null))) && (
@@ -2662,6 +2708,18 @@ export default function OneStrokeTacticianPage() {
                 magicNow={floorStartHero.hp}
                 magicAfter={simulation.survives ? simulation.finalStats.hp : 0}
                 tilesOnBoard={lineMeter.tilesOnBoard}
+                intro={
+                  tileIntroQueue.length > 0 && phase === "PLANNING"
+                    ? {
+                        icon: <EntityIcon type={tileIntroQueue[0]} size={30} />,
+                        name: TILE_INTROS[tileIntroQueue[0]].name,
+                        text: TILE_INTROS[tileIntroQueue[0]].text,
+                        index: (seenTileIntros?.length ?? 0) >= 0 ? 0 : 0,
+                        total: tileIntroQueue.length,
+                        onNext: () => dismissTileIntro(tileIntroQueue[0]),
+                      }
+                    : null
+                }
                 showShortLineTip={
                   !lesson &&
                   !longLineLearned &&
@@ -2689,6 +2747,7 @@ export default function OneStrokeTacticianPage() {
               }
               activeResolutionStep={activeResolutionStep}
               hintCoords={hintCoords}
+              pulseStartExit={!firstLineDone && drawnPath.length < 2 && phase === "PLANNING"}
               ghostGuidePath={
                 lesson
                   ? showLessonGhost || lessonIndex === 0
@@ -2819,7 +2878,7 @@ export default function OneStrokeTacticianPage() {
                   }`}
                 >
                   {retractNotice ??
-                    "🪨 No safe line on this board — tap 🌿 Weed-out to swap some tiles."}
+                    "🪨 No safe line on this board — tap 🌿 Swap to swap some tiles."}
                 </div>
               </div>
             )}
@@ -2950,7 +3009,7 @@ export default function OneStrokeTacticianPage() {
         clearedFloorNumber={currentFloorIndex + 1}
         totalFloors={dungeon.floors.length}
         headerLabel={
-          mode === "RUN" ? `${getRunGardenLabel(currentFloorIndex)} bloomed` : undefined
+          mode === "RUN" ? `${getRunGardenLabel(currentFloorIndex)} cleared` : undefined
         }
         nextFloorTitle={
           mode === "RUN"
@@ -2976,7 +3035,7 @@ export default function OneStrokeTacticianPage() {
         onLeave={handleLeaveShop}
       />
 
-      {/* Chips × Mult garden tally */}
+      {/* Value × Length garden tally */}
       <ScoreTally
         isOpen={tally !== null}
         breakdown={tally?.breakdown ?? null}
@@ -2989,7 +3048,7 @@ export default function OneStrokeTacticianPage() {
         isFinalFloor={tally?.isFinal ?? false}
         clearReward={tally?.clearReward ?? 0}
         quick={Boolean(tally?.runStroke)}
-        scoreLabel={tally?.runStroke ? "Stroke score" : undefined}
+        scoreLabel={tally?.runStroke ? "Line score" : undefined}
         runningTotalLabel={tally?.runStroke ? "Garden" : undefined}
         targetScore={tally?.runStroke?.target}
         continueLabel={tally?.runStroke?.continueLabel}

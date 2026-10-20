@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Shield, Crown, Sparkles, Compass } from "lucide-react";
+import { Cat, Crown, Sparkles, Compass } from "lucide-react";
 import {
   CosmeticPreferences,
   EntityType,
@@ -43,6 +43,8 @@ interface GridCanvasProps {
   onPathChange: (newPath: GridCoord[]) => void;
   onCommitPath: (committedPath: GridCoord[]) => void;
   onRetractNotice?: (reason: string) => void;
+  /** First-time players: home and the Exit pulse until the first line */
+  pulseStartExit?: boolean;
 }
 
 export default function GridCanvas({
@@ -59,7 +61,16 @@ export default function GridCanvas({
   onPathChange,
   onCommitPath,
   onRetractNotice,
+  pulseStartExit = false,
 }: GridCanvasProps) {
+  // After a line pulls back because it would run out of Life, the tile that
+  // would have ended it stays marked for a moment
+  const [lastDeathCoord, setLastDeathCoord] = useState<GridCoord | null>(null);
+  useEffect(() => {
+    if (!lastDeathCoord) return;
+    const id = window.setTimeout(() => setLastDeathCoord(null), 2600);
+    return () => window.clearTimeout(id);
+  }, [lastDeathCoord]);
   const boardRef = useRef<HTMLDivElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [pointerPos, setPointerPos] = useState<{ x: number; y: number } | null>(
@@ -463,15 +474,16 @@ export default function GridCanvas({
     if (onRetractNotice) {
       if (!simulation.survives) {
         const why = explainWilt(simulation);
+        if (simulation.firstDeathCoord) setLastDeathCoord({ ...simulation.firstDeathCoord });
         onRetractNotice(
           isSanctuary
-            ? why?.long ?? "This line would run out of ✨ Magic — try a safer route."
+            ? why?.long ?? "This line would run out of ❤️ Life — try a safer route."
             : "Lethal route! Projected HP drops to 0"
         );
       } else if (!simulation.endsOnExit) {
         onRetractNotice(
           isSanctuary
-            ? "End your line on the 🌈 Archway to walk it."
+            ? "End your line on the 🌈 Exit to walk it."
             : "Stroke must end on the EXIT Portal tile"
         );
       }
@@ -626,7 +638,7 @@ export default function GridCanvas({
               const isHeroCell = cell.type === "HERO";
               const isExitCell = cell.type === "EXIT";
 
-              // Live Neutralized Enemy / Bloomed Briar State: crossed while dragging & Projected HP > 0
+              // Live Neutralized Enemy / Bloomed Thorn State: crossed while dragging & Projected HP > 0
               const isEnemyNeutralized = Boolean(
                 cell.type === "ENEMY" &&
                   stepSim &&
@@ -691,6 +703,12 @@ export default function GridCanvas({
 
               if (isSanctuary) {
                 plateClass = calmPlateClass({
+                  pulse: pulseStartExit && (isHeroCell || isExitCell),
+                  wasDeath:
+                    Boolean(lastDeathCoord) &&
+                    lastDeathCoord!.row === r &&
+                    lastDeathCoord!.col === c &&
+                    drawnPath.length < 2,
                   isInspected,
                   isResolved: isResolvedInPlayback,
                   isCurrentPlayback: isCurrentPlaybackCell,
@@ -753,7 +771,7 @@ export default function GridCanvas({
                       }}
                       className="tile-tag absolute top-0.5 left-1/2 -translate-x-1/2 whitespace-nowrap text-slate-950 font-mono font-black text-[9px] px-1.5 py-0.5 rounded shadow leading-none pointer-events-none z-20"
                     >
-                      {(heroClassDef.sanctuaryShortName ?? heroClassDef.shortName).toUpperCase()}
+                      {isSanctuary ? "YOU" : heroClassDef.shortName.toUpperCase()}
                     </span>
                   )}
 
@@ -765,7 +783,7 @@ export default function GridCanvas({
                           : "bg-purple-500 text-white"
                       }`}
                     >
-                      ARCH
+                      EXIT
                     </span>
                   )}
 
@@ -1241,7 +1259,7 @@ function StepFloatingBadge({
       const needed = Math.max(1, 1 - step.hpAfter);
       return (
         <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-amber-300 text-slate-950 border border-white/60 shadow-[0_0_12px_rgba(251,191,36,0.95)] tracking-tight whitespace-nowrap">
-          ✨ Needs +{needed}
+          ❤️ Needs +{needed}
         </span>
       );
     }
@@ -1255,7 +1273,7 @@ function StepFloatingBadge({
   if (step.shatteredShield) {
     return (
       <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold bg-[#00D2FF] text-slate-950 shadow-[0_0_10px_rgba(0,210,255,0.8)] whitespace-nowrap">
-        {isSanctuary ? <>💧 0<span className="tile-tag-long"> DEW</span></> : "❄️ 0 SHD"}
+        {isSanctuary ? <>🛡️ 0<span className="tile-tag-long"> SHIELD</span></> : "❄️ 0 SHD"}
       </span>
     );
   }
@@ -1287,7 +1305,7 @@ function StepFloatingBadge({
               : "bg-emerald-300 text-slate-950 shadow-[0_0_10px_rgba(52,211,153,0.85)]"
           }`}
         >
-          {dmg < 0 ? `${dmg} ✨` : dmg > 0 ? `+${dmg} ✨` : <>🌸<span className="tile-tag-long"> BLOOMED</span></>}
+          {dmg < 0 ? `${dmg} ❤️` : dmg > 0 ? `+${dmg} ❤️` : <>🌸<span className="tile-tag-long"> BLOOMED</span></>}
         </span>
       );
     }
@@ -1318,7 +1336,7 @@ function StepFloatingBadge({
     }
     return (
       <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-sky-300 text-slate-950 shadow-[0_0_10px_rgba(56,189,248,0.8)] whitespace-nowrap">
-        +{step.shieldDelta} {isSanctuary ? "💧" : "SHD"}
+        +{step.shieldDelta} {isSanctuary ? "🛡️" : "SHD"}
       </span>
     );
   }
@@ -1341,7 +1359,7 @@ function StepFloatingBadge({
         }`}
       >
         {step.hpDelta < 0
-          ? `${step.hpDelta} ${isSanctuary ? "✨" : "HP"}`
+          ? `${step.hpDelta} ${isSanctuary ? "❤️" : "HP"}`
           : `+${step.hpDelta} ${isSanctuary ? "🍓" : "HP"}`}
       </span>
     );
@@ -1351,8 +1369,8 @@ function StepFloatingBadge({
     return (
       <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-[#FDE047] text-slate-950 shadow-[0_0_10px_rgba(250,204,21,0.85)] whitespace-nowrap">
         +{step.goldDelta} {isSanctuary ? "💎" : "GLD"}
-        {step.shieldDelta > 0 ? ` +${step.shieldDelta}💧` : ""}
-        {step.hpDelta > 0 ? ` +${step.hpDelta}✨` : ""}
+        {step.shieldDelta > 0 ? ` +${step.shieldDelta}🛡️` : ""}
+        {step.hpDelta > 0 ? ` +${step.hpDelta}❤️` : ""}
       </span>
     );
   }
@@ -1360,7 +1378,7 @@ function StepFloatingBadge({
   if (step.cell.type === "TRAP") {
     return (
       <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-rose-400 text-slate-950 shadow-[0_0_10px_rgba(251,113,133,0.8)] whitespace-nowrap">
-        {step.hpDelta} {isSanctuary ? "✨" : "HP"}
+        {step.hpDelta} {isSanctuary ? "❤️" : "HP"}
       </span>
     );
   }
@@ -1368,7 +1386,7 @@ function StepFloatingBadge({
   if (step.cell.type === "EXIT") {
     return (
       <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-gradient-to-r from-amber-300 via-pink-300 to-violet-300 text-slate-950 border border-white/50 shadow-[0_0_12px_rgba(244,114,182,0.9)] whitespace-nowrap">
-        {isSanctuary ? "🌈 ARCHWAY ✓" : "EXIT ✓"}
+        {isSanctuary ? "🌈 EXIT ✓" : "EXIT ✓"}
       </span>
     );
   }
@@ -1378,9 +1396,11 @@ function StepFloatingBadge({
 
 /**
  * Calm tile surfaces for the Sanctuary board: flat, thin borders, and colour
- * only where it means something (your line, danger, home, the Archway).
+ * only where it means something (your line, danger, home, the Exit).
  */
 function calmPlateClass(t: {
+  pulse?: boolean;
+  wasDeath?: boolean;
   isInspected: boolean;
   isResolved: boolean;
   isCurrentPlayback: boolean;
@@ -1393,7 +1413,10 @@ function calmPlateClass(t: {
   isVisited: boolean;
   isGuide: boolean;
 }): string {
-  const ring = t.isInspected ? " ring-2 ring-white/70 z-30" : "";
+  const ring =
+    (t.isInspected ? " ring-2 ring-white/70 z-30" : "") +
+    (t.pulse ? " ring-2 ring-amber-200/80 animate-pulse" : "");
+  if (t.wasDeath) return "bg-rose-500/[0.22] border-2 border-rose-300 animate-shake" + ring;
   if (t.isCurrentPlayback) return "bg-white/[0.16] border-2 border-white/80 z-20" + ring;
   if (t.isResolved) return "bg-teal-300/[0.14] border border-teal-200/45" + ring;
   if (t.isFirstDeath) return "bg-rose-500/[0.18] border-2 border-rose-300 animate-shake" + ring;
@@ -1432,6 +1455,12 @@ function TileIconWithValue({
     type === "POTION" && isCorrupted
       ? ENTITY_COLORS.POISON_POTION
       : ENTITY_COLORS[type];
+  // Signed effect: harmful tiles show a filled "−N", helpful ones an outlined "+N"
+  const harmful = type === "ENEMY" || type === "TRAP" || (type === "POTION" && isCorrupted);
+  const n = typeof value === "number" ? value : Math.abs(Number(value)) || value;
+  const label = harmful ? `−${n}` : `+${n}`;
+  const lifeColor = "#FB7185";
+  const badgeColor = type === "POTION" && !isCorrupted ? lifeColor : color;
   return (
     <div className="relative w-[72%] h-[72%] flex items-center justify-center">
       <EntityIcon
@@ -1440,13 +1469,26 @@ function TileIconWithValue({
         isCorrupted={isCorrupted}
         isBloomed={isBloomed}
       />
+      {type === "TRAP" && (
+        <span
+          className="tile-tag absolute -top-1.5 -left-2 text-[11px] leading-none font-black text-slate-200 select-none pointer-events-none"
+          aria-hidden="true"
+          title="Step on it diagonally to dodge"
+        >
+          ↗
+        </span>
+      )}
       <span
-        className={`absolute -bottom-1.5 -right-2 min-w-[20px] h-[20px] px-1 rounded-full flex items-center justify-center font-mono font-black text-[12px] leading-none text-white bg-[#0B0F1E] border-[1.5px] select-none pointer-events-none ${
+        className={`absolute -bottom-1.5 -right-2 min-w-[22px] h-[20px] px-1 rounded-full flex items-center justify-center font-mono font-black text-[12px] leading-none border-[1.5px] select-none pointer-events-none ${
           struck ? "line-through opacity-70" : ""
         }`}
-        style={{ borderColor: color }}
+        style={
+          harmful
+            ? { backgroundColor: type === "TRAP" ? "#475569" : "#E11D48", borderColor: type === "TRAP" ? "#CBD5E1" : "#FDA4AF", color: "#FFFFFF" }
+            : { backgroundColor: "#0B0F1E", borderColor: badgeColor, color: badgeColor }
+        }
       >
-        {value}
+        {label}
       </span>
     </div>
   );
@@ -1484,7 +1526,7 @@ export function CellGeometricNode({
         ? Sparkles
         : isRogue
         ? Compass
-        : Shield;
+        : Cat;
 
       if (hideHero) {
         return (
@@ -1612,73 +1654,73 @@ function getTileInspectionData(
     case "HERO":
       return {
         icon: isSanctuary ? "🐱" : "⚪",
-        name: isSanctuary ? "Sanctuary Companion" : "Vanguard Hero",
-        valueLabel: "Start Tile",
+        name: isSanctuary ? "You (your cat)" : "Vanguard Hero",
+        valueLabel: "Start here",
         explanation: isSanctuary
-          ? "Your friendly Companion starting point! Press and drag an unbroken path from here to the glowing Archway."
+          ? "Every line starts here. Drag, without lifting, to the 🌈 Exit."
           : "Your starting point! Drag an unbroken line to the Exit Portal.",
       };
     case "ENEMY":
       return {
         icon: isSanctuary ? "🌺" : "🔺",
-        name: isSanctuary ? "Prickly Briar" : "Hostile Enemy",
-        valueLabel: `Power ${cell.value}`,
+        name: isSanctuary ? "Thorn" : "Hostile Enemy",
+        valueLabel: `−${cell.value} Life`,
         explanation: isSanctuary
-          ? `Costs ${cell.value} ✨ Magic to bloom and clear. Grab Sunbeams (☀️) or Dewdrops (💧) first to save Magic!`
+          ? `Costs ${cell.value} ❤️ Life. ☀️ Power picked up just before it weakens it; 🛡️ Shield soaks up the rest.`
           : `Deals ${cell.value} damage. Absorbed by Weapons then Shields before reducing HP.`,
       };
     case "SHIELD":
       return {
-        icon: isSanctuary ? "💧" : "🛡️",
-        name: isSanctuary ? "Dewdrop Shield" : "Aegis Shield",
-        valueLabel: `+${cell.value} Protection`,
+        icon: isSanctuary ? "🛡️" : "🛡️",
+        name: isSanctuary ? "Shield" : "Aegis Shield",
+        valueLabel: `+${cell.value} Shield`,
         explanation: isSanctuary
-          ? `Absorbs up to ${cell.value} Briar damage before Magic is touched. Unused Shield stays with you for the whole floor!`
+          ? `Blocks ${cell.value} Thorn damage. Unused Shield stays with you for the next Thorns and lines.`
           : `Adds +${cell.value} Shield pool to absorb Enemy damage before HP is reduced.`,
       };
     case "WEAPON":
       return {
         icon: isSanctuary ? "☀️" : "⚔️",
-        name: isSanctuary ? "Golden Sunbeam" : "Kinetic Blade",
-        valueLabel: `Power ${cell.value}`,
+        name: isSanctuary ? "Power" : "Kinetic Blade",
+        valueLabel: `+${cell.value} Power`,
         explanation: isSanctuary
-          ? `Reduces the next Briar by ${cell.value}, then resets to 0! Always grab it right before a heavy obstacle.`
+          ? `Makes the next Thorn ${cell.value} weaker, then it's used up. Grab it right before a big Thorn.`
           : `Temporary +${cell.value} attack power for the NEXT Enemy encounter only, then breaks to 0!`,
       };
     case "POTION":
       return {
         icon: isSanctuary ? "🍓" : "💚",
-        name: isSanctuary ? "Sweet Berry" : "Nanite Potion",
-        valueLabel: `+${cell.value} Healing`,
+        name: isSanctuary ? "Berries" : "Nanite Potion",
+        valueLabel: `+${cell.value} Life`,
         explanation: isSanctuary
-          ? `Restores up to ${cell.value} lost Magic (up to 10 max). Grabbing it while already full wastes the healing!`
+          ? `Gives back ${cell.value} ❤️ Life, up to your maximum — save them for when you're hurt.`
           : `Restores +${cell.value} HP up to 10 max. Best picked up after taking Enemy or Trap damage.`,
       };
     case "GOLD":
       return {
         icon: isSanctuary ? "💎" : "🪙",
-        name: isSanctuary ? "Mosaic Gem" : "Tactical Gold",
-        valueLabel: `Value ${cell.value}`,
+        name: isSanctuary ? "Gem" : "Tactical Gold",
+        valueLabel: `+${cell.value} points`,
         explanation: isSanctuary
-          ? `+${cell.value} Gems: they add ${cell.value} Chips to this garden's score, buy upgrades in the Sanctuary Shop, and fill your Mosaic Gallery.`
-          : `+${cell.value} Gold: adds ${cell.value} Chips to this floor's score and buys upgrades in the Shop.`,
+          ? `Adds ${cell.value} to your line's value. (Gems to spend come from clearing gardens.)`
+          : `+${cell.value} Gold: adds ${cell.value} Value to this floor's score and buys upgrades in the Shop.`,
       };
     case "TRAP":
       return {
-        icon: isSanctuary ? "🌵" : "⚡",
-        name: isSanctuary ? "Prickly Thistle" : "Spike Trap",
-        valueLabel: `Danger ${cell.value}`,
+        icon: isSanctuary ? "⚙️" : "⚡",
+        name: isSanctuary ? "Spike" : "Spike Trap",
+        valueLabel: `−${cell.value} Life`,
         explanation: isSanctuary
-          ? `Straight steps pierce shields for ${cell.value} Magic! SECRET TRICK: Slice DIAGONALLY through to hop right over for 0 damage!`
+          ? `Stepping on it straight costs ${cell.value} ❤️ Life (Shield doesn't help). Step on it diagonally ↗ and it costs nothing.`
           : `Pierces shields orthogonally. PRO TIP: Move diagonally through the trap to dodge it for 0 damage!`,
       };
     case "EXIT":
       return {
         icon: isSanctuary ? "🌈" : "🟣",
-        name: isSanctuary ? "Sanctuary Archway" : "Exit Portal",
-        valueLabel: "Floor Goal",
+        name: isSanctuary ? "Exit" : "Exit Portal",
+        valueLabel: "End here",
         explanation: isSanctuary
-          ? "Your goal! Connect your line here with at least 1 Magic left to bloom the garden and advance."
+          ? "Every line must end here. Let go on it to walk your line and score it."
           : "Your goal! Commit your path here with HP > 0 to resolve auto-battle.",
       };
     default:
@@ -1686,7 +1728,7 @@ function getTileInspectionData(
         icon: "❓",
         name: "Mystery Tile",
         valueLabel: "Unknown",
-        explanation: "A garden tile awaiting your stroke.",
+        explanation: "A garden tile awaiting your line.",
       };
   }
 }
@@ -1710,9 +1752,9 @@ function InspectorCard({
     ? {
         icon: "🫐",
         name: isSanctuary ? "Sour Berry" : "Poisoned Potion",
-        valueLabel: isSanctuary ? "-1 Magic" : "-1 HP",
+        valueLabel: isSanctuary ? "-1 Life" : "-1 HP",
         explanation: isSanctuary
-          ? "Today's Berries have turned sour: stepping on one takes 1 Magic. Walk around it if you can."
+          ? "Today's Berries have turned sour: stepping on one takes 1 Life. Walk around it if you can."
           : "Blood Gold poisons potions today: each one costs 1 HP.",
       }
     : getTileInspectionData(cell, isSanctuary);

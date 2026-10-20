@@ -218,36 +218,36 @@ const PRACTICE_COPY: Record<PracticeStep, { title: string; lines: string[]; butt
     title: "Practice Garden",
     lines: [
       "This is a real garden — everything works like in a Run.",
-      `The strip above the board shows the garden, its target (${PRACTICE_GARDEN_TARGET.toLocaleString()} here), the green bar with your garden total, your ● strokes left and 🌿 Weed-outs.`,
-      "You have 4 strokes. Each stroke's score adds to the bar. While you draw, (+N) on the bar previews the stroke.",
+      `The strip above the board shows the garden, its target (${PRACTICE_GARDEN_TARGET.toLocaleString()} here), the green bar with your garden total, your ● lines left and 🌿 Swaps.`,
+      "You have 4 lines. Each line's score adds to the bar. While you draw, (+N) on the bar previews the line.",
       `You start with ${PRACTICE_GARDEN_GEMS} 💎 so the Shop at the end is worth a look.`,
     ],
     button: "Got it — let me draw",
   },
   draw: {
     title: "Stroke 1",
-    lines: ["Draw a long, safe line to the Archway and let go."],
+    lines: ["Draw a long, safe line to the Exit and let go."],
   },
   regrow: {
     title: "The garden regrew",
     lines: [
-      "Every tile your line used was replaced by a new tile from your Seed Bag. The Keeper and the Archway stayed put.",
-      "Your Magic, Dew and Sun carried over — check the top row. Magic doesn't refill, so don't spend it all on one stroke.",
-      "Now try a Weed-out: tap 🌿 Weed-out, tap up to 3 tiles you'd like gone (big Briars are good picks), then confirm. It doesn't use a stroke.",
+      "Every tile your line used was replaced by a new tile from your Tile Bag. Your YOU tile and the Exit stayed put.",
+      "Your Life, Shield and Power carried over — check the top row. Life doesn't refill, so don't spend it all on one line.",
+      "Now try a Swap: tap 🌿 Swap, tap up to 3 tiles you'd like gone (big Thorns are good picks), then confirm. It doesn't use a line.",
     ],
   },
   weeded: {
     title: "Weeded!",
     lines: [
       "Those tiles were swapped for new ones from the bag.",
-      `Now finish the garden: reach ${PRACTICE_GARDEN_TARGET.toLocaleString()} before your strokes run out. Each unused stroke pays +1 💎.`,
+      `Now finish the garden: reach ${PRACTICE_GARDEN_TARGET.toLocaleString()} before your lines run out. Each unused line pays +1 💎.`,
       "Stuck? The ✨ Hint lights the next 3 steps of a good line.",
     ],
   },
   bloom: {
     title: "Your payout",
     lines: [
-      "Payout = the garden's reward + 1 💎 per unused stroke + interest.",
+      "Payout = the garden's reward + 1 💎 per unused line + interest.",
       `Interest: +1 💎 for every ${RUN_INTEREST_STEP} 💎 you are holding, up to +${RUN_INTEREST_MAX}. Saving Gems pays.`,
       "Gems you walked over on the board were score, not money.",
     ],
@@ -264,7 +264,7 @@ const PRACTICE_COPY: Record<PracticeStep, { title: string; lines: string[]; butt
     title: "You're ready! 🌸",
     lines: [
       `A real Run starts at Season 1 · Small Garden (target ${getRunGardenTarget(1, "SMALL").toLocaleString()}), then Big and Boss Gardens.`,
-      "Every Season the targets rise and Briars grow stronger. From Season 3 on you'll need good relics.",
+      "Every Season the targets rise and Thorns grow stronger. From Season 3 on you'll need good relics.",
       "Reopen the lessons or the full guide any time with ❓ Help.",
     ],
     button: "Start my Run",
@@ -388,7 +388,7 @@ export function RunHelpMenu({
           </div>
           <p className="text-[12px] text-indigo-100/80">
             {isFirstVisit
-              ? "Draw one line per stroke, bloom gardens, and see how far your Run can go. How would you like to start?"
+              ? "Draw lines, clear gardens, and see how far your Run can go. How would you like to start?"
               : "Learn by playing, or read every rule. Your Run will wait."}
           </p>
         </div>
@@ -412,7 +412,7 @@ export function RunHelpMenu({
           </div>
           <div className="text-[11px] text-emerald-100/80">
             {totalLessons} short hands-on lessons — one rule each, with a goal to meet — then a guided
-            Practice Garden with strokes, Weed-outs and the Shop. About 10 minutes.
+            Practice Garden with lines, Swaps and the Shop. About 10 minutes.
           </div>
           {!isFirstVisit && (
             <div className="text-[11px] text-amber-200/80">This ends the Run you&apos;re playing.</div>

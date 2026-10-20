@@ -5,9 +5,9 @@ import { DungeonTheme, ModifierId, RelicDefinition, RelicId } from "@/types/game
  * their dungeon terms; these helpers swap in Sanctuary wording for display.
  *
  * Glossary:
- *   Hero → Companion · HP → Magic · Shield → Dew · Weapon → Sunbeam
- *   Gold → Gems · Enemy → Briar · Trap → Thistle · Potion → Berries
- *   Exit → Archway · Floor → Garden · Dungeon → Sanctuary · Relic → Blessing
+ *   Hero → Companion · HP → Life · Shield → Shield · Weapon → Power tile
+ *   Gold → Gems · Enemy → Thorn · Trap → Spike · Potion → Berries
+ *   Exit → Exit · Floor → Garden · Dungeon → Sanctuary · Relic → Blessing
  *   Run → Visit
  */
 
@@ -18,42 +18,42 @@ const SANCTUARY_RELIC_COPY: Partial<Record<
 >> = {
   GILDED_AEGIS: {
     name: "Gem Glow",
-    icon: "💧",
-    shortTag: "GEM → +1 DEW",
-    description: "Every Gem you collect also gathers +1 Dew.",
+    icon: "🛡️",
+    shortTag: "GEM → +1 SHIELD",
+    description: "Every Gem you collect also gathers +1 Shield.",
   },
   VORPAL_EDGE: {
-    name: "Lingering Sunbeam",
+    name: "Lingering Power tile",
     icon: "☀️",
     shortTag: "KEEP 50% SUN",
     description:
-      "Sunbeams no longer fade after clearing one Briar — they keep half their warmth (rounded down).",
+      "Power tiles no longer fade after clearing one Thorn — they keep half their warmth (rounded down).",
   },
   ALCHEMIST_FLASK: {
     name: "Honey Jar",
     icon: "🍯",
     shortTag: "BERRIES +4 OVER MAX",
-    description: "Berries can fill your Magic up to +4 above its usual maximum.",
+    description: "Berries can fill your Life up to +4 above its usual maximum.",
   },
   SPIKED_BOOTS: {
     name: "Garden Boots",
     icon: "🥾",
     shortTag: "THISTLE → +3 SUN",
     description:
-      "Stepping straight onto a Thistle doesn't hurt — it gives you +3 Sunbeam instead.",
+      "Stepping straight onto a Spike doesn't hurt — it gives you +3 Power tile instead.",
   },
   LONG_STRIDE: {
     name: "Long Meander",
     icon: "🍃",
     shortTag: "12+ TILES = -1 BRIAR",
     description:
-      "If your line is 12+ tiles long, every Briar in this garden is 1 gentler.",
+      "If your line is 12+ tiles long, every Thorn in this garden is 1 gentler.",
   },
   GREED_CROWN: {
     name: "Flower Crown",
     icon: "🌼",
-    shortTag: "2x GEMS & +1 MAGIC",
-    description: "Gems are worth double and each one restores +1 Magic.",
+    shortTag: "2x GEMS & +1 LIFE",
+    description: "Gems are worth double and each one restores +1 Life.",
   },
 };
 
@@ -73,7 +73,7 @@ const SANCTUARY_GARDEN_COPY: Record<ModifierId, { title: string; lore: string }>
     },
     MIRROR_VERTICAL: {
       title: "The Mirror Pond",
-      lore: "Briars reflected in the still water feel sharper from above and below, softer from the side.",
+      lore: "Thorns reflected in the still water feel sharper from above and below, softer from the side.",
     },
     BLOOD_GOLD: {
       title: "The Honeyed Orchard",
@@ -127,11 +127,11 @@ export const SHARE_TILE_EMOJI = {
   },
   sanctuary: {
     ENEMY: "🌺",
-    SHIELD: "💧",
+    SHIELD: "🛡️",
     WEAPON: "☀️",
     POTION: "🍓",
     GOLD: "💎",
-    TRAP: "🌵",
+    TRAP: "⚙️",
     EXIT: "🌈",
     DEATH: "🍃",
   },

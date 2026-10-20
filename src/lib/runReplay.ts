@@ -54,7 +54,14 @@ export const RUN_MODIFIER: ModifierId = "NONE";
 // ── Shared rule helpers (the page calls these; the replay calls them too) ──
 
 /** Lays out the first garden of a Run for a seed and Companion */
-export function startRunGarden(runSeed: string, classId: HeroClassId): {
+/** Rules v3+ introduce tiles gradually in the first gardens */
+export const runRulesUseIntroTiles = (logVersion: number) => logVersion >= 3;
+
+export function startRunGarden(
+  runSeed: string,
+  classId: HeroClassId,
+  logVersion: number = RUN_LOG_VERSION
+): {
   bag: SeedTile[];
   hero: HeroStats;
   floor: DungeonFloor;
@@ -70,6 +77,7 @@ export function startRunGarden(runSeed: string, classId: HeroClassId): {
     hero,
     heroClassId: classId,
     activeRelics: [],
+    introTiles: runRulesUseIntroTiles(logVersion),
   });
   return { bag, hero, ...first };
 }
@@ -215,6 +223,8 @@ export function createNextRunGarden(params: {
   runSeed: string;
   bag: SeedTile[];
   gardenIndex: number;
+  /** Rules version of the Run's log (defaults to the current one) */
+  logVersion?: number;
 }): { hero: HeroStats; floor: DungeonFloor; state: RunGardenState } {
   const hero = getNextFloorHeroStats(params.stats, params.classId, params.relics, params.upgrades);
   const next = createRunGarden({
@@ -225,6 +235,7 @@ export function createNextRunGarden(params: {
     hero,
     heroClassId: params.classId,
     activeRelics: params.relics,
+    introTiles: runRulesUseIntroTiles(params.logVersion ?? RUN_LOG_VERSION),
   });
   return { hero, ...next };
 }
@@ -263,8 +274,13 @@ export function getRunPathError(
 
 // ── Action log ──────────────────────────────────────────────────────────────
 
-/** v2: 5 relic slots, selling, the larger relic pool and rarity-weighted Shops */
-export const RUN_LOG_VERSION = 2;
+/**
+ * v2: 5 relic slots, selling, the larger relic pool and rarity-weighted Shops.
+ * v3: the first gardens introduce tiles gradually. Older logs still replay
+ * with their own rules.
+ */
+export const RUN_LOG_VERSION = 3;
+export const RUN_LOG_MIN_VERSION = 2;
 
 /**
  * One player action, kept small: coords are packed as row * 5 + col.
@@ -329,7 +345,14 @@ const isRelicId = (v: unknown): v is RelicId =>
 export function parseRunLog(raw: unknown): RunActionLog | null {
   if (!raw || typeof raw !== "object") return null;
   const log = raw as Record<string, unknown>;
-  if (log.v !== RUN_LOG_VERSION) return null;
+  if (
+    typeof log.v !== "number" ||
+    !Number.isInteger(log.v) ||
+    log.v < RUN_LOG_MIN_VERSION ||
+    log.v > RUN_LOG_VERSION
+  ) {
+    return null;
+  }
   if (typeof log.seed !== "string" || log.seed.length === 0 || log.seed.length > MAX_SEED_LENGTH) {
     return null;
   }
@@ -375,8 +398,12 @@ export interface RunReplayState {
  * `apply` returns why an action is impossible (leaving the state untouched),
  * or null once it's been applied.
  */
-export function createRunReplayer(runSeed: string, heroClassId: HeroClassId) {
-  const first = startRunGarden(runSeed, heroClassId);
+export function createRunReplayer(
+  runSeed: string,
+  heroClassId: HeroClassId,
+  logVersion: number = RUN_LOG_VERSION
+) {
+  const first = startRunGarden(runSeed, heroClassId, logVersion);
   const bag = first.bag;
   const s: RunReplayState = {
     runSeed,
@@ -530,6 +557,7 @@ export function createRunReplayer(runSeed: string, heroClassId: HeroClassId) {
       runSeed,
       bag,
       gardenIndex: s.garden.gardenIndex + 1,
+      logVersion,
     });
     s.floor = next.floor;
     s.grid = next.floor.grid;
@@ -549,7 +577,7 @@ export function createRunReplayer(runSeed: string, heroClassId: HeroClassId) {
 export function replayRun(raw: unknown): RunReplayResult {
   const log = parseRunLog(raw);
   if (!log) return { ok: false, error: "malformed log", actionIndex: null };
-  const run = createRunReplayer(log.seed, log.hero);
+  const run = createRunReplayer(log.seed, log.hero, log.v);
   for (let i = 0; i < log.a.length; i++) {
     const error = run.apply(log.a[i]);
     if (error) return { ok: false, error, actionIndex: i };

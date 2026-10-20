@@ -50,7 +50,7 @@ export const HERO_CLASS_REGISTRY: Record<HeroClassId, HeroClassDefinition> = {
     id: "KNIGHT",
     name: "The Cozy Keeper",
     shortName: "Keeper",
-    title: "Sunbeam Guardian",
+    title: "Power tile Guardian",
     emblem: "🐱",
     accentColor: "#FBBF24",
     startingHp: 10,
@@ -65,11 +65,11 @@ export const HERO_CLASS_REGISTRY: Record<HeroClassId, HeroClassDefinition> = {
     isFreeDefault: true,
     sanctuaryName: "The Cozy Keeper",
     sanctuaryShortName: "Keeper",
-    sanctuaryTitle: "Sunbeam Guardian",
+    sanctuaryTitle: "Power tile Guardian",
     sanctuaryEmblem: "🐱",
     sanctuaryPassiveName: "Sturdy Fur",
     sanctuaryPassiveSummary:
-      "Starts every garden with +2 Dew, and keeps half its leftover Dew for the next one.",
+      "Starts every garden with +2 Shield, and keeps half its leftover Shield for the next one.",
   },
   ROGUE: {
     id: "ROGUE",
@@ -94,7 +94,7 @@ export const HERO_CLASS_REGISTRY: Record<HeroClassId, HeroClassDefinition> = {
     sanctuaryEmblem: "🦦",
     sanctuaryPassiveName: "Agile Swimmer",
     sanctuaryPassiveSummary:
-      "May cross its own line once per garden, and its Sunbeam is +2 stronger on diagonal steps into Briars.",
+      "May cross its own line once per garden, and its Power tile is +2 stronger on diagonal steps into Thorns.",
   },
   MAGE: {
     id: "MAGE",
@@ -119,7 +119,7 @@ export const HERO_CLASS_REGISTRY: Record<HeroClassId, HeroClassDefinition> = {
     sanctuaryEmblem: "🦊",
     sanctuaryPassiveName: "Phase Jump",
     sanctuaryPassiveSummary:
-      "Hops over one tile once per garden, and Berries restore +2 extra Magic.",
+      "Hops over one tile once per garden, and Berries restore +2 extra Life.",
   },
   VAMPIRE: {
     id: "VAMPIRE",
@@ -132,11 +132,11 @@ export const HERO_CLASS_REGISTRY: Record<HeroClassId, HeroClassDefinition> = {
     maxHp: 10,
     startingShield: 0,
     startingWeapon: 0,
-    passiveName: "Gem Harmony (+1 Magic on Every Gem)",
+    passiveName: "Gem Harmony (+1 Life on Every Gem)",
     passiveSummary:
-      "Every 💎 Gem (Gold) tile you collect also heals +1 Magic/HP! Defeating Enemies heals +2 HP.",
+      "Every 💎 Gem (Gold) tile you collect also heals +1 Life/HP! Defeating Enemies heals +2 HP.",
     ruleOverrideDesc:
-      "Nature's friend! Slaying Enemies restores +2 HP; stepping on Gem (Gold) tiles restores +1 Magic/HP.",
+      "Nature's friend! Slaying Enemies restores +2 HP; stepping on Gem (Gold) tiles restores +1 Life/HP.",
     isFreeDefault: false,
     sanctuaryName: "The Bloom Sprite",
     sanctuaryShortName: "Sprite",
@@ -144,7 +144,7 @@ export const HERO_CLASS_REGISTRY: Record<HeroClassId, HeroClassDefinition> = {
     sanctuaryEmblem: "🦋",
     sanctuaryPassiveName: "Gem Harmony",
     sanctuaryPassiveSummary:
-      "Every 💎 Gem restores +1 Magic and clearing a Briar restores +2. Can't hold Dew — Dew becomes +2 Sunbeam instead.",
+      "Every 💎 Gem restores +1 Life and clearing a Thorn restores +2. Can't hold Shield — Shield becomes +2 Power tile instead.",
   },
 };
 
@@ -177,11 +177,11 @@ export function getNextFloorHeroStats(
     (r) => r === "ALCHEMIST_FLASK"
   ).length;
   const hasTaproot = activeRelics.includes("DEEP_TAPROOT");
-  // Shop "Deep Roots" boosts (and Deep Taproot) raise Max Magic for the rest of the run
+  // Shop "Deep Roots" boosts (and Deep Taproot) raise Max Life for the rest of the run
   const baseMaxHp = def.maxHp + upgrades.bonusMaxMagic + (hasTaproot ? 4 : 0);
   const maxAllowedHp = baseMaxHp + flaskStacks * 4;
   const restoredHp = prevStats.hp + (hasTaproot ? 3 : 0);
-  // Legendary Eternal Spring: every garden starts at full Magic
+  // Legendary Eternal Spring: every garden starts at full Life
   const nextHp = activeRelics.includes("ETERNAL_SPRING")
     ? Math.max(baseMaxHp, Math.min(maxAllowedHp, restoredHp))
     : Math.min(maxAllowedHp, Math.max(1, restoredHp));
@@ -300,8 +300,8 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     id: "GLASS_WATERING_CAN",
     name: "Glass Watering Can",
     icon: "🫖",
-    shortTag: "+3 CHIPS PER 🍓/💧",
-    description: "Every Berry and Dewdrop on your line adds +3 Chips.",
+    shortTag: "+3 VALUE PER 🍓/🛡️",
+    description: "Every Berry and Shield tile on your line adds +3 Value.",
     accentColor: "#06B6D4",
     cost: 7,
     category: "CHIPS",
@@ -311,7 +311,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     name: "Golden Bee",
     icon: "🐝",
     shortTag: "+1 MULT PER 💎",
-    description: "Every Gem on your line adds +1 Mult.",
+    description: "Every Gem on your line adds +1 Length.",
     accentColor: "#EAB308",
     cost: 9,
     category: "MULT",
@@ -328,23 +328,23 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     category: "XMULT",
     rarity: "UNCOMMON",
   },
-  // ── Run relics: Chips ──
+  // ── Run relics: Value ──
   MOSSY_STONE: {
     id: "MOSSY_STONE",
     name: "Mossy Stone",
     icon: "🪨",
-    shortTag: "+30 CHIPS",
-    description: "Every stroke gets +30 Chips.",
+    shortTag: "+30 VALUE",
+    description: "Every line gets +30 Value.",
     accentColor: "#84CC16",
     cost: 4,
     category: "CHIPS",
   },
   BRIAR_PRESS: {
     id: "BRIAR_PRESS",
-    name: "Briar Press",
+    name: "Thorn Press",
     icon: "📕",
-    shortTag: "+6 CHIPS PER 🌺",
-    description: "Every Briar on your line adds +6 Chips.",
+    shortTag: "+6 VALUE PER 🌺",
+    description: "Every Thorn on your line adds +6 Value.",
     accentColor: "#F43F5E",
     cost: 5,
     category: "CHIPS",
@@ -353,8 +353,8 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     id: "BRAMBLE_HEART",
     name: "Bramble Heart",
     icon: "💔",
-    shortTag: "+5 CHIPS PER MAGIC LOST",
-    description: "+5 Chips for every Magic the stroke costs you.",
+    shortTag: "+5 VALUE PER LIFE LOST",
+    description: "+5 Value for every Life the line costs you.",
     accentColor: "#E11D48",
     cost: 6,
     rarity: "UNCOMMON",
@@ -364,8 +364,8 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     id: "MAGPIE_NEST",
     name: "Magpie's Nest",
     icon: "🪺",
-    shortTag: "+3 CHIPS PER 💎 HELD",
-    description: "+3 Chips for every Gem in your purse when the stroke starts.",
+    shortTag: "+3 VALUE PER 💎 HELD",
+    description: "+3 Value for every Gem in your purse when the line starts.",
     accentColor: "#FACC15",
     cost: 6,
     rarity: "UNCOMMON",
@@ -375,42 +375,42 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     id: "COMPOST_HEAP",
     name: "Compost Heap",
     icon: "🍂",
-    shortTag: "GROWS +2 CHIPS PER 🌺",
+    shortTag: "GROWS +2 VALUE PER 🌺",
     description:
-      "Grows by +2 Chips for every Briar your strokes clear, for the rest of the Run.",
+      "Grows by +2 Value for every Thorn your lines clear, for the rest of the Run.",
     accentColor: "#D97706",
     cost: 6,
     rarity: "UNCOMMON",
     category: "CHIPS",
     scaling: true,
   },
-  // ── Run relics: +Mult ──
+  // ── Run relics: +Length ──
   LADYBUG: {
     id: "LADYBUG",
     name: "Ladybug",
     icon: "🐞",
     shortTag: "+4 MULT",
-    description: "Every stroke gets +4 Mult.",
+    description: "Every line gets +4 Length.",
     accentColor: "#EF4444",
     cost: 4,
     category: "MULT",
   },
   THISTLE_WALTZ: {
     id: "THISTLE_WALTZ",
-    name: "Thistle Waltz",
+    name: "Spike Waltz",
     icon: "🦗",
-    shortTag: "+3 MULT PER 🌵 DODGED",
-    description: "Every Thistle you cross diagonally (unhurt) adds +3 Mult.",
+    shortTag: "+3 MULT PER ⚙️ DODGED",
+    description: "Every Spike you cross diagonally (unhurt) adds +3 Length.",
     accentColor: "#22C55E",
     cost: 5,
     category: "MULT",
   },
   DEW_LENS: {
     id: "DEW_LENS",
-    name: "Dew Lens",
+    name: "Shield Lens",
     icon: "🔍",
-    shortTag: "+2 MULT PER 💧 LEFT",
-    description: "+2 Mult for every Dew you still hold when the line reaches the Archway.",
+    shortTag: "+2 MULT PER 🛡️ LEFT",
+    description: "+2 Length for every Shield you still hold when the line reaches the Exit.",
     accentColor: "#38BDF8",
     cost: 5,
     category: "MULT",
@@ -420,7 +420,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     name: "Berry Basket",
     icon: "🧺",
     shortTag: "+2 MULT PER 🍓",
-    description: "Every Berry on your line adds +2 Mult.",
+    description: "Every Berry on your line adds +2 Length.",
     accentColor: "#FB7185",
     cost: 4,
     category: "MULT",
@@ -430,7 +430,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     name: "Zigzag Kite",
     icon: "🪁",
     shortTag: "+1 MULT PER DIAGONAL",
-    description: "Every diagonal step in your line adds +1 Mult.",
+    description: "Every diagonal step in your line adds +1 Length.",
     accentColor: "#A78BFA",
     cost: 6,
     rarity: "UNCOMMON",
@@ -441,7 +441,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     name: "Dawn Chorus",
     icon: "🐦",
     shortTag: "1ST STROKE +10 MULT",
-    description: "The first stroke of every garden gets +10 Mult.",
+    description: "The first line of every garden gets +10 Length.",
     accentColor: "#FDBA74",
     cost: 5,
     category: "MULT",
@@ -451,7 +451,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     name: "Oak Sapling",
     icon: "🌱",
     shortTag: "GROWS +3 MULT PER BLOOM",
-    description: "Gains +3 Mult every time a garden blooms while you have it.",
+    description: "Gains +3 Length every time a garden is cleared while you have it.",
     accentColor: "#4ADE80",
     cost: 7,
     rarity: "UNCOMMON",
@@ -464,20 +464,20 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     icon: "🛢️",
     shortTag: "GROWS +1 MULT PER SPARE 🌿",
     description:
-      "Each time a garden blooms, gains +1 Mult for every Weed-out you didn't use there.",
+      "Each time a garden is cleared, gains +1 Length for every Swap you didn't use there.",
     accentColor: "#0EA5E9",
     cost: 5,
     category: "MULT",
     scaling: true,
   },
-  // ── Run relics: ×Mult ──
+  // ── Run relics: ×Length ──
   SUN_PRISM: {
     id: "SUN_PRISM",
-    name: "Sun Prism",
+    name: "Power Prism",
     icon: "🔆",
     shortTag: "EVERY ☀️ ON LINE = ×2",
     description:
-      "×2 if your line gathers every Sunbeam on the board (at least 2 of them).",
+      "×2 if your line gathers every Power tile on the board (at least 2 of them).",
     accentColor: "#FDE047",
     cost: 8,
     rarity: "RARE",
@@ -487,8 +487,8 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     id: "QUIET_SNAIL",
     name: "Quiet Snail",
     icon: "🐌",
-    shortTag: "NO MAGIC LOST = ×1.5",
-    description: "×1.5 if the stroke costs you no Magic.",
+    shortTag: "NO LIFE LOST = ×1.5",
+    description: "×1.5 if the line costs you no Life.",
     accentColor: "#2DD4BF",
     cost: 7,
     rarity: "UNCOMMON",
@@ -499,7 +499,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     name: "Evening Lantern",
     icon: "🏮",
     shortTag: "LAST STROKE ×2",
-    description: "The last stroke of every garden scores ×2.",
+    description: "The last line of every garden scores ×2.",
     accentColor: "#F97316",
     cost: 8,
     rarity: "RARE",
@@ -522,7 +522,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     icon: "🌳",
     shortTag: "GROWS ×0.1 PER BLOOM",
     description:
-      "Starts at ×1 and grows by ×0.1 every time a garden blooms while you have it.",
+      "Starts at ×1 and grows by ×0.1 every time a garden is cleared while you have it.",
     accentColor: "#16A34A",
     cost: 9,
     rarity: "RARE",
@@ -546,17 +546,17 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     name: "Seed Purse",
     icon: "👛",
     shortTag: "+2 💎 PER BLOOM",
-    description: "Every garden that blooms pays +2 💎 more.",
+    description: "Every garden you clear pays +2 💎 more.",
     accentColor: "#EAB308",
     cost: 4,
     category: "ECONOMY",
   },
   SUN_HAT: {
     id: "SUN_HAT",
-    name: "Sun Hat",
+    name: "Power Hat",
     icon: "👒",
     shortTag: "SPARE STROKES 2 💎",
-    description: "Each unused stroke pays 2 💎 instead of 1 when a garden blooms.",
+    description: "Each unused line pays 2 💎 instead of 1 when a garden is cleared.",
     accentColor: "#F59E0B",
     cost: 4,
     category: "ECONOMY",
@@ -571,13 +571,13 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     cost: 4,
     category: "ECONOMY",
   },
-  // ── Run relics: Magic and defence ──
+  // ── Run relics: Life and defence ──
   DEEP_TAPROOT: {
     id: "DEEP_TAPROOT",
     name: "Deep Taproot",
     icon: "🥕",
-    shortTag: "+4 MAX MAGIC · +3 EACH GARDEN",
-    description: "+4 Max Magic, and every new garden restores 3 Magic.",
+    shortTag: "+4 MAX LIFE · +3 EACH GARDEN",
+    description: "+4 Max Life, and every new garden restores 3 Life.",
     accentColor: "#FB923C",
     cost: 6,
     rarity: "UNCOMMON",
@@ -588,7 +588,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     name: "Sunflower",
     icon: "🌻",
     shortTag: "+3 ☀️ EACH GARDEN",
-    description: "Start every garden with +3 Sunbeam.",
+    description: "Start every garden with +3 Power tile.",
     accentColor: "#FACC15",
     cost: 5,
     category: "MAGIC",
@@ -597,9 +597,9 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     id: "THORN_CROWN",
     name: "Crown of Thorns",
     icon: "🌹",
-    shortTag: "+5 CHIPS PER 🌺 · ×1.5",
+    shortTag: "+5 VALUE PER 🌺 · ×1.5",
     description:
-      "Legendary: every Briar on your line adds +5 Chips, and every garden's score is ×1.5.",
+      "Legendary: every Thorn on your line adds +5 Value, and every garden's score is ×1.5.",
     accentColor: "#F43F5E",
     rarity: "LEGENDARY",
   },
@@ -616,9 +616,9 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     id: "ETERNAL_SPRING",
     name: "Eternal Spring",
     icon: "🌸",
-    shortTag: "FULL MAGIC EACH GARDEN",
+    shortTag: "FULL LIFE EACH GARDEN",
     description:
-      "Legendary: start every garden with full Magic, and every garden's score is ×1.25.",
+      "Legendary: start every garden with full Life, and every garden's score is ×1.25.",
     accentColor: "#34D399",
     rarity: "LEGENDARY",
   },
@@ -686,16 +686,16 @@ export function getRelicCounter(counters: RelicCounters | undefined, id: RelicId
   return Math.max(0, counters?.[id] ?? 0);
 }
 
-/** "now +6 Mult"-style note for a scaling relic, or null */
+/** "now +6 Length"-style note for a scaling relic, or null */
 export function describeRelicGrowth(id: RelicId, counters: RelicCounters | undefined): string | null {
   const n = getRelicCounter(counters, id);
   switch (id) {
     case "COMPOST_HEAP":
-      return `now +${n * 2} Chips`;
+      return `now +${n * 2} Value`;
     case "OAK_SAPLING":
-      return `now +${n * 3} Mult`;
+      return `now +${n * 3} Length`;
     case "RAIN_BARREL":
-      return `now +${n} Mult`;
+      return `now +${n} Length`;
     case "ELDER_TREE":
       return `now ×${roundX(1 + n * 0.1)}`;
     default:
@@ -708,7 +708,7 @@ const roundX = (x: number) => Math.round(x * 100) / 100;
 const visitedSteps = (sim: PathSimulationResult) =>
   sim.steps.filter((s, i) => i > 0 && !s.isShadowStepCross);
 
-/** Scaling relics after a scored stroke (Compost Heap counts the Briars it cleared) */
+/** Scaling relics after a scored stroke (Compost Heap counts the Thorns it cleared) */
 export function growRelicCountersAfterStroke(
   counters: RelicCounters,
   relics: RelicId[],
@@ -742,17 +742,17 @@ export const SHOP_STAT_BOOSTS: Record<
 > = {
   MAX_MAGIC: {
     name: "Deep Roots",
-    icon: "✨",
-    shortTag: "+2 MAX MAGIC",
-    description: "+2 Max Magic for the rest of this Run — and +2 Magic right now.",
+    icon: "❤️",
+    shortTag: "+2 MAX LIFE",
+    description: "+2 Max Life for the rest of this Run — and +2 Life right now.",
     cost: 5,
     accentColor: "#34D399",
   },
   START_DEW: {
     name: "Morning Mist",
-    icon: "💧",
-    shortTag: "+1 STARTING DEW",
-    description: "Start every remaining garden with +1 extra Dew.",
+    icon: "🛡️",
+    shortTag: "+1 STARTING SHIELD",
+    description: "Start every remaining garden with +1 extra Shield.",
     cost: 4,
     accentColor: "#06B6D4",
   },
@@ -839,28 +839,28 @@ export function pickLegendaryRelic(
 export const BOSS_RULE_REGISTRY: Record<BossRuleId, BossRuleDefinition> = {
   THISTLE_KING: {
     id: "THISTLE_KING",
-    name: "The Thistle King",
-    icon: "🌵",
+    name: "The Spike King",
+    icon: "⚙️",
     description:
-      "Every Thistle deals double damage — unless you cross it diagonally.",
+      "Every Spike deals double damage — unless you cross it diagonally.",
   },
   BRIAR_QUEEN: {
     id: "BRIAR_QUEEN",
-    name: "The Briar Queen",
+    name: "The Thorn Queen",
     icon: "🌺",
-    description: "Every Briar has grown 2 stronger.",
+    description: "Every Thorn has grown 2 stronger.",
   },
   DROUGHT: {
     id: "DROUGHT",
     name: "The Drought",
     icon: "🏜️",
-    description: "Every Dewdrop holds only half its Dew.",
+    description: "Every Shield tile holds only half its Shield.",
   },
   ECLIPSE: {
     id: "ECLIPSE",
     name: "The Eclipse",
     icon: "🌑",
-    description: "Every Sunbeam shines at half strength.",
+    description: "Every Power tile shines at half strength.",
   },
 };
 
@@ -905,7 +905,7 @@ function bakeBossRule(grid: GridCell[][], rule: BossRuleId): GridCell[][] | null
 
 /**
  * Every 3rd floor becomes a Boss Garden: a seeded twist that still leaves at
- * least one surviving line for a Keeper arriving with 8 Magic and 2 Dew.
+ * least one surviving line for a Keeper arriving with 8 Life and 2 Shield.
  */
 export function applyBossBlinds(
   floors: DungeonFloor[],
@@ -1036,7 +1036,7 @@ export const MODIFIER_REGISTRY: Record<ModifierId, ModifierDefinition> = {
     name: "Rook's Lockdown",
     shortTag: "NO DIAGONALS",
     description:
-      "Diagonal movement is disabled for this dungeon. Only orthogonal (N/S/E/W) strokes are permitted.",
+      "Diagonal movement is disabled for this dungeon. Only orthogonal (N/S/E/W) lines are permitted.",
     tacticalHint: "Beware of Traps—you cannot dodge them diagonally here.",
     accentColor: "#8B5CF6",
   },
@@ -1054,7 +1054,7 @@ export const MODIFIER_REGISTRY: Record<ModifierId, ModifierDefinition> = {
 const SANCTUARY_MODIFIER_NAMES: Record<ModifierId, string> = {
   MIRROR_VERTICAL: "Mirror Pond",
   BLOOD_GOLD: "Honeyed Gems",
-  GLASS_ARMOR: "Frost Dew",
+  GLASS_ARMOR: "Frost Shield",
   MOMENTUM: "Sunlit Lanes",
   ORTHOGONAL_ONLY: "Hedgerow Paths",
   NONE: "Quiet Garden",
@@ -1497,7 +1497,7 @@ export function simulatePath(
                 ? hp > baseMaxHp
                   ? `+${healed} HP (Overheal!)`
                   : heroClassId === "MAGE"
-                  ? `+${healed} Magic (+2 Fox Boost)`
+                  ? `+${healed} Life (+2 Fox Boost)`
                   : `+${healed} HP`
                 : "Max HP";
           }
@@ -1539,7 +1539,7 @@ export function simulatePath(
             const healed = Math.min(cap - hp, totalHeal);
             hp = Math.min(cap, hp + totalHeal);
             if (healed > 0) {
-              notes.push(heroClassId === "VAMPIRE" ? `+${healed} Magic (Bloom Sprite)` : `+${healed} HP`);
+              notes.push(heroClassId === "VAMPIRE" ? `+${healed} Life (Bloom Sprite)` : `+${healed} HP`);
             }
           }
 
@@ -1691,11 +1691,11 @@ function countBoardTiles(grid: GridCell[][], type: EntityType): number {
 }
 
 /**
- * Balatro-style garden score: Chips × Mult × relic multipliers.
- *   Chips = Gems gathered on this garden + the values of the tiles the line
- *           visits (Briars, Dew, Sunbeams, Berries, Thistles) + relic Chips
- *   Mult  = the line's length in tiles + relic Mult
- * Only a line that reaches the Archway alive scores.
+ * Balatro-style garden score: Value × Length × relic multipliers.
+ *   Value = Gems gathered on this garden + the values of the tiles the line
+ *           visits (Thorns, Shield, Power tiles, Berries, Spikes) + relic Value
+ *   Length  = the line's length in tiles + relic Length
+ * Only a line that reaches the Exit alive scores.
  */
 export function calculateFloorScoreBreakdown(
   sim: PathSimulationResult,
@@ -1739,7 +1739,7 @@ export function calculateFloorScoreBreakdown(
   ).length;
   const sunbeamsOnLine = countOf("WEAPON");
 
-  // Chips
+  // Value
   addChips("GLASS_WATERING_CAN", countOf("POTION", "SHIELD") * 3);
   addChips("THORN_CROWN", countOf("ENEMY") * 5);
   addChips("MOSSY_STONE", 30);
@@ -1747,7 +1747,7 @@ export function calculateFloorScoreBreakdown(
   addChips("BRAMBLE_HEART", magicLost * 5);
   addChips("MAGPIE_NEST", Math.max(0, startHero.gold) * 3);
   addChips("COMPOST_HEAP", counter("COMPOST_HEAP") * 2);
-  // +Mult
+  // +Length
   addMult("GOLDEN_BEE", countOf("GOLD"));
   addMult("LADYBUG", 4);
   addMult("THISTLE_WALTZ", visited.filter((s) => s.trapDodgedDiagonally).length * 3);
@@ -1757,7 +1757,7 @@ export function calculateFloorScoreBreakdown(
   addMult("DAWN_CHORUS", ctx.strokesLeft === RUN_STROKES_PER_GARDEN ? 10 : 0);
   addMult("OAK_SAPLING", counter("OAK_SAPLING") * 3);
   addMult("RAIN_BARREL", counter("RAIN_BARREL"));
-  // ×Mult
+  // ×Length
   addX("STARLIGHT_COMPASS", 1.5, pathLength >= 12);
   addX("SUN_PRISM", 2, sim.boardSunbeams >= 2 && sunbeamsOnLine >= sim.boardSunbeams);
   addX("QUIET_SNAIL", 1.5, magicLost === 0);
@@ -1812,7 +1812,7 @@ export const PAR_SEARCH_BUDGET = 60000;
 /**
  * Best-scoring line on a garden found by a depth-first search over every
  * self-avoiding line from the Companion, visiting promising tiles first and
- * pruning lines that run out of Magic. Stops after `budget` partial lines, so
+ * pruning lines that run out of Life. Stops after `budget` partial lines, so
  * it's deterministic (same board → same par for everyone) but not a proven
  * optimum; players can occasionally beat it. Class abilities (blink, self-
  * cross) aren't searched, so par is conservative for Fox and Otter.
@@ -2816,7 +2816,7 @@ export function generateShareCardAscii(params: {
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Run mode: Seasons of Small → Big → Boss Gardens with score targets, played
-// with 4 strokes per garden. Visited tiles are refilled from the run's Seed Bag.
+// with 4 strokes per garden. Visited tiles are refilled from the run's Tile Bag.
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Small Garden target for Seasons 1–8 (Big = ×1.5, Boss = ×2). Tunable. */
@@ -2842,7 +2842,7 @@ export const RUN_INTEREST_STEP = 5;
 export const RUN_INTEREST_MAX = 5;
 export const RUN_BEST_SEASON_STORAGE_KEY = "ost_run_best_v1";
 
-/** Seed Bag mix (40 tiles), matching the Garden 1 tile mix of the Daily */
+/** Tile Bag mix (40 tiles), matching the Garden 1 tile mix of the Daily */
 const RUN_SEED_BAG_MIX: Array<{
   type: EntityType;
   count: number;
@@ -2914,7 +2914,7 @@ export function getRunInterest(gemsHeld: number, relics: RelicId[] = []): number
 
 /** Gems paid when a Run garden reaches its target */
 /**
- * Run economy: Gems picked up on the board only score (as Chips); the purse
+ * Run economy: Gems picked up on the board only score (as Value); the purse
  * grows from these garden payouts plus interest, so every Shop is a choice.
  */
 export const RUN_CLEAR_REWARD: Record<RunGardenKind, number> = {
@@ -2932,9 +2932,9 @@ export function getRunRerollCost(rerollsThisShop: number, relics: RelicId[] = []
 }
 
 /**
- * The garden grows wilder each Season: Briars and Thistles gain strength
- * (Dew, Sunbeams and Berries don't), so long sweeping lines cost more Magic.
- * Stronger tiles also score more Chips — more risk, more reward.
+ * The garden grows wilder each Season: Thorns and Spikes gain strength
+ * (Shield, Power tiles and Berries don't), so long sweeping lines cost more Life.
+ * Stronger tiles also score more Value — more risk, more reward.
  */
 export function getRunSeasonGrowth(season: number): { briar: number; thistle: number } {
   const s = Math.max(1, Math.floor(season));
@@ -2978,7 +2978,7 @@ function shuffleSeeded<T>(arr: T[], rng: () => number): T[] {
   return copy;
 }
 
-/** The run's starting Seed Bag (same run seed → same bag) */
+/** The run's starting Tile Bag (same run seed → same bag) */
 export function generateRunSeedBag(runSeed: string): SeedTile[] {
   const rng = mulberry32(hashStringToSeed(`bag-${runSeed}`));
   const bag: SeedTile[] = [];
@@ -3041,10 +3041,37 @@ function drawRunTiles(
 }
 
 /**
- * Lays out a Run garden from a fresh shuffle of the Seed Bag. Tries a few
+ * Lays out a Run garden from a fresh shuffle of the Tile Bag. Tries a few
  * seeded shuffles (and, for a Boss Garden, each twist) until the arriving
  * Companion has at least one surviving line, so a garden never opens lost.
  */
+/**
+ * Rules v3+: the first gardens of every Run introduce tiles gradually —
+ * Garden 1 has Gems, Thorns, Power tiles and Berries; Shield joins in Garden 2 and
+ * Spikes from Season 2. Returns the tile types allowed in a garden, or null
+ * for all of them.
+ */
+export const RUN_INTRO_TILE_STAGES: EntityType[][] = [
+  ["GOLD", "ENEMY", "WEAPON", "POTION"],
+  ["GOLD", "ENEMY", "WEAPON", "POTION", "SHIELD"],
+  ["GOLD", "ENEMY", "WEAPON", "POTION", "SHIELD"],
+];
+
+export function getRunIntroTileTypes(gardenIndex: number): EntityType[] | null {
+  return RUN_INTRO_TILE_STAGES[gardenIndex] ?? null;
+}
+
+/** Tile types a garden adds compared with the garden before it (rules v3+) */
+export function getRunNewTileTypes(gardenIndex: number): EntityType[] {
+  const now = getRunIntroTileTypes(gardenIndex);
+  const before = gardenIndex > 0 ? getRunIntroTileTypes(gardenIndex - 1) : null;
+  if (gardenIndex === 0) return now ?? [];
+  const all: EntityType[] = ["GOLD", "ENEMY", "WEAPON", "SHIELD", "POTION", "TRAP"];
+  const nowSet = now ?? all;
+  const beforeSet = before ?? all;
+  return nowSet.filter((t) => !beforeSet.includes(t));
+}
+
 export function createRunGarden(params: {
   runSeed: string;
   bag: SeedTile[];
@@ -3053,8 +3080,11 @@ export function createRunGarden(params: {
   hero: HeroStats;
   heroClassId: HeroClassId;
   activeRelics: RelicId[];
+  /** Rules v3+: the first gardens only use some tile types */
+  introTiles?: boolean;
 }): { floor: DungeonFloor; state: RunGardenState } {
   const { runSeed, bag, gardenIndex } = params;
+  const allowedTypes = params.introTiles ? getRunIntroTileTypes(gardenIndex) : null;
   const { season, kind } = getRunGardenPosition(gardenIndex);
   const bossOrder: Array<BossRuleId | undefined> =
     kind === "BOSS"
@@ -3070,7 +3100,8 @@ export function createRunGarden(params: {
   let fallback: { floor: DungeonFloor; state: RunGardenState } | null = null;
   for (let attempt = 0; attempt < 8; attempt++) {
     const rng = mulberry32(hashStringToSeed(`garden-${runSeed}-g${gardenIndex}-a${attempt}`));
-    const pile = shuffleSeeded(bag, rng);
+    const shuffled = shuffleSeeded(bag, rng);
+    const pile = allowedTypes ? shuffled.filter((t) => allowedTypes.includes(t.type)) : shuffled;
     const heroCoord: GridCoord = { row: 4, col: Math.floor(rng() * 5) };
     const exitCoord: GridCoord = {
       row: 0,
@@ -3234,7 +3265,7 @@ export function saveRunBestRecord(gardenIndex: number, score: number): {
 }
 
 /**
- * Why a line would wilt, read from the step where Magic runs out.
+ * Why a line would wilt, read from the step where Life runs out.
  * `short` fits on one line of the meter; `long` adds what to do about it.
  */
 export function explainWilt(
@@ -3251,18 +3282,18 @@ export function explainWilt(
     const dmg = Math.max(0, step.hpBefore - step.hpAfter);
     const hits = Math.max(dmg, Math.max(0, v - sun - dew));
     return {
-      short: `🌺${v} − ☀️${sun} − 💧${dew} = −${hits} ✨ · you have ${have}`,
-      long: `That Briar 🌺${v} would take ${hits} ✨ (${v} − ☀️${sun} Sun − 💧${dew} Dew), but you only have ${have}. Grab a ☀️ or 💧 before it, or go around.`,
+      short: `🌺${v} − ☀️${sun} − 🛡️${dew} = −${hits} ❤️ · you have ${have}`,
+      long: `That Thorn 🌺${v} would take ${hits} ❤️ (${v} − ☀️${sun} Power − 🛡️${dew} Shield), but you only have ${have}. Grab a ☀️ or 🛡️ before it, or go around.`,
     };
   }
   if (step.cell.type === "TRAP") {
     return {
-      short: `🌵${v} straight = −${v} ✨ · step on it diagonally`,
-      long: `Stepping straight onto that Thistle 🌵${v} costs ${v} ✨, and you only have ${have}. Enter it diagonally to dodge it, or go around.`,
+      short: `⚙️${v} straight = −${v} ❤️ · step on it diagonally`,
+      long: `Stepping straight onto that Spike ⚙️${v} costs ${v} ❤️, and you only have ${have}. Enter it diagonally to dodge it, or go around.`,
     };
   }
   return {
-    short: `This step costs more ✨ than you have (${have})`,
-    long: `This line would run your Magic down to 0 at step ${step.stepIndex}. Try a safer route.`,
+    short: `This step costs more ❤️ than you have (${have})`,
+    long: `This line would run your Life down to 0 at step ${step.stepIndex}. Try a safer route.`,
   };
 }
