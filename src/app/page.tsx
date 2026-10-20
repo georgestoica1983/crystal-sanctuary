@@ -62,6 +62,7 @@ import {
   getRunGardenPosition,
   getRunGardenTarget,
   getRunRerollCost,
+  explainWilt,
 } from "@/lib/engine";
 import { soundEngine } from "@/lib/audio";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
@@ -566,9 +567,11 @@ export default function OneStrokeTacticianPage() {
 
   const handleNotice = useCallback((msg: string) => {
     setRetractNotice(msg);
+    // Longer explanations stay up longer (about 2.5s + reading time, max 6s)
+    const ms = Math.min(6000, 2500 + msg.length * 35);
     const id = window.setTimeout(() => {
       setRetractNotice((prev) => (prev === msg ? null : prev));
-    }, 2800);
+    }, ms);
     resolutionTimersRef.current.push(id);
   }, []);
 
@@ -2482,6 +2485,21 @@ export default function OneStrokeTacticianPage() {
         }
         onOpenGuide={RUN_ONLY ? () => setHelpMenu("help") : undefined}
         onOpenRunLeaderboard={RUN_ONLY ? () => setIsRunLeaderboardOpen(true) : undefined}
+        onNewRun={
+          RUN_ONLY
+            ? () => {
+                const inProgress = floorHistory.length > 0 && phase !== "DEFEAT" && !lesson;
+                if (!inProgress || window.confirm("Start a new run? This run will end.")) startRun();
+              }
+            : undefined
+        }
+        onEndRun={
+          RUN_ONLY && !lesson && phase !== "DEFEAT"
+            ? () => {
+                if (window.confirm("End this run now? Your score so far will be kept.")) handleEndRunEarly();
+              }
+            : undefined
+        }
         hideGoalLine={lesson !== null}
         onOpenPassModal={() => setIsPassModalOpen(true)}
         onOpenLeaderboard={() => setIsLeaderboardOpen(true)}
@@ -2559,15 +2577,15 @@ export default function OneStrokeTacticianPage() {
 
           {/* Boss Garden twist (every 3rd garden) */}
           {!isInteractiveTutorial && !lesson && currentFloor.bossRuleId && (
-            <div className="w-full max-w-[430px] mx-auto rounded-xl px-3 py-1.5 border-2 border-rose-400/80 bg-gradient-to-r from-rose-600/25 via-fuchsia-600/20 to-rose-600/25 shadow-[0_0_18px_rgba(244,63,94,0.45)] text-rose-50 flex items-center gap-2">
+            <div className="w-full max-w-[430px] mx-auto rounded-xl px-3 py-1.5 border border-rose-300/30 bg-rose-500/[0.07] text-rose-50 flex items-center gap-2">
               <span className="text-xl shrink-0">
                 {BOSS_RULE_REGISTRY[currentFloor.bossRuleId].icon}
               </span>
               <div className="min-w-0">
-                <div className="text-[10px] font-mono font-black uppercase tracking-wider text-rose-200">
-                  Boss Garden · {BOSS_RULE_REGISTRY[currentFloor.bossRuleId].name}
+                <div className="text-[12px] font-bold text-rose-200">
+                  Boss · {BOSS_RULE_REGISTRY[currentFloor.bossRuleId].name}
                 </div>
-                <div className="text-[11px] leading-snug">
+                <div className="text-[12px] leading-snug text-rose-50/80">
                   {BOSS_RULE_REGISTRY[currentFloor.bossRuleId].description}
                   {(mode === "RUN" || currentFloorIndex < dungeon.floors.length - 1) &&
                     " Clear it to earn a Legendary relic."}
@@ -2640,6 +2658,7 @@ export default function OneStrokeTacticianPage() {
                 lastTileValue={lineMeter.lastTileValue}
                 reachesArchway={simulation.canCommit}
                 wilts={!simulation.survives}
+                wiltReason={explainWilt(simulation)?.short ?? null}
                 magicNow={floorStartHero.hp}
                 magicAfter={simulation.survives ? simulation.finalStats.hp : 0}
                 tilesOnBoard={lineMeter.tilesOnBoard}
@@ -2681,7 +2700,8 @@ export default function OneStrokeTacticianPage() {
               }
               cosmetics={cosmetics}
               onPathChange={(nextPath) => {
-                setRetractNotice(null);
+                // Keep a "why it pulled back" notice until the next line starts
+                if (nextPath.length > 1) setRetractNotice(null);
                 setDrawnPath(nextPath);
               }}
               onCommitPath={handleCommitPath}

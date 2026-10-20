@@ -473,6 +473,9 @@ interface TopHUDProps {
   onOpenGuide?: () => void;
   /** Opens the Run leaderboard (Run-only game) */
   onOpenRunLeaderboard?: () => void;
+  /** Run-only menu actions */
+  onNewRun?: () => void;
+  onEndRun?: () => void;
   /** Hides the one-line goal under the stats (e.g. during a lesson) */
   hideGoalLine?: boolean;
   /** Daily is always played with the Keeper (fair scores). */
@@ -516,6 +519,8 @@ export function TopHUD({
   onOpenGuide,
   hideGoalLine = false,
   onOpenRunLeaderboard,
+  onNewRun,
+  onEndRun,
   isDailyCompanionLocked = false,
   dungeon,
   currentFloorIndex,
@@ -553,6 +558,7 @@ export function TopHUD({
   const [showStarBreakdown, setShowStarBreakdown] = useState(false);
   const [showCosmeticsDrawer, setShowCosmeticsDrawer] = useState(false);
   const [showCompanionDrawer, setShowCompanionDrawer] = useState(false);
+  const [showRunMenu, setShowRunMenu] = useState(false);
 
   const isAnyTutorialActive = showTutorial || isInteractiveTutorial;
   // Sanctuary is the game's only voice; the theme setting is a visual skin.
@@ -619,6 +625,165 @@ export function TopHUD({
       visualTheme: nextTheme,
     });
   };
+
+  // Run-only game: one slim row — Companion, the four stats, and a ☰ menu
+  if (runOnly && !isInteractiveTutorial) {
+    const lowMagic = hero.hp <= Math.max(2, Math.floor(hero.maxHp * 0.3));
+    const stats = [
+      {
+        key: "magic",
+        label: "Magic",
+        icon: <span className="text-[13px] leading-none" aria-hidden="true">✨</span>,
+        value: (
+          <>
+            {hero.hp}
+            <span className="text-[10px] font-bold text-white/40">/{hero.maxHp}</span>
+          </>
+        ),
+        color: lowMagic ? "text-rose-300" : "text-white",
+      },
+      {
+        key: "dew",
+        label: "Dew",
+        icon: <EntityIcon type="SHIELD" size={13} />,
+        value: heroClassId === "VAMPIRE" ? "—" : hero.shield,
+        color: "text-sky-300",
+      },
+      { key: "sun", label: "Sun", icon: <EntityIcon type="WEAPON" size={13} />, value: hero.weapon, color: "text-amber-300" },
+      { key: "gems", label: "Gems", icon: <EntityIcon type="GOLD" size={13} />, value: hero.gold, color: "text-yellow-200" },
+    ];
+    const menuRow =
+      "w-full h-12 px-3 rounded-xl flex items-center gap-3 text-left text-[14px] font-semibold text-white/90 hover:bg-white/[0.06] active:bg-white/[0.1] transition";
+    return (
+      <div className="w-full max-w-[430px] mx-auto select-none">
+        <div className="flex items-stretch gap-1.5">
+          <button
+            type="button"
+            onClick={() => setShowCompanionDrawer(true)}
+            aria-label={`Companion: ${activeClassDef.sanctuaryShortName ?? activeClassDef.shortName}. Tap to change.`}
+            className="relative h-11 w-11 shrink-0 rounded-xl bg-white/[0.04] border border-white/[0.07] flex items-center justify-center active:scale-95 transition"
+          >
+            <EntityIcon type="HERO" companionId={heroClassId} size={22} />
+          </button>
+          <div className="flex-1 min-w-0 h-11 grid grid-cols-4 rounded-xl bg-white/[0.04] border border-white/[0.07] divide-x divide-white/[0.06]">
+            {stats.map((st) => (
+              <div key={st.key} className="min-w-0 flex flex-col items-center justify-center" aria-label={`${st.label}`}>
+                <div className="flex items-center gap-1 leading-none">
+                  {st.icon}
+                  <span className={`text-[15px] font-mono font-black leading-none ${st.color}`}>{st.value}</span>
+                </div>
+                <div className="mt-1 text-[10px] leading-none text-white/45">{st.label}</div>
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowRunMenu(true)}
+            aria-label="Menu"
+            className="relative h-11 w-11 shrink-0 rounded-xl bg-white/[0.04] border border-white/[0.07] flex items-center justify-center text-white/80 text-lg active:scale-95 transition"
+          >
+            <span aria-hidden="true">☰</span>
+            {relicCounts.length > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-teal-300 text-slate-950 text-[10px] font-black flex items-center justify-center">
+                {activeRelics.length}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {showRunMenu && (
+          <div
+            className="fixed inset-0 z-[55] bg-black/60 flex items-end justify-center"
+            onClick={() => setShowRunMenu(false)}
+          >
+            <div
+              role="dialog"
+              aria-label="Menu"
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-[430px] max-h-[85dvh] overflow-y-auto rounded-2xl bg-[#121A2E] border border-white/[0.08] p-2"
+            >
+              <div className="flex items-center justify-between px-2 pt-1 pb-2">
+                <div className="text-[15px] font-bold text-white">Menu</div>
+                <button
+                  type="button"
+                  onClick={() => setShowRunMenu(false)}
+                  aria-label="Close menu"
+                  className="h-9 w-9 rounded-lg bg-white/[0.06] flex items-center justify-center"
+                >
+                  <X className="w-4 h-4 text-white/80" />
+                </button>
+              </div>
+
+              {relicCounts.length > 0 && (
+                <div className="mx-1 mb-2 rounded-xl bg-white/[0.03] border border-white/[0.06] p-2 space-y-1.5">
+                  <div className="text-[11px] font-semibold text-white/50 px-1">Your relics</div>
+                  {relicCounts.map(([relicId, count]) => {
+                    const rDef = getRelicDisplay(RELIC_REGISTRY[relicId], isSanctuary);
+                    return (
+                      <div key={relicId} className="flex gap-2.5 px-1">
+                        <span className="text-lg leading-6" aria-hidden="true">{rDef.icon}</span>
+                        <div className="min-w-0">
+                          <div className="text-[13px] font-bold text-white">
+                            {rDef.name}
+                            {count > 1 && <span className="text-teal-300"> ×{count}</span>}
+                          </div>
+                          <div className="text-[12px] leading-snug text-white/60">{rDef.description}</div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="space-y-0.5">
+                {onOpenGuide && (
+                  <button type="button" className={menuRow} onClick={() => { setShowRunMenu(false); onOpenGuide(); }}>
+                    <span className="w-6 text-center" aria-hidden="true">❓</span> How to play
+                  </button>
+                )}
+                {onOpenRunLeaderboard && (
+                  <button type="button" className={menuRow} onClick={() => { setShowRunMenu(false); onOpenRunLeaderboard(); }}>
+                    <Trophy className="w-5 h-5 mx-0.5 text-amber-300" /> Leaderboard
+                  </button>
+                )}
+                <button type="button" className={menuRow} onClick={onToggleSound}>
+                  {soundEnabled ? <Volume2 className="w-5 h-5 mx-0.5 text-white/80" /> : <VolumeX className="w-5 h-5 mx-0.5 text-white/50" />}
+                  Sound
+                  <span className="ml-auto text-[12px] text-white/50">{soundEnabled ? "On" : "Off"}</span>
+                </button>
+                <button type="button" className={menuRow} onClick={handleToggleVisualTheme}>
+                  <span className="w-6 text-center" aria-hidden="true">{isSanctuarySkin ? "🌸" : "🌙"}</span>
+                  Board look
+                  <span className="ml-auto text-[12px] text-white/50">{isSanctuarySkin ? "Garden" : "Night"}</span>
+                </button>
+                {onNewRun && (
+                  <button type="button" className={menuRow} onClick={() => { setShowRunMenu(false); onNewRun(); }}>
+                    <RefreshCw className="w-5 h-5 mx-0.5 text-white/80" /> New run
+                  </button>
+                )}
+                {onEndRun && (
+                  <button type="button" className={`${menuRow} !text-rose-200`} onClick={() => { setShowRunMenu(false); onEndRun(); }}>
+                    <span className="w-6 text-center" aria-hidden="true">🌙</span> End this run
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        <CompanionDrawerModal
+          isOpen={showCompanionDrawer}
+          currentClassId={heroClassId}
+          isSanctuary={isSanctuary}
+          expansionUnlocked={expansionUnlocked}
+          trialClassFloorActive={trialClassFloorActive}
+          onSelectClass={onSelectHeroClass}
+          onOpenPassModal={onOpenPassModal}
+          onClose={() => setShowCompanionDrawer(false)}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-[430px] mx-auto flex flex-col gap-1 sm:gap-1.5 select-none">
@@ -1307,7 +1472,7 @@ export function BottomControls({
       <div
         className={
           mode === "RUN"
-            ? "grid grid-cols-4 gap-1.5 [&>button]:w-full [&>button]:min-w-0 [&>button]:justify-center [&>button]:px-1"
+            ? "grid grid-cols-2 gap-2 [&>button]:w-full [&>button]:min-w-0 [&>button]:justify-center [&>button]:px-1"
             : "flex items-center justify-between gap-1.5"
         }
       >
@@ -1315,15 +1480,9 @@ export function BottomControls({
           type="button"
           disabled={isResolving}
           onClick={onResetFloorStroke}
-          className="flex-1 h-10 px-2 rounded-xl whitespace-nowrap bg-[#131526]/80 hover:bg-[#1C1F3A]/90 border border-indigo-500/40 text-[11px] font-mono font-bold text-indigo-200 hover:text-white shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition disabled:opacity-40"
+          className={mode === "RUN" ? "h-11 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[13px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-40" : "flex-1 h-10 px-2 rounded-xl whitespace-nowrap bg-[#131526]/80 hover:bg-[#1C1F3A]/90 border border-indigo-500/40 text-[11px] font-mono font-bold text-indigo-200 hover:text-white shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition disabled:opacity-40"}
         >
-          {mode === "RUN" ? (
-            <>
-              CLEAR<span className="hidden min-[360px]:inline"> LINE</span>
-            </>
-          ) : (
-            "CLEAR LINE"
-          )}
+          {mode === "RUN" ? "Clear line" : "CLEAR LINE"}
         </button>
 
         <button
@@ -1331,15 +1490,16 @@ export function BottomControls({
           disabled={isResolving || hintsRemaining <= 0}
           onClick={onRequestHint}
           title="Highlight 3 safe steps of a winning path for 5 seconds"
-          className="h-10 px-2 rounded-xl whitespace-nowrap bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/50 text-[11px] font-mono font-extrabold text-amber-300 hover:text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.2)] active:scale-95 transition disabled:opacity-35 flex items-center gap-1.5"
+          className={mode === "RUN" ? "h-11 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[13px] font-semibold text-amber-200 active:scale-95 transition disabled:opacity-35 flex items-center gap-1.5" : "h-10 px-2 rounded-xl whitespace-nowrap bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/50 text-[11px] font-mono font-extrabold text-amber-300 hover:text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.2)] active:scale-95 transition disabled:opacity-35 flex items-center gap-1.5"}
         >
           <Sparkles className="w-3.5 h-3.5 text-amber-400" />
           <span>
-            <span className={mode === "RUN" ? "hidden min-[360px]:inline" : ""}>Hint </span>(
-            {hintsRemaining})
+            {mode === "RUN" ? `Hint · ${hintsRemaining}` : `Hint (${hintsRemaining})`}
           </span>
         </button>
 
+        {mode !== "RUN" && (
+          <>
         <button
           type="button"
           disabled={isResolving}
@@ -1347,7 +1507,7 @@ export function BottomControls({
           className="h-10 px-2 rounded-xl whitespace-nowrap bg-[#131526]/80 hover:bg-[#1C1F3A]/90 border border-indigo-500/40 text-[11px] font-mono font-bold text-indigo-200 hover:text-white shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition flex items-center justify-center gap-1 disabled:opacity-40"
         >
           <RefreshCw className="w-3 h-3 text-cyan-400" />
-          <span>{mode === "RUN" ? "NEW RUN" : isSanctuary ? "RESTART" : "RESET"}</span>
+          <span>{isSanctuary ? "RESTART" : "RESET"}</span>
         </button>
 
         <button
@@ -1356,8 +1516,10 @@ export function BottomControls({
           onClick={onForfeitRun}
           className="h-10 px-2 rounded-xl whitespace-nowrap bg-[#131526]/80 hover:bg-[#2A1526]/90 border border-indigo-500/40 hover:border-red-500/50 text-[11px] font-mono font-bold text-indigo-200 hover:text-red-200 shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition disabled:opacity-40 flex items-center"
         >
-          {mode === "RUN" ? "END RUN" : isSanctuary ? "END VISIT" : "END RUN"}
+          {isSanctuary ? "END VISIT" : "END RUN"}
         </button>
+          </>
+        )}
 
         {mode !== "DAILY" && mode !== "RUN" && (
           <button

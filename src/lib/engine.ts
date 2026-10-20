@@ -3232,3 +3232,37 @@ export function saveRunBestRecord(gardenIndex: number, score: number): {
   }
   return { record, isNew };
 }
+
+/**
+ * Why a line would wilt, read from the step where Magic runs out.
+ * `short` fits on one line of the meter; `long` adds what to do about it.
+ */
+export function explainWilt(
+  sim: PathSimulationResult
+): { short: string; long: string } | null {
+  if (sim.firstDeathStepIndex === null) return null;
+  const step = sim.steps[sim.firstDeathStepIndex];
+  if (!step) return null;
+  const v = step.cell.value;
+  const have = step.hpBefore;
+  if (step.cell.type === "ENEMY") {
+    const sun = step.weaponBefore;
+    const dew = step.shieldBefore;
+    const dmg = Math.max(0, step.hpBefore - step.hpAfter);
+    const hits = Math.max(dmg, Math.max(0, v - sun - dew));
+    return {
+      short: `🌺${v} − ☀️${sun} − 💧${dew} = −${hits} ✨ · you have ${have}`,
+      long: `That Briar 🌺${v} would take ${hits} ✨ (${v} − ☀️${sun} Sun − 💧${dew} Dew), but you only have ${have}. Grab a ☀️ or 💧 before it, or go around.`,
+    };
+  }
+  if (step.cell.type === "TRAP") {
+    return {
+      short: `🌵${v} straight = −${v} ✨ · step on it diagonally`,
+      long: `Stepping straight onto that Thistle 🌵${v} costs ${v} ✨, and you only have ${have}. Enter it diagonally to dodge it, or go around.`,
+    };
+  }
+  return {
+    short: `This step costs more ✨ than you have (${have})`,
+    long: `This line would run your Magic down to 0 at step ${step.stepIndex}. Try a safer route.`,
+  };
+}

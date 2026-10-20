@@ -7,9 +7,10 @@ import { getLineTier, getNextLineTier, LINE_TIERS } from "@/lib/lineTiers";
 const fmt = (n: number) => Math.round(n).toLocaleString();
 
 /**
- * Live Chips × Mult meter shown above the board while drawing: every step pops
- * "+chips, +1 mult → +points", so players see a longer line is worth more and
- * more per tile. Also shows the Magic it will cost and the line's tier.
+ * Live Chips × Mult meter above the board. Calm by default: one hint line
+ * before drawing; while drawing, the score, the per-step gain, the Magic cost
+ * and — only when it matters — the line tier, a short-line tip, or why the
+ * line would wilt.
  */
 export default function LineMeter({
   tiles,
@@ -20,6 +21,7 @@ export default function LineMeter({
   lastTileValue,
   reachesArchway,
   wilts,
+  wiltReason,
   magicNow,
   magicAfter,
   tilesOnBoard,
@@ -36,9 +38,11 @@ export default function LineMeter({
   lastTileValue: number;
   reachesArchway: boolean;
   wilts: boolean;
+  /** Why the line would wilt, e.g. "🌺6 − ☀️0 − 💧2 = 4 damage, you have 3 ✨" */
+  wiltReason?: string | null;
   magicNow: number;
   magicAfter: number;
-  /** Walkable tiles on this board (for "N / M tiles used") */
+  /** Walkable tiles on this board (for "N / M tiles") */
   tilesOnBoard: number;
   showShortLineTip: boolean;
 }) {
@@ -61,109 +65,96 @@ export default function LineMeter({
   }, [tier.level, tier.name, drawing]);
 
   const magicCost = magicNow - magicAfter;
-  const progressFrom = tier.minTiles;
-  const progressTo = next?.minTiles ?? tier.minTiles;
-  const progress = next ? (tiles - progressFrom) / (progressTo - progressFrom) : 1;
+
+  // Bottom line: the one thing worth saying right now
+  let bottom: React.ReactNode = null;
+  if (drawing && wilts && wiltReason) {
+    bottom = <span className="text-rose-200 font-semibold">⚠ {wiltReason}</span>;
+  } else if (drawing && showShortLineTip) {
+    bottom = <span className="text-amber-200 font-semibold">💡 Short line — each extra tile is worth more</span>;
+  } else if (drawing && tier.level > 0) {
+    bottom = (
+      <span className="flex items-center gap-1.5 w-full">
+        <span className="font-semibold shrink-0" style={{ color: tier.color }}>
+          {tier.name}
+        </span>
+        <span className="flex-1 h-1 rounded-full bg-white/10 overflow-hidden flex">
+          {LINE_TIERS.slice(1).map((t, i) => {
+            const lower = LINE_TIERS[i].minTiles;
+            const filled = Math.max(0, Math.min(1, (tiles - lower) / (t.minTiles - lower)));
+            return (
+              <span key={t.name} className="h-full flex-1 border-r border-black/40 last:border-0">
+                <span
+                  className="block h-full transition-all duration-200"
+                  style={{ width: `${filled * 100}%`, backgroundColor: t.color }}
+                />
+              </span>
+            );
+          })}
+        </span>
+        <span className="shrink-0 text-white/45 font-mono">
+          {next ? `${next.minTiles - tiles} → ${next.name}` : "top tier"}
+        </span>
+      </span>
+    );
+  }
 
   return (
     <div
-      className="relative w-full max-w-[430px] min-w-0 h-[72px] rounded-xl border px-2.5 py-1.5 bg-[#0F1428]/95 flex flex-col justify-center"
-      style={{ borderColor: drawing ? `${tier.color}88` : "rgba(255,255,255,0.12)" }}
+      className="relative w-full max-w-[430px] min-w-0 h-[64px] rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-1.5 flex flex-col justify-center"
       aria-live="polite"
     >
       {!drawing ? (
-        <div className="text-[11.5px] leading-snug text-indigo-100/85">
-          <span className="font-bold text-white">Score = </span>
-          <span className="font-mono font-black text-sky-300">Chips</span>
-          <span className="text-white"> × </span>
-          <span className="font-mono font-black text-rose-300">Mult</span>
-          <span>. Each tile adds Chips and +1 Mult — </span>
-          <span className="font-bold text-amber-200">longer lines multiply both</span>.
+        <div className="text-[12.5px] leading-snug text-white/60 text-center">
+          Drag from your Companion to the 🌈.{" "}
+          <span className="text-amber-200/90">Longer lines score far more.</span>
         </div>
       ) : (
         <>
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-baseline gap-2 min-w-0">
             <div className="flex items-baseline gap-1 font-mono shrink-0">
-              <span className="text-lg font-black text-sky-300 leading-none">{fmt(chips)}</span>
-              <span className="text-[10px] text-sky-200/70 uppercase">chips</span>
-              <span className="text-sm text-white/70 mx-0.5">×</span>
-              <span className="text-lg font-black text-rose-300 leading-none">{fmt(mult)}</span>
-              <span className="text-[10px] text-rose-200/70 uppercase">mult</span>
+              <span className="text-[17px] font-black text-sky-300 leading-none">{fmt(chips)}</span>
+              <span className="text-[10px] text-white/40">chips</span>
+              <span className="text-[13px] text-white/40 mx-0.5">×</span>
+              <span className="text-[17px] font-black text-rose-300 leading-none">{fmt(mult)}</span>
+              <span className="text-[10px] text-white/40">mult</span>
               {xMult !== 1 && (
                 <span className="text-[11px] font-black text-fuchsia-300">×{Math.round(xMult * 100) / 100}</span>
               )}
             </div>
-            <div className="ml-auto text-right min-w-0 leading-none">
-              <div
-                className={`text-lg font-mono font-black leading-none ${
-                  reachesArchway ? "text-amber-200" : "text-amber-200/60"
-                }`}
-              >
-                = {fmt(points)}
-              </div>
-              <div className="text-[10px] font-mono text-indigo-200/70 whitespace-nowrap">
-                {wilts ? "would wilt ✗" : reachesArchway ? "let go to score" : "reach 🌈 to score"}
-              </div>
+            <div
+              className={`ml-auto text-[19px] font-mono font-black leading-none ${
+                wilts ? "text-rose-300/70 line-through" : reachesArchway ? "text-amber-200" : "text-amber-200/50"
+              }`}
+            >
+              {fmt(points)}
             </div>
           </div>
 
-          <div className="flex items-center gap-2 mt-1">
-            {/* Per-step gain: grows with every tile */}
+          <div className="flex items-center gap-2 mt-1 text-[11px] font-mono leading-none">
             <AnimatePresence mode="popLayout">
-              <motion.div
+              <motion.span
                 key={tiles}
-                initial={{ y: 6, opacity: 0, scale: 0.9 }}
-                animate={{ y: 0, opacity: 1, scale: 1 }}
+                initial={{ y: 5, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
                 exit={{ opacity: 0 }}
-                transition={{ duration: 0.18 }}
-                className="text-[10px] font-mono text-emerald-200 whitespace-nowrap"
+                transition={{ duration: 0.16 }}
+                className="text-emerald-200/90 whitespace-nowrap"
               >
                 {lastTileValue > 0 ? `+${lastTileValue} chips, ` : ""}+1 mult →{" "}
                 <span className="font-black text-emerald-300">+{fmt(gain)}</span>
-              </motion.div>
+              </motion.span>
             </AnimatePresence>
-            <div className="ml-auto flex items-center gap-2 text-[10px] font-mono shrink-0">
-              <span className={magicCost > 0 ? "text-rose-200" : "text-indigo-200/70"}>
-                ✨ {magicCost > 0 ? `−${magicCost}` : "±0"}
-              </span>
-              <span className="text-indigo-200/70">
-                {tiles - 1}/{tilesOnBoard} tiles
-              </span>
-            </div>
-          </div>
-
-          {/* Tier progress (the short-line tip takes this row's place) */}
-          {showShortLineTip ? (
-            <div className="mt-1 h-[14px] text-[10.5px] leading-[14px] font-bold text-amber-200 whitespace-nowrap overflow-hidden">
-              💡 Short line — each extra tile is worth more!
-            </div>
-          ) : (
-          <div className="flex items-center gap-1.5 mt-1 h-[14px]">
-            <span className="text-[10px] font-mono font-black shrink-0" style={{ color: tier.color }}>
-              {tier.name}
-            </span>
-            <div className="flex-1 h-1.5 rounded-full bg-white/10 overflow-hidden flex">
-              {LINE_TIERS.slice(1).map((t, i) => {
-                const lower = LINE_TIERS[i].minTiles;
-                const span = t.minTiles - lower;
-                const filled = Math.max(0, Math.min(1, (tiles - lower) / span));
-                return (
-                  <div key={t.name} className="h-full flex-1 border-r border-black/40 last:border-0">
-                    <div
-                      className="h-full transition-all duration-200"
-                      style={{ width: `${filled * 100}%`, backgroundColor: t.color }}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-            <span className="text-[10px] font-mono text-indigo-200/70 shrink-0 whitespace-nowrap">
-              {next ? `${next.minTiles - tiles} more → ${next.name}` : "top tier!"}
+            <span className="ml-auto shrink-0 whitespace-nowrap text-white/50">
+              <span className={magicCost > 0 ? "text-rose-200" : ""}>✨{magicCost > 0 ? `−${magicCost}` : "±0"}</span>
+              {" · "}
+              {tiles - 1}/{tilesOnBoard}
             </span>
           </div>
-          )}
-          <span className="sr-only">{Math.round(progress * 100)}% to the next tier</span>
 
+          <div className="mt-1 h-[14px] text-[11px] leading-[14px] whitespace-nowrap overflow-hidden flex items-center">
+            {bottom}
+          </div>
         </>
       )}
 
@@ -174,7 +165,7 @@ export default function LineMeter({
             initial={{ scale: 0.6, opacity: 0, y: 4 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="pointer-events-none absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full text-[11px] font-black text-slate-950 shadow-lg"
+            className="pointer-events-none absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full text-[11px] font-black text-slate-950"
             style={{ backgroundColor: getLineTier(tiles).color }}
           >
             {tierUp}!

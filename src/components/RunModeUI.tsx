@@ -49,43 +49,41 @@ export function RunHudStrip({
   const strokesUsed = RUN_STROKES_PER_GARDEN - garden.strokesLeft;
   return (
     <div
-      className={`w-full max-w-[430px] min-w-0 rounded-xl px-2.5 pt-1.5 pb-1 border space-y-1 ${
-        isBoss
-          ? "border-rose-400/70 bg-gradient-to-r from-rose-900/40 via-[#1A1030]/90 to-rose-900/40 shadow-[0_0_16px_rgba(244,63,94,0.3)]"
-          : "border-emerald-400/40 bg-[#10192A]/90 shadow-[0_0_14px_rgba(52,211,153,0.15)]"
+      className={`w-full max-w-[430px] min-w-0 rounded-xl px-3 pt-2 pb-1.5 border space-y-1.5 bg-white/[0.04] ${
+        isBoss ? "border-rose-300/40" : "border-white/[0.07]"
       }`}
     >
       <div className="flex items-center justify-between gap-2 min-w-0">
         <div className="min-w-0">
-          <div className="text-[10px] font-mono font-black uppercase tracking-wider text-emerald-200 truncate">
+          <div className="text-[12px] font-semibold text-white/70 whitespace-nowrap">
             Season {garden.season}
             {garden.season > RUN_FINAL_SEASON ? " · Endless" : ""} ·{" "}
-            <span className={isBoss ? "text-rose-200" : ""}>
+            <span className={isBoss ? "text-rose-200" : "text-white/90"}>
               {boss ? `${boss.icon} ` : ""}
               {getRunGardenKindLabel(garden.kind)}
             </span>
           </div>
         </div>
-        <div className="shrink-0 text-[10px] font-mono text-amber-100/80">
-          Target <span className="font-black text-amber-200">{fmt(garden.target)}</span>
+        <div className="shrink-0 text-[12px] text-white/55">
+          Target <span className="font-mono font-black text-amber-200">{fmt(garden.target)}</span>
         </div>
       </div>
 
       {/* Score progress */}
-      <div className="relative h-4 rounded-full bg-black/40 border border-white/10 overflow-hidden">
+      <div className="relative h-4 rounded-full bg-black/30 overflow-hidden">
         <motion.div
-          className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-400 to-cyan-300"
+          className="absolute inset-y-0 left-0 bg-amber-300/80"
           initial={false}
           animate={{ width: `${pct}%` }}
           transition={{ type: "spring", stiffness: 120, damping: 20 }}
         />
         {previewPct > 0 && (
           <div
-            className="absolute inset-y-0 bg-amber-300/45"
+            className="absolute inset-y-0 bg-amber-200/35"
             style={{ left: `${pct}%`, width: `${previewPct}%` }}
           />
         )}
-        <div className="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-black text-white drop-shadow-[0_1px_2px_rgba(0,0,0,0.9)]">
+        <div className="absolute inset-0 flex items-center justify-center text-[11px] font-mono font-black text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">
           {fmt(garden.score)} / {fmt(garden.target)}
           {previewScore != null && previewScore > 0 && (
             <span className="ml-1 text-amber-200">(+{fmt(previewScore)})</span>
@@ -94,50 +92,48 @@ export function RunHudStrip({
       </div>
 
       {!weedOutActive && (
-      <div className="flex items-center justify-between gap-2 h-7">
+      <div className="flex items-center justify-between gap-2 h-8">
         <div
-          className="flex items-center gap-1 text-[10px] font-mono text-cyan-100"
+          className="flex items-center gap-1.5 text-[12px] text-white/55"
           aria-label={`${garden.strokesLeft} strokes left`}
         >
-          <span className="uppercase opacity-80">Strokes</span>
+          <span>Strokes</span>
           {Array.from({ length: RUN_STROKES_PER_GARDEN }, (_, i) => (
             <span
               key={i}
-              className={`w-2.5 h-2.5 rounded-full border ${
-                i < strokesUsed
-                  ? "bg-transparent border-white/25"
-                  : "bg-cyan-300 border-cyan-200 shadow-[0_0_6px_rgba(34,211,238,0.8)]"
+              className={`w-2.5 h-2.5 rounded-full ${
+                i < strokesUsed ? "bg-white/15" : "bg-teal-300"
               }`}
             />
           ))}
-          <span className="ml-0.5 font-black">{garden.strokesLeft}</span>
+          <span className="ml-0.5 font-mono font-black text-white/85">{garden.strokesLeft}</span>
         </div>
         <button
           type="button"
           disabled={disabled || (garden.weedOutsLeft <= 0 && !weedOutActive)}
           onClick={onToggleWeedOut}
-          className={`h-7 px-2.5 rounded-lg border text-[11px] font-mono font-black transition active:scale-95 disabled:opacity-35 ${
+          className={`h-8 px-3 rounded-lg border text-[12px] font-semibold transition active:scale-95 disabled:opacity-35 ${
             weedOutActive
-              ? "bg-lime-400 text-slate-950 border-lime-200"
+              ? "bg-lime-300 text-slate-950 border-lime-200"
               : noSafeLine
-              ? "bg-lime-500/25 border-lime-300 text-lime-100 animate-pulse"
-              : "bg-lime-500/10 border-lime-400/50 text-lime-200"
+              ? "bg-lime-400/20 border-lime-300 text-lime-100 animate-pulse"
+              : "bg-white/[0.05] border-white/[0.1] text-white/85"
           }`}
         >
-          🌿 Weed-out {garden.weedOutsLeft}/{RUN_WEEDOUTS_PER_GARDEN}
+          <span aria-hidden="true">🌿</span> Weed-out · {garden.weedOutsLeft}
         </button>
       </div>
       )}
 
       {weedOutActive && (
-        <div className="flex items-center gap-1.5 h-7">
-          <div className="flex-1 text-[10px] font-sans text-lime-100 leading-tight">
+        <div className="flex items-center gap-1.5 h-8">
+          <div className="flex-1 text-[11px] text-lime-100 leading-tight">
             Tap up to {RUN_WEEDOUT_MAX_TILES} tiles to swap ({weedOutCount}/{RUN_WEEDOUT_MAX_TILES})
           </div>
           <button
             type="button"
             onClick={onToggleWeedOut}
-            className="h-7 px-2.5 rounded-lg bg-white/10 border border-white/20 text-[11px] font-mono font-bold text-zinc-100"
+            className="h-8 px-3 rounded-lg bg-white/10 border border-white/15 text-[12px] font-semibold text-zinc-100"
           >
             Cancel
           </button>
@@ -145,7 +141,7 @@ export function RunHudStrip({
             type="button"
             disabled={weedOutCount === 0}
             onClick={onConfirmWeedOut}
-            className="h-7 px-2.5 rounded-lg bg-lime-400 text-slate-950 text-[11px] font-mono font-black disabled:opacity-40"
+            className="h-8 px-3 rounded-lg bg-lime-300 text-slate-950 text-[12px] font-bold disabled:opacity-40"
           >
             Weed out {weedOutCount > 0 ? weedOutCount : ""}
           </button>
@@ -360,17 +356,24 @@ export function RunOverModal({
 }) {
   if (!info) return null;
   const copy = REASON_COPY[info.reason];
+  const shortBy = Math.max(0, info.target - info.gardenScore);
+  const body =
+    info.reason === "MISSED_TARGET"
+      ? shortBy <= info.target * 0.35
+        ? `So close — just ${fmt(shortBy)} points short. One longer line would have made it.`
+        : `${fmt(shortBy)} points short. Longer lines multiply your score — and score relics from the Shop push it further.`
+      : copy.body;
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3">
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="w-full max-w-[380px] rounded-2xl p-4 space-y-3 text-white border-2 border-rose-300/60 bg-gradient-to-b from-[#26101E] via-[#160B1C] to-[#0A0614] shadow-[0_0_40px_rgba(244,63,94,0.3)]"
+        className="w-full max-w-[380px] rounded-2xl p-4 space-y-3 text-white border border-white/[0.08] bg-[#151A2C]"
       >
         <div className="text-center">
           <div className="text-3xl">{copy.icon}</div>
           <div className="text-xl font-black text-rose-100">{copy.title}</div>
-          <p className="text-xs text-rose-100/80 leading-snug mt-0.5">{copy.body}</p>
+          <p className="text-[13px] text-rose-100/85 leading-snug mt-1">{body}</p>
         </div>
 
         <div className="rounded-xl border border-white/10 bg-white/5 p-2.5 space-y-1 text-[11px] font-mono">

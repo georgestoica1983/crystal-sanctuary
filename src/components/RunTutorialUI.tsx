@@ -30,7 +30,7 @@ export function RunLessonCoach({
     setShowSteps(window.innerHeight >= 760);
   }, [lesson.id]);
   return (
-    <div className="w-full max-w-[430px] min-w-0 rounded-xl border border-emerald-300/50 bg-[#10202A]/95 p-2.5 space-y-1.5 shadow-[0_0_18px_rgba(52,211,153,0.18)]">
+    <div className="w-full max-w-[430px] min-w-0 rounded-xl border border-white/[0.08] bg-white/[0.04] p-2.5 space-y-1.5">
       <div className="flex items-center justify-between gap-2">
         <div className="text-[10px] font-mono font-black uppercase tracking-wider text-emerald-300">
           Lesson {index + 1}/{total}
@@ -114,11 +114,11 @@ export function RunLessonControls({
   disabled: boolean;
 }) {
   const btn =
-    "h-10 px-1.5 rounded-xl bg-[#131526]/80 border border-indigo-500/40 text-[11px] font-mono font-bold text-indigo-100 active:scale-95 transition disabled:opacity-40 whitespace-nowrap";
+    "h-11 px-1.5 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[12px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-40 whitespace-nowrap";
   return (
     <div className="w-full max-w-[430px] grid grid-cols-4 gap-1.5">
       <button type="button" disabled={disabled} onClick={onClear} className={btn}>
-        CLEAR<span className="hidden min-[360px]:inline"> LINE</span>
+        Clear<span className="hidden min-[360px]:inline"> line</span>
       </button>
       <button
         type="button"
@@ -126,17 +126,17 @@ export function RunLessonControls({
         onClick={onShowMe}
         className={`${btn} ${showingSolution ? "border-amber-300 text-amber-100" : ""}`}
       >
-        {showingSolution ? "HIDE" : (
+        {showingSolution ? "Hide" : (
           <>
-            <span aria-hidden="true">👀 </span>SHOW<span className="hidden min-[360px]:inline"> ME</span>
+            <span aria-hidden="true">👀 </span>Show<span className="hidden min-[360px]:inline"> me</span>
           </>
         )}
       </button>
       <button type="button" disabled={disabled} onClick={onRestart} className={btn}>
-        RESTART
+        Restart
       </button>
       <button type="button" onClick={onLeave} className={btn}>
-        LEAVE
+        Leave
       </button>
     </div>
   );

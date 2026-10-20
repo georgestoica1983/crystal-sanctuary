@@ -22,6 +22,7 @@ import {
   isSameCoord,
   isValidStep,
   TRAIL_SKINS,
+  explainWilt,
 } from "@/lib/engine";
 import { soundEngine } from "@/lib/audio";
 import { SANCTUARY_COMPANIONS } from "@/components/SanctuaryModal";
@@ -460,18 +461,18 @@ export default function GridCanvas({
     // Otherwise smoothly retract the line so the player can rethink their route
     soundEngine.playRetractPath();
     if (onRetractNotice) {
-      if (!simulation.endsOnExit) {
+      if (!simulation.survives) {
+        const why = explainWilt(simulation);
         onRetractNotice(
           isSanctuary
-            ? "🌈 Connect your glowing trail to the Sanctuary Archway!"
-            : "Stroke must end on the EXIT Portal tile"
-        );
-      } else if (!simulation.survives) {
-        const neededMagic = Math.max(1, 1 - simulation.projectedHp);
-        onRetractNotice(
-          isSanctuary
-            ? `✨ Needs +${neededMagic} Magic (Grab Water or Sunbeam first!)`
+            ? why?.long ?? "This line would run out of ✨ Magic — try a safer route."
             : "Lethal route! Projected HP drops to 0"
+        );
+      } else if (!simulation.endsOnExit) {
+        onRetractNotice(
+          isSanctuary
+            ? "End your line on the 🌈 Archway to walk it."
+            : "Stroke must end on the EXIT Portal tile"
         );
       }
     }
@@ -552,7 +553,7 @@ export default function GridCanvas({
         style={{ touchAction: "none" }}
         className={`relative w-full h-full rounded-2xl p-2.5 overflow-hidden cursor-crosshair select-none touch-none ${
           isSanctuary
-            ? "bg-gradient-to-b from-[#1E2749]/95 via-[#1B1C38] to-[#13172B] border border-amber-300/35 shadow-[0_0_40px_rgba(251,191,36,0.16)]"
+            ? "bg-[#10162A] border border-white/[0.07]"
             : "bg-gradient-to-b from-[#0E101F]/95 via-[#0A0B14] to-[#06070D] border border-indigo-500/25 shadow-2xl shadow-indigo-950/40"
         } ${shouldShakeHeavyHit ? "animate-shake" : ""}`}
       >
@@ -688,12 +689,28 @@ export default function GridCanvas({
                   "bg-gradient-to-b from-[#2A3158] to-[#1B203C] border border-amber-300/60 shadow-[0_0_16px_rgba(250,204,21,0.28)]";
               }
 
+              if (isSanctuary) {
+                plateClass = calmPlateClass({
+                  isInspected,
+                  isResolved: isResolvedInPlayback,
+                  isCurrentPlayback: isCurrentPlaybackCell,
+                  isFirstDeath: isFirstDeathCell,
+                  isDeadAfter,
+                  isHint: hintStepNum !== undefined && !isVisited,
+                  isHero: isHeroCell && !isResolving,
+                  isExit: isExitCell,
+                  exitReady: simulation.canCommit,
+                  isVisited: isVisited || Boolean(crossSim),
+                  isGuide: isGuideCell && showGhostGuide,
+                });
+              }
+
               return (
                 <div
                   key={cell.id}
                   data-row={r}
                   data-col={c}
-                  className={`relative rounded-xl transition-all duration-150 flex items-center justify-center overflow-visible ${plateClass}`}
+                  className={`relative rounded-xl transition-colors duration-150 flex items-center justify-center overflow-visible ${plateClass}`}
                 >
                   {/* Restored Blooming Tile Sparkle Accents during Resolution */}
                   {isResolvedInPlayback && isSanctuary && (
@@ -1360,6 +1377,41 @@ function StepFloatingBadge({
 }
 
 /**
+ * Calm tile surfaces for the Sanctuary board: flat, thin borders, and colour
+ * only where it means something (your line, danger, home, the Archway).
+ */
+function calmPlateClass(t: {
+  isInspected: boolean;
+  isResolved: boolean;
+  isCurrentPlayback: boolean;
+  isFirstDeath: boolean;
+  isDeadAfter: boolean;
+  isHint: boolean;
+  isHero: boolean;
+  isExit: boolean;
+  exitReady: boolean;
+  isVisited: boolean;
+  isGuide: boolean;
+}): string {
+  const ring = t.isInspected ? " ring-2 ring-white/70 z-30" : "";
+  if (t.isCurrentPlayback) return "bg-white/[0.16] border-2 border-white/80 z-20" + ring;
+  if (t.isResolved) return "bg-teal-300/[0.14] border border-teal-200/45" + ring;
+  if (t.isFirstDeath) return "bg-rose-500/[0.18] border-2 border-rose-300 animate-shake" + ring;
+  if (t.isDeadAfter) return "bg-rose-500/[0.06] border border-rose-300/25" + ring;
+  if (t.isHint) return "bg-amber-300/[0.10] border-2 border-dashed border-amber-200/80" + ring;
+  if (t.isHero) return "bg-amber-300/[0.10] border border-amber-200/60" + ring;
+  if (t.isExit)
+    return (
+      (t.exitReady
+        ? "bg-emerald-400/[0.16] border-2 border-emerald-300"
+        : "bg-violet-400/[0.12] border border-violet-200/50") + ring
+    );
+  if (t.isVisited) return "bg-teal-300/[0.12] border border-teal-200/50" + ring;
+  if (t.isGuide) return "bg-white/[0.07] border border-amber-200/40" + ring;
+  return "bg-white/[0.045] border border-white/[0.06]" + ring;
+}
+
+/**
  * Uniform 100x100 ViewBox Geometric / Crystal Sanctuary Entities with Strict 62% Scale & Crisp HTML Center Values
  */
 /** Board tile glyph: themed icon with its number in a small badge */
@@ -1387,10 +1439,9 @@ function TileIconWithValue({
         size="100%"
         isCorrupted={isCorrupted}
         isBloomed={isBloomed}
-        glow
       />
       <span
-        className={`absolute -bottom-1.5 -right-2 min-w-[20px] h-[20px] px-1 rounded-full flex items-center justify-center font-mono font-black text-[12px] leading-none text-white bg-[#0B0D1C]/90 border-2 shadow-[0_2px_6px_rgba(0,0,0,0.7)] select-none pointer-events-none ${
+        className={`absolute -bottom-1.5 -right-2 min-w-[20px] h-[20px] px-1 rounded-full flex items-center justify-center font-mono font-black text-[12px] leading-none text-white bg-[#0B0F1E] border-[1.5px] select-none pointer-events-none ${
           struck ? "line-through opacity-70" : ""
         }`}
         style={{ borderColor: color }}
@@ -1496,7 +1547,7 @@ export function CellGeometricNode({
       return (
         <div className="relative w-[80%] h-[80%] flex items-center justify-center">
           <span className="absolute inset-[12%] rounded-full bg-purple-500/25 blur-md animate-pulse" />
-          <EntityIcon type="EXIT" size="100%" className="relative" glow />
+          <EntityIcon type="EXIT" size="100%" className="relative" />
         </div>
       );
     }
