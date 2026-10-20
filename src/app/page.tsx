@@ -265,6 +265,9 @@ export default function OneStrokeTacticianPage() {
   // whether a first line has ever been walked (until then home and Exit pulse)
   const [seenTileIntros, setSeenTileIntros] = useState<string[] | null>(null);
   const [firstLineDone, setFirstLineDone] = useState<boolean>(true);
+  // Relics that added to the last line light up in the relic row
+  const [flashRelics, setFlashRelics] = useState<RelicId[]>([]);
+  const pendingFlashRef = useRef<RelicId[]>([]);
   const compareTokenRef = useRef(0);
   const [pendingPostFloorStats, setPendingPostFloorStats] =
     useState<HeroStats | null>(null);
@@ -1210,6 +1213,12 @@ export default function OneStrokeTacticianPage() {
 
   /** Dismiss the Value × Length tally and continue (Shop or results) */
   const handleTallyContinue = useCallback(() => {
+    if (pendingFlashRef.current.length > 0) {
+      const lit = pendingFlashRef.current;
+      pendingFlashRef.current = [];
+      setFlashRelics(lit);
+      window.setTimeout(() => setFlashRelics((prev) => (prev === lit ? [] : prev)), 2200);
+    }
     const next = afterTallyRef.current;
     afterTallyRef.current = null;
     setTally(null);
@@ -1351,6 +1360,11 @@ export default function OneStrokeTacticianPage() {
     };
     const history = [...floorHistory, record];
     setFloorHistory(history);
+    // Which relics added to this line (shown lighting up after the result)
+    const sources = [...breakdown.chipSources, ...breakdown.multSources, ...breakdown.xMultSources];
+    pendingFlashRef.current = activeRelicsForBoard.filter((id) =>
+      sources.some((src) => src.label.includes(RELIC_REGISTRY[id].name))
+    );
 
     if (!simResult.survives) {
       endRunMode("WILTED", garden, history, afterStroke);
@@ -2531,6 +2545,7 @@ export default function OneStrokeTacticianPage() {
         }
         onOpenGuide={RUN_ONLY ? () => setHelpMenu("help") : undefined}
         onOpenRunLeaderboard={RUN_ONLY ? () => setIsRunLeaderboardOpen(true) : undefined}
+        flashRelics={flashRelics}
         onNewRun={
           RUN_ONLY
             ? () => {
@@ -2708,6 +2723,7 @@ export default function OneStrokeTacticianPage() {
                 magicNow={floorStartHero.hp}
                 magicAfter={simulation.survives ? simulation.finalStats.hp : 0}
                 tilesOnBoard={lineMeter.tilesOnBoard}
+                idleText={lesson ? "Your points show here as you draw." : undefined}
                 intro={
                   tileIntroQueue.length > 0 && phase === "PLANNING"
                     ? {
@@ -3110,7 +3126,7 @@ export default function OneStrokeTacticianPage() {
         }}
       />
 
-      {practiceStep && (
+      {practiceStep && !isGuideOpen && !helpMenu && !isRunLeaderboardOpen && (
         <PracticeCoach
           step={practiceStep}
           collapsed={practiceCollapsed && practiceStep !== "done"}

@@ -27,6 +27,7 @@ export default function LineMeter({
   tilesOnBoard,
   showShortLineTip,
   intro,
+  idleText,
 }: {
   /** Tiles in the line, counting the Companion's home tile and the Exit */
   tiles: number;
@@ -46,6 +47,8 @@ export default function LineMeter({
   /** Walkable tiles on this board (for "N / M tiles") */
   tilesOnBoard: number;
   showShortLineTip: boolean;
+  /** Replaces the default "Drag from YOU…" hint (e.g. in lessons) */
+  idleText?: string;
   /** A tile type seen for the first time: shown instead of the idle hint */
   intro?: {
     icon: React.ReactNode;
@@ -65,14 +68,16 @@ export default function LineMeter({
   const [tierUp, setTierUp] = useState<string | null>(null);
 
   useEffect(() => {
-    if (tier.level > prevLevel.current && drawing) {
-      setTierUp(tier.name);
-      const id = window.setTimeout(() => setTierUp(null), 1100);
-      prevLevel.current = tier.level;
-      return () => window.clearTimeout(id);
-    }
+    if (tier.level > prevLevel.current && drawing) setTierUp(tier.name);
+    if (!drawing) setTierUp(null);
     prevLevel.current = tier.level;
   }, [tier.level, tier.name, drawing]);
+  // The burst always fades on its own, even if the line ends meanwhile
+  useEffect(() => {
+    if (!tierUp) return;
+    const id = window.setTimeout(() => setTierUp(null), 1100);
+    return () => window.clearTimeout(id);
+  }, [tierUp]);
 
   const magicCost = magicNow - magicAfter;
 
@@ -133,8 +138,12 @@ export default function LineMeter({
         </div>
       ) : !drawing ? (
         <div className="text-[12.5px] leading-snug text-white/60 text-center">
-          Drag from YOU 🐱 to the 🌈 Exit.{" "}
-          <span className="text-amber-200/90">Longer lines score far more.</span>
+          {idleText ?? (
+            <>
+              Drag from YOU 🐱 to the 🌈 Exit.{" "}
+              <span className="text-amber-200/90">Longer lines score far more.</span>
+            </>
+          )}
         </div>
       ) : (
         <>

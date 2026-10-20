@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { motion } from "framer-motion";
 import {
   Crown,
   Flame,
@@ -475,6 +476,8 @@ interface TopHUDProps {
   onOpenRunLeaderboard?: () => void;
   /** Run-only menu actions */
   onNewRun?: () => void;
+  /** Relics that just added to a line's score (they light up briefly) */
+  flashRelics?: RelicId[];
   onEndRun?: () => void;
   /** Hides the one-line goal under the stats (e.g. during a lesson) */
   hideGoalLine?: boolean;
@@ -521,6 +524,7 @@ export function TopHUD({
   onOpenRunLeaderboard,
   onNewRun,
   onEndRun,
+  flashRelics = [],
   isDailyCompanionLocked = false,
   dungeon,
   currentFloorIndex,
@@ -559,6 +563,7 @@ export function TopHUD({
   const [showCosmeticsDrawer, setShowCosmeticsDrawer] = useState(false);
   const [showCompanionDrawer, setShowCompanionDrawer] = useState(false);
   const [showRunMenu, setShowRunMenu] = useState(false);
+  const [openRelic, setOpenRelic] = useState<RelicId | null>(null);
 
   const isAnyTutorialActive = showTutorial || isInteractiveTutorial;
   // Sanctuary is the game's only voice; the theme setting is a visual skin.
@@ -683,13 +688,67 @@ export function TopHUD({
             className="relative h-11 w-11 shrink-0 rounded-xl bg-white/[0.04] border border-white/[0.07] flex items-center justify-center text-white/80 text-lg active:scale-95 transition"
           >
             <span aria-hidden="true">☰</span>
-            {relicCounts.length > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full bg-teal-300 text-slate-950 text-[10px] font-black flex items-center justify-center">
-                {activeRelics.length}
-              </span>
-            )}
+
           </button>
         </div>
+
+        {/* Your relics, always in view once you have one: tap for details */}
+        {relicCounts.length > 0 && (
+          <div className="relative mt-1.5">
+            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
+              {relicCounts.map(([relicId, count]) => {
+                const rDef = getRelicDisplay(RELIC_REGISTRY[relicId], isSanctuary);
+                const lit = flashRelics.includes(relicId);
+                const isOpen = openRelic === relicId;
+                return (
+                  <motion.button
+                    key={relicId}
+                    type="button"
+                    initial={{ scale: 0.4, opacity: 0 }}
+                    animate={lit ? { scale: [1, 1.25, 1], opacity: 1 } : { scale: 1, opacity: 1 }}
+                    transition={{ duration: lit ? 0.5 : 0.25 }}
+                    onClick={() => setOpenRelic(isOpen ? null : relicId)}
+                    aria-label={`${rDef.name}: ${rDef.description}`}
+                    aria-expanded={isOpen}
+                    className={`relative shrink-0 h-9 min-w-9 px-1.5 rounded-lg border flex items-center justify-center gap-1 text-[17px] transition-colors ${
+                      lit
+                        ? "bg-teal-300/25 border-teal-200"
+                        : isOpen
+                        ? "bg-white/[0.1] border-white/30"
+                        : "bg-white/[0.04] border-white/[0.08]"
+                    }`}
+                  >
+                    <span aria-hidden="true">{rDef.icon}</span>
+                    {count > 1 && <span className="text-[10px] font-black text-teal-200">×{count}</span>}
+                  </motion.button>
+                );
+              })}
+            </div>
+            {openRelic && relicCounts.some(([id]) => id === openRelic) && (
+              <div className="absolute left-0 right-0 top-full mt-1 z-40 rounded-xl bg-[#18213A] border border-white/[0.12] shadow-xl p-2.5 flex gap-2.5">
+                <span className="text-2xl leading-7" aria-hidden="true">
+                  {getRelicDisplay(RELIC_REGISTRY[openRelic], isSanctuary).icon}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="text-[13px] font-bold text-white">
+                    {getRelicDisplay(RELIC_REGISTRY[openRelic], isSanctuary).name}
+                  </div>
+                  <div className="text-[12px] leading-snug text-white/70">
+                    {getRelicDisplay(RELIC_REGISTRY[openRelic], isSanctuary).description}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setOpenRelic(null)}
+                  aria-label="Close"
+                  className="h-8 w-8 shrink-0 rounded-lg bg-white/[0.08] flex items-center justify-center"
+                >
+                  <X className="w-4 h-4 text-white/70" />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {showRunMenu && (
           <div

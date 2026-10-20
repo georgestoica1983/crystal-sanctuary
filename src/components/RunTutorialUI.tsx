@@ -23,75 +23,36 @@ export function RunLessonCoach({
   total: number;
   status: LessonGoalStatus | null;
 }) {
-  // Steps are shown on tall screens; on short phones they fold away so the
-  // board stays on screen (tap "Show steps" to read them)
-  const [showSteps, setShowSteps] = useState(true);
-  useEffect(() => {
-    setShowSteps(window.innerHeight >= 760);
-  }, [lesson.id]);
   return (
-    <div className="w-full max-w-[430px] min-w-0 rounded-xl border border-white/[0.08] bg-white/[0.04] p-2.5 space-y-1.5">
+    <div className="w-full max-w-[430px] min-w-0 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 space-y-2">
       <div className="flex items-center justify-between gap-2">
-        <div className="text-[10px] font-mono font-black uppercase tracking-wider text-emerald-300">
-          Lesson {index + 1}/{total}
+        <div className="text-[12px] font-semibold text-white/55 flex items-center gap-1.5">
+          <span aria-hidden="true">{lesson.icon}</span>
+          {lesson.title}
         </div>
-        <div className="flex gap-0.5">
+        <div className="flex gap-1" aria-label={`Step ${index + 1} of ${total}`}>
           {Array.from({ length: total }, (_, i) => (
             <span
               key={i}
-              className={`w-2 h-1.5 rounded-full ${
-                i < index ? "bg-emerald-300" : i === index ? "bg-amber-300" : "bg-white/15"
+              className={`w-5 h-1.5 rounded-full ${
+                i < index ? "bg-teal-300" : i === index ? "bg-amber-300" : "bg-white/15"
               }`}
             />
           ))}
         </div>
       </div>
-      <div className="flex items-center justify-between gap-2">
-        <div className="text-sm font-black text-white flex items-center gap-1.5 min-w-0">
-          <span aria-hidden="true">{lesson.icon}</span>
-          <span>{lesson.title}</span>
-        </div>
-        <button
-          type="button"
-          onClick={() => setShowSteps((v) => !v)}
-          aria-expanded={showSteps}
-          className="h-8 shrink-0 px-2.5 rounded-md bg-white/10 text-[11px] font-mono font-bold text-emerald-100"
-        >
-          {showSteps ? "Hide steps" : "Show steps"}
-        </button>
-      </div>
-      <p className="text-[12px] leading-snug text-emerald-50/90">{lesson.learn}</p>
-      {showSteps && (
-      <ol className="text-[11.5px] leading-snug text-indigo-100/90 space-y-0.5">
-        {lesson.steps.map((s, i) => (
-          <li key={i} className="flex gap-1.5">
-            <span className="shrink-0 w-4 h-4 rounded-full bg-white/10 text-[9px] font-mono font-black flex items-center justify-center mt-px">
-              {i + 1}
-            </span>
-            <span>{s}</span>
-          </li>
-        ))}
-      </ol>
-      )}
+      <div className="text-[18px] leading-snug font-extrabold text-white">{lesson.steps[0]}</div>
       <div
-        className={`rounded-lg px-2 py-1.5 border text-[11px] font-mono ${
+        className={`rounded-lg px-2.5 py-1.5 border text-[12px] flex items-center justify-between gap-2 ${
           status?.ok
-            ? "border-emerald-300 bg-emerald-400/15 text-emerald-100"
-            : "border-amber-300/50 bg-amber-400/10 text-amber-100"
+            ? "border-teal-300 bg-teal-300/15 text-teal-50"
+            : "border-white/[0.1] bg-white/[0.03] text-white/70"
         }`}
       >
-        <div className="font-black">🎯 Goal: {lesson.goalLabel}</div>
-        <div className="mt-0.5 min-h-[1.25em]">
-          {status ? (
-            <>
-              {status.ok ? "✓ " : "… "}
-              {status.detail}
-              {status.ok && " — let go to walk it!"}
-            </>
-          ) : (
-            <span className="opacity-70">Draw your line — this checks it live.</span>
-          )}
-        </div>
+        <span className="font-semibold">🎯 {lesson.goalLabel}</span>
+        <span className="font-mono text-[11px] text-right">
+          {status ? (status.ok ? "✓ let go!" : status.detail) : ""}
+        </span>
       </div>
     </div>
   );
@@ -170,8 +131,7 @@ export function RunLessonResult({
             : "border-amber-300/70 bg-gradient-to-b from-[#2A1F0E] to-[#140F0A]"
         }`}
       >
-        <div className="text-xl font-black">{info.ok ? "✓ Goal met!" : "Not quite yet"}</div>
-        <div className="text-[11px] font-mono text-cyan-100/90">{info.scoreLine}</div>
+        <div className="text-xl font-black">{info.ok ? "✓ Nice!" : "Not quite"}</div>
         <p className="text-[13px] leading-snug text-white/90">{info.text}</p>
         {info.ok ? (
           <div className="grid grid-cols-[1fr_2fr] gap-2">
@@ -187,7 +147,7 @@ export function RunLessonResult({
               onClick={onNext}
               className="py-2.5 rounded-xl bg-emerald-300 text-slate-950 text-xs font-mono font-black"
             >
-              {info.isLast ? "Go to the Practice Garden →" : "Next lesson →"}
+              {info.isLast ? "Practice garden →" : "Next →"}
             </button>
           </div>
         ) : (
@@ -215,58 +175,39 @@ export type PracticeStep =
 
 const PRACTICE_COPY: Record<PracticeStep, { title: string; lines: string[]; button?: string }> = {
   intro: {
-    title: "Practice Garden",
+    title: "Practice garden",
     lines: [
-      "This is a real garden — everything works like in a Run.",
-      `The strip above the board shows the garden, its target (${PRACTICE_GARDEN_TARGET.toLocaleString()} here), the green bar with your garden total, your ● lines left and 🌿 Swaps.`,
-      "You have 4 lines. Each line's score adds to the bar. While you draw, (+N) on the bar previews the line.",
-      `You start with ${PRACTICE_GARDEN_GEMS} 💎 so the Shop at the end is worth a look.`,
+      `Reach ${PRACTICE_GARDEN_TARGET.toLocaleString()} points in 4 lines.`,
+      "The bar above the board fills as you score.",
     ],
-    button: "Got it — let me draw",
+    button: "Let's go",
   },
   draw: {
-    title: "Stroke 1",
-    lines: ["Draw a long, safe line to the Exit and let go."],
+    title: "Line 1",
+    lines: ["Draw a long line to the Exit."],
   },
   regrow: {
-    title: "The garden regrew",
+    title: "New tiles",
     lines: [
-      "Every tile your line used was replaced by a new tile from your Tile Bag. Your YOU tile and the Exit stayed put.",
-      "Your Life, Shield and Power carried over — check the top row. Life doesn't refill, so don't spend it all on one line.",
-      "Now try a Swap: tap 🌿 Swap, tap up to 3 tiles you'd like gone (big Thorns are good picks), then confirm. It doesn't use a line.",
+      "Used tiles were replaced. ❤️ Life doesn't refill.",
+      "Try 🌿 Swap: tap up to 3 tiles to change them.",
     ],
   },
   weeded: {
-    title: "Weeded!",
-    lines: [
-      "Those tiles were swapped for new ones from the bag.",
-      `Now finish the garden: reach ${PRACTICE_GARDEN_TARGET.toLocaleString()} before your lines run out. Each unused line pays +1 💎.`,
-      "Stuck? The ✨ Hint lights the next 3 steps of a good line.",
-    ],
+    title: "Swapped",
+    lines: [`Now reach ${PRACTICE_GARDEN_TARGET.toLocaleString()} before your lines run out.`],
   },
   bloom: {
-    title: "Your payout",
-    lines: [
-      "Payout = the garden's reward + 1 💎 per unused line + interest.",
-      `Interest: +1 💎 for every ${RUN_INTEREST_STEP} 💎 you are holding, up to +${RUN_INTEREST_MAX}. Saving Gems pays.`,
-      "Gems you walked over on the board were score, not money.",
-    ],
+    title: "Gems earned",
+    lines: ["Clear gardens to earn 💎. Finish early or save 💎 to earn more."],
   },
   shop: {
-    title: "The Sanctuary Shop",
-    lines: [
-      `Relics are lasting powers for the whole Run (${MAX_COMMON_RELICS} slots). Boosts raise your stats for the whole Run.`,
-      `Reroll draws 3 new offers: ${RUN_REROLL_BASE_COST} 💎, then 1 more each time.`,
-      "The big decision: buy now, or save for interest and a better relic later. Press Continue / Skip Shop when you're done.",
-    ],
+    title: "Shop",
+    lines: ["Relics are lasting powers. Buy one, or save 💎 for later."],
   },
   done: {
-    title: "You're ready! 🌸",
-    lines: [
-      `A real Run starts at Season 1 · Small Garden (target ${getRunGardenTarget(1, "SMALL").toLocaleString()}), then Big and Boss Gardens.`,
-      "Every Season the targets rise and Thorns grow stronger. From Season 3 on you'll need good relics.",
-      "Reopen the lessons or the full guide any time with ❓ Help.",
-    ],
+    title: "You're ready 🌸",
+    lines: ["Each Season gets harder. Help is in the ☰ menu."],
     button: "Start my Run",
   },
 };
@@ -411,18 +352,15 @@ export function RunHelpMenu({
             🎓 Learn by playing {isFirstVisit && <span className="text-emerald-300">(recommended)</span>}
           </div>
           <div className="text-[11px] text-emerald-100/80">
-            {totalLessons} short hands-on lessons — one rule each, with a goal to meet — then a guided
-            Practice Garden with lines, Swaps and the Shop. About 10 minutes.
+            {totalLessons} quick steps and a practice garden. About 2 minutes.
           </div>
           {!isFirstVisit && (
             <div className="text-[11px] text-amber-200/80">This ends the Run you&apos;re playing.</div>
           )}
         </button>
         <button type="button" onClick={onGuide} className={`${option} border-white/15 bg-white/5`}>
-          <div className="text-sm font-black">📖 Read the full guide</div>
-          <div className="text-[11px] text-indigo-100/75">
-            Every tile, rule, number, Boss twist and relic, explained with examples.
-          </div>
+          <div className="text-sm font-black">📖 Rules at a glance</div>
+          <div className="text-[11px] text-indigo-100/75">Every tile, rule and relic in short.</div>
         </button>
         <button type="button" onClick={onClose} className={`${option} border-white/10 bg-transparent`}>
           <div className="text-sm font-black">
