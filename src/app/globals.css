@@ -1,0 +1,240 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: radial-gradient(
+    ellipse at top,
+    #0e101f 0%,
+    #0a0b10 55%,
+    #050508 100%
+  );
+  background-color: #0b101d;
+  color: #ffffff;
+  font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, sans-serif;
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  /* App-like on phones: no double-tap zoom, no font boosting, no callouts */
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-touch-callout: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Inputs stay selectable (e.g. the leaderboard name) */
+input,
+textarea {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+/* Keyboard focus is visible; touch taps don't leave rings */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible {
+  outline: 2px solid #6ee7b7;
+  outline-offset: 2px;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-sans), system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Roboto, sans-serif;
+}
+
+svg text,
+.font-mono {
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, monospace;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -16;
+  }
+}
+
+@keyframes spinSlow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spinReverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes trapVibrate {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(-0.6px, 0.5px) scale(1.02);
+  }
+  50% {
+    transform: translate(0.6px, -0.5px) scale(0.99);
+  }
+  75% {
+    transform: translate(-0.4px, -0.4px) scale(1.01);
+  }
+}
+
+@keyframes floatDrift {
+  0% {
+    opacity: 0;
+    transform: translateY(6px) scale(0.88);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0px) scale(1);
+  }
+}
+
+@keyframes beaconFlare {
+  0%,
+  100% {
+    opacity: 0.65;
+    transform: scaleY(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scaleY(1.08);
+  }
+}
+
+@keyframes screenShake {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  20% {
+    transform: translate3d(-4px, 2px, 0) rotate(-0.5deg);
+  }
+  40% {
+    transform: translate3d(4px, -2px, 0) rotate(0.5deg);
+  }
+  60% {
+    transform: translate3d(-3px, -1px, 0) rotate(-0.3deg);
+  }
+  80% {
+    transform: translate3d(3px, 2px, 0) rotate(0.3deg);
+  }
+}
+
+@keyframes portalBurst {
+  0% {
+    opacity: 1;
+    transform: scale(0.35);
+  }
+  70% {
+    opacity: 0.9;
+    transform: scale(1.65);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(2.1);
+  }
+}
+
+.animate-energy-dash {
+  animation: dash 0.55s linear infinite;
+}
+
+.animate-spin-slow {
+  animation: spinSlow 7s linear infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.animate-spin-reverse {
+  animation: spinReverse 5s linear infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.animate-trap-vibrate {
+  animation: trapVibrate 0.35s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.animate-beacon-flare {
+  animation: beaconFlare 2.2s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.animate-float-drift {
+  animation: floatDrift 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-shake {
+  animation: screenShake 0.22s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+.animate-portal-burst {
+  animation: portalBurst 0.55s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* The board is a size container: on small boards tile tags get compact */
+.board-cq {
+  container-type: inline-size;
+}
+@container (max-width: 330px) {
+  .tile-tag {
+    font-size: 8px !important;
+    padding: 2px 3px !important;
+    letter-spacing: -0.02em;
+  }
+  .tile-tag-long {
+    display: none;
+  }
+}
+
+/* Full-screen pop-ups keep clear of the notch and the home bar */
+.fixed.inset-0 {
+  padding-top: max(0.75rem, env(safe-area-inset-top));
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+  padding-left: max(0.75rem, env(safe-area-inset-left));
+  padding-right: max(0.75rem, env(safe-area-inset-right));
+}
+
+/* Shown only on phones held sideways (short landscape screens) */
+.rotate-hint {
+  display: none;
+}
+@media (orientation: landscape) and (max-height: 500px) and (pointer: coarse) {
+  .rotate-hint {
+    display: flex;
+  }
+}
