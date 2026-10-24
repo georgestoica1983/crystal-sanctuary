@@ -259,6 +259,8 @@ export default function OneStrokeTacticianPage() {
   const [lessonsProgress, setLessonsProgress] = useState<number>(0);
   /** Set on a first visit: the walkthrough opens once the page is ready */
   const [pendingWalkthrough, setPendingWalkthrough] = useState<boolean>(false);
+  /** Set while a committed line is replaying: jumps to its end */
+  const skipPlaybackRef = useRef<(() => void) | null>(null);
   /** Big "Vine!" style callout over the board after a long line */
   const [lineCallout, setLineCallout] = useState<{
     key: number;
@@ -2083,7 +2085,9 @@ export default function OneStrokeTacticianPage() {
       });
 
       // Finalize floor after last step completes
-      const finishTimerId = window.setTimeout(() => {
+      // Finalize floor after last step completes (or right away when skipped)
+      const finalize = () => {
+        skipPlaybackRef.current = null;
         // Handle 7-Step Interactive Onboarding stage progression
         if (isInteractiveTutorial) {
           if (!simResult.survives) {
@@ -2273,9 +2277,25 @@ export default function OneStrokeTacticianPage() {
             setPhase("SHOP");
           };
         }
-      }, simResult.steps.length * STEP_MS + 140);
-
+      };
+      const finishTimerId = window.setTimeout(finalize, simResult.steps.length * STEP_MS + 140);
       resolutionTimersRef.current.push(finishTimerId);
+
+      // A tap on the board jumps to the end of the replay
+      skipPlaybackRef.current = () => {
+        clearResolutionTimers();
+        setLineCallout(null);
+        const last = simResult.steps[simResult.steps.length - 1];
+        setActiveResolutionStep(simResult.steps.length - 1);
+        setHero({
+          hp: last.hpAfter,
+          maxHp: floorStartHero.maxHp,
+          shield: last.shieldAfter,
+          weapon: last.weaponAfter,
+          gold: mode === "RUN" ? floorStartHero.gold : last.goldAfter,
+        });
+        finalize();
+      };
     },
     [
       phase,
@@ -2863,6 +2883,9 @@ export default function OneStrokeTacticianPage() {
               }}
               onCommitPath={handleCommitPath}
               onRetractNotice={handleNotice}
+              onSkipPlayback={
+                phase === "RESOLVING" && mode === "RUN" ? () => skipPlaybackRef.current?.() : undefined
+              }
               liveScore={{
                 points: Math.round(lineMeter.now.chips * lineMeter.now.mult * lineMeter.now.xMult),
                 gain:
@@ -2968,6 +2991,14 @@ export default function OneStrokeTacticianPage() {
                       : "A Blessing is waiting for you..."}
                   </div>
                 </div>
+              </div>
+            )}
+
+            {phase === "RESOLVING" && mode === "RUN" && !lesson && (
+              <div className="pointer-events-none absolute bottom-2 inset-x-0 z-40 flex justify-center">
+                <span className="rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-semibold text-white/75">
+                  Tap to skip ⏩
+                </span>
               </div>
             )}
 

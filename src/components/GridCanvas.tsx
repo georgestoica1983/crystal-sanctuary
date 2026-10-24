@@ -28,7 +28,7 @@ import { soundEngine } from "@/lib/audio";
 import { SANCTUARY_COMPANIONS } from "@/components/SanctuaryModal";
 import EntityIcon, { ENTITY_COLORS } from "@/components/EntityIcon";
 import { getLineTier } from "@/lib/lineTiers";
-import LineHeadFeedback, { LiveLineScore } from "@/components/LineHeadFeedback";
+import LineHeadFeedback, { LiveLineScore, StepEffectPop } from "@/components/LineHeadFeedback";
 
 interface GridCanvasProps {
   grid: GridCell[][];
@@ -48,6 +48,8 @@ interface GridCanvasProps {
   pulseStartExit?: boolean;
   /** Score of the line being drawn, shown beside its head */
   liveScore?: LiveLineScore | null;
+  /** While a line replays: a tap on the board skips to its end */
+  onSkipPlayback?: () => void;
 }
 
 export default function GridCanvas({
@@ -66,6 +68,7 @@ export default function GridCanvas({
   onRetractNotice,
   pulseStartExit = false,
   liveScore = null,
+  onSkipPlayback,
 }: GridCanvasProps) {
   // After a line pulls back because it would run out of Life, the tile that
   // would have ended it stays marked for a moment
@@ -229,7 +232,10 @@ export default function GridCanvas({
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      if (isResolving) return;
+      if (isResolving) {
+        onSkipPlayback?.();
+        return;
+      }
       e.preventDefault();
       try {
         e.currentTarget.setPointerCapture(e.pointerId);
@@ -285,6 +291,7 @@ export default function GridCanvas({
       modifierId,
       heroClassId,
       onPathChange,
+      onSkipPlayback,
     ]
   );
 
@@ -529,7 +536,8 @@ export default function GridCanvas({
   const pathToRender = retractingPath ?? drawnPath;
   // While drawing, the pops at the line head say what each tile did, so the
   // per-tile step numbers and badges stay hidden to keep the board calm
-  const calmWhileDrawing = isSanctuary && isDragging && !isResolving;
+  const calmWhileDrawing =
+    isSanctuary && ((isDragging && !isResolving) || (isResolving && activeResolutionStep !== null));
   const lineTier = getLineTier(pathToRender.length);
 
   const polylinePoints = pathToRender
@@ -903,6 +911,11 @@ export default function GridCanvas({
             })
           )}
         </div>
+
+        {/* Replay: the same short pops as while drawing, one tile at a time */}
+        {isSanctuary && isResolving && activeResolutionStep !== null && activeResolutionStep > 0 && simulation.steps[activeResolutionStep] && (
+          <PlaybackPop step={simulation.steps[activeResolutionStep]} />
+        )}
 
         {/* Walkthrough: a finger traces the line to draw */}
         {showGhostGuide && <GuideHand path={ghostGuidePath} />}
@@ -1868,6 +1881,15 @@ function GuideHand({ path }: { path: GridCoord[] }) {
       >
         👆
       </motion.div>
+    </div>
+  );
+}
+
+/** One tile's effect, popped over it as the line replays */
+function PlaybackPop({ step }: { step: PathStepSimulation }) {
+  return (
+    <div className="absolute inset-2.5 z-40 pointer-events-none" aria-hidden="true">
+      <StepEffectPop step={step} stepKey={`play-${step.stepIndex}`} />
     </div>
   );
 }

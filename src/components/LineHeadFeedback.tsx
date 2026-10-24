@@ -53,6 +53,9 @@ export function describeStepEffect(step: PathStepSimulation): Array<{ text: stri
     case "WEAPON":
       out.push({ text: "✂️ +1 cut", tone: "plus" });
       break;
+    case "GOLD":
+      out.push({ text: `🌰 +${step.cell.value}`, tone: "plus" });
+      break;
     case "SHIELD":
       if (step.shieldDelta > 0) out.push({ text: `🧤 +${step.shieldDelta}`, tone: "plus" });
       else if (step.weaponDelta > 0) out.push({ text: `✂️ +${step.weaponDelta}`, tone: "plus" });
@@ -111,7 +114,6 @@ export default function LineHeadFeedback({
   const above = head.row > 0;
   const bubbleY = above ? p.y - 15.5 : p.y + 15.5;
   const bubbleX = Math.max(11, Math.min(89, p.x));
-  const effects = lastStep ? describeStepEffect(lastStep) : [];
 
   return (
     <div className="absolute inset-2.5 z-40 pointer-events-none" aria-hidden="true">
@@ -138,27 +140,36 @@ export default function LineHeadFeedback({
         </div>
       </div>
 
-      <AnimatePresence>
-        {effects.length > 0 && (
-          <motion.div
-            key={`${path.length}-${head.row}-${head.col}`}
-            initial={{ opacity: 0, y: 0, scale: 0.7 }}
-            animate={{ opacity: [0, 1, 1, 0], y: -26, scale: 1 }}
-            transition={{ duration: 1.1, times: [0, 0.12, 0.7, 1] }}
-            className="absolute -translate-x-1/2 -translate-y-1/2 flex gap-1"
-            style={{ left: `${Math.max(12, Math.min(88, p.x))}%`, top: `${p.y}%` }}
-          >
-            {effects.map((e) => (
-              <span
-                key={e.text}
-                className={`rounded-full px-1.5 py-0.5 text-[12px] font-black leading-none shadow-md whitespace-nowrap ${TONE_CLASS[e.tone]}`}
-              >
-                {e.text}
-              </span>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {lastStep && <StepEffectPop step={lastStep} stepKey={`${path.length}-${head.row}-${head.col}`} />}
     </div>
+  );
+}
+
+/** Short chips rising from a tile, saying what it just did */
+export function StepEffectPop({ step, stepKey }: { step: PathStepSimulation; stepKey: string }) {
+  const effects = describeStepEffect(step);
+  const p = pos(step.coord);
+  return (
+    <AnimatePresence>
+      {effects.length > 0 && (
+        <motion.div
+          key={stepKey}
+          initial={{ opacity: 0, y: 0, scale: 0.7 }}
+          animate={{ opacity: [0, 1, 1, 0], y: -26, scale: 1 }}
+          transition={{ duration: 1.1, times: [0, 0.12, 0.7, 1] }}
+          className="absolute -translate-x-1/2 -translate-y-1/2 flex gap-1"
+          style={{ left: `${Math.max(12, Math.min(88, p.x))}%`, top: `${p.y}%` }}
+        >
+          {effects.map((e) => (
+            <span
+              key={e.text}
+              className={`rounded-full px-1.5 py-0.5 text-[12px] font-black leading-none shadow-md whitespace-nowrap ${TONE_CLASS[e.tone]}`}
+            >
+              {e.text}
+            </span>
+          ))}
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
