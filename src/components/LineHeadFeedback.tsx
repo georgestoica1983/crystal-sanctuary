@@ -3,6 +3,8 @@
 import React, { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { GridCoord, PathSimulationResult, PathStepSimulation } from "@/types/game";
+import { soundEngine } from "@/lib/audio";
+import { getLineTier } from "@/lib/lineTiers";
 
 const fmt = (n: number) => Math.round(n).toLocaleString();
 
@@ -86,17 +88,20 @@ export default function LineHeadFeedback({
   const lastStep = simulation.steps[path.length - 1];
   const prevLen = useRef(path.length);
 
-  // A light tap per new tile, a firmer one when Life is lost
+  const prevTier = useRef(getLineTier(path.length).level);
+
+  // On top of the board's tick per tile: a snip for a Shears cut, a firmer
+  // buzz when Life is lost, and a chime when the line reaches a new tier
   useEffect(() => {
     const grew = path.length > prevLen.current;
     prevLen.current = path.length;
-    if (!active || !grew || !lastStep || typeof navigator === "undefined") return;
-    const lost = lastStep.hpAfter < lastStep.hpBefore;
-    try {
-      navigator.vibrate?.(lost ? 28 : 8);
-    } catch {
-      // Vibration is optional
-    }
+    const tier = getLineTier(path.length).level;
+    const tierUp = tier > prevTier.current;
+    prevTier.current = tier;
+    if (!active || !grew || !lastStep) return;
+    if (tierUp) soundEngine.playSanctuaryHarpChime(tier + 1);
+    if (lastStep.cell.type === "ENEMY" && lastStep.weaponBefore > 0) soundEngine.playSwordHit(true);
+    else if (lastStep.hpAfter < lastStep.hpBefore) soundEngine.vibrate(28);
   }, [path.length, active, lastStep]);
 
   if (!active || !head || path.length < 2 || !live) return null;

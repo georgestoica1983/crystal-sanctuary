@@ -179,6 +179,7 @@ export function rebuildRunFromSave(raw: unknown): { ok: true; run: RestoredRun }
             runSeed: log.seed,
             relics,
             counters: countersAfter,
+            logVersion: log.v,
           });
           bloom = { garden: s.garden, strokeStartHero: startHero, afterStroke, ...result };
           purchases = 0;

@@ -63,6 +63,11 @@ export function runModifierFor(logVersion: number): ModifierId {
 export const RUN_CLEAR_LIFE = 3;
 export const runClearLifeFor = (logVersion: number) => (logVersion >= 5 ? RUN_CLEAR_LIFE : 0);
 
+/** Extra Seeds for clearing a Run's first garden, from rules v6 */
+export const RUN_WELCOME_BONUS = 4;
+export const runWelcomeBonusFor = (logVersion: number, gardenIndex: number) =>
+  logVersion >= 6 && gardenIndex === 0 ? RUN_WELCOME_BONUS : 0;
+
 /** Rules v3+ introduce tiles gradually in the first gardens */
 export const runRulesUseIntroTiles = (logVersion: number) => logVersion >= 3;
 
@@ -125,6 +130,8 @@ export function getRunBloomResult(params: {
   runSeed: string;
   relics: RelicId[];
   counters?: RelicCounters;
+  /** Rules version of the Run's log (defaults to the current one) */
+  logVersion?: number;
 }): {
   payout: ReturnType<typeof getRunClearPayout>;
   legendary: RelicId | null;
@@ -139,6 +146,7 @@ export function getRunBloomResult(params: {
     strokesLeft: garden.strokesLeft,
     gemsHeld: stats.gold,
     relics,
+    welcomeBonus: runWelcomeBonusFor(params.logVersion ?? RUN_LOG_VERSION, garden.gardenIndex),
   });
   // Scaling relics owned while the garden bloomed grow
   const countersAfter = growRelicCountersOnBloom(params.counters ?? {}, relics, garden);
@@ -298,9 +306,10 @@ export function getRunPathError(
  * v3: the first gardens introduce tiles gradually.
  * v4: ✂️ Shears cut the next Thorn completely (the "SHEARS" rule set).
  * v5: clearing a garden restores ❤️ Life (RUN_CLEAR_LIFE) for the next one.
+ * v6: the first garden pays a welcome bonus (RUN_WELCOME_BONUS).
  * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 5;
+export const RUN_LOG_VERSION = 6;
 export const RUN_LOG_MIN_VERSION = 2;
 /** Rule set of new Runs (the current version) */
 export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);
@@ -490,6 +499,7 @@ export function createRunReplayer(
           runSeed,
           relics: s.relics,
           counters: s.counters,
+          logVersion,
         });
         s.relics = bloom.relicsAfter;
         s.counters = bloom.countersAfter;

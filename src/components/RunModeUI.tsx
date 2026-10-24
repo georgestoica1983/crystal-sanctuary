@@ -211,6 +211,8 @@ export interface RunClearInfo {
   interestCap?: number;
   /** Extra Gems from relics (Seed Purse) */
   relicBonus?: number;
+  /** First-garden welcome bonus */
+  welcomeBonus?: number;
   total: number;
   gemsBefore: number;
   legendary: RelicId | null;
@@ -219,7 +221,57 @@ export interface RunClearInfo {
   lifeBonus?: number;
 }
 
-/** Garden-clear screen: the Gem payout, then on to the Sanctuary Shop */
+/**
+ * Stars for a cleared Garden Bed (display only): ⭐ cleared, ⭐⭐ with a line
+ * to spare, ⭐⭐⭐ also scoring 1.5× the target.
+ */
+export function getRunBedStars(score: number, target: number, strokesLeft: number): number {
+  return 1 + (strokesLeft >= 1 ? 1 : 0) + (strokesLeft >= 1 && score >= target * 1.5 ? 1 : 0);
+}
+
+const STAR_HINT: Record<number, string> = {
+  1: "⭐⭐ for a line to spare · ⭐⭐⭐ for 1.5× the target too",
+  2: "⭐⭐⭐ for 1.5× the target with a line to spare",
+  3: "Perfect Garden Bed!",
+};
+
+/** Small → Big → Boss beds of this Season, with the one just cleared */
+function SeasonMap({ season, clearedKind }: { season: number; clearedKind: string }) {
+  const order = ["SMALL", "BIG", "BOSS"] as const;
+  const done = order.indexOf(clearedKind as (typeof order)[number]);
+  return (
+    <div className="mt-2.5 flex items-center justify-center gap-1" aria-label={`Season ${season} map`}>
+      {order.map((k, i) => (
+        <React.Fragment key={k}>
+          {i > 0 && <span className={`h-0.5 w-6 rounded-full ${i <= done ? "bg-emerald-300" : "bg-white/15"}`} />}
+          <span
+            className={`flex flex-col items-center gap-0.5 text-[9px] font-mono font-bold ${
+              i <= done ? "text-emerald-200" : i === done + 1 ? "text-white/80" : "text-white/35"
+            }`}
+          >
+            <span
+              className={`w-7 h-7 rounded-full flex items-center justify-center text-[13px] border ${
+                i <= done
+                  ? "bg-emerald-400/25 border-emerald-300"
+                  : i === done + 1
+                  ? "border-white/50 animate-pulse"
+                  : "border-white/15"
+              }`}
+            >
+              {i <= done ? "✓" : k === "BOSS" ? "👑" : "🌼"}
+            </span>
+            {k === "SMALL" ? "Small" : k === "BIG" ? "Big" : "Boss"}
+          </span>
+        </React.Fragment>
+      ))}
+      <span className="ml-2 text-[9px] font-mono text-white/45">
+        {done === 2 ? `→ Season ${season + 1}` : `Season ${season}`}
+      </span>
+    </div>
+  );
+}
+
+/** Garden-clear screen: the Seed payout, then on to the Shop */
 export function RunGardenClearModal({
   info,
   onContinue,
@@ -228,8 +280,9 @@ export function RunGardenClearModal({
   onContinue: () => void;
 }) {
   if (!info) return null;
-  const { kind } = getRunGardenPosition(info.gardenIndex);
+  const { kind, season } = getRunGardenPosition(info.gardenIndex);
   const legendary = info.legendary ? RELIC_REGISTRY[info.legendary] : null;
+  const stars = getRunBedStars(info.score, info.target, info.strokesLeft);
   const lines = [
     { label: `${getRunGardenKindLabel(kind)} cleared`, value: info.clearReward },
     {
@@ -243,6 +296,7 @@ export function RunGardenClearModal({
       value: info.interest,
     },
     ...(info.relicBonus ? [{ label: "👛 Seed Purse", value: info.relicBonus }] : []),
+    ...(info.welcomeBonus ? [{ label: "🎁 Welcome bonus", value: info.welcomeBonus }] : []),
   ];
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3">
@@ -259,9 +313,23 @@ export function RunGardenClearModal({
           <div className="text-2xl font-black text-emerald-100 drop-shadow-[0_0_12px_rgba(52,211,153,0.8)]">
             Garden Bed cleared! 🌸
           </div>
-          <div className="text-xs font-mono text-emerald-100/80 mt-0.5">
+          <div className="flex justify-center gap-1.5 mt-1.5" aria-label={`${stars} of 3 stars`}>
+            {[1, 2, 3].map((n) => (
+              <motion.span
+                key={n}
+                initial={{ scale: 0, rotate: -40 }}
+                animate={{ scale: 1, rotate: 0, transition: { delay: 0.2 + n * 0.22, type: "spring", stiffness: 380, damping: 14 } }}
+                className={`text-[30px] leading-none ${n <= stars ? "" : "opacity-20 grayscale"}`}
+              >
+                ⭐
+              </motion.span>
+            ))}
+          </div>
+          <div className="text-xs font-mono text-emerald-100/80 mt-1">
             {fmt(info.score)} / {fmt(info.target)}
           </div>
+          <div className="text-[10px] text-emerald-100/55 mt-0.5">{STAR_HINT[stars]}</div>
+          <SeasonMap season={season} clearedKind={kind} />
         </div>
 
         <div className="rounded-xl border border-amber-300/50 bg-amber-400/10 p-2.5 space-y-1">

@@ -109,8 +109,10 @@ import RunLeaderboardModal from "@/components/RunLeaderboard";
 import { submitRunToLeaderboard } from "@/lib/runLeaderboard";
 import LineMeter from "@/components/LineMeter";
 import LineCompare from "@/components/LineCompare";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   FIRST_LINE_DONE_KEY,
+  getLineTier,
   LONG_LINE_LEARNED_KEY,
   LONG_LINE_LEARNED_TILES,
   SEEN_TILE_INTROS_KEY,
@@ -257,6 +259,14 @@ export default function OneStrokeTacticianPage() {
   const [lessonsProgress, setLessonsProgress] = useState<number>(0);
   /** Set on a first visit: the walkthrough opens once the page is ready */
   const [pendingWalkthrough, setPendingWalkthrough] = useState<boolean>(false);
+  /** Big "Vine!" style callout over the board after a long line */
+  const [lineCallout, setLineCallout] = useState<{
+    key: number;
+    name: string;
+    color: string;
+    tiles: number;
+    points: number;
+  } | null>(null);
   const [practiceStep, setPracticeStep] = useState<PracticeStep | null>(null);
   const [practiceCollapsed, setPracticeCollapsed] = useState<boolean>(false);
   const [helpMenu, setHelpMenu] = useState<"welcome" | "help" | null>(null);
@@ -1607,6 +1617,7 @@ export default function OneStrokeTacticianPage() {
         runSeed: dungeon.seedKey,
         relics: activeRelics,
         counters,
+        logVersion: runLogRef.current?.v ?? RUN_LOG_VERSION,
       });
     runBloomRef.current = { statsWithPayout, offers };
     setRelicCounters(countersAfter);
@@ -1974,6 +1985,32 @@ export default function OneStrokeTacticianPage() {
         activeClassForBoard,
         activeRelicsForBoard
       );
+
+      // Celebrate long lines (Sprout and up) as soon as they're let go
+      const tier = getLineTier(committedPath.length);
+      if (mode === "RUN" && tier.level > 0 && simResult.survives && simResult.endsOnExit) {
+        const b = calculateFloorScoreBreakdown(
+          simResult,
+          floorStartHero,
+          committedPath.length,
+          activeRelicsForBoard,
+          relicScoreCtx
+        );
+        const key = Date.now();
+        setLineCallout({
+          key,
+          name: tier.name,
+          color: tier.color,
+          tiles: committedPath.length - 1,
+          points: Math.round(b.chips * b.mult * b.xMult),
+        });
+        soundEngine.playVictoryChord();
+        const id = window.setTimeout(
+          () => setLineCallout((c) => (c?.key === key ? null : c)),
+          1500
+        );
+        resolutionTimersRef.current.push(id);
+      }
 
       const STEP_MS = 180;
 
@@ -2933,6 +2970,31 @@ export default function OneStrokeTacticianPage() {
                 </div>
               </div>
             )}
+
+            {/* A long line that reaches the Exit gets a big callout while it plays */}
+            <AnimatePresence>
+              {lineCallout && (
+                <motion.div
+                  key={lineCallout.key}
+                  initial={{ scale: 0.4, opacity: 0, rotate: -6 }}
+                  animate={{ scale: [0.4, 1.15, 1], opacity: 1, rotate: 0 }}
+                  exit={{ opacity: 0, y: -24, scale: 0.9 }}
+                  transition={{ duration: 0.45, ease: "easeOut" }}
+                  className="pointer-events-none absolute inset-0 z-40 flex items-center justify-center"
+                  aria-live="polite"
+                >
+                  <div
+                    className="rounded-2xl px-5 py-2.5 text-center shadow-[0_0_40px_rgba(0,0,0,0.5)] border-2 border-white/70"
+                    style={{ backgroundColor: lineCallout.color }}
+                  >
+                    <div className="text-[26px] font-black leading-none text-slate-950">{lineCallout.name}!</div>
+                    <div className="mt-1 text-[12px] font-mono font-black text-slate-900/80">
+                      {lineCallout.tiles} tiles · {lineCallout.points.toLocaleString()} points
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Run notices float over the board so nothing below it moves */}
             {RUN_ONLY && (retractNotice || (runNoSafeLine && !weedOutMode)) && (

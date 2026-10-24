@@ -2975,12 +2975,15 @@ export function getRunClearPayout(params: {
   strokesLeft: number;
   gemsHeld: number;
   relics?: RelicId[];
+  /** One-off bonus (the first garden of a Run, rules v6+) */
+  welcomeBonus?: number;
 }): {
   clearReward: number;
   strokeBonus: number;
   interest: number;
   interestCap: number;
   relicBonus: number;
+  welcomeBonus: number;
   total: number;
 } {
   const relics = params.relics ?? [];
@@ -2994,7 +2997,8 @@ export function getRunClearPayout(params: {
     interest,
     interestCap: getRunInterestCap(relics),
     relicBonus,
-    total: clearReward + strokeBonus + interest + relicBonus,
+    welcomeBonus: params.welcomeBonus ?? 0,
+    total: clearReward + strokeBonus + interest + relicBonus + (params.welcomeBonus ?? 0),
   };
 }
 
