@@ -54,6 +54,8 @@ export default function LineMeter({
     icon: React.ReactNode;
     name: string;
     text: string;
+    /** Small heading, "New tile" by default */
+    label?: string;
     index: number;
     total: number;
     onNext: () => void;
@@ -124,7 +126,7 @@ export default function LineMeter({
           <div className="w-9 h-9 shrink-0 flex items-center justify-center">{intro.icon}</div>
           <div className="min-w-0 flex-1 text-[12.5px] leading-snug text-white/85">
             <span className="text-[10px] font-semibold uppercase tracking-wide text-teal-200/80 block">
-              New tile{intro.total > 1 ? ` · ${intro.total - 1} more` : ""}
+              {intro.label ?? "New tile"}{intro.total > 1 ? ` · ${intro.total - 1} more` : ""}
             </span>
             <b className="text-white">{intro.name}</b> {intro.text}
           </div>

@@ -138,6 +138,7 @@ import { clearRunSave, readRunSave, rebuildRunFromSave, writeRunSave } from "@/l
 import {
   LessonResultInfo,
   PracticeCoach,
+  isPracticeOverlayStep,
   PracticeStep,
   RunHelpMenu,
   RunLessonCoach,
@@ -1567,6 +1568,15 @@ export default function OneStrokeTacticianPage() {
           (t) => !seenTileIntros.includes(t) && activeGrid.some((row) => row.some((c) => c.type === t))
         )
       : [];
+  // Before any Gloves tile appears, say where the Gloves in the top bar come from
+  const START_GLOVES_INTRO = "START_GLOVES";
+  const showStartGlovesIntro =
+    mode === "RUN" &&
+    !lesson &&
+    !!seenTileIntros &&
+    !seenTileIntros.includes(START_GLOVES_INTRO) &&
+    !seenTileIntros.includes("SHIELD") &&
+    floorStartHero.shield > 0;
   const dismissTileIntro = (type: string) => {
     const next = [...(seenTileIntros ?? []), type];
     setSeenTileIntros(next);
@@ -2743,14 +2753,26 @@ export default function OneStrokeTacticianPage() {
                 tilesOnBoard={lineMeter.tilesOnBoard}
                 idleText={lesson ? "Your points show here as you draw." : undefined}
                 intro={
-                  tileIntroQueue.length > 0 && phase === "PLANNING"
+                  phase !== "PLANNING"
+                    ? null
+                    : tileIntroQueue.length > 0
                     ? {
                         icon: <EntityIcon type={tileIntroQueue[0]} size={30} />,
                         name: TILE_INTROS[tileIntroQueue[0]].name,
                         text: TILE_INTROS[tileIntroQueue[0]].text,
-                        index: (seenTileIntros?.length ?? 0) >= 0 ? 0 : 0,
-                        total: tileIntroQueue.length,
+                        index: 0,
+                        total: tileIntroQueue.length + (showStartGlovesIntro ? 1 : 0),
                         onNext: () => dismissTileIntro(tileIntroQueue[0]),
+                      }
+                    : showStartGlovesIntro
+                    ? {
+                        icon: <EntityIcon type="SHIELD" size={30} />,
+                        label: "Good to know",
+                        name: `Your Cat wears ${floorStartHero.shield} Gloves`,
+                        text: `from the start. They block ${floorStartHero.shield} Thorn damage.`,
+                        index: 0,
+                        total: 1,
+                        onNext: () => dismissTileIntro(START_GLOVES_INTRO),
                       }
                     : null
                 }
@@ -2985,6 +3007,18 @@ export default function OneStrokeTacticianPage() {
           />
           )}
 
+          {practiceStep && !isPracticeOverlayStep(practiceStep) && !isGuideOpen && !helpMenu && !isRunLeaderboardOpen && (
+            <PracticeCoach
+              step={practiceStep}
+              collapsed={practiceCollapsed}
+              onToggleCollapsed={() => setPracticeCollapsed((v) => !v)}
+              onButton={() => {
+                if (practiceStep === "intro") setPracticeStep("draw");
+              }}
+              onQuit={() => startRun()}
+            />
+          )}
+
           {/* Long-term progress: the Sanctuary mosaic (not in the Run-only game) */}
           {!RUN_ONLY && !isInteractiveTutorial && (
             <div className="w-full max-w-[430px] min-w-0">
@@ -3151,17 +3185,13 @@ export default function OneStrokeTacticianPage() {
         }}
       />
 
-      {practiceStep && !isGuideOpen && !helpMenu && !isRunLeaderboardOpen && (
+      {practiceStep && isPracticeOverlayStep(practiceStep) && !isGuideOpen && !helpMenu && !isRunLeaderboardOpen && (
         <PracticeCoach
           step={practiceStep}
           collapsed={practiceCollapsed && practiceStep !== "done"}
           onToggleCollapsed={() => setPracticeCollapsed((v) => !v)}
           onButton={() => {
-            if (practiceStep === "intro") {
-              setPracticeStep("draw");
-            } else if (practiceStep === "done") {
-              startRun();
-            }
+            if (practiceStep === "done") startRun();
           }}
           onQuit={() => startRun()}
         />

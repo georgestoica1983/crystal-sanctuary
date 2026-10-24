@@ -212,7 +212,15 @@ const PRACTICE_COPY: Record<PracticeStep, { title: string; lines: string[]; butt
   },
 };
 
-/** Coach card for the Practice Garden; floats above the board, Shop and payout */
+/** Steps shown over the payout, Shop or as a closing card (the rest sit under the board) */
+export const isPracticeOverlayStep = (step: PracticeStep) =>
+  step === "bloom" || step === "shop" || step === "done";
+
+/**
+ * Coach card for the Practice Garden. During play it sits in the page flow
+ * under the board controls, so it never covers them; over the payout and
+ * Shop it floats at the top.
+ */
 export function PracticeCoach({
   step,
   collapsed,
@@ -229,21 +237,23 @@ export function PracticeCoach({
   const copy = PRACTICE_COPY[step];
   const isModal = step === "done";
   // Over the payout and Shop screens the card sits at the top (their buttons
-  // are at the bottom); on the board it sits at the bottom, below the controls
+  // are at the bottom); on the board it is part of the page, below the controls
   const atTop = step === "bloom" || step === "shop";
   return (
     <div
       className={
         isModal
           ? "fixed inset-0 z-[70] bg-black/75 backdrop-blur-sm flex items-center justify-center p-3"
-          : `fixed ${atTop ? "top-2" : "bottom-2"} inset-x-0 z-[70] flex justify-center px-3 pointer-events-none`
+          : atTop
+          ? "fixed top-2 inset-x-0 z-[70] flex justify-center px-3 pointer-events-none"
+          : "w-full max-w-[430px] min-w-0 flex justify-center"
       }
     >
       <motion.div
         key={step}
         initial={{ y: -12, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="pointer-events-auto w-full max-w-[420px] rounded-xl border-2 border-emerald-300/70 bg-[#0D1F24] shadow-[0_0_24px_rgba(52,211,153,0.35)] p-2.5 text-white space-y-1.5"
+        className="pointer-events-auto w-full max-w-[430px] rounded-xl border-2 border-emerald-300/70 bg-[#0D1F24] shadow-[0_0_24px_rgba(52,211,153,0.35)] p-2.5 text-white space-y-1.5"
       >
         <div className="flex items-center justify-between gap-2">
           <div className="text-[10px] font-mono font-black uppercase tracking-wider text-emerald-300">
