@@ -28,6 +28,7 @@ import { soundEngine } from "@/lib/audio";
 import { SANCTUARY_COMPANIONS } from "@/components/SanctuaryModal";
 import EntityIcon, { ENTITY_COLORS } from "@/components/EntityIcon";
 import { getLineTier } from "@/lib/lineTiers";
+import LineHeadFeedback, { LiveLineScore } from "@/components/LineHeadFeedback";
 
 interface GridCanvasProps {
   grid: GridCell[][];
@@ -45,6 +46,8 @@ interface GridCanvasProps {
   onRetractNotice?: (reason: string) => void;
   /** First-time players: home and the Exit pulse until the first line */
   pulseStartExit?: boolean;
+  /** Score of the line being drawn, shown beside its head */
+  liveScore?: LiveLineScore | null;
 }
 
 export default function GridCanvas({
@@ -62,6 +65,7 @@ export default function GridCanvas({
   onCommitPath,
   onRetractNotice,
   pulseStartExit = false,
+  liveScore = null,
 }: GridCanvasProps) {
   // After a line pulls back because it would run out of Life, the tile that
   // would have ended it stays marked for a moment
@@ -755,7 +759,7 @@ export default function GridCanvas({
                           className="absolute inset-0 flex items-center justify-center pointer-events-none z-40"
                         >
                           <span className="px-2 py-0.5 rounded-full bg-amber-300/95 text-slate-950 font-mono text-[10px] font-black shadow-[0_0_20px_rgba(251,191,36,0.95)] flex items-center gap-0.5">
-                            {cell.type === "GOLD" ? "💎" : "🌸"} +{cell.value || 1}
+                            {cell.type === "GOLD" ? "🌰" : "🌸"} +{cell.value || 1}
                           </span>
                         </motion.div>
                       )}
@@ -819,7 +823,7 @@ export default function GridCanvas({
                         ? `✦#${stepSim.stepIndex}`
                         : isEnemyNeutralized
                         ? isSanctuary
-                          ? <>🌸<span className="tile-tag-long"> BLOOMED!</span></>
+                          ? "🌸"
                           : `✓ #${stepSim.stepIndex}`
                         : `#${stepSim.stepIndex}`}
                     </span>
@@ -833,7 +837,7 @@ export default function GridCanvas({
                       className="tile-tag absolute -top-2 left-1 whitespace-nowrap bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 text-slate-950 font-mono font-black text-[9px] px-1.5 py-0.5 rounded-full border border-white/70 shadow-[0_0_12px_rgba(250,204,21,0.95)] leading-none pointer-events-none z-30"
                     >
                       {isSanctuary
-                        ? <>💎<span className="tile-tag-long"> GEM</span> x{stepSim.goldComboCount}</>
+                        ? <>🌰<span className="tile-tag-long"> SEED</span> x{stepSim.goldComboCount}</>
                         : `COMBO x${stepSim.goldComboCount}`}
                     </motion.span>
                   )}
@@ -896,6 +900,16 @@ export default function GridCanvas({
             })
           )}
         </div>
+
+        {/* Walkthrough: a finger traces the line to draw */}
+        {showGhostGuide && <GuideHand path={ghostGuidePath} />}
+
+        <LineHeadFeedback
+          path={drawnPath}
+          simulation={simulation}
+          live={liveScore}
+          active={isDragging && !isResolving && !retractingPath}
+        />
 
         {/* SVG Illuminated Energy Trail, Phase Mage Warp Line & Chevron Animations */}
         <svg
@@ -1273,7 +1287,7 @@ function StepFloatingBadge({
   if (step.shatteredShield) {
     return (
       <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold bg-[#00D2FF] text-slate-950 shadow-[0_0_10px_rgba(0,210,255,0.8)] whitespace-nowrap">
-        {isSanctuary ? <>🛡️ 0<span className="tile-tag-long"> SHIELD</span></> : "❄️ 0 SHD"}
+        {isSanctuary ? <>🧤 0<span className="tile-tag-long"> GLOVES</span></> : "❄️ 0 SHD"}
       </span>
     );
   }
@@ -1289,7 +1303,7 @@ function StepFloatingBadge({
   if (step.spikedBootsTriggered) {
     return (
       <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-amber-400 text-slate-950 shadow-[0_0_10px_rgba(245,158,11,0.9)] whitespace-nowrap">
-        🥾 +{step.weaponDelta} {isSanctuary ? "☀️" : "WPN"}
+        🥾 +{step.weaponDelta} {isSanctuary ? "✂️" : "WPN"}
       </span>
     );
   }
@@ -1336,7 +1350,7 @@ function StepFloatingBadge({
     }
     return (
       <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-sky-300 text-slate-950 shadow-[0_0_10px_rgba(56,189,248,0.8)] whitespace-nowrap">
-        +{step.shieldDelta} {isSanctuary ? "🛡️" : "SHD"}
+        +{step.shieldDelta} {isSanctuary ? "🧤" : "SHD"}
       </span>
     );
   }
@@ -1344,7 +1358,7 @@ function StepFloatingBadge({
   if (step.cell.type === "WEAPON") {
     return (
       <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-amber-300 text-slate-950 shadow-[0_0_10px_rgba(251,191,36,0.85)] whitespace-nowrap">
-        +{step.weaponDelta} {isSanctuary ? "☀️" : "WPN"}
+        +{step.weaponDelta} {isSanctuary ? "✂️" : "WPN"}
       </span>
     );
   }
@@ -1368,8 +1382,8 @@ function StepFloatingBadge({
   if (step.cell.type === "GOLD") {
     return (
       <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-[#FDE047] text-slate-950 shadow-[0_0_10px_rgba(250,204,21,0.85)] whitespace-nowrap">
-        +{step.goldDelta} {isSanctuary ? "💎" : "GLD"}
-        {step.shieldDelta > 0 ? ` +${step.shieldDelta}🛡️` : ""}
+        +{step.goldDelta} {isSanctuary ? "🌰" : "GLD"}
+        {step.shieldDelta > 0 ? ` +${step.shieldDelta}🧤` : ""}
         {step.hpDelta > 0 ? ` +${step.hpDelta}❤️` : ""}
       </span>
     );
@@ -1459,7 +1473,8 @@ function TileIconWithValue({
   const harmful = type === "ENEMY" || type === "TRAP" || (type === "POTION" && isCorrupted);
   const n = typeof value === "number" ? value : Math.abs(Number(value)) || value;
   const label = harmful ? `−${n}` : `+${n}`;
-  const lifeColor = "#FB7185";
+  // Helpful values are never red: Berries show a green "+N"
+  const lifeColor = "#34D399";
   const badgeColor = type === "POTION" && !isCorrupted ? lifeColor : color;
   return (
     <div className="relative w-[72%] h-[72%] flex items-center justify-center">
@@ -1609,7 +1624,7 @@ export function CellGeometricNode({
     case "SHIELD": {
       const isVampireBloodBlade = heroClassId === "VAMPIRE";
       const displayVal = isVampireBloodBlade
-        ? "+2☀"
+        ? "+1✂️"
         : modifierId === "GLASS_ARMOR"
         ? cell.value * 2
         : cell.value;
@@ -1666,25 +1681,25 @@ function getTileInspectionData(
         name: isSanctuary ? "Thorn" : "Hostile Enemy",
         valueLabel: `−${cell.value} Life`,
         explanation: isSanctuary
-          ? `Costs ${cell.value} ❤️ Life. ☀️ Power picked up just before it weakens it; 🛡️ Shield soaks up the rest.`
-          : `Deals ${cell.value} damage. Absorbed by Weapons then Shields before reducing HP.`,
+          ? `Costs ${cell.value} ❤️ Life. ✂️ Shears cut it completely; 🧤 Gloves block part of it.`
+          : `Deals ${cell.value} damage. Absorbed by Weapons then Gloves before reducing HP.`,
       };
     case "SHIELD":
       return {
-        icon: isSanctuary ? "🛡️" : "🛡️",
-        name: isSanctuary ? "Shield" : "Aegis Shield",
-        valueLabel: `+${cell.value} Shield`,
+        icon: isSanctuary ? "🧤" : "🧤",
+        name: isSanctuary ? "Gloves" : "Aegis Gloves",
+        valueLabel: `+${cell.value} Gloves`,
         explanation: isSanctuary
-          ? `Blocks ${cell.value} Thorn damage. Unused Shield stays with you for the next Thorns and lines.`
-          : `Adds +${cell.value} Shield pool to absorb Enemy damage before HP is reduced.`,
+          ? `Blocks ${cell.value} Thorn damage. Unused Gloves stay with you for the next Thorns and lines.`
+          : `Adds +${cell.value} Gloves pool to absorb Enemy damage before HP is reduced.`,
       };
     case "WEAPON":
       return {
-        icon: isSanctuary ? "☀️" : "⚔️",
-        name: isSanctuary ? "Power" : "Kinetic Blade",
-        valueLabel: `+${cell.value} Power`,
+        icon: isSanctuary ? "✂️" : "⚔️",
+        name: isSanctuary ? "Shears" : "Kinetic Blade",
+        valueLabel: isSanctuary ? `1 cut · +${cell.value} value` : `+${cell.value} Weapon`,
         explanation: isSanctuary
-          ? `Makes the next Thorn ${cell.value} weaker, then it's used up. Grab it right before a big Thorn.`
+          ? `One cut: the next Thorn you walk into is cut completely — no ❤️ lost. Also adds ${cell.value} to your line's value.`
           : `Temporary +${cell.value} attack power for the NEXT Enemy encounter only, then breaks to 0!`,
       };
     case "POTION":
@@ -1698,11 +1713,11 @@ function getTileInspectionData(
       };
     case "GOLD":
       return {
-        icon: isSanctuary ? "💎" : "🪙",
-        name: isSanctuary ? "Gem" : "Tactical Gold",
+        icon: isSanctuary ? "🌰" : "🪙",
+        name: isSanctuary ? "Seed" : "Tactical Gold",
         valueLabel: `+${cell.value} points`,
         explanation: isSanctuary
-          ? `Adds ${cell.value} to your line's value. (Gems to spend come from clearing gardens.)`
+          ? `Adds ${cell.value} to your line's value. (Seeds to spend come from clearing gardens.)`
           : `+${cell.value} Gold: adds ${cell.value} Value to this floor's score and buys upgrades in the Shop.`,
       };
     case "TRAP":
@@ -1711,7 +1726,7 @@ function getTileInspectionData(
         name: isSanctuary ? "Spike" : "Spike Trap",
         valueLabel: `−${cell.value} Life`,
         explanation: isSanctuary
-          ? `Stepping on it straight costs ${cell.value} ❤️ Life (Shield doesn't help). Step on it diagonally ↗ and it costs nothing.`
+          ? `Stepping on it straight costs ${cell.value} ❤️ Life (Gloves don't help). Step on it diagonally ↗ and it costs nothing.`
           : `Pierces shields orthogonally. PRO TIP: Move diagonally through the trap to dodge it for 0 damage!`,
       };
     case "EXIT":
@@ -1811,4 +1826,45 @@ function InspectorCard({
   );
 }
 
-
+/** A finger that slides along the guide line, then pauses and repeats */
+function GuideHand({ path }: { path: GridCoord[] }) {
+  const xs = path.map((p) => `${(p.col + 0.5) * 20}%`);
+  const ys = path.map((p) => `${(p.row + 0.5) * 20}%`);
+  const n = path.length;
+  const duration = 0.45 * n + 0.6;
+  const times = path.map((_, i) => ((0.45 * i + 0.3) / duration));
+  const start = path[0];
+  return (
+    <div className="absolute inset-2.5 z-40 pointer-events-none" aria-hidden="true">
+      <div
+        className="absolute -translate-x-1/2 whitespace-nowrap rounded-full bg-amber-300 px-2 py-0.5 text-[11px] font-black text-slate-950 shadow-lg"
+        style={{
+          left: `${Math.max(12, Math.min(88, (start.col + 0.5) * 20))}%`,
+          top: start.row > 0 ? `${start.row * 20 - 8.5}%` : `${(start.row + 1) * 20 + 1}%`,
+        }}
+      >
+        Drag from here
+      </div>
+      <motion.div
+        className="absolute text-[30px] leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
+        style={{ marginLeft: -6, marginTop: -4 }}
+        initial={{ left: xs[0], top: ys[0], opacity: 0 }}
+        animate={{
+          left: [xs[0], ...xs, xs[n - 1]],
+          top: [ys[0], ...ys, ys[n - 1]],
+          opacity: [0, ...path.map(() => 1), 0],
+          scale: [1.2, ...path.map(() => 1), 1],
+        }}
+        transition={{
+          duration,
+          times: [0, ...times.map((t) => Math.min(0.97, t)), 1],
+          repeat: Infinity,
+          repeatDelay: 0.5,
+          ease: "easeInOut",
+        }}
+      >
+        👆
+      </motion.div>
+    </div>
+  );
+}

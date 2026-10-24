@@ -18,6 +18,7 @@ import {
   replayRun,
   RUN_LOG_VERSION,
   RUN_MODIFIER,
+  runModifierFor,
   RunActionLog,
   RunLogAction,
 } from "@/lib/runReplay";
@@ -182,7 +183,7 @@ refused("lower score than replay", submit(clone(), base.score - 1));
   const log: RunActionLog = { v: 2, seed, hero: "KNIGHT", a: [] };
   for (let i = 0; i < 5; i++) {
     const s = run.state;
-    const line = findSurvivableHintPath(s.grid, s.startHero, RUN_MODIFIER, s.classId, s.relics, false);
+    const line = findSurvivableHintPath(s.grid, s.startHero, runModifierFor(2), s.classId, s.relics, false);
     const p = packCoords(line ?? [findEntityCoord(s.grid, "HERO")!]);
     log.a.push({ k: "s", p });
     if (i < 4) run.apply({ k: "s", p });

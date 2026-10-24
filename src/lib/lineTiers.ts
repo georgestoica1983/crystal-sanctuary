@@ -35,10 +35,10 @@ export const TILE_INTRO_ORDER = ["ENEMY", "GOLD", "WEAPON", "POTION", "SHIELD", 
 export type IntroTileType = (typeof TILE_INTRO_ORDER)[number];
 export const TILE_INTROS: Record<IntroTileType, { name: string; text: string }> = {
   ENEMY: { name: "Thorn", text: "costs ❤️ Life — the number shows how much." },
-  GOLD: { name: "Gem", text: "adds its number to your points." },
-  WEAPON: { name: "Power", text: "weakens the next Thorn you walk into." },
+  GOLD: { name: "Seed", text: "adds its number to your points." },
+  WEAPON: { name: "Shears", text: "cut the next Thorn completely — no Life lost." },
   POTION: { name: "Berries", text: "give back ❤️ Life." },
-  SHIELD: { name: "Shield", text: "blocks Thorn damage, and it lasts." },
+  SHIELD: { name: "Gloves", text: "block that much Thorn damage, and they last." },
   TRAP: { name: "Spike", text: "costs ❤️ Life — unless you step on it diagonally ↗." },
 };
 export const SEEN_TILE_INTROS_KEY = "ost_seen_tile_intros_v1";

@@ -139,14 +139,14 @@ export const RUN_LESSONS: RunLesson[] = [
       detail: `${b.total.toLocaleString()} points (need 200)`,
     }),
     success: "The short way scores 6. The long way scores 240. Longer lines multiply your points.",
-    failHint: "Go around every Gem before the Exit.",
+    failHint: "Go around every Seed before the Exit.",
   },
   {
     id: "sunbeams",
     title: "Thorns hurt",
     icon: "🌺",
     learn: "",
-    steps: ["Grab ☀️ Power, then the Thorn."],
+    steps: ["Grab ✂️ Shears, then the Thorn."],
     goalLabel: "Lose no ❤️ Life",
     hero: hero(4),
     grid: board("L6", [
@@ -164,7 +164,7 @@ export const RUN_LESSONS: RunLesson[] = [
         detail: hit ? `❤️ ${start.hp} → ${sim.finalStats.hp}` : "Pass the Thorn",
       };
     },
-    success: "Power makes the next Thorn weaker. Grab it right before a big Thorn.",
-    failHint: "Take the ☀️ Power first.",
+    success: "✂️ Shears cut the next Thorn completely. Grab them right before a big Thorn.",
+    failHint: "Take the ✂️ Shears first.",
   },
 ];

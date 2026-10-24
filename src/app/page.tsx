@@ -129,6 +129,8 @@ import {
   packCoords,
   RunActionLog,
   RunLogAction,
+  RUN_LOG_VERSION,
+  runModifierFor,
   scoreRunStroke,
   startRunGarden,
 } from "@/lib/runReplay";
@@ -251,6 +253,8 @@ export default function OneStrokeTacticianPage() {
   const [lessonResult, setLessonResult] = useState<LessonResultInfo | null>(null);
   const [showLessonGhost, setShowLessonGhost] = useState<boolean>(false);
   const [lessonsProgress, setLessonsProgress] = useState<number>(0);
+  /** Set on a first visit: the walkthrough opens once the page is ready */
+  const [pendingWalkthrough, setPendingWalkthrough] = useState<boolean>(false);
   const [practiceStep, setPracticeStep] = useState<PracticeStep | null>(null);
   const [practiceCollapsed, setPracticeCollapsed] = useState<boolean>(false);
   const [helpMenu, setHelpMenu] = useState<"welcome" | "help" | null>(null);
@@ -398,9 +402,13 @@ export default function OneStrokeTacticianPage() {
         } catch {
           setSeenTileIntros([]);
         }
-        if (!window.localStorage.getItem(RUN_WELCOME_KEY)) setHelpMenu("welcome");
+        // First visit: a short hands-on walkthrough starts right away (Skip leaves it)
+        if (!window.localStorage.getItem(RUN_WELCOME_KEY)) {
+          window.localStorage.setItem(RUN_WELCOME_KEY, "1");
+          setPendingWalkthrough(true);
+        }
       } catch {
-        setHelpMenu("welcome");
+        setPendingWalkthrough(true);
       }
     } else {
       startDaily();
@@ -511,8 +519,11 @@ export default function OneStrokeTacticianPage() {
     : isInteractiveTutorial
     ? activeTutorialStage.grid
     : currentFloor.grid;
-  const activeModifierId: ModifierId =
-    lesson || isInteractiveTutorial ? "NONE" : dungeon.modifierId;
+  const activeModifierId: ModifierId = lesson
+    ? runModifierFor(RUN_LOG_VERSION)
+    : isInteractiveTutorial
+    ? "NONE"
+    : dungeon.modifierId;
   const activeClassForBoard: HeroClassId = lesson
     ? "KNIGHT"
     : isInteractiveTutorial
@@ -844,7 +855,7 @@ export default function OneStrokeTacticianPage() {
         dateKey: getTodayDateKey(),
         title: "Seasons Run",
         lore: "Season after season the gardens grow wilder. Clear each one before your lines run out.",
-        modifierId: "NONE",
+        modifierId: runModifierFor(RUN_LOG_VERSION),
         source: "deterministic-fallback",
         floors: [first.floor],
       };
@@ -900,6 +911,13 @@ export default function OneStrokeTacticianPage() {
     setRetractNotice(null);
     setPhase("PLANNING");
   };
+
+  useEffect(() => {
+    if (!pendingWalkthrough) return;
+    setPendingWalkthrough(false);
+    startLesson(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingWalkthrough]);
 
   const markWelcomeSeen = () => {
     try {
@@ -1027,7 +1045,7 @@ export default function OneStrokeTacticianPage() {
       } else if (offer.stat === "MAX_MAGIC") {
         handleNotice(`${SHOP_STAT_BOOSTS.MAX_MAGIC.icon} +2 Max Life for this visit!`);
       } else if (offer.stat === "START_DEW") {
-        handleNotice(`${SHOP_STAT_BOOSTS.START_DEW.icon} +1 Shield at the start of every garden!`);
+        handleNotice(`${SHOP_STAT_BOOSTS.START_DEW.icon} +1 Gloves at the start of every garden!`);
       }
       if (mode === "RUN") logRunAction({ k: "b", o: offer.id });
       setPendingPostFloorStats(next);
@@ -1058,7 +1076,7 @@ export default function OneStrokeTacticianPage() {
       setHero(sold.stats);
       setShopPurchases((prev) => prev + 1);
       const relic = getRelicDisplay(RELIC_REGISTRY[relicId], true);
-      handleNotice(`${relic.icon} ${relic.name} sold for ${sold.value} 💎`);
+      handleNotice(`${relic.icon} ${relic.name} sold for ${sold.value} 🌰`);
       soundEngine.playGoldPickup(2);
     },
     [mode, pendingPostFloorStats, hero, activeRelics, relicCounters, handleNotice]
@@ -1474,7 +1492,7 @@ export default function OneStrokeTacticianPage() {
           : null,
         target: garden.target,
         continueLabel: bloomed
-          ? "Garden cleared! →"
+          ? "Garden Bed cleared! →"
           : outOfStrokes
           ? "See the run →"
           : "Next line →",
@@ -1704,7 +1722,7 @@ export default function OneStrokeTacticianPage() {
       dateKey: getTodayDateKey(),
       title: "Seasons Run",
       lore: "Season after season the gardens grow wilder. Clear each one before your lines run out.",
-      modifierId: "NONE",
+      modifierId: runModifierFor(r.log.v),
       source: "deterministic-fallback",
       floors: r.floors,
     };
@@ -1840,7 +1858,7 @@ export default function OneStrokeTacticianPage() {
             );
       if (!route || route.length < 2) {
         handleNotice(
-          "No safe line from here — try gathering Shield or Power tiles first."
+          "No safe line from here — try gathering Gloves or Shears tiles first."
         );
         return;
       }
@@ -2041,7 +2059,7 @@ export default function OneStrokeTacticianPage() {
               startDaily();
               setTrainingToastBanner(
                 true
-                  ? "GARDEN ONBOARDING COMPLETE (+50 💎 GEMS) — ENTERING DAILY SANCTUARY"
+                  ? "GARDEN ONBOARDING COMPLETE (+50 🌰 GEMS) — ENTERING DAILY SANCTUARY"
                   : "TACTICAL TRAINING COMPLETE (+50 🪙) — ENTERING DAILY DUNGEON"
               );
               const clearToastId = window.setTimeout(() => {
@@ -2550,14 +2568,14 @@ export default function OneStrokeTacticianPage() {
           RUN_ONLY
             ? () => {
                 const inProgress = floorHistory.length > 0 && phase !== "DEFEAT" && !lesson;
-                if (!inProgress || window.confirm("Start a new run? This run will end.")) startRun();
+                if (!inProgress || window.confirm("Start a new Garden Run? This one will end.")) startRun();
               }
             : undefined
         }
         onEndRun={
           RUN_ONLY && !lesson && phase !== "DEFEAT"
             ? () => {
-                if (window.confirm("End this run now? Your score so far will be kept.")) handleEndRunEarly();
+                if (window.confirm("End this Garden Run now? Your score so far will be kept.")) handleEndRunEarly();
               }
             : undefined
         }
@@ -2589,9 +2607,9 @@ export default function OneStrokeTacticianPage() {
                 {coachStep === 0 &&
                   "Drag one continuous line from your Companion 🐱 to the glowing 🌈 Exit."}
                 {coachStep === 1 &&
-                  "The numbers show exactly what will happen before you let go. Thorns 🌺 cost Life; Shield 🛡️ and Power tiles ☀️ protect you. Release on the Exit to walk it."}
+                  "The numbers show exactly what will happen before you let go. Thorns 🌺 cost Life; Gloves 🧤 and Shears tiles ✂️ protect you. Release on the Exit to walk it."}
                 {coachStep === 2 &&
-                  "Lovely! Earn ★ for reaching the Exit, gathering 80% of the 💎, and keeping your Life high. Match par for a ✦ Perfect garden."}
+                  "Lovely! Earn ★ for reaching the Exit, gathering 80% of the 🌰, and keeping your Life high. Match par for a ✦ Perfect garden."}
               </p>
               <button
                 type="button"
@@ -2680,7 +2698,7 @@ export default function OneStrokeTacticianPage() {
                 onClick={() => startRun()}
                 className="w-full max-w-[430px] rounded-xl py-2 bg-emerald-300 text-slate-950 font-mono text-xs font-black"
               >
-                Run over — start a new run
+                Garden Run over — start a new one
               </button>
             ) : (
               <RunHudStrip
@@ -2781,6 +2799,13 @@ export default function OneStrokeTacticianPage() {
               }}
               onCommitPath={handleCommitPath}
               onRetractNotice={handleNotice}
+              liveScore={{
+                points: Math.round(lineMeter.now.chips * lineMeter.now.mult * lineMeter.now.xMult),
+                gain:
+                  Math.round(lineMeter.now.chips * lineMeter.now.mult * lineMeter.now.xMult) -
+                  lineMeter.previousPoints,
+                wilts: !simulation.survives,
+              }}
             />
 
             {mode === "RUN" && weedOutMode && (
@@ -2808,7 +2833,7 @@ export default function OneStrokeTacticianPage() {
                     {isInteractiveTutorial
                       ? activeTutorialStage.stageNumber === TUTORIAL_STAGES.length
                         ? isSanctuary
-                          ? "SANCTUARY READY! (+50 💎)"
+                          ? "SANCTUARY READY! (+50 🌰)"
                           : "TRAINING COMPLETE! (+50 🪙)"
                         : `LESSON ${activeTutorialStage.stageNumber} CLEARED`
                       : isSanctuary

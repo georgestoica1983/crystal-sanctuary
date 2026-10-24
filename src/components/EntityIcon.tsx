@@ -31,7 +31,7 @@ export const ENTITY_COLORS: Record<string, string> = {
 
 /**
  * Unified themed icon for HUD pills, grid tiles, legends and modals:
- * 💧 Dew, ☀️ Sunbeam, 🍓 Berries, 💎 Gem, 🌺 Briar, 🌵 Thistle, 🌈 Archway.
+ * 🧤 Gloves, ✂️ Shears, 🍓 Berries, 🌰 Seed, 🌺 Thorn, Spike, 🌈 Exit.
  * Drawn as SVG so colours stay exact on every device.
  */
 export default function EntityIcon({
@@ -90,66 +90,37 @@ export default function EntityIcon({
     }
 
     case "SHIELD": {
-      // 🛡️ Glossy cyan Shield (blocks Thorn damage)
+      // 🧤 Cyan garden Gloves (block Thorn damage)
       return (
         <svg {...svgProps}>
           <defs>
-            <linearGradient id={`shield-${uid}`} x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id={`glove-${uid}`} x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#A5F3FC" />
               <stop offset="55%" stopColor="#22D3EE" />
               <stop offset="100%" stopColor="#0E7490" />
             </linearGradient>
           </defs>
           <path
-            d="M12 2.5 4.5 5.3v6.1c0 4.7 3.2 8.6 7.5 10.1 4.3-1.5 7.5-5.4 7.5-10.1V5.3Z"
-            fill={`url(#shield-${uid})`}
+            d="M7 21.5V14L4 10.6c-.9-1-.2-2.5 1.1-2.2.5.1.9.4 1.2.8L7.6 11V4.6a1.3 1.3 0 0 1 2.6 0V10V3.4a1.3 1.3 0 0 1 2.6 0V10V4.2a1.3 1.3 0 0 1 2.6 0V10.5V6.4a1.3 1.3 0 0 1 2.6 0v8.4c0 2.7-1.2 4.6-2.4 5.6v1.1Z"
+            fill={`url(#glove-${uid})`}
             stroke="#06B6D4"
-            strokeWidth="1.4"
+            strokeWidth="1.2"
             strokeLinejoin="round"
           />
-          <path
-            d="M12 5.4 7.4 7.1v4.3c0 2.9 1.9 5.4 4.6 6.6"
-            fill="none"
-            stroke="#ECFEFF"
-            strokeWidth="1.3"
-            strokeLinecap="round"
-            opacity="0.8"
-          />
+          <path d="M6.6 18.4h9.6" stroke="#ECFEFF" strokeWidth="1.5" strokeLinecap="round" opacity="0.85" />
         </svg>
       );
     }
 
     case "WEAPON": {
-      // ☀️ Radiant amber Sunbeam
-      const rays = Array.from({ length: 8 }, (_, i) => i * 45);
+      // ✂️ Amber garden Shears (cut the next Thorn)
       return (
         <svg {...svgProps}>
-          <defs>
-            <radialGradient id={`sun-${uid}`} cx="45%" cy="40%" r="60%">
-              <stop offset="0%" stopColor="#FEF3C7" />
-              <stop offset="60%" stopColor="#FBBF24" />
-              <stop offset="100%" stopColor="#D97706" />
-            </radialGradient>
-          </defs>
-          {rays.map((deg) => (
-            <path
-              key={deg}
-              d="M12 1.6 L13.3 5.2 L10.7 5.2 Z"
-              fill="#F59E0B"
-              stroke="#F59E0B"
-              strokeWidth="0.8"
-              strokeLinejoin="round"
-              transform={`rotate(${deg} 12 12)`}
-            />
-          ))}
-          <circle
-            cx="12"
-            cy="12"
-            r="5.4"
-            fill={`url(#sun-${uid})`}
-            stroke="#F59E0B"
-            strokeWidth="1.2"
-          />
+          <path d="M8.2 15.2 19.8 3.4" stroke="#E2E8F0" strokeWidth="2.2" strokeLinecap="round" />
+          <path d="M15.8 15.2 4.2 3.4" stroke="#CBD5E1" strokeWidth="2.2" strokeLinecap="round" />
+          <circle cx="12" cy="11.3" r="1.1" fill="#78350F" />
+          <circle cx="7" cy="18" r="3.3" fill="none" stroke="#F59E0B" strokeWidth="2.2" />
+          <circle cx="17" cy="18" r="3.3" fill="none" stroke="#FBBF24" strokeWidth="2.2" />
         </svg>
       );
     }
@@ -194,31 +165,24 @@ export default function EntityIcon({
     }
 
     case "GOLD": {
-      // 💎 Faceted golden crystal
+      // 🌰 Golden Seed with a little sprout
       return (
         <svg {...svgProps}>
           <defs>
-            <linearGradient id={`gem-${uid}`} x1="0" y1="0" x2="1" y2="1">
+            <radialGradient id={`seed-${uid}`} cx="40%" cy="40%" r="65%">
               <stop offset="0%" stopColor="#FEF9C3" />
-              <stop offset="50%" stopColor="#FACC15" />
+              <stop offset="55%" stopColor="#FACC15" />
               <stop offset="100%" stopColor="#A16207" />
-            </linearGradient>
+            </radialGradient>
           </defs>
           <path
-            d="M6.5 4h11L22 9.3 12 21.5 2 9.3 6.5 4Z"
-            fill={`url(#gem-${uid})`}
+            d="M12 7.2c4.1 0 6.6 3.5 6.6 7.3 0 3.9-3 6.9-6.6 6.9s-6.6-3-6.6-6.9c0-3.8 2.5-7.3 6.6-7.3Z"
+            fill={`url(#seed-${uid})`}
             stroke="#EAB308"
             strokeWidth="1.3"
-            strokeLinejoin="round"
           />
-          <path
-            d="M2 9.3h20M9 4 7.8 9.3 12 21.5 16.2 9.3 15 4M7.8 9.3 12 4l4.2 5.3"
-            stroke="#713F12"
-            strokeOpacity="0.55"
-            strokeWidth="0.9"
-            strokeLinejoin="round"
-          />
-          <path d="M6.6 5.3 4.4 8.3h2.5Z" fill="#FFFBEB" opacity="0.85" />
+          <path d="M12 7.4C12 5 13 3.6 15.6 2.8c.2 2.6-1.2 4-3.6 4.6Z" fill="#34D399" stroke="#059669" strokeWidth="0.8" strokeLinejoin="round" />
+          <path d="M9.2 12.6c.6-1.4 1.5-2.1 2.6-2.4" stroke="#FFFBEB" strokeWidth="1.3" strokeLinecap="round" opacity="0.85" fill="none" />
         </svg>
       );
     }

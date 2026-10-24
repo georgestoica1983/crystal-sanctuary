@@ -40,7 +40,7 @@ export default function LineMeter({
   lastTileValue: number;
   reachesArchway: boolean;
   wilts: boolean;
-  /** Why the line would wilt, e.g. "🌺6 − ☀️0 − 🛡️2 = 4 damage, you have 3 ❤️" */
+  /** Why the line would wilt, e.g. "🌺6 hits 4 ❤️ (🧤 blocked 2) · you have 3" */
   wiltReason?: string | null;
   magicNow: number;
   magicAfter: number;
@@ -152,7 +152,7 @@ export default function LineMeter({
               <span className="text-[17px] font-black text-sky-300 leading-none">{fmt(chips)}</span>
               <span className="text-[10px] text-white/40">value</span>
               <span className="text-[13px] text-white/40 mx-0.5">×</span>
-              <span className="text-[17px] font-black text-rose-300 leading-none">{fmt(mult)}</span>
+              <span className="text-[17px] font-black text-emerald-300 leading-none">{fmt(mult)}</span>
               <span className="text-[10px] text-white/40">length</span>
               {xMult !== 1 && (
                 <span className="text-[11px] font-black text-fuchsia-300">×{Math.round(xMult * 100) / 100}</span>

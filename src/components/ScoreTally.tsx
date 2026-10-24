@@ -139,7 +139,7 @@ export default function ScoreTally({
   };
 
   const chipLines = [
-    { label: "💎 Gems gathered", value: breakdown.gemChips },
+    { label: "🌰 Seeds gathered", value: breakdown.gemChips },
     { label: "🌿 Tiles on your line", value: breakdown.tileChips },
     ...breakdown.chipSources,
   ].filter((l) => l.value > 0);
@@ -228,14 +228,14 @@ export default function ScoreTally({
 
           <div className="flex items-center text-2xl font-black text-zinc-300">×</div>
 
-          <div className="rounded-xl border-2 border-rose-400 bg-rose-500/15 p-2 shadow-[0_0_18px_rgba(244,63,94,0.4)]">
-            <div className="text-[9px] font-mono font-black uppercase text-rose-200 text-center">
+          <div className="rounded-xl border-2 border-emerald-400 bg-emerald-500/15 p-2 shadow-[0_0_18px_rgba(16,185,129,0.35)]">
+            <div className="text-[9px] font-mono font-black uppercase text-emerald-200 text-center">
               Length
             </div>
             <motion.div
               key={`m-${stage >= 2}`}
               animate={stage >= 2 ? { scale: [1.25, 1] } : {}}
-              className="text-3xl font-mono font-black text-center text-rose-100 leading-tight"
+              className="text-3xl font-mono font-black text-center text-emerald-100 leading-tight"
             >
               {fmt(Math.round(multShown))}
             </motion.div>
@@ -245,7 +245,7 @@ export default function ScoreTally({
                   key={line.label}
                   initial={{ opacity: 0, x: 10 }}
                   animate={stage >= 2 ? { opacity: 1, x: 0, transition: { delay: i * 0.15 } } : {}}
-                  className="flex justify-between items-start text-[10px] leading-tight font-mono text-rose-100/85 gap-1"
+                  className="flex justify-between items-start text-[10px] leading-tight font-mono text-emerald-100/85 gap-1"
                 >
                   <span className="min-w-0 break-words">{line.label}</span>
                   <span className="font-bold shrink-0">+{line.value}</span>

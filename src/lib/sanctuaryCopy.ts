@@ -17,17 +17,17 @@ const SANCTUARY_RELIC_COPY: Partial<Record<
   Pick<RelicDefinition, "name" | "icon" | "shortTag" | "description">
 >> = {
   GILDED_AEGIS: {
-    name: "Gem Glow",
-    icon: "🛡️",
-    shortTag: "GEM → +1 SHIELD",
-    description: "Every Gem you collect also gathers +1 Shield.",
+    name: "Seed Glow",
+    icon: "🧤",
+    shortTag: "SEED → +1 🧤",
+    description: "Every Seed you collect also gathers +1 Gloves.",
   },
   VORPAL_EDGE: {
-    name: "Lingering Power tile",
-    icon: "☀️",
-    shortTag: "KEEP 50% SUN",
+    name: "Lingering Shears",
+    icon: "✂️",
+    shortTag: "EVERY 2ND CUT FREE",
     description:
-      "Power tiles no longer fade after clearing one Thorn — they keep half their warmth (rounded down).",
+      "Every second Thorn you cut with ✂️ Shears is free — you keep that cut.",
   },
   ALCHEMIST_FLASK: {
     name: "Honey Jar",
@@ -38,9 +38,9 @@ const SANCTUARY_RELIC_COPY: Partial<Record<
   SPIKED_BOOTS: {
     name: "Garden Boots",
     icon: "🥾",
-    shortTag: "THISTLE → +3 SUN",
+    shortTag: "SPIKE → +1 ✂️",
     description:
-      "Stepping straight onto a Spike doesn't hurt — it gives you +3 Power tile instead.",
+      "Stepping straight onto a Spike doesn't hurt — it gives you +1 ✂️ Shears instead.",
   },
   LONG_STRIDE: {
     name: "Long Meander",
@@ -52,8 +52,8 @@ const SANCTUARY_RELIC_COPY: Partial<Record<
   GREED_CROWN: {
     name: "Flower Crown",
     icon: "🌼",
-    shortTag: "2x GEMS & +1 LIFE",
-    description: "Gems are worth double and each one restores +1 Life.",
+    shortTag: "2x SEEDS & +1 LIFE",
+    description: "Seeds are worth double and each one restores +1 Life.",
   },
 };
 
@@ -77,11 +77,15 @@ const SANCTUARY_GARDEN_COPY: Record<ModifierId, { title: string; lore: string }>
     },
     BLOOD_GOLD: {
       title: "The Honeyed Orchard",
-      lore: "Gems hum with warm magic today, but some of the berries have turned sour.",
+      lore: "Seeds hum with warm magic today, but some of the berries have turned sour.",
     },
     MOMENTUM: {
       title: "The Sunlit Lanes",
       lore: "Long straight paths soak up the sunshine — walk three tiles in a row to gather it.",
+    },
+    SHEARS: {
+      title: "The Quiet Garden",
+      lore: "A calm, open garden. Wander in any of the eight directions.",
     },
     ORTHOGONAL_ONLY: {
       title: "The Hedgerow Maze",
@@ -117,7 +121,7 @@ export function getDungeonDisplay(
 export const SHARE_TILE_EMOJI = {
   tactician: {
     ENEMY: "🔺",
-    SHIELD: "🛡️",
+    SHIELD: "🧤",
     WEAPON: "⚔️",
     POTION: "💚",
     GOLD: "🪙",
@@ -127,10 +131,10 @@ export const SHARE_TILE_EMOJI = {
   },
   sanctuary: {
     ENEMY: "🌺",
-    SHIELD: "🛡️",
-    WEAPON: "☀️",
+    SHIELD: "🧤",
+    WEAPON: "✂️",
     POTION: "🍓",
-    GOLD: "💎",
+    GOLD: "🌰",
     TRAP: "⚙️",
     EXIT: "🌈",
     DEATH: "🍃",

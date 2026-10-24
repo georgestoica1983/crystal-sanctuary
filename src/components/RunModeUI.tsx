@@ -237,7 +237,7 @@ export function RunGardenClearModal({
       value: info.strokeBonus,
     },
     {
-      label: `Interest (1 per ${RUN_INTEREST_STEP} 💎, max ${info.interestCap ?? RUN_INTEREST_MAX})`,
+      label: `Interest (1 per ${RUN_INTEREST_STEP} 🌰, max ${info.interestCap ?? RUN_INTEREST_MAX})`,
       value: info.interest,
     },
     ...(info.relicBonus ? [{ label: "👛 Seed Purse", value: info.relicBonus }] : []),
@@ -255,7 +255,7 @@ export function RunGardenClearModal({
             {getRunGardenLabel(info.gardenIndex)}
           </div>
           <div className="text-2xl font-black text-emerald-100 drop-shadow-[0_0_12px_rgba(52,211,153,0.8)]">
-            Garden cleared! 🌸
+            Garden Bed cleared! 🌸
           </div>
           <div className="text-xs font-mono text-emerald-100/80 mt-0.5">
             {fmt(info.score)} / {fmt(info.target)}
@@ -333,15 +333,15 @@ const REASON_COPY: Record<RunEndReason, { title: string; body: string; icon: str
   },
   ENDED: {
     icon: "🌙",
-    title: "Run ended",
-    body: "You ended this run early.",
+    title: "Garden Run ended",
+    body: "You ended this Garden Run early.",
   },
 };
 
 /** Run summary: how far the run reached and the best record on this device */
 export function RunOverModal({
   info,
-  newRunLabel = "New run",
+  newRunLabel = "New Garden Run",
   rankLine,
   onOpenLeaderboard,
   onNewRun,
@@ -383,18 +383,18 @@ export function RunOverModal({
           </div>
           {info.reason !== "ENDED" && (
             <div className="flex justify-between">
-              <span className="text-zinc-300">This garden</span>
+              <span className="text-zinc-300">This Garden Bed</span>
               <span className="font-black">
                 {fmt(info.gardenScore)} / {fmt(info.target)}
               </span>
             </div>
           )}
           <div className="flex justify-between">
-            <span className="text-zinc-300">Gardens cleared</span>
+            <span className="text-zinc-300">Garden Beds cleared</span>
             <span className="font-black">{info.gardensCleared}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-zinc-300">Run score</span>
+            <span className="text-zinc-300">Garden Run score</span>
             <span className="font-black text-amber-200">{fmt(info.runScore)}</span>
           </div>
         </div>
@@ -406,7 +406,7 @@ export function RunOverModal({
               : "border border-white/10 bg-white/5 text-zinc-300"
           }`}
         >
-          {info.isNewBest ? "✨ New best run! " : "Best run: "}
+          {info.isNewBest ? "✨ New best Garden Run! " : "Best Garden Run: "}
           {getRunGardenLabel(info.best.gardenIndex)}
         </div>
 

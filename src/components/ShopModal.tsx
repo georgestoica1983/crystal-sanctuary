@@ -257,10 +257,10 @@ export default function ShopModal({
                         ? "border-white/15 text-zinc-400"
                         : affordable && !blockedBySlots
                         ? "border-amber-300 text-amber-200 bg-amber-400/15"
-                        : "border-rose-400/50 text-rose-300/80"
+                        : "border-white/15 text-white/40"
                     }`}
                   >
-                    {sold ? "SOLD" : blockedBySlots ? <Lock className="w-3.5 h-3.5" /> : `💎${offer.cost}`}
+                    {sold ? "SOLD" : blockedBySlots ? <Lock className="w-3.5 h-3.5" /> : `🌰${offer.cost}`}
                   </div>
                 </motion.button>
               );
@@ -277,7 +277,7 @@ export default function ShopModal({
             {(upgrades.bonusMaxMagic > 0 || upgrades.bonusStartDew > 0) && (
               <span className="text-emerald-300 normal-case">
                 {upgrades.bonusMaxMagic > 0 && `❤️ +${upgrades.bonusMaxMagic} Max Life `}
-                {upgrades.bonusStartDew > 0 && `🛡️ +${upgrades.bonusStartDew} Shield`}
+                {upgrades.bonusStartDew > 0 && `🧤 +${upgrades.bonusStartDew} Gloves`}
               </span>
             )}
           </div>

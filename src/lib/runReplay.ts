@@ -48,8 +48,13 @@ import type {
   ShopOffer,
 } from "@/types/game";
 
-/** Runs are always played without a board modifier */
-export const RUN_MODIFIER: ModifierId = "NONE";
+/**
+ * The rule set a Run is played with. v4+: ✂️ Shears — each Shears tile is one
+ * cut and the next Thorn is cut completely. Older Runs keep their own rules.
+ */
+export function runModifierFor(logVersion: number): ModifierId {
+  return logVersion >= 4 ? "SHEARS" : "NONE";
+}
 
 // ── Shared rule helpers (the page calls these; the replay calls them too) ──
 
@@ -68,12 +73,15 @@ export function startRunGarden(
   state: RunGardenState;
 } {
   const bag = generateRunSeedBag(runSeed);
-  const hero = getInitialHeroStatsForClass(classId);
+  const base = getInitialHeroStatsForClass(classId);
+  // Shears rule: a starting Power counts as one cut
+  const hero =
+    runModifierFor(logVersion) === "SHEARS" ? { ...base, weapon: Math.min(base.weapon, 1) } : base;
   const first = createRunGarden({
     runSeed,
     bag,
     gardenIndex: 0,
-    modifierId: RUN_MODIFIER,
+    modifierId: runModifierFor(logVersion),
     hero,
     heroClassId: classId,
     activeRelics: [],
@@ -226,12 +234,18 @@ export function createNextRunGarden(params: {
   /** Rules version of the Run's log (defaults to the current one) */
   logVersion?: number;
 }): { hero: HeroStats; floor: DungeonFloor; state: RunGardenState } {
-  const hero = getNextFloorHeroStats(params.stats, params.classId, params.relics, params.upgrades);
+  const hero = getNextFloorHeroStats(
+    params.stats,
+    params.classId,
+    params.relics,
+    params.upgrades,
+    runModifierFor(params.logVersion ?? RUN_LOG_VERSION)
+  );
   const next = createRunGarden({
     runSeed: params.runSeed,
     bag: params.bag,
     gardenIndex: params.gardenIndex,
-    modifierId: RUN_MODIFIER,
+    modifierId: runModifierFor(params.logVersion ?? RUN_LOG_VERSION),
     hero,
     heroClassId: params.classId,
     activeRelics: params.relics,
@@ -276,11 +290,14 @@ export function getRunPathError(
 
 /**
  * v2: 5 relic slots, selling, the larger relic pool and rarity-weighted Shops.
- * v3: the first gardens introduce tiles gradually. Older logs still replay
- * with their own rules.
+ * v3: the first gardens introduce tiles gradually.
+ * v4: ✂️ Shears cut the next Thorn completely (the "SHEARS" rule set).
+ * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 3;
+export const RUN_LOG_VERSION = 4;
 export const RUN_LOG_MIN_VERSION = 2;
+/** Rule set of new Runs (the current version) */
+export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);
 
 /**
  * One player action, kept small: coords are packed as row * 5 + col.
@@ -404,6 +421,7 @@ export function createRunReplayer(
   logVersion: number = RUN_LOG_VERSION
 ) {
   const first = startRunGarden(runSeed, heroClassId, logVersion);
+  const modifier = runModifierFor(logVersion);
   const bag = first.bag;
   const s: RunReplayState = {
     runSeed,
@@ -425,7 +443,7 @@ export function createRunReplayer(
   /** After a refill: no line left and no Weed-out to fix it ends the Run */
   const checkSafeLine = () => {
     if (s.garden.weedOutsLeft > 0) return;
-    if (!hasSurvivableRunLine(s.grid, s.startHero, RUN_MODIFIER, s.classId, s.relics)) {
+    if (!hasSurvivableRunLine(s.grid, s.startHero, modifier, s.classId, s.relics)) {
       s.phase = "OVER";
     }
   };
@@ -437,9 +455,9 @@ export function createRunReplayer(
       if (s.phase !== "PLAY") return "stroke outside a garden";
       if (s.garden.strokesLeft <= 0) return "no strokes left";
       const path = action.p.map(unpackCoord);
-      const pathError = getRunPathError(s.grid, path, s.classId);
+      const pathError = getRunPathError(s.grid, path, s.classId, modifier);
       if (pathError) return pathError;
-      const sim = simulatePath(s.grid, path, s.startHero, RUN_MODIFIER, s.classId, s.relics);
+      const sim = simulatePath(s.grid, path, s.startHero, modifier, s.classId, s.relics);
       if (!sim.canCommit) return "line doesn't reach the Archway alive";
       const { breakdown, afterStroke, countersAfter } = scoreRunStroke(
         sim,

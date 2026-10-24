@@ -63,7 +63,7 @@ export function getLiveStepNarratorText(
   if (simulation.steps.length <= 1) {
     return isSanctuary
       ? "Step 1: 🌸 At Companion's starting tile — drag toward the Exit!"
-      : "Step 1: 🛡️ At starting point — drag your path toward the Exit!";
+      : "Step 1: 🧤 At starting point — drag your path toward the Exit!";
   }
 
   const lastStep = simulation.steps[simulation.steps.length - 1];
@@ -94,14 +94,14 @@ export function getLiveStepNarratorText(
     const hpLoss = Math.abs(lastStep.hpDelta);
 
     if (lastStep.weaponBefore > 0 && lastStep.shieldBefore > 0) {
-      const wName = isSanctuary ? "☀️ Power tile" : "⚔️ Weapon";
-      const sName = isSanctuary ? "🛡️ Shield" : "🛡️ Shield";
+      const wName = isSanctuary ? "✂️ Shears" : "⚔️ Weapon";
+      const sName = isSanctuary ? "🧤 Gloves" : "🧤 Gloves";
       return `Step ${stepNum}: ${wName} (${lastStep.weaponBefore}) + ${sName} (${lastStep.shieldBefore}) cleared ${briarName} (${lastStep.cell.value}) → ${hpLoss} ${magicName} lost!`;
     } else if (lastStep.weaponBefore > 0) {
-      const wName = isSanctuary ? "☀️ Power tile" : "⚔️ Weapon";
+      const wName = isSanctuary ? "✂️ Shears" : "⚔️ Weapon";
       return `Step ${stepNum}: ${wName} (${lastStep.weaponBefore}) cleared ${briarName} (${lastStep.cell.value}) → ${hpLoss} ${magicName} lost!`;
     } else if (lastStep.shieldBefore > 0) {
-      const sName = isSanctuary ? "🛡️ Shield" : "🛡️ Shield";
+      const sName = isSanctuary ? "🧤 Gloves" : "🧤 Gloves";
       return `Step ${stepNum}: ${sName} (${lastStep.shieldBefore}) absorbed ${briarName} (${lastStep.cell.value}) → ${hpLoss} ${magicName} lost!`;
     } else {
       return `Step ${stepNum}: Cleared ${briarName} (${lastStep.cell.value}) → ${hpLoss} ${magicName} lost!`;
@@ -110,13 +110,13 @@ export function getLiveStepNarratorText(
 
   if (lastStep.cell.type === "SHIELD") {
     return isSanctuary
-      ? `Step ${stepNum}: 🛡️ Gathered +${lastStep.shieldDelta} Shield! (Total: ${lastStep.shieldAfter})`
-      : `Step ${stepNum}: 🛡️ Equipped +${lastStep.shieldDelta} Shield! (Total: ${lastStep.shieldAfter})`;
+      ? `Step ${stepNum}: 🧤 Gathered +${lastStep.shieldDelta} Gloves! (Total: ${lastStep.shieldAfter})`
+      : `Step ${stepNum}: 🧤 Equipped +${lastStep.shieldDelta} Gloves! (Total: ${lastStep.shieldAfter})`;
   }
 
   if (lastStep.cell.type === "WEAPON") {
     return isSanctuary
-      ? `Step ${stepNum}: ☀️ Soaked up +${lastStep.weaponDelta} Power tile! The next Thorn will be easier.`
+      ? `Step ${stepNum}: ✂️ Soaked up +${lastStep.weaponDelta} Shears! The next Thorn will be easier.`
       : `Step ${stepNum}: ⚔️ Picked up +${lastStep.weaponDelta} Weapon! Next attack hits hard.`;
   }
 
@@ -133,7 +133,7 @@ export function getLiveStepNarratorText(
 
   if (lastStep.cell.type === "GOLD") {
     return isSanctuary
-      ? `Step ${stepNum}: 💎 Collected +${lastStep.goldDelta} Mosaic Gem${lastStep.goldDelta > 1 ? "s" : ""}!`
+      ? `Step ${stepNum}: 🌰 Collected +${lastStep.goldDelta} Mosaic Seed${lastStep.goldDelta > 1 ? "s" : ""}!`
       : `Step ${stepNum}: 🪙 Collected +${lastStep.goldDelta} Gold!`;
   }
 
@@ -165,8 +165,8 @@ export function getSmartLethalCoachTip(
 
   if (deathCell?.type === "TRAP" && !deathStep?.trapDodgedDiagonally) {
     return isSanctuary
-      ? `💡 Tip: Spikes ignore Shield! Slice DIAGONALLY through (${deathCoord.row + 1},${deathCoord.col + 1}) to hop over it for 0 damage, or drag back to undo.`
-      : `💡 Tip: Traps ignore Shields! Slice DIAGONALLY through (${deathCoord.row + 1},${deathCoord.col + 1}) to hop over it for 0 damage, or drag back to undo.`;
+      ? `💡 Tip: Spikes ignore Gloves! Slice DIAGONALLY through (${deathCoord.row + 1},${deathCoord.col + 1}) to hop over it for 0 damage, or drag back to undo.`
+      : `💡 Tip: Traps ignore Gloves! Slice DIAGONALLY through (${deathCoord.row + 1},${deathCoord.col + 1}) to hop over it for 0 damage, or drag back to undo.`;
   }
 
   let remedyStr: string | null = null;
@@ -188,12 +188,12 @@ export function getSmartLethalCoachTip(
     if (unvisitedShields.length > 0) {
       const s = unvisitedShields[0];
       remedyStr = isSanctuary
-        ? `picking up the 🛡️${s.value} Shield tile at (${s.row + 1},${s.col + 1})`
-        : `picking up the 🛡️${s.value} Shield at (${s.row + 1},${s.col + 1})`;
+        ? `picking up the 🧤${s.value} Gloves tile at (${s.row + 1},${s.col + 1})`
+        : `picking up the 🧤${s.value} Gloves at (${s.row + 1},${s.col + 1})`;
     } else if (unvisitedWeapons.length > 0) {
       const w = unvisitedWeapons[0];
       remedyStr = isSanctuary
-        ? `grabbing the ☀️${w.value} Power tile at (${w.row + 1},${w.col + 1})`
+        ? `grabbing the ✂️${w.value} Shears at (${w.row + 1},${w.col + 1})`
         : `grabbing the ⚔️${w.value} Weapon at (${w.row + 1},${w.col + 1})`;
     }
   }
@@ -205,8 +205,8 @@ export function getSmartLethalCoachTip(
   }
 
   return isSanctuary
-    ? `💡 Tip: Ran out of Life at (${deathCoord.row + 1},${deathCoord.col + 1}) (needs +${deficit} Life)! Pick up Shields or Power tiles first, or drag back one tile to undo.`
-    : `💡 Tip: Path lethal at (${deathCoord.row + 1},${deathCoord.col + 1}) (needs +${deficit} HP)! Gather Shields or Weapons first, or drag back one tile to undo.`;
+    ? `💡 Tip: Ran out of Life at (${deathCoord.row + 1},${deathCoord.col + 1}) (needs +${deficit} Life)! Pick up Gloves or Shears tiles first, or drag back one tile to undo.`
+    : `💡 Tip: Path lethal at (${deathCoord.row + 1},${deathCoord.col + 1}) (needs +${deficit} HP)! Gather Gloves or Weapons first, or drag back one tile to undo.`;
 }
 
 export function getThemeAwareModifierInfo(
@@ -223,20 +223,20 @@ export function getThemeAwareModifierInfo(
     case "BLOOD_GOLD":
       return {
         ...mod,
-        name: "Honeyed Gems",
+        name: "Honeyed Seeds",
         shortTag: "GEMS +1 LIFE / BERRIES -1",
         description:
-          "Every Gem restores +1 Life today, but the Berries have turned sour and take 1 Life.",
-        tacticalHint: "Walk through Gems to keep your Life up, and skip the sour Berries.",
+          "Every Seed restores +1 Life today, but the Berries have turned sour and take 1 Life.",
+        tacticalHint: "Walk through Seeds to keep your Life up, and skip the sour Berries.",
       };
     case "GLASS_ARMOR":
       return {
         ...mod,
-        name: "Frost Shield",
+        name: "Frost Gloves",
         shortTag: "2x SHIELD / MELTS EVERY 3RD STEP",
         description:
-          "Shield is worth double, but any Shield you're carrying melts away every 3rd step.",
-        tacticalHint: "Gather Shield just 1–2 steps before a big Thorn.",
+          "Gloves are worth double, but any Gloves you're carrying melt away every 3rd step.",
+        tacticalHint: "Gather Gloves just 1–2 steps before a big Thorn.",
       };
     case "MOMENTUM":
       return {
@@ -244,7 +244,7 @@ export function getThemeAwareModifierInfo(
         name: "Sunlit Lanes",
         shortTag: "3+ STRAIGHT = +3 SUN",
         description:
-          "Walking 3+ tiles in a straight line gathers +3 Power tile.",
+          "Walking 3+ tiles in a straight line gathers +1 ✂️ Shears.",
         tacticalHint: "Line up a 3-tile straight walk before a big Thorn.",
       };
     case "MIRROR_VERTICAL":
@@ -603,7 +603,7 @@ export function TopHUD({
       earned: stars.star2Greed,
       label: isSanctuary ? "Star 2 (Collector)" : "Star 2 (Greed)",
       desc: isSanctuary
-        ? `Collect ≥80% Mosaic Gems (${stars.goldNodesCollected}/${stars.totalGoldNodesOnFloor})`
+        ? `Collect ≥80% Mosaic Seeds (${stars.goldNodesCollected}/${stars.totalGoldNodesOnFloor})`
         : `Collect ≥80% Floor Gold (${stars.goldNodesCollected}/${stars.totalGoldNodesOnFloor})`,
     },
     {
@@ -649,13 +649,13 @@ export function TopHUD({
       },
       {
         key: "dew",
-        label: "Shield",
+        label: "Gloves",
         icon: <EntityIcon type="SHIELD" size={13} />,
         value: heroClassId === "VAMPIRE" ? "—" : hero.shield,
         color: "text-sky-300",
       },
-      { key: "sun", label: "Power", icon: <EntityIcon type="WEAPON" size={13} />, value: hero.weapon, color: "text-amber-300" },
-      { key: "gems", label: "Gems", icon: <EntityIcon type="GOLD" size={13} />, value: hero.gold, color: "text-yellow-200" },
+      { key: "sun", label: "Shears", icon: <EntityIcon type="WEAPON" size={13} />, value: hero.weapon, color: "text-amber-300" },
+      { key: "gems", label: "Seeds", icon: <EntityIcon type="GOLD" size={13} />, value: hero.gold, color: "text-yellow-200" },
     ];
     const menuRow =
       "w-full h-12 px-3 rounded-xl flex items-center gap-3 text-left text-[14px] font-semibold text-white/90 hover:bg-white/[0.06] active:bg-white/[0.1] transition";
@@ -817,12 +817,12 @@ export function TopHUD({
                 </button>
                 {onNewRun && (
                   <button type="button" className={menuRow} onClick={() => { setShowRunMenu(false); onNewRun(); }}>
-                    <RefreshCw className="w-5 h-5 mx-0.5 text-white/80" /> New run
+                    <RefreshCw className="w-5 h-5 mx-0.5 text-white/80" /> New Garden Run
                   </button>
                 )}
                 {onEndRun && (
                   <button type="button" className={`${menuRow} !text-rose-200`} onClick={() => { setShowRunMenu(false); onEndRun(); }}>
-                    <span className="w-6 text-center" aria-hidden="true">🌙</span> End this run
+                    <span className="w-6 text-center" aria-hidden="true">🌙</span> End this Garden Run
                   </button>
                 )}
               </div>
@@ -900,10 +900,10 @@ export function TopHUD({
             <button
               type="button"
               onClick={onOpenSanctuaryGallery}
-              title="Open Sanctuary Gem Mosaic Gallery"
+              title="Open Sanctuary Seed Mosaic Gallery"
               className="flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-300/40 text-[10px] font-mono font-extrabold text-amber-200 shadow-[0_0_10px_rgba(251,191,36,0.2)] active:scale-95 transition"
             >
-              <span>💎</span>
+              <span>🌰</span>
               <span className="hidden xs:inline">Gallery</span>
             </button>
           )}
@@ -1092,7 +1092,7 @@ export function TopHUD({
               },
               {
                 key: "dew",
-                label: "Shield",
+                label: "Gloves",
                 icon: <EntityIcon type="SHIELD" size={14} />,
                 value: heroClassId === "VAMPIRE" ? "—" : hero.shield,
                 color: "text-[#38BDF8]",
@@ -1100,7 +1100,7 @@ export function TopHUD({
               },
               {
                 key: "sun",
-                label: "Power",
+                label: "Shears",
                 icon: <EntityIcon type="WEAPON" size={14} />,
                 value: hero.weapon,
                 color: "text-[#FBBF24]",
@@ -1108,7 +1108,7 @@ export function TopHUD({
               },
               {
                 key: "gems",
-                label: "Gems",
+                label: "Seeds",
                 icon: <EntityIcon type="GOLD" size={14} />,
                 value: hero.gold,
                 color: "text-[#FACC15]",
@@ -1322,7 +1322,7 @@ export function TopHUD({
             <span className="text-amber-300 font-bold">Goal:</span> reach the 🌈
             Exit
             {stars.totalGoldNodesOnFloor > 0
-              ? ` · ★ ${Math.ceil(stars.totalGoldNodesOnFloor * 0.8)}+ 💎`
+              ? ` · ★ ${Math.ceil(stars.totalGoldNodesOnFloor * 0.8)}+ 🌰`
               : ""}
             {` · ★ finish with ${flawlessHp}+ ❤️ or 14 tiles`}
           </div>
@@ -1463,7 +1463,7 @@ export function TopHUD({
                   {hero.maxHp}
                 </span>
                 <span className="px-1.5 py-0.5 rounded bg-[#0A0B14]/80 border border-yellow-500/40 text-[#FACC15]">
-                  {isSanctuary ? "💎" : "GLD:"} {simulation.projectedGold}
+                  {isSanctuary ? "🌰" : "GLD:"} {simulation.projectedGold}
                 </span>
               </div>
             </>

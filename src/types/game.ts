@@ -15,6 +15,7 @@ export type ModifierId =
   | "GLASS_ARMOR"
   | "MOMENTUM"
   | "ORTHOGONAL_ONLY"
+  | "SHEARS"
   | "NONE";
 
 export interface ModifierDefinition {

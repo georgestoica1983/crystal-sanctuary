@@ -97,7 +97,7 @@ export function RunLessonControls({
         Restart
       </button>
       <button type="button" onClick={onLeave} className={btn}>
-        Leave
+        Skip
       </button>
     </div>
   );
@@ -198,12 +198,12 @@ const PRACTICE_COPY: Record<PracticeStep, { title: string; lines: string[]; butt
     lines: [`Now reach ${PRACTICE_GARDEN_TARGET.toLocaleString()} before your lines run out.`],
   },
   bloom: {
-    title: "Gems earned",
-    lines: ["Clear gardens to earn 💎. Finish early or save 💎 to earn more."],
+    title: "Seeds earned",
+    lines: ["Clear gardens to earn 🌰. Finish early or save 🌰 to earn more."],
   },
   shop: {
     title: "Shop",
-    lines: ["Relics are lasting powers. Buy one, or save 💎 for later."],
+    lines: ["Relics are lasting powers. Buy one, or save 🌰 for later."],
   },
   done: {
     title: "You're ready 🌸",

@@ -10,7 +10,7 @@ import {
   createRunReplayer,
   getRunBloomResult,
   parseRunLog,
-  RUN_MODIFIER,
+  runModifierFor,
   RunActionLog,
   scoreRunStroke,
   startRunGarden,
@@ -149,7 +149,7 @@ export function rebuildRunFromSave(raw: unknown): { ok: true; run: RestoredRun }
         const relics = s.relics;
         const gardenIndex = s.garden.gardenIndex;
         const path = action.p.map(unpack);
-        const sim = simulatePath(grid, path, startHero, RUN_MODIFIER, s.classId, relics);
+        const sim = simulatePath(grid, path, startHero, runModifierFor(log.v), s.classId, relics);
         const { breakdown, afterStroke, countersAfter } = scoreRunStroke(
           sim,
           startHero,
@@ -211,7 +211,7 @@ export function rebuildRunFromSave(raw: unknown): { ok: true; run: RestoredRun }
     const noSafeLine =
       phase === "PLAY" &&
       s.garden.weedOutsLeft > 0 &&
-      !hasSurvivableRunLine(s.grid, s.startHero, RUN_MODIFIER, s.classId, s.relics);
+      !hasSurvivableRunLine(s.grid, s.startHero, runModifierFor(log.v), s.classId, s.relics);
 
     return {
       ok: true,

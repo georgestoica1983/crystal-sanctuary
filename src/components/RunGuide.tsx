@@ -169,7 +169,7 @@ function buildPages(): GuidePage[] {
     { category: "CHIPS", title: "More value" },
     { category: "MULT", title: "More length" },
     { category: "XMULT", title: "Multipliers" },
-    { category: "ECONOMY", title: "Gems" },
+    { category: "ECONOMY", title: "Seeds" },
     { category: "MAGIC", title: "Life and defence" },
   ];
   const legendaryRelics = RELIC_LIST.filter((r) => r.rarity === "LEGENDARY").map((r) =>
@@ -193,7 +193,7 @@ function buildPages(): GuidePage[] {
               <><B>Longer lines score far more.</B></>,
               <>Don&apos;t run out of <B>❤️ Life</B>.</>,
               <>Reach the garden&apos;s <B>target</B> in {RUN_STROKES_PER_GARDEN} lines.</>,
-              <>Clear gardens, earn 💎, buy relics. It gets harder each Season.</>,
+              <>Clear gardens, earn 🌰, buy relics. It gets harder each Season.</>,
             ]}
           />
         </>
@@ -205,10 +205,10 @@ function buildPages(): GuidePage[] {
       body: (
         <div className="space-y-2.5">
           <TileLine type="ENEMY" value={5} name="Thorn" text="costs ❤️ Life." />
-          <TileLine type="WEAPON" value={5} name="Power" text="weakens the next Thorn." />
-          <TileLine type="SHIELD" value={5} name="Shield" text="blocks Thorn damage, and lasts." />
+          <TileLine type="WEAPON" value={5} name="Shears" text="cut the next Thorn completely." />
+          <TileLine type="SHIELD" value={5} name="Gloves" text="block Thorn damage, and last." />
           <TileLine type="POTION" value={5} name="Berries" text="give back ❤️ Life." />
-          <TileLine type="GOLD" value={5} name="Gem" text="adds points." />
+          <TileLine type="GOLD" value={5} name="Seed" text="adds points." />
           <TileLine type="TRAP" value={3} name="Spike" text="costs ❤️ Life — step on it diagonally ↗ to dodge." />
           <P>Tap any tile on the board to read what it does.</P>
         </div>
@@ -220,7 +220,7 @@ function buildPages(): GuidePage[] {
       body: (
         <>
           <div className="rounded-xl border-2 border-amber-300/70 bg-amber-400/10 p-2.5 text-center font-mono font-black text-amber-100">
-            <span className="text-sky-300">Value</span> × <span className="text-rose-300">Length</span>
+            <span className="text-sky-300">Value</span> × <span className="text-emerald-300">Length</span>
           </div>
           <Bullets
             items={[
@@ -241,7 +241,7 @@ function buildPages(): GuidePage[] {
           items={[
             <>You get <B>{RUN_STROKES_PER_GARDEN} lines</B>. Each adds to the bar.</>,
             <>Used tiles are replaced with new ones from your Tile Bag.</>,
-            <>❤️ Life, 🛡️ Shield and ☀️ Power carry over. Life doesn&apos;t refill.</>,
+            <>❤️ Life, 🧤 Gloves and ✂️ Shears carry over. Life doesn&apos;t refill.</>,
             <><B>🌿 Swap</B> ({RUN_WEEDOUTS_PER_GARDEN} per garden): change up to {RUN_WEEDOUT_MAX_TILES} tiles.</>,
             <><B>✨ Hint</B> (1 per garden): lights up a good route.</>,
             <>If a line would run out of Life, it pulls back and shows why.</>,

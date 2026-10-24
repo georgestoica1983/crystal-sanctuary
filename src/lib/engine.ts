@@ -50,26 +50,26 @@ export const HERO_CLASS_REGISTRY: Record<HeroClassId, HeroClassDefinition> = {
     id: "KNIGHT",
     name: "The Cozy Keeper",
     shortName: "Keeper",
-    title: "Power tile Guardian",
+    title: "Gloves Guardian",
     emblem: "🐱",
     accentColor: "#FBBF24",
     startingHp: 10,
     maxHp: 10,
     startingShield: 2,
     startingWeapon: 0,
-    passiveName: "Sturdy Bulwark (+2 Shield)",
+    passiveName: "Sturdy Bulwark (+2 Gloves)",
     passiveSummary:
-      "Starts every floor with +2 Bonus Shield. Shields carry over 50% between floors (+2 base).",
+      "Starts every floor with +2 Bonus Gloves. Gloves carry over 50% between floors (+2 base).",
     ruleOverrideDesc:
-      "Standard 8-directional unbroken line, no self-intersection. Starts with +2 Shield.",
+      "Standard 8-directional unbroken line, no self-intersection. Starts with +2 Gloves.",
     isFreeDefault: true,
     sanctuaryName: "The Cozy Keeper",
     sanctuaryShortName: "Keeper",
-    sanctuaryTitle: "Power tile Guardian",
+    sanctuaryTitle: "Gloves Guardian",
     sanctuaryEmblem: "🐱",
     sanctuaryPassiveName: "Sturdy Fur",
     sanctuaryPassiveSummary:
-      "Starts every garden with +2 Shield, and keeps half its leftover Shield for the next one.",
+      "Starts every garden with +2 Gloves, and keeps half its leftover Gloves for the next one.",
   },
   ROGUE: {
     id: "ROGUE",
@@ -82,11 +82,11 @@ export const HERO_CLASS_REGISTRY: Record<HeroClassId, HeroClassDefinition> = {
     maxHp: 8,
     startingShield: 0,
     startingWeapon: 3,
-    passiveName: "Agile Swimmer (Self-Cross & Diagonal Power)",
+    passiveName: "Agile Swimmer (Self-Cross & Diagonal Shears)",
     passiveSummary:
-      "Cross your own drawn line 1x per floor! Gets +2 Bonus Weapon Power on diagonal attacks.",
+      "Cross your own drawn line 1x per floor! Gets +2 Bonus Weapon Shears on diagonal attacks.",
     ruleOverrideDesc:
-      "Self-Cross Allowed (1x): Re-visit an already visited cell once per floor. Diagonal moves against Enemies deal +2 Weapon Power.",
+      "Self-Cross Allowed (1x): Re-visit an already visited cell once per floor. Diagonal moves against Enemies deal +2 Weapon Shears.",
     isFreeDefault: false,
     sanctuaryName: "The River Otter",
     sanctuaryShortName: "Otter",
@@ -94,7 +94,7 @@ export const HERO_CLASS_REGISTRY: Record<HeroClassId, HeroClassDefinition> = {
     sanctuaryEmblem: "🦦",
     sanctuaryPassiveName: "Agile Swimmer",
     sanctuaryPassiveSummary:
-      "May cross its own line once per garden, and its Power tile is +2 stronger on diagonal steps into Thorns.",
+      "May cross its own line once per garden, and Thorns are 2 weaker when it steps into them diagonally.",
   },
   MAGE: {
     id: "MAGE",
@@ -132,19 +132,19 @@ export const HERO_CLASS_REGISTRY: Record<HeroClassId, HeroClassDefinition> = {
     maxHp: 10,
     startingShield: 0,
     startingWeapon: 0,
-    passiveName: "Gem Harmony (+1 Life on Every Gem)",
+    passiveName: "Seed Harmony (+1 Life on Every Seed)",
     passiveSummary:
-      "Every 💎 Gem (Gold) tile you collect also heals +1 Life/HP! Defeating Enemies heals +2 HP.",
+      "Every 🌰 Seed (Gold) tile you collect also heals +1 Life/HP! Defeating Enemies heals +2 HP.",
     ruleOverrideDesc:
-      "Nature's friend! Slaying Enemies restores +2 HP; stepping on Gem (Gold) tiles restores +1 Life/HP.",
+      "Nature's friend! Slaying Enemies restores +2 HP; stepping on Seed (Gold) tiles restores +1 Life/HP.",
     isFreeDefault: false,
     sanctuaryName: "The Bloom Sprite",
     sanctuaryShortName: "Sprite",
     sanctuaryTitle: "Friend of the Flowers",
     sanctuaryEmblem: "🦋",
-    sanctuaryPassiveName: "Gem Harmony",
+    sanctuaryPassiveName: "Seed Harmony",
     sanctuaryPassiveSummary:
-      "Every 💎 Gem restores +1 Life and clearing a Thorn restores +2. Can't hold Shield — Shield becomes +2 Power tile instead.",
+      "Every 🌰 Seed restores +1 Life and clearing a Thorn restores +2. Can't hold Gloves — Gloves tiles give ✂️ Shears instead.",
   },
 };
 
@@ -170,9 +170,11 @@ export function getNextFloorHeroStats(
   prevStats: HeroStats,
   classId: HeroClassId,
   activeRelics: RelicId[] = [],
-  upgrades: RunUpgrades = NO_RUN_UPGRADES
+  upgrades: RunUpgrades = NO_RUN_UPGRADES,
+  modifierId: ModifierId = "NONE"
 ): HeroStats {
   const def = HERO_CLASS_REGISTRY[classId] ?? HERO_CLASS_REGISTRY.KNIGHT;
+  const shears = modifierId === "SHEARS";
   const flaskStacks = activeRelics.filter(
     (r) => r === "ALCHEMIST_FLASK"
   ).length;
@@ -186,7 +188,8 @@ export function getNextFloorHeroStats(
     ? Math.max(baseMaxHp, Math.min(maxAllowedHp, restoredHp))
     : Math.min(maxAllowedHp, Math.max(1, restoredHp));
   const bonusDew = upgrades.bonusStartDew;
-  const bonusSun = activeRelics.includes("SUNFLOWER") ? 3 : 0;
+  // Under the Shears rule Power counts cuts, so boosts give one cut
+  const bonusSun = activeRelics.includes("SUNFLOWER") ? (shears ? 1 : 3) : 0;
 
   if (classId === "KNIGHT") {
     // Bulwark: Shields carry over 50% between floors + 2 starting floor shield
@@ -205,7 +208,7 @@ export function getNextFloorHeroStats(
       hp: nextHp,
       maxHp: baseMaxHp,
       shield: prevStats.shield + bonusDew,
-      weapon: Math.max(prevStats.weapon, 3) + bonusSun,
+      weapon: Math.max(prevStats.weapon, shears ? 1 : 3) + bonusSun,
       gold: prevStats.gold,
     };
   }
@@ -234,9 +237,9 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
   GILDED_AEGIS: {
     id: "GILDED_AEGIS",
     name: "Gilded Aegis",
-    icon: "🛡️",
+    icon: "🧤",
     shortTag: "GOLD → +1 SHD",
-    description: "Picking up GOLD also grants +1 Shield.",
+    description: "Picking up GOLD also grants +1 Gloves.",
     accentColor: "#06B6D4",
     cost: 7,
     category: "MAGIC",
@@ -300,8 +303,8 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     id: "GLASS_WATERING_CAN",
     name: "Glass Watering Can",
     icon: "🫖",
-    shortTag: "+3 VALUE PER 🍓/🛡️",
-    description: "Every Berry and Shield tile on your line adds +3 Value.",
+    shortTag: "+3 VALUE PER 🍓/🧤",
+    description: "Every Berry and Gloves tile on your line adds +3 Value.",
     accentColor: "#06B6D4",
     cost: 7,
     category: "CHIPS",
@@ -310,8 +313,8 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     id: "GOLDEN_BEE",
     name: "Golden Bee",
     icon: "🐝",
-    shortTag: "+1 MULT PER 💎",
-    description: "Every Gem on your line adds +1 Length.",
+    shortTag: "+1 MULT PER 🌰",
+    description: "Every Seed on your line adds +1 Length.",
     accentColor: "#EAB308",
     cost: 9,
     category: "MULT",
@@ -364,8 +367,8 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     id: "MAGPIE_NEST",
     name: "Magpie's Nest",
     icon: "🪺",
-    shortTag: "+3 VALUE PER 💎 HELD",
-    description: "+3 Value for every Gem in your purse when the line starts.",
+    shortTag: "+3 VALUE PER 🌰 HELD",
+    description: "+3 Value for every Seed in your purse when the line starts.",
     accentColor: "#FACC15",
     cost: 6,
     rarity: "UNCOMMON",
@@ -407,10 +410,10 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
   },
   DEW_LENS: {
     id: "DEW_LENS",
-    name: "Shield Lens",
+    name: "Glove Lens",
     icon: "🔍",
-    shortTag: "+2 MULT PER 🛡️ LEFT",
-    description: "+2 Length for every Shield you still hold when the line reaches the Exit.",
+    shortTag: "+2 MULT PER 🧤 LEFT",
+    description: "+2 Length for every Gloves you still hold when the line reaches the Exit.",
     accentColor: "#38BDF8",
     cost: 5,
     category: "MULT",
@@ -473,11 +476,11 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
   // ── Run relics: ×Length ──
   SUN_PRISM: {
     id: "SUN_PRISM",
-    name: "Power Prism",
+    name: "Shears Prism",
     icon: "🔆",
-    shortTag: "EVERY ☀️ ON LINE = ×2",
+    shortTag: "EVERY ✂️ ON LINE = ×2",
     description:
-      "×2 if your line gathers every Power tile on the board (at least 2 of them).",
+      "×2 if your line gathers every ✂️ Shears on the board (at least 2 of them).",
     accentColor: "#FDE047",
     cost: 8,
     rarity: "RARE",
@@ -535,7 +538,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     name: "Squirrel's Stash",
     icon: "🐿️",
     shortTag: "INTEREST CAP +5",
-    description: "Interest can pay up to +10 💎 per garden instead of +5.",
+    description: "Interest can pay up to +10 🌰 per garden instead of +5.",
     accentColor: "#B45309",
     cost: 6,
     rarity: "UNCOMMON",
@@ -545,18 +548,18 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     id: "SEED_PURSE",
     name: "Seed Purse",
     icon: "👛",
-    shortTag: "+2 💎 PER BLOOM",
-    description: "Every garden you clear pays +2 💎 more.",
+    shortTag: "+2 🌰 PER BLOOM",
+    description: "Every garden you clear pays +2 🌰 more.",
     accentColor: "#EAB308",
     cost: 4,
     category: "ECONOMY",
   },
   SUN_HAT: {
     id: "SUN_HAT",
-    name: "Power Hat",
+    name: "Garden Hat",
     icon: "👒",
-    shortTag: "SPARE STROKES 2 💎",
-    description: "Each unused line pays 2 💎 instead of 1 when a garden is cleared.",
+    shortTag: "SPARE STROKES 2 🌰",
+    description: "Each unused line pays 2 🌰 instead of 1 when a garden is cleared.",
     accentColor: "#F59E0B",
     cost: 4,
     category: "ECONOMY",
@@ -587,8 +590,8 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     id: "SUNFLOWER",
     name: "Sunflower",
     icon: "🌻",
-    shortTag: "+3 ☀️ EACH GARDEN",
-    description: "Start every garden with +3 Power tile.",
+    shortTag: "+1 ✂️ EACH GARDEN",
+    description: "Start every garden with +1 ✂️ Shears.",
     accentColor: "#FACC15",
     cost: 5,
     category: "MAGIC",
@@ -750,9 +753,9 @@ export const SHOP_STAT_BOOSTS: Record<
   },
   START_DEW: {
     name: "Morning Mist",
-    icon: "🛡️",
+    icon: "🧤",
     shortTag: "+1 STARTING SHIELD",
-    description: "Start every remaining garden with +1 extra Shield.",
+    description: "Start every remaining garden with +1 extra Gloves.",
     cost: 4,
     accentColor: "#06B6D4",
   },
@@ -854,13 +857,13 @@ export const BOSS_RULE_REGISTRY: Record<BossRuleId, BossRuleDefinition> = {
     id: "DROUGHT",
     name: "The Drought",
     icon: "🏜️",
-    description: "Every Shield tile holds only half its Shield.",
+    description: "Every Gloves tile holds only half its Gloves.",
   },
   ECLIPSE: {
     id: "ECLIPSE",
     name: "The Eclipse",
     icon: "🌑",
-    description: "Every Power tile shines at half strength.",
+    description: "Every ✂️ Shears tile is worth half its value.",
   },
 };
 
@@ -1018,7 +1021,7 @@ export const MODIFIER_REGISTRY: Record<ModifierId, ModifierDefinition> = {
     name: "Crystalline Aegis",
     shortTag: "2x SHIELD / SHATTERS STEP 3",
     description:
-      "SHIELD nodes grant double value, but all unused Shield shatters to 0 at the end of every 3rd step.",
+      "SHIELD nodes grant double value, but all unused Gloves shatters to 0 at the end of every 3rd step.",
     tacticalHint: "Time shield pickups within 1-2 steps of heavy enemies.",
     accentColor: "#06B6D4",
   },
@@ -1040,6 +1043,15 @@ export const MODIFIER_REGISTRY: Record<ModifierId, ModifierDefinition> = {
     tacticalHint: "Beware of Traps—you cannot dodge them diagonally here.",
     accentColor: "#8B5CF6",
   },
+  SHEARS: {
+    id: "SHEARS",
+    name: "Garden Shears",
+    shortTag: "✂️ CUTS A THORN",
+    description:
+      "Each ✂️ Shears tile is one cut: the next Thorn you walk into is cut completely and costs no Life.",
+    tacticalHint: "Pick up ✂️ Shears right before a big Thorn.",
+    accentColor: "#FBBF24",
+  },
   NONE: {
     id: "NONE",
     name: "Standard Sanctuary",
@@ -1053,10 +1065,11 @@ export const MODIFIER_REGISTRY: Record<ModifierId, ModifierDefinition> = {
 /** Sanctuary-theme display names for each daily modifier. */
 const SANCTUARY_MODIFIER_NAMES: Record<ModifierId, string> = {
   MIRROR_VERTICAL: "Mirror Pond",
-  BLOOD_GOLD: "Honeyed Gems",
-  GLASS_ARMOR: "Frost Shield",
+  BLOOD_GOLD: "Honeyed Seeds",
+  GLASS_ARMOR: "Frost Gloves",
   MOMENTUM: "Sunlit Lanes",
   ORTHOGONAL_ONLY: "Hedgerow Paths",
+  SHEARS: "Quiet Garden",
   NONE: "Quiet Garden",
 };
 
@@ -1066,7 +1079,7 @@ export function getSanctuaryModifierName(modifierId: ModifierId): string {
 
 export const MODIFIER_LIST: ModifierDefinition[] = Object.values(
   MODIFIER_REGISTRY
-).filter((m) => m.id !== "NONE");
+).filter((m) => m.id !== "NONE" && m.id !== "SHEARS");
 
 /**
  * Deterministic 32-bit PRNG (Mulberry32)
@@ -1283,6 +1296,10 @@ export function simulatePath(
   ).length;
 
   const isLongStrideActive = longStrideStacks > 0 && path.length >= 12;
+  // Shears rule: Power counts cuts — every pickup adds 1, each cut removes a whole Thorn
+  const shears = modifierId === "SHEARS";
+  const cuts = (n: number) => (shears ? Math.min(1, n) : n);
+  let vorpalCuts = 0;
 
   const steps: PathStepSimulation[] = [];
   let hp = initialHero.hp;
@@ -1367,7 +1384,7 @@ export function simulatePath(
           (direction.dr !== 0 || direction.dc !== 0) &&
           (direction.dr === prevDir.dr && direction.dc === prevDir.dc)
         ) {
-          weapon += 3;
+          weapon += cuts(3);
           momentumTriggered = true;
         }
       }
@@ -1415,11 +1432,21 @@ export function simulatePath(
           }
 
           // First apply Weapon: EffectiveEnemyDmg = max(0, X - Hero.Weapon)
-          const weaponUsed = Math.min(enemyPower, weapon);
-          const effectiveEnemyDmg = Math.max(0, enemyPower - weapon);
+          // (Shears rule: one cut removes the whole Thorn)
+          const weaponUsed = shears ? (weapon > 0 ? enemyPower : 0) : Math.min(enemyPower, weapon);
+          const effectiveEnemyDmg = shears
+            ? weapon > 0 ? 0 : enemyPower
+            : Math.max(0, enemyPower - weapon);
 
-          // Relic: VORPAL_EDGE retains 50% (rounded down) of Weapon power after hit
-          if (hasVorpalEdge && weapon > 0) {
+          if (shears) {
+            // Lingering Shears: every second cut is free
+            if (weapon > 0) {
+              const free = hasVorpalEdge && vorpalCuts % 2 === 1;
+              vorpalCuts += 1;
+              if (free) vorpalRetainedWeapon = weapon;
+              else weapon -= 1;
+            }
+          } else if (hasVorpalEdge && weapon > 0) {
             vorpalRetainedWeapon = Math.floor(weapon / 2);
             weapon = vorpalRetainedWeapon;
           } else {
@@ -1453,7 +1480,7 @@ export function simulatePath(
           if (weaponUsed > 0) parts.push(`-${weaponUsed}⚔`);
           if (vorpalRetainedWeapon > 0)
             parts.push(`Vorpal ${vorpalRetainedWeapon}⚔`);
-          if (shieldAbsorbed > 0) parts.push(`-${shieldAbsorbed}🛡`);
+          if (shieldAbsorbed > 0) parts.push(`-${shieldAbsorbed}🧤`);
           if (remainingDmg > 0) {
             parts.push(`-${remainingDmg} HP`);
           } else {
@@ -1468,8 +1495,8 @@ export function simulatePath(
         case "SHIELD": {
           if (heroClassId === "VAMPIRE") {
             // Sanguine Harvest: SHIELD tiles on the board are transmuted into +2 Weapon blood-blades
-            vampireTransmuteWeapon = 2;
-            weapon += 2;
+            vampireTransmuteWeapon = cuts(2);
+            weapon += cuts(2);
             note = "+2 WPN (Blood Blade)";
           } else {
             const shieldGain =
@@ -1477,8 +1504,8 @@ export function simulatePath(
             shield += shieldGain;
             note =
               modifierId === "GLASS_ARMOR"
-                ? `+${shieldGain} Shield (2x Glass)`
-                : `+${shieldGain} Shield`;
+                ? `+${shieldGain} Gloves (2x Glass)`
+                : `+${shieldGain} Gloves`;
           }
           break;
         }
@@ -1504,7 +1531,7 @@ export function simulatePath(
           break;
         }
         case "WEAPON": {
-          weapon += cell.value;
+          weapon += shears ? 1 : cell.value;
           note = momentumTriggered
             ? `+${cell.value + 3} Sword (Momentum)`
             : `+${cell.value} Sword`;
@@ -1521,12 +1548,12 @@ export function simulatePath(
           // Relic: GILDED_AEGIS grants +1 Shield on Gold pickup
           if (gildedAegisStacks > 0) {
             if (heroClassId === "VAMPIRE") {
-              weapon += gildedAegisStacks;
+              weapon += shears ? 1 : gildedAegisStacks;
               vampireTransmuteWeapon = gildedAegisStacks;
               notes.push(`+${gildedAegisStacks}⚔`);
             } else {
               shield += gildedAegisStacks;
-              notes.push(`+${gildedAegisStacks}🛡`);
+              notes.push(`+${gildedAegisStacks}🧤`);
             }
           }
 
@@ -1557,7 +1584,7 @@ export function simulatePath(
           } else if (spikedBootsTriggered || spikedBootsStacks > 0) {
             // Relic: SPIKED_BOOTS turns orthogonal Trap into 0 Dmg and +3 Weapon
             spikedBootsTriggered = true;
-            const bootWeapon = 3 * spikedBootsStacks;
+            const bootWeapon = shears ? spikedBootsStacks : 3 * spikedBootsStacks;
             weapon += bootWeapon;
             note = `Spiked Boots +${bootWeapon}⚔`;
           } else {
@@ -1580,7 +1607,7 @@ export function simulatePath(
       if (modifierId === "GLASS_ARMOR" && i > 0 && i % 3 === 0 && shield > 0) {
         shield = 0;
         shatteredShield = true;
-        note = note ? `${note} · Shield Shattered!` : "Shield Shattered!";
+        note = note ? `${note} · Gloves Shattered!` : "Gloves Shattered!";
       }
     }
 
@@ -2473,7 +2500,7 @@ const FALLBACK_THEMES: Array<{
 }> = [
   {
     title: "The Glass Clockwork",
-    lore: "Crystalline gears grind in silence. Shields refract double light, yet shatter every third heartbeat.",
+    lore: "Crystalline gears grind in silence. Gloves refract double light, yet shatter every third heartbeat.",
     modifierId: "GLASS_ARMOR",
   },
   {
@@ -2891,7 +2918,7 @@ export function getRunGardenPosition(gardenIndex: number): {
 }
 
 export function getRunGardenKindLabel(kind: RunGardenKind): string {
-  return kind === "SMALL" ? "Small Garden" : kind === "BIG" ? "Big Garden" : "Boss Garden";
+  return kind === "SMALL" ? "Small Garden Bed" : kind === "BIG" ? "Big Garden Bed" : "Boss Garden Bed";
 }
 
 /** e.g. "Season 2 · Big Garden" or "Season 9 (Endless) · Boss Garden" */
@@ -3282,8 +3309,8 @@ export function explainWilt(
     const dmg = Math.max(0, step.hpBefore - step.hpAfter);
     const hits = Math.max(dmg, Math.max(0, v - sun - dew));
     return {
-      short: `🌺${v} − ☀️${sun} − 🛡️${dew} = −${hits} ❤️ · you have ${have}`,
-      long: `That Thorn 🌺${v} would take ${hits} ❤️ (${v} − ☀️${sun} Power − 🛡️${dew} Shield), but you only have ${have}. Grab a ☀️ or 🛡️ before it, or go around.`,
+      short: `🌺${v} hits ${hits} ❤️${dew > 0 ? ` (🧤 blocked ${Math.min(dew, v)})` : ""} · you have ${have}`,
+      long: `That Thorn 🌺${v} would take ${hits} ❤️${dew > 0 ? ` after your 🧤${dew} Gloves` : ""}, but you only have ${have}. Grab ✂️ Shears (cuts it completely) or 🧤 Gloves before it, or go around.`,
     };
   }
   if (step.cell.type === "TRAP") {
