@@ -268,6 +268,8 @@ export default function OneStrokeTacticianPage() {
   const [pendingWalkthrough, setPendingWalkthrough] = useState<boolean>(false);
   /** Set while a committed line is replaying: jumps to its end */
   const skipPlaybackRef = useRef<(() => void) | null>(null);
+  /** The best line on this board can't keep pace with the target: nudge Swap */
+  const [swapSuggested, setSwapSuggested] = useState<boolean>(false);
   /** Small score card over the meter after lines 1–3 of a bed */
   const [lineToast, setLineToast] = useState<{
     key: number;
@@ -623,6 +625,41 @@ export default function OneStrokeTacticianPage() {
     activeModifierId,
     activeClassForBoard,
   ]);
+
+  // Each new board in a Run: if even the best line (par) can't score the
+  // points still needed per line, gently suggest a Swap
+  const swapCheckKey =
+    mode === "RUN" && !lesson && runGarden && phase === "PLANNING" && runGarden.weedOutsLeft > 0
+      ? `${runGarden.gardenIndex}-${runGarden.strokesLeft}-${runGarden.weedOutsLeft}-${activeGrid.flat().map((c) => c.id).join(",")}`
+      : null;
+  useEffect(() => {
+    setSwapSuggested(false);
+    if (!swapCheckKey || !runGarden) return;
+    let cancelled = false;
+    const grid = activeGrid;
+    const startHero = floorStartHero;
+    const need = (runGarden.target - runGarden.score) / Math.max(1, runGarden.strokesLeft);
+    requestParLine({
+      grid,
+      startHero,
+      modifierId: activeModifierId,
+      heroClassId: activeClassForBoard,
+      activeRelics: activeRelicsForBoard,
+      scoreCtx: relicScoreCtx,
+    }).then(
+      (best) => {
+        if (cancelled || !best || best.length < 2) return;
+        const sim = simulatePath(grid, best, startHero, activeModifierId, activeClassForBoard, activeRelicsForBoard);
+        const par = calculateFloorScoreBreakdown(sim, startHero, best.length, activeRelicsForBoard, relicScoreCtx).total;
+        setSwapSuggested(par < need);
+      },
+      () => undefined
+    );
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [swapCheckKey]);
 
   const handleNotice = useCallback((msg: string) => {
     setRetractNotice(msg);
@@ -2836,6 +2873,7 @@ export default function OneStrokeTacticianPage() {
                 onConfirmWeedOut={handleConfirmWeedOut}
                 soundOn={soundEnabled}
                 onToggleSound={handleToggleSound}
+                suggestSwap={swapSuggested}
               />
             )
           )}
@@ -2858,7 +2896,13 @@ export default function OneStrokeTacticianPage() {
                   magicNow={floorStartHero.hp}
                   magicAfter={simulation.survives ? simulation.finalStats.hp : 0}
                   tilesOnBoard={lineMeter.tilesOnBoard}
-                  idleText={lesson ? "Your points show here as you draw." : undefined}
+                  idleText={
+                    lesson
+                      ? "Your points show here as you draw."
+                      : swapSuggested
+                      ? "Tough board — even the best line falls short. Try 🌿 Swap to change up to 3 tiles."
+                      : undefined
+                  }
                   intro={
                     phase !== "PLANNING"
                       ? null

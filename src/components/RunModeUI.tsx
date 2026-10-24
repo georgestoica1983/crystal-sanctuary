@@ -31,6 +31,7 @@ export function RunHudStrip({
   onConfirmWeedOut,
   soundOn,
   onToggleSound,
+  suggestSwap = false,
 }: {
   garden: RunGardenState;
   previewScore: number | null;
@@ -43,6 +44,8 @@ export function RunHudStrip({
   /** Quick mute next to Swap */
   soundOn?: boolean;
   onToggleSound?: () => void;
+  /** The board looks too weak for the target: Swap glows gently */
+  suggestSwap?: boolean;
 }) {
   const pct = Math.min(100, (garden.score / garden.target) * 100);
   const previewPct =
@@ -134,6 +137,8 @@ export function RunHudStrip({
               ? "bg-lime-300 text-slate-950 border-lime-200"
               : noSafeLine
               ? "bg-lime-400/20 border-lime-300 text-lime-100 animate-pulse"
+              : suggestSwap
+              ? "bg-lime-400/10 border-lime-300/70 text-lime-100 shadow-[0_0_12px_rgba(190,242,100,0.35)] animate-pulse"
               : "bg-white/[0.05] border-white/[0.1] text-white/85"
           }`}
         >
