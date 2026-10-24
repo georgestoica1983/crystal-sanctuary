@@ -22,7 +22,7 @@ export const ENTITY_COLORS: Record<string, string> = {
   WEAPON: "#F59E0B",
   POTION: "#10B981",
   POISON_POTION: "#A855F7",
-  GOLD: "#EAB308",
+  GOLD: "#D08B45",
   ENEMY: "#F43F5E",
   TRAP: "#CBD5E1",
   EXIT: "#A855F7",
@@ -165,24 +165,32 @@ export default function EntityIcon({
     }
 
     case "GOLD": {
-      // 🌰 Golden Seed with a little sprout
+      // 🌰 Acorn-style Seed: brown nut under a textured cap
       return (
         <svg {...svgProps}>
           <defs>
-            <radialGradient id={`seed-${uid}`} cx="40%" cy="40%" r="65%">
-              <stop offset="0%" stopColor="#FEF9C3" />
-              <stop offset="55%" stopColor="#FACC15" />
-              <stop offset="100%" stopColor="#A16207" />
+            <radialGradient id={`seed-${uid}`} cx="38%" cy="35%" r="70%">
+              <stop offset="0%" stopColor="#FCD9A8" />
+              <stop offset="45%" stopColor="#D08B45" />
+              <stop offset="100%" stopColor="#7C4317" />
             </radialGradient>
           </defs>
           <path
-            d="M12 7.2c4.1 0 6.6 3.5 6.6 7.3 0 3.9-3 6.9-6.6 6.9s-6.6-3-6.6-6.9c0-3.8 2.5-7.3 6.6-7.3Z"
+            d="M5.6 10.4h12.8c.2 5.6-2.6 10.4-6.4 11.6-3.8-1.2-6.6-6-6.4-11.6Z"
             fill={`url(#seed-${uid})`}
-            stroke="#EAB308"
-            strokeWidth="1.3"
+            stroke="#92400E"
+            strokeWidth="1.1"
+            strokeLinejoin="round"
           />
-          <path d="M12 7.4C12 5 13 3.6 15.6 2.8c.2 2.6-1.2 4-3.6 4.6Z" fill="#34D399" stroke="#059669" strokeWidth="0.8" strokeLinejoin="round" />
-          <path d="M9.2 12.6c.6-1.4 1.5-2.1 2.6-2.4" stroke="#FFFBEB" strokeWidth="1.3" strokeLinecap="round" opacity="0.85" fill="none" />
+          <path
+            d="M3.8 10.6c0-3.2 3.6-5.4 8.2-5.4s8.2 2.2 8.2 5.4c0 .5-.4.8-.9.8H4.7c-.5 0-.9-.3-.9-.8Z"
+            fill="#5B3413"
+            stroke="#3B2210"
+            strokeWidth="1"
+          />
+          <path d="M6.5 8.6h11M8 6.8h8" stroke="#8B5A2B" strokeWidth="0.9" strokeLinecap="round" />
+          <path d="M12 5.3c0-1.5.6-2.5 1.8-3" stroke="#3B2210" strokeWidth="1.4" strokeLinecap="round" fill="none" />
+          <path d="M9 13.6c.3 1.9 1 3.4 2 4.4" stroke="#FFEDD5" strokeWidth="1.2" strokeLinecap="round" opacity="0.7" fill="none" />
         </svg>
       );
     }
