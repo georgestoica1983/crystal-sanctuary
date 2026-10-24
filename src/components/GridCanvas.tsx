@@ -1391,11 +1391,17 @@ function StepFloatingBadge({
         className={`tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold shadow-md whitespace-nowrap ${
           step.hpDelta < 0
             ? "bg-rose-400 text-slate-950 shadow-[0_0_10px_rgba(244,63,94,0.8)]"
+            : step.hpDelta === 0
+            ? "bg-white/85 text-slate-900"
             : "bg-emerald-300 text-slate-950 shadow-[0_0_10px_rgba(52,211,153,0.85)]"
         }`}
       >
         {step.hpDelta < 0
           ? `${step.hpDelta} ${isSanctuary ? "❤️" : "HP"}`
+          : step.hpDelta === 0
+          ? isSanctuary
+            ? "❤️ full"
+            : "MAX HP"
           : `+${step.hpDelta} ${isSanctuary ? "🍓" : "HP"}`}
       </span>
     );
