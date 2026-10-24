@@ -2796,6 +2796,8 @@ export default function OneStrokeTacticianPage() {
                 disabled={phase !== "PLANNING"}
                 onToggleWeedOut={handleToggleWeedOut}
                 onConfirmWeedOut={handleConfirmWeedOut}
+                soundOn={soundEnabled}
+                onToggleSound={handleToggleSound}
               />
             )
           )}

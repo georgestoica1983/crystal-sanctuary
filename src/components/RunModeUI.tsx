@@ -29,6 +29,8 @@ export function RunHudStrip({
   disabled,
   onToggleWeedOut,
   onConfirmWeedOut,
+  soundOn,
+  onToggleSound,
 }: {
   garden: RunGardenState;
   previewScore: number | null;
@@ -38,6 +40,9 @@ export function RunHudStrip({
   disabled: boolean;
   onToggleWeedOut: () => void;
   onConfirmWeedOut?: () => void;
+  /** Quick mute next to Swap */
+  soundOn?: boolean;
+  onToggleSound?: () => void;
 }) {
   const pct = Math.min(100, (garden.score / garden.target) * 100);
   const previewPct =
@@ -108,6 +113,18 @@ export function RunHudStrip({
           ))}
           <span className="ml-0.5 font-mono font-black text-white/85">{garden.strokesLeft}</span>
         </div>
+        <div className="flex items-center gap-1.5 shrink-0">
+        {onToggleSound && (
+          <button
+            type="button"
+            onClick={onToggleSound}
+            aria-label={soundOn ? "Mute sound" : "Turn sound on"}
+            aria-pressed={!soundOn}
+            className="h-8 w-9 rounded-lg border border-white/[0.1] bg-white/[0.05] text-[15px] leading-none active:scale-95"
+          >
+            <span aria-hidden="true">{soundOn ? "🔊" : "🔇"}</span>
+          </button>
+        )}
         <button
           type="button"
           disabled={disabled || (garden.weedOutsLeft <= 0 && !weedOutActive)}
@@ -122,6 +139,7 @@ export function RunHudStrip({
         >
           <span aria-hidden="true">🌿</span>{" "}Swap · {garden.weedOutsLeft}
         </button>
+        </div>
       </div>
       )}
 
