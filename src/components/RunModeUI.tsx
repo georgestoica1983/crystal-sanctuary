@@ -215,6 +215,8 @@ export interface RunClearInfo {
   gemsBefore: number;
   legendary: RelicId | null;
   relicsAfter: RelicId[];
+  /** ❤️ Life restored for the next garden (rules v5+) */
+  lifeBonus?: number;
 }
 
 /** Garden-clear screen: the Gem payout, then on to the Sanctuary Shop */
@@ -237,7 +239,7 @@ export function RunGardenClearModal({
       value: info.strokeBonus,
     },
     {
-      label: `Interest (1 per ${RUN_INTEREST_STEP} 🌰, max ${info.interestCap ?? RUN_INTEREST_MAX})`,
+      label: `Interest (1 per ${RUN_INTEREST_STEP} 🌱, max ${info.interestCap ?? RUN_INTEREST_MAX})`,
       value: info.interest,
     },
     ...(info.relicBonus ? [{ label: "👛 Seed Purse", value: info.relicBonus }] : []),
@@ -271,17 +273,27 @@ export function RunGardenClearModal({
               className="flex justify-between items-start gap-2 text-[11px] leading-snug font-mono text-amber-50"
             >
               <span className="min-w-0">{l.label}</span>
-              <span className="font-black shrink-0 whitespace-nowrap">+{l.value} 💎</span>
+              <span className="font-black shrink-0 whitespace-nowrap">+{l.value} 🌱</span>
             </motion.div>
           ))}
           <div className="border-t border-amber-300/30 pt-1 flex justify-between text-sm font-mono font-black text-amber-200">
             <span>Payout</span>
-            <span>+{info.total} 💎</span>
+            <span>+{info.total} 🌱</span>
           </div>
           <div className="text-[10px] font-mono text-amber-100/70 text-right">
-            {info.gemsBefore} → {info.gemsBefore + info.total} 💎 to spend
+            {info.gemsBefore} → {info.gemsBefore + info.total} 🌱 Seeds to spend
           </div>
         </div>
+
+        {!!info.lifeBonus && (
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1, transition: { delay: 0.15 + lines.length * 0.18 } }}
+            className="rounded-xl border border-emerald-300/60 bg-emerald-400/15 px-3 py-2 text-center text-sm font-black text-emerald-100"
+          >
+            ❤️ +{info.lifeBonus} Life for the next Garden Bed
+          </motion.div>
+        )}
 
         {legendary && (
           <div className="rounded-xl border border-fuchsia-300/60 bg-fuchsia-500/15 px-3 py-2 text-xs text-fuchsia-50">

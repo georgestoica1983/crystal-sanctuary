@@ -154,7 +154,7 @@ export default function ShopModal({
           </div>
           <div className="shrink-0 rounded-xl px-3 py-1.5 border-2 border-amber-300/80 bg-amber-400/10 shadow-[0_0_16px_rgba(250,204,21,0.45)] text-right">
             <div className="text-[9px] font-mono font-bold uppercase text-amber-200/80">
-              Your Gems
+              Your Seeds
             </div>
             <motion.div
               key={gems}
@@ -162,7 +162,7 @@ export default function ShopModal({
               animate={{ scale: 1, color: "#FDE047" }}
               className="text-lg font-mono font-black leading-none"
             >
-              💎 {gems}
+              🌱 {gems}
             </motion.div>
           </div>
         </div>
@@ -260,7 +260,7 @@ export default function ShopModal({
                         : "border-white/15 text-white/40"
                     }`}
                   >
-                    {sold ? "SOLD" : blockedBySlots ? <Lock className="w-3.5 h-3.5" /> : `🌰${offer.cost}`}
+                    {sold ? "SOLD" : blockedBySlots ? <Lock className="w-3.5 h-3.5" /> : `🌱${offer.cost}`}
                   </div>
                 </motion.button>
               );
@@ -337,7 +337,7 @@ export default function ShopModal({
                   className="shrink-0 rounded-lg px-2 py-1.5 border-2 border-amber-300 bg-amber-400/15 text-amber-100 font-mono font-black text-[10px] uppercase leading-tight active:scale-95"
                 >
                   Sell
-                  <span className="block text-[11px]">+{selectedSellValue} 💎</span>
+                  <span className="block text-[11px]">+{selectedSellValue} 🌱</span>
                 </button>
               )}
             </div>
@@ -394,7 +394,7 @@ export default function ShopModal({
             <span className="flex flex-col leading-tight">
               <span>Reroll Shop</span>
               <span className="text-[9px] text-cyan-200/80 normal-case">
-                Cost: {rerollCost} 💎
+                Cost: {rerollCost} 🌱
               </span>
             </span>
           </button>

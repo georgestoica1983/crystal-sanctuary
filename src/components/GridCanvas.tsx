@@ -527,6 +527,9 @@ export default function GridCanvas({
   }, [isResolving, activeResolutionStep, drawnPath, heroStartCoord]);
 
   const pathToRender = retractingPath ?? drawnPath;
+  // While drawing, the pops at the line head say what each tile did, so the
+  // per-tile step numbers and badges stay hidden to keep the board calm
+  const calmWhileDrawing = isSanctuary && isDragging && !isResolving;
   const lineTier = getLineTier(pathToRender.length);
 
   const polylinePoints = pathToRender
@@ -797,7 +800,7 @@ export default function GridCanvas({
                     </span>
                   )}
 
-                  {stepSim && (stepSim.stepIndex > 0 || crossSim) && (
+                  {stepSim && (stepSim.stepIndex > 0 || crossSim) && (!calmWhileDrawing || isFirstDeathCell) && (
                     <span
                       className={`tile-tag absolute top-1 right-1 whitespace-nowrap text-[9px] font-mono font-bold px-1.5 py-0.5 rounded leading-none pointer-events-none z-20 ${
                         isFirstDeathCell
@@ -830,14 +833,14 @@ export default function GridCanvas({
                   )}
 
                   {/* Top-Left Consecutive Gold Combo Multiplier Pop Badge */}
-                  {stepSim && stepSim.goldComboCount >= 2 && !retractingPath && (
+                  {stepSim && stepSim.goldComboCount >= 2 && !retractingPath && !calmWhileDrawing && (
                     <motion.span
                       initial={{ scale: 0.5, y: 4, opacity: 0 }}
                       animate={{ scale: 1, y: 0, opacity: 1 }}
                       className="tile-tag absolute -top-2 left-1 whitespace-nowrap bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 text-slate-950 font-mono font-black text-[9px] px-1.5 py-0.5 rounded-full border border-white/70 shadow-[0_0_12px_rgba(250,204,21,0.95)] leading-none pointer-events-none z-30"
                     >
                       {isSanctuary
-                        ? <>🌰<span className="tile-tag-long"> SEED</span> x{stepSim.goldComboCount}</>
+                        ? <>🌰<span className="tile-tag-long"> ACORN</span> x{stepSim.goldComboCount}</>
                         : `COMBO x${stepSim.goldComboCount}`}
                     </motion.span>
                   )}
@@ -880,7 +883,7 @@ export default function GridCanvas({
 
                   {/* Drifting Combat Change-Indicators on Visited Cells */}
                   <AnimatePresence>
-                    {stepSim && stepSim.stepIndex > 0 && !retractingPath && (
+                    {stepSim && stepSim.stepIndex > 0 && !retractingPath && !calmWhileDrawing && (
                       <motion.div
                         initial={{ opacity: 0, y: 7, scale: 0.85 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -1714,10 +1717,10 @@ function getTileInspectionData(
     case "GOLD":
       return {
         icon: isSanctuary ? "🌰" : "🪙",
-        name: isSanctuary ? "Seed" : "Tactical Gold",
+        name: isSanctuary ? "Acorn" : "Tactical Gold",
         valueLabel: `+${cell.value} points`,
         explanation: isSanctuary
-          ? `Adds ${cell.value} to your line's value. (Seeds to spend come from clearing gardens.)`
+          ? `Adds ${cell.value} to your line's value. (🌱 Seeds to spend come from clearing Garden Beds.)`
           : `+${cell.value} Gold: adds ${cell.value} Value to this floor's score and buys upgrades in the Shop.`,
       };
     case "TRAP":

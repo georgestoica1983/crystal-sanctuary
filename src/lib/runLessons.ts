@@ -139,7 +139,7 @@ export const RUN_LESSONS: RunLesson[] = [
       detail: `${b.total.toLocaleString()} points (need 200)`,
     }),
     success: "The short way scores 6. The long way scores 240. Longer lines multiply your points.",
-    failHint: "Go around every Seed before the Exit.",
+    failHint: "Go around every Acorn before the Exit.",
   },
   {
     id: "sunbeams",

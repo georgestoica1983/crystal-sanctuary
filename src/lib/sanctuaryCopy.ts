@@ -17,10 +17,10 @@ const SANCTUARY_RELIC_COPY: Partial<Record<
   Pick<RelicDefinition, "name" | "icon" | "shortTag" | "description">
 >> = {
   GILDED_AEGIS: {
-    name: "Seed Glow",
+    name: "Acorn Glow",
     icon: "🧤",
-    shortTag: "SEED → +1 🧤",
-    description: "Every Seed you collect also gathers +1 Gloves.",
+    shortTag: "ACORN → +1 🧤",
+    description: "Every Acorn you collect also gives +1 🧤 Gloves.",
   },
   VORPAL_EDGE: {
     name: "Lingering Shears",
@@ -52,8 +52,8 @@ const SANCTUARY_RELIC_COPY: Partial<Record<
   GREED_CROWN: {
     name: "Flower Crown",
     icon: "🌼",
-    shortTag: "2x SEEDS & +1 LIFE",
-    description: "Seeds are worth double and each one restores +1 Life.",
+    shortTag: "2x ACORNS & +1 LIFE",
+    description: "Acorns are worth double and each one restores +1 Life.",
   },
 };
 

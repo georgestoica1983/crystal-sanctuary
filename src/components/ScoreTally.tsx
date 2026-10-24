@@ -139,7 +139,7 @@ export default function ScoreTally({
   };
 
   const chipLines = [
-    { label: "🌰 Seeds gathered", value: breakdown.gemChips },
+    { label: "🌰 Acorns gathered", value: breakdown.gemChips },
     { label: "🌿 Tiles on your line", value: breakdown.tileChips },
     ...breakdown.chipSources,
   ].filter((l) => l.value > 0);
@@ -333,7 +333,7 @@ export default function ScoreTally({
             animate={{ opacity: 1, scale: 1 }}
             className="text-center text-xs font-mono font-black text-amber-200"
           >
-            Garden payout: +{clearReward} 💎 to spend in the Shop
+            Garden payout: +{clearReward} 🌱 Seeds to spend in the Shop
           </motion.div>
         )}
 

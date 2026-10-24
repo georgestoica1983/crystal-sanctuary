@@ -193,7 +193,7 @@ function buildPages(): GuidePage[] {
               <><B>Longer lines score far more.</B></>,
               <>Don&apos;t run out of <B>❤️ Life</B>.</>,
               <>Reach the garden&apos;s <B>target</B> in {RUN_STROKES_PER_GARDEN} lines.</>,
-              <>Clear gardens, earn 🌰, buy relics. It gets harder each Season.</>,
+              <>Clear Garden Beds, earn 🌱 Seeds, buy relics. It gets harder each Season.</>,
             ]}
           />
         </>
@@ -208,7 +208,7 @@ function buildPages(): GuidePage[] {
           <TileLine type="WEAPON" value={5} name="Shears" text="cut the next Thorn completely." />
           <TileLine type="SHIELD" value={5} name="Gloves" text="block Thorn damage, and last." />
           <TileLine type="POTION" value={5} name="Berries" text="give back ❤️ Life." />
-          <TileLine type="GOLD" value={5} name="Seed" text="adds points." />
+          <TileLine type="GOLD" value={5} name="Acorn" text="adds points." />
           <TileLine type="TRAP" value={3} name="Spike" text="costs ❤️ Life — step on it diagonally ↗ to dodge." />
           <P>Tap any tile on the board to read what it does.</P>
         </div>
@@ -234,14 +234,14 @@ function buildPages(): GuidePage[] {
       ),
     },
     {
-      title: "A garden",
-      icon: "🌱",
+      title: "A Garden Bed",
+      icon: "🌸",
       body: (
         <Bullets
           items={[
             <>You get <B>{RUN_STROKES_PER_GARDEN} lines</B>. Each adds to the bar.</>,
             <>Used tiles are replaced with new ones from your Tile Bag.</>,
-            <>❤️ Life, 🧤 Gloves and ✂️ Shears carry over. Life doesn&apos;t refill.</>,
+            <>❤️ Life, 🧤 Gloves and ✂️ Shears carry over between lines. Clearing a Garden Bed gives back +3 ❤️.</>,
             <><B>🌿 Swap</B> ({RUN_WEEDOUTS_PER_GARDEN} per garden): change up to {RUN_WEEDOUT_MAX_TILES} tiles.</>,
             <><B>✨ Hint</B> (1 per garden): lights up a good route.</>,
             <>If a line would run out of Life, it pulls back and shows why.</>,
@@ -259,8 +259,8 @@ function buildPages(): GuidePage[] {
               <>Each Season: <B>Small</B>, <B>Big</B> and <B>Boss</B> garden.</>,
               <>Targets rise every Season, and Thorns get stronger.</>,
               <>Boss gardens have a twist — beat one for a Legendary relic.</>,
-              <>Clearing a garden pays 💎: {RUN_CLEAR_REWARD.SMALL}/{RUN_CLEAR_REWARD.BIG}/{RUN_CLEAR_REWARD.BOSS}, +1 per unused line, +1 per {RUN_INTEREST_STEP} 💎 you&apos;ve saved (max +{RUN_INTEREST_MAX}).</>,
-              <>In the Shop: buy relics and boosts, or reroll ({RUN_REROLL_BASE_COST} 💎). You can hold {MAX_COMMON_RELICS} relics.</>,
+              <>Clearing a Garden Bed pays 🌱 Seeds: {RUN_CLEAR_REWARD.SMALL}/{RUN_CLEAR_REWARD.BIG}/{RUN_CLEAR_REWARD.BOSS}, +1 per unused line, +1 per {RUN_INTEREST_STEP} 🌱 you&apos;ve saved (max +{RUN_INTEREST_MAX}).</>,
+              <>In the Shop: buy relics and boosts, or reroll ({RUN_REROLL_BASE_COST} 🌱). You can hold {MAX_COMMON_RELICS} relics.</>,
             ]}
           />
           <div className="rounded-xl border border-white/10 overflow-hidden text-[12px] font-mono">
@@ -288,7 +288,7 @@ function buildPages(): GuidePage[] {
       icon: "🧿",
       body: (
         <>
-          <P>Lasting powers for your Run. Mix them — they multiply each other. 🌱 = grows every garden.</P>
+          <P>Lasting powers for your Run. Mix them — they multiply each other. 📈 = grows every Garden Bed.</P>
           {relicGroups.map((g) => (
             <React.Fragment key={g.category}>
               <div className="text-[12px] font-bold text-teal-200 pt-1">{g.title}</div>
@@ -298,7 +298,7 @@ function buildPages(): GuidePage[] {
                   <div key={r.id} className="flex gap-2.5 items-start">
                     <span className="text-xl leading-6 w-7 shrink-0 text-center" aria-hidden="true">{r.icon}</span>
                     <div className="text-[13px] leading-snug text-white/80">
-                      <B>{r.name}</B> · {r.cost ?? 10} 💎{r.scaling ? " 🌱" : ""}
+                      <B>{r.name}</B> · {r.cost ?? 10} 🌱{r.scaling ? " 📈" : ""}
                       <div className="text-white/60">{r.description}</div>
                     </div>
                   </div>

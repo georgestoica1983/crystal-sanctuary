@@ -85,8 +85,16 @@ export default function LineMeter({
 
   // Bottom line: the one thing worth saying right now
   let bottom: React.ReactNode = null;
+  // A line that spends most of your Life leaves little for the next lines
+  const costly = !wilts && magicCost >= 3 && magicCost * 2 > magicNow;
   if (drawing && wilts && wiltReason) {
     bottom = <span className="text-rose-200 font-semibold">⚠ {wiltReason}</span>;
+  } else if (drawing && costly) {
+    bottom = (
+      <span className="text-amber-200 font-semibold">
+        ⚠ Uses {magicCost} of {magicNow} ❤️ · little left for later lines
+      </span>
+    );
   } else if (drawing && showShortLineTip) {
     bottom = <span className="text-amber-200 font-semibold">💡 Short line — each extra tile is worth more</span>;
   } else if (drawing && tier.level > 0) {

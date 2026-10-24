@@ -130,6 +130,7 @@ import {
   RunActionLog,
   RunLogAction,
   RUN_LOG_VERSION,
+  runClearLifeFor,
   runModifierFor,
   scoreRunStroke,
   startRunGarden,
@@ -1077,7 +1078,7 @@ export default function OneStrokeTacticianPage() {
       setHero(sold.stats);
       setShopPurchases((prev) => prev + 1);
       const relic = getRelicDisplay(RELIC_REGISTRY[relicId], true);
-      handleNotice(`${relic.icon} ${relic.name} sold for ${sold.value} 🌰`);
+      handleNotice(`${relic.icon} ${relic.name} sold for ${sold.value} 🌱`);
       soundEngine.playGoldPickup(2);
     },
     [mode, pendingPostFloorStats, hero, activeRelics, relicCounters, handleNotice]
@@ -1140,7 +1141,7 @@ export default function OneStrokeTacticianPage() {
     }
 
     const baseStats = pendingPostFloorStats ?? hero;
-    const nextFloorStats = getNextFloorHeroStats(
+    let nextFloorStats = getNextFloorHeroStats(
       baseStats,
       nextClassId,
       activeRelics,
@@ -1172,6 +1173,8 @@ export default function OneStrokeTacticianPage() {
         logVersion: runLogRef.current?.v,
       });
       logRunAction({ k: "l", h: nextClassId });
+      // The Run's own rules decide the next garden's Companion (same as its replay)
+      nextFloorStats = next.hero;
       setDungeon((d) => ({ ...d, floors: [...d.floors.slice(0, nextIndex), next.floor] }));
       setRunGarden(next.state);
       setRunNoSafeLine(false);
@@ -1620,6 +1623,7 @@ export default function OneStrokeTacticianPage() {
       gemsBefore: stats.gold,
       legendary,
       relicsAfter,
+      lifeBonus: runClearLifeFor(runLogRef.current?.v ?? RUN_LOG_VERSION),
     });
   };
 
@@ -1778,6 +1782,7 @@ export default function OneStrokeTacticianPage() {
           gemsBefore: b.afterStroke.gold,
           legendary: b.legendary,
           relicsAfter: b.relicsAfter,
+          lifeBonus: runClearLifeFor(r.log.v),
         });
         setPhase("FLOOR_CLEARED");
       } else {

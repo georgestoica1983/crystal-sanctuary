@@ -655,7 +655,7 @@ export function TopHUD({
         color: "text-sky-300",
       },
       { key: "sun", label: "Shears", icon: <EntityIcon type="WEAPON" size={13} />, value: hero.weapon, color: "text-amber-300" },
-      { key: "gems", label: "Seeds", icon: <EntityIcon type="GOLD" size={13} />, value: hero.gold, color: "text-yellow-200" },
+      { key: "gems", label: "Seeds", icon: <span className="text-[12px] leading-none" aria-hidden="true">🌱</span>, value: hero.gold, color: "text-yellow-200" },
     ];
     const menuRow =
       "w-full h-12 px-3 rounded-xl flex items-center gap-3 text-left text-[14px] font-semibold text-white/90 hover:bg-white/[0.06] active:bg-white/[0.1] transition";
@@ -1109,7 +1109,7 @@ export function TopHUD({
               {
                 key: "gems",
                 label: "Seeds",
-                icon: <EntityIcon type="GOLD" size={14} />,
+                icon: <span className="text-[13px] leading-none" aria-hidden="true">🌱</span>,
                 value: hero.gold,
                 color: "text-[#FACC15]",
                 box: "bg-[#221D32]/80 border-yellow-300/40",

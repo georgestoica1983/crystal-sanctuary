@@ -189,7 +189,7 @@ const PRACTICE_COPY: Record<PracticeStep, { title: string; lines: string[]; butt
   regrow: {
     title: "New tiles",
     lines: [
-      "Used tiles were replaced. ❤️ Life doesn't refill.",
+      "Used tiles were replaced. ❤️ Life comes back only when you clear the Garden Bed.",
       "Try 🌿 Swap: tap up to 3 tiles to change them.",
     ],
   },
@@ -199,11 +199,11 @@ const PRACTICE_COPY: Record<PracticeStep, { title: string; lines: string[]; butt
   },
   bloom: {
     title: "Seeds earned",
-    lines: ["Clear gardens to earn 🌰. Finish early or save 🌰 to earn more."],
+    lines: ["Clear Garden Beds to earn 🌱 Seeds. Finish early or save them to earn more."],
   },
   shop: {
     title: "Shop",
-    lines: ["Relics are lasting powers. Buy one, or save 🌰 for later."],
+    lines: ["Relics are lasting powers. Buy one, or save 🌱 for later."],
   },
   done: {
     title: "You're ready 🌸",

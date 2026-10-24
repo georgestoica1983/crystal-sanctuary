@@ -132,7 +132,7 @@ export const HERO_CLASS_REGISTRY: Record<HeroClassId, HeroClassDefinition> = {
     maxHp: 10,
     startingShield: 0,
     startingWeapon: 0,
-    passiveName: "Seed Harmony (+1 Life on Every Seed)",
+    passiveName: "Acorn Harmony (+1 Life on Every Acorn)",
     passiveSummary:
       "Every 🌰 Seed (Gold) tile you collect also heals +1 Life/HP! Defeating Enemies heals +2 HP.",
     ruleOverrideDesc:
@@ -142,9 +142,9 @@ export const HERO_CLASS_REGISTRY: Record<HeroClassId, HeroClassDefinition> = {
     sanctuaryShortName: "Sprite",
     sanctuaryTitle: "Friend of the Flowers",
     sanctuaryEmblem: "🦋",
-    sanctuaryPassiveName: "Seed Harmony",
+    sanctuaryPassiveName: "Acorn Harmony",
     sanctuaryPassiveSummary:
-      "Every 🌰 Seed restores +1 Life and clearing a Thorn restores +2. Can't hold Gloves — Gloves tiles give ✂️ Shears instead.",
+      "Every 🌰 Acorn restores +1 Life and clearing a Thorn restores +2. Can't hold Gloves — Gloves tiles give ✂️ Shears instead.",
   },
 };
 
@@ -171,7 +171,9 @@ export function getNextFloorHeroStats(
   classId: HeroClassId,
   activeRelics: RelicId[] = [],
   upgrades: RunUpgrades = NO_RUN_UPGRADES,
-  modifierId: ModifierId = "NONE"
+  modifierId: ModifierId = "NONE",
+  /** Life restored for clearing the last garden (Run rules v5+) */
+  clearedLifeBonus = 0
 ): HeroStats {
   const def = HERO_CLASS_REGISTRY[classId] ?? HERO_CLASS_REGISTRY.KNIGHT;
   const shears = modifierId === "SHEARS";
@@ -182,7 +184,7 @@ export function getNextFloorHeroStats(
   // Shop "Deep Roots" boosts (and Deep Taproot) raise Max Life for the rest of the run
   const baseMaxHp = def.maxHp + upgrades.bonusMaxMagic + (hasTaproot ? 4 : 0);
   const maxAllowedHp = baseMaxHp + flaskStacks * 4;
-  const restoredHp = prevStats.hp + (hasTaproot ? 3 : 0);
+  const restoredHp = prevStats.hp + (hasTaproot ? 3 : 0) + clearedLifeBonus;
   // Legendary Eternal Spring: every garden starts at full Life
   const nextHp = activeRelics.includes("ETERNAL_SPRING")
     ? Math.max(baseMaxHp, Math.min(maxAllowedHp, restoredHp))
@@ -314,7 +316,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     name: "Golden Bee",
     icon: "🐝",
     shortTag: "+1 MULT PER 🌰",
-    description: "Every Seed on your line adds +1 Length.",
+    description: "Every Acorn on your line adds +1 Length.",
     accentColor: "#EAB308",
     cost: 9,
     category: "MULT",
@@ -367,7 +369,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     id: "MAGPIE_NEST",
     name: "Magpie's Nest",
     icon: "🪺",
-    shortTag: "+3 VALUE PER 🌰 HELD",
+    shortTag: "+3 VALUE PER 🌱 HELD",
     description: "+3 Value for every Seed in your purse when the line starts.",
     accentColor: "#FACC15",
     cost: 6,
@@ -452,7 +454,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
   OAK_SAPLING: {
     id: "OAK_SAPLING",
     name: "Oak Sapling",
-    icon: "🌱",
+    icon: "🪴",
     shortTag: "GROWS +3 MULT PER BLOOM",
     description: "Gains +3 Length every time a garden is cleared while you have it.",
     accentColor: "#4ADE80",
@@ -538,7 +540,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     name: "Squirrel's Stash",
     icon: "🐿️",
     shortTag: "INTEREST CAP +5",
-    description: "Interest can pay up to +10 🌰 per garden instead of +5.",
+    description: "Interest can pay up to +10 🌱 per Garden Bed instead of +5.",
     accentColor: "#B45309",
     cost: 6,
     rarity: "UNCOMMON",
@@ -548,8 +550,8 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     id: "SEED_PURSE",
     name: "Seed Purse",
     icon: "👛",
-    shortTag: "+2 🌰 PER BLOOM",
-    description: "Every garden you clear pays +2 🌰 more.",
+    shortTag: "+2 🌱 PER BED",
+    description: "Every Garden Bed you clear pays +2 🌱 more.",
     accentColor: "#EAB308",
     cost: 4,
     category: "ECONOMY",
@@ -558,8 +560,8 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     id: "SUN_HAT",
     name: "Garden Hat",
     icon: "👒",
-    shortTag: "SPARE STROKES 2 🌰",
-    description: "Each unused line pays 2 🌰 instead of 1 when a garden is cleared.",
+    shortTag: "SPARE LINES 2 🌱",
+    description: "Each unused line pays 2 🌱 instead of 1 when a Garden Bed is cleared.",
     accentColor: "#F59E0B",
     cost: 4,
     category: "ECONOMY",

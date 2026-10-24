@@ -59,6 +59,10 @@ export function runModifierFor(logVersion: number): ModifierId {
 // ── Shared rule helpers (the page calls these; the replay calls them too) ──
 
 /** Lays out the first garden of a Run for a seed and Companion */
+/** Life restored after each cleared garden, from rules v5 (up to max Life) */
+export const RUN_CLEAR_LIFE = 3;
+export const runClearLifeFor = (logVersion: number) => (logVersion >= 5 ? RUN_CLEAR_LIFE : 0);
+
 /** Rules v3+ introduce tiles gradually in the first gardens */
 export const runRulesUseIntroTiles = (logVersion: number) => logVersion >= 3;
 
@@ -239,7 +243,8 @@ export function createNextRunGarden(params: {
     params.classId,
     params.relics,
     params.upgrades,
-    runModifierFor(params.logVersion ?? RUN_LOG_VERSION)
+    runModifierFor(params.logVersion ?? RUN_LOG_VERSION),
+    runClearLifeFor(params.logVersion ?? RUN_LOG_VERSION)
   );
   const next = createRunGarden({
     runSeed: params.runSeed,
@@ -292,9 +297,10 @@ export function getRunPathError(
  * v2: 5 relic slots, selling, the larger relic pool and rarity-weighted Shops.
  * v3: the first gardens introduce tiles gradually.
  * v4: ✂️ Shears cut the next Thorn completely (the "SHEARS" rule set).
+ * v5: clearing a garden restores ❤️ Life (RUN_CLEAR_LIFE) for the next one.
  * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 4;
+export const RUN_LOG_VERSION = 5;
 export const RUN_LOG_MIN_VERSION = 2;
 /** Rule set of new Runs (the current version) */
 export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);
