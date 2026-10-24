@@ -1818,7 +1818,7 @@ export default function OneStrokeTacticianPage() {
     if (!rebuilt.ok) {
       startRun();
       showLongNotice(
-        "Your last Run couldn't be picked up after an update to the Sanctuary — a fresh Run is ready. 🌱"
+        "Your last Garden Run couldn't be picked up after a game update — a fresh one is ready. 🌱"
       );
       return;
     }
@@ -1891,7 +1891,7 @@ export default function OneStrokeTacticianPage() {
       setFloorStartHero(r.startHero);
       setRunNoSafeLine(r.noSafeLine);
     }
-    showLongNotice(`Welcome back — continuing your Run (${r.label})`);
+    showLongNotice(`✓ Your Garden Run was saved. Welcome back — ${r.label}.`);
   };
 
   // Keep the Run in progress saved on this device after every committed
