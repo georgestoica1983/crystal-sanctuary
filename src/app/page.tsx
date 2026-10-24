@@ -2775,13 +2775,13 @@ export default function OneStrokeTacticianPage() {
                 {BOSS_RULE_REGISTRY[currentFloor.bossRuleId].icon}
               </span>
               <div className="min-w-0">
-                <div className="text-[12px] font-bold text-rose-200">
-                  Boss · {BOSS_RULE_REGISTRY[currentFloor.bossRuleId].name}
-                </div>
-                <div className="text-[12px] leading-snug text-rose-50/80">
+                <div className="text-[13px] font-bold text-rose-100 leading-snug">
                   {BOSS_RULE_REGISTRY[currentFloor.bossRuleId].description}
+                </div>
+                <div className="text-[11px] leading-snug text-rose-50/65">
+                  Boss · {BOSS_RULE_REGISTRY[currentFloor.bossRuleId].name}
                   {(mode === "RUN" || currentFloorIndex < dungeon.floors.length - 1) &&
-                    " Clear it to earn a Legendary relic."}
+                    " · 👑 Legendary relic if cleared"}
                 </div>
               </div>
             </div>

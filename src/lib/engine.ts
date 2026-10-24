@@ -846,26 +846,25 @@ export const BOSS_RULE_REGISTRY: Record<BossRuleId, BossRuleDefinition> = {
     id: "THISTLE_KING",
     name: "The Spike King",
     icon: "⚙️",
-    description:
-      "Every Spike deals double damage — unless you cross it diagonally.",
+    description: "Spikes hit 2× — step on them diagonally ↗.",
   },
   BRIAR_QUEEN: {
     id: "BRIAR_QUEEN",
     name: "The Thorn Queen",
     icon: "🌺",
-    description: "Every Thorn has grown 2 stronger.",
+    description: "Thorns are +2 stronger.",
   },
   DROUGHT: {
     id: "DROUGHT",
     name: "The Drought",
     icon: "🏜️",
-    description: "Every Gloves tile holds only half its Gloves.",
+    description: "🧤 Gloves tiles give half.",
   },
   ECLIPSE: {
     id: "ECLIPSE",
     name: "The Eclipse",
     icon: "🌑",
-    description: "Every ✂️ Shears tile is worth half its value.",
+    description: "✂️ Shears tiles score half.",
   },
 };
 
