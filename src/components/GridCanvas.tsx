@@ -654,10 +654,15 @@ export default function GridCanvas({
               const isExitCell = cell.type === "EXIT";
 
               // Live Neutralized Enemy / Bloomed Thorn State: crossed while dragging & Projected HP > 0
+              // A Thorn that cost Life wilts grey; only a cut or fully blocked one blooms
+              const isThornHurt = Boolean(
+                cell.type === "ENEMY" && stepSim && stepSim.hpAfter < stepSim.hpBefore
+              );
               const isEnemyNeutralized = Boolean(
                 cell.type === "ENEMY" &&
                   stepSim &&
                   !stepSim.isDead &&
+                  !isThornHurt &&
                   simulation.projectedHp > 0
               );
 
@@ -883,7 +888,8 @@ export default function GridCanvas({
                       heroAccentColor={heroClassDef.accentColor}
                       isSanctuary={isSanctuary}
                       isEnemyNeutralized={isEnemyNeutralized}
-                      isResolvedBloomed={isResolvedInPlayback && isSanctuary}
+                      isResolvedBloomed={isResolvedInPlayback && isSanctuary && !isThornHurt}
+                      isThornWilted={isSanctuary && isThornHurt}
                       hideHero={isResolving && cell.type === "HERO"}
                       isPortalReady={isExitCell && simulation.canCommit}
                     />
@@ -1474,12 +1480,15 @@ function TileIconWithValue({
   isCorrupted = false,
   isBloomed = false,
   struck = false,
+  wilted = false,
 }: {
   type: EntityType;
   value: number | string;
   isCorrupted?: boolean;
   isBloomed?: boolean;
   struck?: boolean;
+  /** Drawn grey and drooping (a Thorn that cost Life) */
+  wilted?: boolean;
 }) {
   const color =
     type === "POTION" && isCorrupted
@@ -1494,12 +1503,17 @@ function TileIconWithValue({
   const badgeColor = type === "POTION" && !isCorrupted ? lifeColor : color;
   return (
     <div className="relative w-[72%] h-[72%] flex items-center justify-center">
-      <EntityIcon
-        type={type}
-        size="100%"
-        isCorrupted={isCorrupted}
-        isBloomed={isBloomed}
-      />
+      <span
+        className="w-full h-full flex items-center justify-center transition-[filter,transform] duration-300"
+        style={wilted ? { filter: "grayscale(1) brightness(0.7)", transform: "rotate(14deg) translateY(6%) scale(0.92)" } : undefined}
+      >
+        <EntityIcon
+          type={type}
+          size="100%"
+          isCorrupted={isCorrupted}
+          isBloomed={isBloomed}
+        />
+      </span>
       {type === "TRAP" && (
         <span
           className="tile-tag absolute -top-1.5 -left-2 text-[11px] leading-none font-black text-slate-200 select-none pointer-events-none"
@@ -1533,6 +1547,7 @@ export function CellGeometricNode({
   isSanctuary = true,
   isEnemyNeutralized = false,
   isResolvedBloomed = false,
+  isThornWilted = false,
   hideHero,
 }: {
   cell: GridCell;
@@ -1543,6 +1558,8 @@ export function CellGeometricNode({
   isSanctuary?: boolean;
   isEnemyNeutralized?: boolean;
   isResolvedBloomed?: boolean;
+  /** The line took Life from this Thorn */
+  isThornWilted?: boolean;
   hideHero?: boolean;
   isPortalReady?: boolean;
 }) {
@@ -1626,13 +1643,14 @@ export function CellGeometricNode({
     }
 
     case "ENEMY": {
-      const bloomed = isEnemyNeutralized || isResolvedBloomed;
+      const bloomed = !isThornWilted && (isEnemyNeutralized || isResolvedBloomed);
       return (
         <TileIconWithValue
           type="ENEMY"
           value={cell.value}
           isBloomed={bloomed}
           struck={bloomed}
+          wilted={isThornWilted}
         />
       );
     }
