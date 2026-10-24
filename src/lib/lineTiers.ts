@@ -13,7 +13,7 @@ export const LINE_TIERS: LineTier[] = [
   { level: 0, name: "Seedling", minTiles: 0, color: "#A5B4FC" },
   { level: 1, name: "Sprout", minTiles: 6, color: "#34D399" },
   { level: 2, name: "Vine", minTiles: 10, color: "#2DD4BF" },
-  { level: 3, name: "Bloom", minTiles: 15, color: "#F472B6" },
+  { level: 3, name: "Blossom", minTiles: 15, color: "#F472B6" },
   { level: 4, name: "Grand garden", minTiles: 20, color: "#FBBF24" },
 ];
 

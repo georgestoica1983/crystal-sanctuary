@@ -1341,7 +1341,7 @@ function StepFloatingBadge({
               : "bg-emerald-300 text-slate-950 shadow-[0_0_10px_rgba(52,211,153,0.85)]"
           }`}
         >
-          {dmg < 0 ? `${dmg} ❤️` : dmg > 0 ? `+${dmg} ❤️` : <>🌸<span className="tile-tag-long"> BLOOMED</span></>}
+          {dmg < 0 ? `${dmg} ❤️` : dmg > 0 ? `+${dmg} ❤️` : <>🌸<span className="tile-tag-long"> ✓</span></>}
         </span>
       );
     }

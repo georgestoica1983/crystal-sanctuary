@@ -19,7 +19,7 @@ const jetBrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   title: "Crystal Sanctuary — a one-line garden roguelike",
   description:
-    "Draw one unbroken line to the Archway, bloom garden after garden, and see how far your Run can go. Longer lines score far more.",
+    "Draw one unbroken line to the Archway, clear Garden Bed after Garden Bed, and see how far your Run can go. Longer lines score far more.",
   manifest: "/manifest.json",
   icons: {
     icon: [

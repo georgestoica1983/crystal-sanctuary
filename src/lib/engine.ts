@@ -455,7 +455,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     id: "OAK_SAPLING",
     name: "Oak Sapling",
     icon: "🪴",
-    shortTag: "GROWS +3 MULT PER BLOOM",
+    shortTag: "GROWS +3 MULT PER BED",
     description: "Gains +3 Length every time a garden is cleared while you have it.",
     accentColor: "#4ADE80",
     cost: 7,
@@ -525,7 +525,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     id: "ELDER_TREE",
     name: "Elder Tree",
     icon: "🌳",
-    shortTag: "GROWS ×0.1 PER BLOOM",
+    shortTag: "GROWS ×0.1 PER BED",
     description:
       "Starts at ×1 and grows by ×0.1 every time a garden is cleared while you have it.",
     accentColor: "#16A34A",
