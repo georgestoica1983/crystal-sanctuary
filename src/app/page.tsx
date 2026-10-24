@@ -182,6 +182,9 @@ const RUN_WELCOME_KEY = "ost_run_welcome_v1";
 /** Set when the walkthrough is skipped; a one-time Thorn tip then shows in play */
 const WALKTHROUGH_SKIPPED_KEY = "ost_walkthrough_skipped_v1";
 const THORN_TIP_SEEN_KEY = "ost_thorn_tip_seen_v1";
+/** After this many full score screens, lines 1–3 of a bed show a small card instead */
+const FULL_TALLIES_SEEN_KEY = "ost_full_tallies_seen_v1";
+const FULL_TALLIES_BEFORE_COMPACT = 3;
 const THORN_TIP = "🌺 Thorns cost ❤️ Life. Grab ✂️ Shears first to cut one, or 🧤 Gloves to block it.";
 const RUN_LESSONS_PROGRESS_KEY = "ost_run_lessons_progress_v1";
 const RUN_ONLY_NOTICE = "The Sanctuary is in Run mode for now — Gauntlet, past Dailies and the Crafter are resting.";
@@ -265,6 +268,14 @@ export default function OneStrokeTacticianPage() {
   const [pendingWalkthrough, setPendingWalkthrough] = useState<boolean>(false);
   /** Set while a committed line is replaying: jumps to its end */
   const skipPlaybackRef = useRef<(() => void) | null>(null);
+  /** Small score card over the meter after lines 1–3 of a bed */
+  const [lineToast, setLineToast] = useState<{
+    key: number;
+    points: number;
+    score: number;
+    target: number;
+    strokesLeft: number;
+  } | null>(null);
   /** Big "Vine!" style callout over the board after a long line */
   const [lineCallout, setLineCallout] = useState<{
     key: number;
@@ -1484,10 +1495,34 @@ export default function OneStrokeTacticianPage() {
     const bloomed = scored.score >= scored.target;
     const outOfStrokes = !bloomed && scored.strokesLeft <= 0;
 
+    // Lines 1–3 of a bed get a small score card instead of the full screen,
+    // once the player has seen the full screen a few times and learned long lines
+    let fullTalliesSeen = 0;
+    try {
+      fullTalliesSeen = Number(window.localStorage.getItem(FULL_TALLIES_SEEN_KEY)) || 0;
+    } catch {
+      // Ignore storage errors
+    }
+    const compactTally =
+      !bloomed && !outOfStrokes && !teachCompare && !practiceStep && fullTalliesSeen >= FULL_TALLIES_BEFORE_COMPACT;
+    if (!compactTally) {
+      try {
+        window.localStorage.setItem(FULL_TALLIES_SEEN_KEY, String(fullTalliesSeen + 1));
+      } catch {
+        // Ignore storage errors
+      }
+    }
+
     soundEngine.playFloorClear();
     setActiveResolutionStep(null);
     setPhase("FLOOR_CLEARED");
-    setTally({
+    if (compactTally) {
+      const key = Date.now();
+      setLineToast({ key, points: breakdown.total, score: scored.score, target: scored.target, strokesLeft: scored.strokesLeft });
+      const id = window.setTimeout(() => setLineToast((t) => (t?.key === key ? null : t)), 2600);
+      resolutionTimersRef.current.push(id);
+    }
+    const tallyInfo: typeof tally = {
       breakdown,
       stars: simResult.stars,
       floorLabel: `Line ${strokeNumber}/${RUN_STROKES_PER_GARDEN} · ${getRunGardenLabel(garden.gardenIndex)}`,
@@ -1517,7 +1552,8 @@ export default function OneStrokeTacticianPage() {
           ? "See the run →"
           : "Next line →",
       },
-    });
+    };
+    if (!compactTally) setTally(tallyInfo);
     afterTallyRef.current = () => {
       if (bloomed) {
         runGardenBloomed(scored, afterStroke, countersAfter);
@@ -1542,6 +1578,8 @@ export default function OneStrokeTacticianPage() {
         checkRunSafeLine(refill.grid, afterStroke, refill.state, history);
       }
     };
+    // Compact: the next line can start right away
+    if (compactTally) handleTallyContinue();
   };
   const runStrokeRef = useRef(runStrokeResolved);
   runStrokeRef.current = runStrokeResolved;
@@ -2852,6 +2890,33 @@ export default function OneStrokeTacticianPage() {
                     drawnPath.length < SHORT_LINE_NUDGE_TILES
                   }
                 />
+              {/* Lines 1–3: the score lands here instead of a full screen */}
+              <AnimatePresence>
+                {lineToast && !lineCallout && (
+                  <motion.div
+                    key={lineToast.key}
+                    initial={{ y: 10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.25 }}
+                    className="pointer-events-none absolute inset-0 z-30 rounded-xl border border-amber-300/50 bg-[#1C1A2E] px-3 flex items-center justify-between gap-2"
+                    role="status"
+                  >
+                    <span className="text-[22px] font-mono font-black text-amber-200 leading-none">
+                      +{lineToast.points.toLocaleString()}
+                    </span>
+                    <span className="text-right text-[11px] leading-tight text-white/75">
+                      <span className="font-mono font-black text-white">
+                        {lineToast.score.toLocaleString()} / {lineToast.target.toLocaleString()}
+                      </span>
+                      <br />
+                      {Math.max(0, lineToast.target - lineToast.score).toLocaleString()} to go · {lineToast.strokesLeft}{" "}
+                      {lineToast.strokesLeft === 1 ? "line" : "lines"} left
+                    </span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* A long line gets a big callout over the meter, leaving the board visible */}
               <AnimatePresence>
                 {lineCallout && (
@@ -2912,6 +2977,8 @@ export default function OneStrokeTacticianPage() {
                 // Keep a "why it pulled back" notice until the next line starts
                 // (the one-time Thorn tip stays up while the line keeps growing)
                 if (nextPath.length > 1) setRetractNotice((n) => (n === THORN_TIP ? n : null));
+                // The small score card makes way for the meter once a new line starts
+                if (nextPath.length > 1) setLineToast(null);
                 setDrawnPath(nextPath);
                 // Skipped the walkthrough: explain Thorns the first time the line reaches one
                 const head = nextPath[nextPath.length - 1];
