@@ -179,6 +179,10 @@ const COACH_STORAGE_KEY = "ost_first_daily_coach_v1";
 /** The game is Run-only: other modes stay in the code but have no way in */
 const RUN_ONLY = true;
 const RUN_WELCOME_KEY = "ost_run_welcome_v1";
+/** Set when the walkthrough is skipped; a one-time Thorn tip then shows in play */
+const WALKTHROUGH_SKIPPED_KEY = "ost_walkthrough_skipped_v1";
+const THORN_TIP_SEEN_KEY = "ost_thorn_tip_seen_v1";
+const THORN_TIP = "🌺 Thorns cost ❤️ Life. Grab ✂️ Shears first to cut one, or 🧤 Gloves to block it.";
 const RUN_LESSONS_PROGRESS_KEY = "ost_run_lessons_progress_v1";
 const RUN_ONLY_NOTICE = "The Sanctuary is in Run mode for now — Gauntlet, past Dailies and the Crafter are resting.";
 
@@ -2904,8 +2908,24 @@ export default function OneStrokeTacticianPage() {
               cosmetics={cosmetics}
               onPathChange={(nextPath) => {
                 // Keep a "why it pulled back" notice until the next line starts
-                if (nextPath.length > 1) setRetractNotice(null);
+                // (the one-time Thorn tip stays up while the line keeps growing)
+                if (nextPath.length > 1) setRetractNotice((n) => (n === THORN_TIP ? n : null));
                 setDrawnPath(nextPath);
+                // Skipped the walkthrough: explain Thorns the first time the line reaches one
+                const head = nextPath[nextPath.length - 1];
+                if (mode === "RUN" && !lesson && head && activeGrid[head.row]?.[head.col]?.type === "ENEMY") {
+                  try {
+                    if (
+                      window.localStorage.getItem(WALKTHROUGH_SKIPPED_KEY) &&
+                      !window.localStorage.getItem(THORN_TIP_SEEN_KEY)
+                    ) {
+                      window.localStorage.setItem(THORN_TIP_SEEN_KEY, "1");
+                      handleNotice(THORN_TIP);
+                    }
+                  } catch {
+                    // Ignore storage errors
+                  }
+                }
               }}
               onCommitPath={handleCommitPath}
               onRetractNotice={handleNotice}
@@ -3062,7 +3082,14 @@ export default function OneStrokeTacticianPage() {
                 setShowLessonGhost((v) => !v);
               }}
               onRestart={() => startLesson(lessonIndex)}
-              onLeave={() => startRun()}
+              onLeave={() => {
+                try {
+                  window.localStorage.setItem(WALKTHROUGH_SKIPPED_KEY, "1");
+                } catch {
+                  // Ignore storage errors
+                }
+                startRun();
+              }}
             />
           ) : (
           <BottomControls
