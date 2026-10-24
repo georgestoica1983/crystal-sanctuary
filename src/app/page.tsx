@@ -2800,51 +2800,77 @@ export default function OneStrokeTacticianPage() {
           {mode === "RUN" &&
             !isInteractiveTutorial &&
             (lesson || (runGarden && !(phase === "DEFEAT" && runOver === null))) && (
-              <LineMeter
-                tiles={drawnPath.length}
-                chips={lineMeter.now.chips}
-                mult={lineMeter.now.mult}
-                xMult={lineMeter.now.xMult}
-                previousPoints={lineMeter.previousPoints}
-                lastTileValue={lineMeter.lastTileValue}
-                reachesArchway={simulation.canCommit}
-                wilts={!simulation.survives}
-                wiltReason={explainWilt(simulation)?.short ?? null}
-                magicNow={floorStartHero.hp}
-                magicAfter={simulation.survives ? simulation.finalStats.hp : 0}
-                tilesOnBoard={lineMeter.tilesOnBoard}
-                idleText={lesson ? "Your points show here as you draw." : undefined}
-                intro={
-                  phase !== "PLANNING"
-                    ? null
-                    : tileIntroQueue.length > 0
-                    ? {
-                        icon: <EntityIcon type={tileIntroQueue[0]} size={30} />,
-                        name: TILE_INTROS[tileIntroQueue[0]].name,
-                        text: TILE_INTROS[tileIntroQueue[0]].text,
-                        index: 0,
-                        total: tileIntroQueue.length + (showStartGlovesIntro ? 1 : 0),
-                        onNext: () => dismissTileIntro(tileIntroQueue[0]),
-                      }
-                    : showStartGlovesIntro
-                    ? {
-                        icon: <EntityIcon type="SHIELD" size={30} />,
-                        label: "Good to know",
-                        name: `Your Cat wears ${floorStartHero.shield} Gloves`,
-                        text: `from the start. They block ${floorStartHero.shield} Thorn damage.`,
-                        index: 0,
-                        total: 1,
-                        onNext: () => dismissTileIntro(START_GLOVES_INTRO),
-                      }
-                    : null
-                }
-                showShortLineTip={
-                  !lesson &&
-                  !longLineLearned &&
-                  simulation.canCommit &&
-                  drawnPath.length < SHORT_LINE_NUDGE_TILES
-                }
-              />
+              <div className="relative w-full max-w-[430px] min-w-0">
+                <LineMeter
+                  tiles={drawnPath.length}
+                  chips={lineMeter.now.chips}
+                  mult={lineMeter.now.mult}
+                  xMult={lineMeter.now.xMult}
+                  previousPoints={lineMeter.previousPoints}
+                  lastTileValue={lineMeter.lastTileValue}
+                  reachesArchway={simulation.canCommit}
+                  wilts={!simulation.survives}
+                  wiltReason={explainWilt(simulation)?.short ?? null}
+                  magicNow={floorStartHero.hp}
+                  magicAfter={simulation.survives ? simulation.finalStats.hp : 0}
+                  tilesOnBoard={lineMeter.tilesOnBoard}
+                  idleText={lesson ? "Your points show here as you draw." : undefined}
+                  intro={
+                    phase !== "PLANNING"
+                      ? null
+                      : tileIntroQueue.length > 0
+                      ? {
+                          icon: <EntityIcon type={tileIntroQueue[0]} size={30} />,
+                          name: TILE_INTROS[tileIntroQueue[0]].name,
+                          text: TILE_INTROS[tileIntroQueue[0]].text,
+                          index: 0,
+                          total: tileIntroQueue.length + (showStartGlovesIntro ? 1 : 0),
+                          onNext: () => dismissTileIntro(tileIntroQueue[0]),
+                        }
+                      : showStartGlovesIntro
+                      ? {
+                          icon: <EntityIcon type="SHIELD" size={30} />,
+                          label: "Good to know",
+                          name: `Your Cat wears ${floorStartHero.shield} Gloves`,
+                          text: `from the start. They block ${floorStartHero.shield} Thorn damage.`,
+                          index: 0,
+                          total: 1,
+                          onNext: () => dismissTileIntro(START_GLOVES_INTRO),
+                        }
+                      : null
+                  }
+                  showShortLineTip={
+                    !lesson &&
+                    !longLineLearned &&
+                    simulation.canCommit &&
+                    drawnPath.length < SHORT_LINE_NUDGE_TILES
+                  }
+                />
+              {/* A long line gets a big callout over the meter, leaving the board visible */}
+              <AnimatePresence>
+                {lineCallout && (
+                  <motion.div
+                    key={lineCallout.key}
+                    initial={{ scale: 0.4, opacity: 0, rotate: -2 }}
+                    animate={{ scale: [0.4, 1.15, 1], opacity: 1, rotate: 0 }}
+                    exit={{ opacity: 0, y: -24, scale: 0.9 }}
+                    transition={{ duration: 0.45, ease: "easeOut" }}
+                    className="pointer-events-none absolute inset-0 z-40 flex items-center justify-center"
+                    aria-live="polite"
+                  >
+                    <div
+                      className="w-full h-full rounded-xl px-4 flex flex-col items-center justify-center text-center shadow-[0_0_40px_rgba(0,0,0,0.5)] border-2 border-white/70"
+                      style={{ backgroundColor: lineCallout.color }}
+                    >
+                      <div className="text-[24px] font-black leading-none text-slate-950">{lineCallout.name}!</div>
+                      <div className="mt-0.5 text-[12px] font-mono font-black text-slate-900/80">
+                        {lineCallout.tiles} tiles · {lineCallout.points.toLocaleString()} points
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              </div>
             )}
 
           {/* Interactive 5x5 Path-Drawing Board: a square that fills the space
@@ -3002,30 +3028,6 @@ export default function OneStrokeTacticianPage() {
               </div>
             )}
 
-            {/* A long line that reaches the Exit gets a big callout while it plays */}
-            <AnimatePresence>
-              {lineCallout && (
-                <motion.div
-                  key={lineCallout.key}
-                  initial={{ scale: 0.4, opacity: 0, rotate: -6 }}
-                  animate={{ scale: [0.4, 1.15, 1], opacity: 1, rotate: 0 }}
-                  exit={{ opacity: 0, y: -24, scale: 0.9 }}
-                  transition={{ duration: 0.45, ease: "easeOut" }}
-                  className="pointer-events-none absolute inset-0 z-40 flex items-center justify-center"
-                  aria-live="polite"
-                >
-                  <div
-                    className="rounded-2xl px-5 py-2.5 text-center shadow-[0_0_40px_rgba(0,0,0,0.5)] border-2 border-white/70"
-                    style={{ backgroundColor: lineCallout.color }}
-                  >
-                    <div className="text-[26px] font-black leading-none text-slate-950">{lineCallout.name}!</div>
-                    <div className="mt-1 text-[12px] font-mono font-black text-slate-900/80">
-                      {lineCallout.tiles} tiles · {lineCallout.points.toLocaleString()} points
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
 
             {/* Run notices float over the board so nothing below it moves */}
             {RUN_ONLY && (retractNotice || (runNoSafeLine && !weedOutMode)) && (
