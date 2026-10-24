@@ -3,7 +3,8 @@
 class SoundAndHapticsEngine {
   private ctx: AudioContext | null = null;
   private noiseBuffer: AudioBuffer | null = null;
-  public soundEnabled: boolean = true;
+  // Off until the player turns it on (the 🔊 button next to Swap); a saved choice wins
+  public soundEnabled: boolean = false;
   public hapticsEnabled: boolean = true;
 
   constructor() {

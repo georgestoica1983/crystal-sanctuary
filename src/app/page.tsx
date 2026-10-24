@@ -344,7 +344,7 @@ export default function OneStrokeTacticianPage() {
     DEFAULT_COSMETIC_PREFS
   );
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
-  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(false);
 
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState<boolean>(false);
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState<boolean>(false);
