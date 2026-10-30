@@ -224,7 +224,7 @@ function buildPages(): GuidePage[] {
           </div>
           <Bullets
             items={[
-              <><B>Value</B> = the numbers on the tiles your line passes.</>,
+              <><B>Value</B> = the numbers on the tiles your line passes — every tile counts, even 🌺 Thorns. Risk = reward.</>,
               <><B>Length</B> = how many tiles the line has.</>,
               <>Both grow with every tile — so a line twice as long scores about <B>4×</B>.</>,
               <>The meter above the board shows the score live while you draw.</>,

@@ -183,6 +183,7 @@ export default function ShopModal({
           >
             <b className="text-white">Spend 🌱 Seeds on relics</b> — lasting powers for this Garden Run. Or save them:
             every {RUN_INTEREST_STEP} you keep earns +1 more after each Garden Bed (up to +{RUN_INTEREST_MAX}).
+            <span className="block mt-1 text-teal-100/80">Tip: score relics plus ~10 🌱 kept for interest works best.</span>
           </motion.div>
         )}
 
@@ -254,7 +255,7 @@ export default function ShopModal({
                       <span className="font-black text-sm leading-tight">{info.name}</span>
                     </div>
                     <div
-                      className="text-[10px] font-mono font-extrabold mt-0.5"
+                      className="text-[11.5px] font-semibold mt-0.5"
                       style={{ color: info.accent }}
                     >
                       {info.tag}

@@ -19,40 +19,40 @@ const SANCTUARY_RELIC_COPY: Partial<Record<
   GILDED_AEGIS: {
     name: "Acorn Glow",
     icon: "🧤",
-    shortTag: "ACORN → +1 🧤",
+    shortTag: "Each 🌰 also gives +1 🧤",
     description: "Every Acorn you collect also gives +1 🧤 Gloves.",
   },
   VORPAL_EDGE: {
     name: "Lingering Shears",
     icon: "✂️",
-    shortTag: "EVERY 2ND CUT FREE",
+    shortTag: "Every 2nd ✂️ cut is free",
     description:
       "Every second Thorn you cut with ✂️ Shears is free — you keep that cut.",
   },
   ALCHEMIST_FLASK: {
     name: "Honey Jar",
     icon: "🍯",
-    shortTag: "BERRIES +4 OVER MAX",
+    shortTag: "🍓 can heal 4 over max",
     description: "Berries can fill your Life up to +4 above its usual maximum.",
   },
   SPIKED_BOOTS: {
     name: "Garden Boots",
     icon: "🥾",
-    shortTag: "SPIKE → +1 ✂️",
+    shortTag: "Straight Spikes give ✂️",
     description:
       "Stepping straight onto a Spike doesn't hurt — it gives you +1 ✂️ Shears instead.",
   },
   LONG_STRIDE: {
     name: "Long Meander",
     icon: "🍃",
-    shortTag: "12+ TILES = -1 BRIAR",
+    shortTag: "12+ tiles: Thorns are 1 weaker",
     description:
       "If your line is 12+ tiles long, every Thorn in this garden is 1 gentler.",
   },
   GREED_CROWN: {
     name: "Flower Crown",
     icon: "🌼",
-    shortTag: "2x ACORNS & +1 LIFE",
+    shortTag: "🌰 count double · +1 ❤️ each",
     description: "Acorns are worth double and each one restores +1 Life.",
   },
 };

@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "check:replay": "node scripts/run-ts.cjs scripts/check-run-replay.ts",
     "check:balance": "node scripts/run-ts.cjs scripts/balance-relics.ts",
-    "balance:run": "node scripts/run-ts.cjs scripts/balance-run.ts"
+    "balance:run": "node scripts/run-ts.cjs scripts/balance-run.ts",
+    "balance:economy": "node scripts/run-ts.cjs scripts/balance-economy.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",

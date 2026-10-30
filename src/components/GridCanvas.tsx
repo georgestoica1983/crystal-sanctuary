@@ -1749,7 +1749,7 @@ function getTileInspectionData(
         name: isSanctuary ? "Thorn" : "Hostile Enemy",
         valueLabel: `−${cell.value} Life`,
         explanation: isSanctuary
-          ? `Costs ${cell.value} ❤️ Life. ✂️ Shears cut it completely; 🧤 Gloves block part of it.`
+          ? `Costs ${cell.value} ❤️ Life but adds ${cell.value} to your line's value. ✂️ Shears cut it completely; 🧤 Gloves block part of it.`
           : `Deals ${cell.value} damage. Absorbed by Weapons then Gloves before reducing HP.`,
       };
     case "SHIELD":
