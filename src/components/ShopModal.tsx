@@ -142,26 +142,26 @@ export default function ShopModal({
   const legendary = legendaryAward ? RELIC_REGISTRY[legendaryAward] : null;
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 overflow-y-auto select-none">
+    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 overflow-y-auto select-none">
       <motion.div
         initial={{ opacity: 0, y: 24, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 22 }}
-        className="w-full max-w-[430px] my-auto rounded-2xl p-4 space-y-3 text-white border-2 border-fuchsia-400/70 bg-gradient-to-b from-[#1C0F2E] via-[#120A22] to-[#0A0614] shadow-[0_0_40px_rgba(217,70,239,0.45),inset_0_0_30px_rgba(34,211,238,0.08)]"
+        className="w-full max-w-[430px] my-auto rounded-2xl p-4 space-y-3 text-white border border-white/[0.08] bg-[#151B2E] shadow-2xl shadow-black/50"
       >
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <div className="text-[10px] font-mono font-extrabold uppercase tracking-[0.2em] text-cyan-300 drop-shadow-[0_0_6px_rgba(34,211,238,0.9)]">
+            <div className="text-[12px] font-semibold text-emerald-300/90">
               {headerLabel ??
                 `${isSanctuary ? "Garden" : "Floor"} ${clearedFloorNumber}/${totalFloors} cleared`}
             </div>
-            <h2 className="text-xl font-black uppercase tracking-tight text-fuchsia-200 drop-shadow-[0_0_10px_rgba(217,70,239,0.9)]">
+            <h2 className="text-[22px] font-black leading-tight text-white">
               {isSanctuary ? "Garden Shop" : "Sanctuary Shop"}
             </h2>
           </div>
-          <div className="shrink-0 rounded-xl px-3 py-1.5 border-2 border-amber-300/80 bg-amber-400/10 shadow-[0_0_16px_rgba(250,204,21,0.45)] text-right">
-            <div className="text-[9px] font-mono font-bold uppercase text-amber-200/80">
+          <div className="shrink-0 rounded-xl px-3 py-1.5 border border-amber-300/40 bg-amber-400/10 text-right">
+            <div className="text-[11px] font-semibold text-amber-200/80">
               Your Seeds
             </div>
             <motion.div
@@ -179,7 +179,7 @@ export default function ShopModal({
           <motion.div
             initial={{ opacity: 0, y: -6 }}
             animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl border border-cyan-300/50 bg-cyan-400/10 px-3 py-2 text-[12.5px] leading-snug text-cyan-50"
+            className="rounded-xl border border-teal-300/40 bg-teal-400/10 px-3 py-2 text-[12.5px] leading-snug text-teal-50"
           >
             <b className="text-white">Spend 🌱 Seeds on relics</b> — lasting powers for this Garden Run. Or save them:
             every {RUN_INTEREST_STEP} you keep earns +1 more after each Garden Bed (up to +{RUN_INTEREST_MAX}).
@@ -191,11 +191,11 @@ export default function ShopModal({
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="rounded-xl px-3 py-2 border-2 border-amber-300 bg-gradient-to-r from-amber-500/25 via-fuchsia-500/20 to-cyan-500/20 shadow-[0_0_22px_rgba(250,204,21,0.5)] flex items-center gap-2.5"
+            className="rounded-xl px-3 py-2 border border-amber-300/60 bg-amber-400/10 flex items-center gap-2.5"
           >
             <span className="text-2xl">{legendary.icon}</span>
             <div className="min-w-0">
-              <div className="text-[10px] font-mono font-black uppercase text-amber-200">
+              <div className="text-[11px] font-semibold text-amber-200">
                 👑 Boss defeated · Legendary relic
               </div>
               <div className="text-sm font-black text-white">{legendary.name}</div>
@@ -227,15 +227,14 @@ export default function ShopModal({
                   disabled={disabled}
                   onClick={() => onBuy(offer)}
                   style={{
-                    borderColor: sold ? "rgba(255,255,255,0.12)" : `${info.accent}AA`,
-                    boxShadow: sold || disabled ? undefined : `0 0 16px ${info.accent}55`,
+                    borderColor: sold ? "rgba(255,255,255,0.08)" : `${info.accent}66`,
                   }}
-                  className={`w-full text-left rounded-xl border-2 p-2.5 flex items-center gap-3 transition ${
+                  className={`w-full text-left rounded-xl border p-2.5 flex items-center gap-3 transition ${
                     sold
-                      ? "bg-white/5 opacity-50"
+                      ? "bg-white/[0.03] opacity-50"
                       : disabled
-                      ? "bg-[#0E0B1A] opacity-60"
-                      : "bg-[#120D22] hover:bg-[#1A1230]"
+                      ? "bg-white/[0.02] opacity-60"
+                      : "bg-white/[0.04] active:bg-white/[0.08]"
                   }`}
                 >
                   <div
@@ -249,7 +248,7 @@ export default function ShopModal({
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col items-start gap-0.5">
-                      <span className={`text-[9px] font-mono font-black uppercase px-1.5 py-0.5 rounded shrink-0 ${info.kindClass}`}>
+                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 ${info.kindClass}`}>
                         {info.kindLabel}
                       </span>
                       <span className="font-black text-sm leading-tight">{info.name}</span>
@@ -300,7 +299,7 @@ export default function ShopModal({
 
         {/* Loadout */}
         <div className="rounded-xl border border-white/10 bg-black/30 px-2.5 py-2 space-y-1.5">
-          <div className="flex items-center justify-between text-[10px] font-mono font-bold uppercase text-zinc-400">
+          <div className="flex items-center justify-between text-[11px] font-semibold text-white/50">
             <span>
               Relics {commonOwned.length}/{MAX_COMMON_RELICS}
             </span>
@@ -327,8 +326,8 @@ export default function ShopModal({
                   className={`h-12 rounded-lg border flex flex-col items-center justify-center gap-0.5 px-0.5 transition ${
                     relic
                       ? selected
-                        ? "border-amber-300 bg-amber-400/20 shadow-[0_0_12px_rgba(250,204,21,0.45)]"
-                        : "border-cyan-300/50 bg-cyan-400/10 active:scale-95"
+                        ? "border-amber-300 bg-amber-400/20"
+                        : "border-white/15 bg-white/[0.06] active:scale-95"
                       : "border-dashed border-white/15"
                   }`}
                 >
@@ -338,7 +337,7 @@ export default function ShopModal({
                       <span className="sr-only">{relic.name}</span>
                     </>
                   ) : (
-                    <span className="text-[9px] font-mono text-zinc-600">empty</span>
+                    <span className="text-[10px] text-white/25">empty</span>
                   )}
                 </button>
               );
@@ -364,7 +363,7 @@ export default function ShopModal({
                     onSell(selectedSlotRelic);
                     setSelectedRelic(null);
                   }}
-                  className="shrink-0 rounded-lg px-2 py-1.5 border-2 border-amber-300 bg-amber-400/15 text-amber-100 font-mono font-black text-[10px] uppercase leading-tight active:scale-95"
+                  className="shrink-0 rounded-lg px-2.5 py-1.5 border border-amber-300/60 bg-amber-400/15 text-amber-100 font-bold text-[12px] leading-tight active:scale-95"
                 >
                   Sell
                   <span className="block text-[11px]">+{selectedSellValue} 🌱</span>
@@ -373,12 +372,12 @@ export default function ShopModal({
             </div>
           )}
           {!selectedSlotRelic && commonOwned.length > 0 && onSell && (
-            <div className="text-[10px] font-mono text-zinc-500">
+            <div className="text-[11px] text-white/45">
               Tap a relic to see it or sell it for half its price.
             </div>
           )}
           {legendaryOwned.length > 0 && (
-            <div className="text-[10px] font-mono text-amber-200">
+            <div className="text-[11px] text-amber-200">
               Legendary:{" "}
               {legendaryOwned
                 .map((id) => `${RELIC_REGISTRY[id].icon} ${RELIC_REGISTRY[id].name}`)
@@ -392,11 +391,11 @@ export default function ShopModal({
           <div
             className={`rounded-xl px-3 py-2 text-xs border ${
               nextBoss
-                ? "border-rose-400/70 bg-rose-500/15 text-rose-100 shadow-[0_0_16px_rgba(244,63,94,0.35)]"
-                : "border-white/10 bg-white/5 text-zinc-300"
+                ? "border-rose-300/40 bg-rose-500/[0.08] text-rose-50"
+                : "border-white/10 bg-white/[0.04] text-white/75"
             }`}
           >
-            <span className="font-mono font-bold uppercase text-[10px] opacity-80">
+            <span className="font-semibold text-[11px] opacity-70">
               Up next:{" "}
             </span>
             {nextBoss ? (
@@ -418,12 +417,12 @@ export default function ShopModal({
             type="button"
             onClick={onReroll}
             disabled={gems < rerollCost}
-            className="rounded-xl py-2.5 px-2 border-2 border-cyan-300/70 bg-cyan-400/10 text-cyan-100 font-mono font-black text-[11px] uppercase flex items-center justify-center gap-1.5 shadow-[0_0_14px_rgba(34,211,238,0.35)] active:scale-95 transition disabled:opacity-40 disabled:shadow-none"
+            className="rounded-xl py-2.5 px-2 border border-white/15 bg-white/[0.06] text-white/90 font-semibold text-[13px] flex items-center justify-center gap-1.5 active:scale-95 transition disabled:opacity-40"
           >
             <RefreshCw className="w-3.5 h-3.5 shrink-0" />
             <span className="flex flex-col leading-tight">
-              <span>Reroll Shop</span>
-              <span className="text-[9px] text-cyan-200/80 normal-case">
+              <span>Reroll</span>
+              <span className="text-[10.5px] text-white/55 font-normal">
                 Cost: {rerollCost} 🌱
               </span>
             </span>
@@ -431,9 +430,9 @@ export default function ShopModal({
           <button
             type="button"
             onClick={onLeave}
-            className="rounded-xl py-2.5 px-2 border-2 border-fuchsia-300 bg-fuchsia-500/25 text-white font-mono font-black text-[11px] uppercase flex items-center justify-center gap-1.5 shadow-[0_0_18px_rgba(217,70,239,0.55)] active:scale-95 transition"
+            className="rounded-xl py-2.5 px-2 bg-teal-300 text-slate-950 font-bold text-[14px] flex items-center justify-center gap-1.5 active:scale-95 transition"
           >
-            {boughtAnything ? "Continue" : "Skip Shop"}
+            {boughtAnything ? "Continue" : "Skip the Shop"}
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>

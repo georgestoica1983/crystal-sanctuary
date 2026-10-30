@@ -392,13 +392,13 @@ export function RunGardenClearModal({
         initial={{ scale: 0.85, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 22 }}
-        className="w-full max-w-[380px] rounded-2xl p-4 space-y-3 text-white border-2 border-emerald-300/70 bg-gradient-to-b from-[#0E2226] via-[#0B1622] to-[#070A16] shadow-[0_0_40px_rgba(52,211,153,0.35)]"
+        className="w-full max-w-[380px] rounded-2xl p-4 space-y-3 text-white border border-white/[0.08] bg-[#151B2E] shadow-2xl shadow-black/50"
       >
         <div className="text-center">
-          <div className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-emerald-300">
+          <div className="text-[12px] font-semibold text-emerald-300/90">
             {getRunGardenLabel(info.gardenIndex)}
           </div>
-          <div className="text-2xl font-black text-emerald-100 drop-shadow-[0_0_12px_rgba(52,211,153,0.8)]">
+          <div className="text-2xl font-black text-white">
             Garden Bed cleared! 🌸
           </div>
           <div className="flex justify-center gap-1.5 mt-1.5" aria-label={`${stars} of 3 stars`}>
@@ -423,23 +423,23 @@ export function RunGardenClearModal({
           <SeasonMap season={season} clearedKind={kind} bestStars={info.seasonBestStars} />
         </div>
 
-        <div className="rounded-xl border border-amber-300/50 bg-amber-400/10 p-2.5 space-y-1">
+        <div className="rounded-xl border border-white/10 bg-white/[0.04] p-2.5 space-y-1">
           {lines.map((l, i) => (
             <motion.div
               key={l.label}
               initial={{ opacity: 0, x: -8 }}
               animate={{ opacity: 1, x: 0, transition: { delay: 0.15 + i * 0.18 } }}
-              className="flex justify-between items-start gap-2 text-[11px] leading-snug font-mono text-amber-50"
+              className="flex justify-between items-start gap-2 text-[12px] leading-snug text-white/80"
             >
               <span className="min-w-0">{l.label}</span>
-              <span className="font-black shrink-0 whitespace-nowrap">+{l.value} 🌱</span>
+              <span className="font-mono font-black shrink-0 whitespace-nowrap text-amber-100">+{l.value} 🌱</span>
             </motion.div>
           ))}
-          <div className="border-t border-amber-300/30 pt-1 flex justify-between text-sm font-mono font-black text-amber-200">
+          <div className="border-t border-white/10 pt-1 flex justify-between text-sm font-black text-amber-200">
             <span>Payout</span>
-            <span>+{info.total} 🌱</span>
+            <span className="font-mono">+{info.total} 🌱</span>
           </div>
-          <div className="text-[10px] font-mono text-amber-100/70 text-right">
+          <div className="text-[11px] text-white/50 text-right">
             {info.gemsBefore} → {info.gemsBefore + info.total} 🌱 Seeds to spend
           </div>
         </div>
@@ -448,9 +448,9 @@ export function RunGardenClearModal({
           <motion.div
             initial={{ scale: 0.7, opacity: 0 }}
             animate={{ scale: [0.7, 1.08, 1], opacity: 1, transition: { delay: 0.6, duration: 0.45 } }}
-            className="rounded-xl border-2 border-fuchsia-300/70 bg-fuchsia-500/15 px-3 py-2 text-center"
+            className="rounded-xl border border-violet-300/50 bg-violet-500/15 px-3 py-2 text-center"
           >
-            <div className="text-[11px] font-mono font-black uppercase tracking-wider text-fuchsia-200">🎉 Unlocked</div>
+            <div className="text-[12px] font-semibold text-violet-200">🎉 Unlocked</div>
             <div className="mt-0.5 text-[14px] font-black text-white leading-snug">
               {info.unlocked.map((u) => `${u.icon} ${u.name}`).join(" · ")}
             </div>
@@ -469,7 +469,7 @@ export function RunGardenClearModal({
         )}
 
         {legendary && (
-          <div className="rounded-xl border border-fuchsia-300/60 bg-fuchsia-500/15 px-3 py-2 text-xs text-fuchsia-50">
+          <div className="rounded-xl border border-amber-300/50 bg-amber-400/10 px-3 py-2 text-xs text-amber-50">
             👑 Legendary relic earned: <span className="font-black">{legendary.icon} {legendary.name}</span>
             <div className="text-[11px] opacity-85">{legendary.description}</div>
           </div>
@@ -478,7 +478,7 @@ export function RunGardenClearModal({
         <button
           type="button"
           onClick={onContinue}
-          className="w-full rounded-xl py-2.5 font-mono font-black text-xs uppercase border-2 border-fuchsia-300 bg-fuchsia-500/30 text-white shadow-[0_0_18px_rgba(217,70,239,0.55)] active:scale-95"
+          className="w-full rounded-xl py-3 font-bold text-[14px] bg-teal-300 text-slate-950 active:scale-95"
         >
           Enter the Shop →
         </button>
@@ -561,7 +561,7 @@ export function RunOverModal({
           <p className="text-[13px] text-rose-100/85 leading-snug mt-1">{body}</p>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-white/5 p-2.5 space-y-1 text-[11px] font-mono">
+        <div className="rounded-xl border border-white/10 bg-white/[0.04] p-2.5 space-y-1 text-[12px]">
           <div className="flex justify-between">
             <span className="text-zinc-300">Reached</span>
             <span className="font-black text-emerald-200">{getRunGardenLabel(info.gardenIndex)}</span>
@@ -585,7 +585,7 @@ export function RunOverModal({
         </div>
 
         <div
-          className={`rounded-xl px-3 py-2 text-center text-xs font-mono ${
+          className={`rounded-xl px-3 py-2 text-center text-[12.5px] ${
             info.isNewBest
               ? "border-2 border-amber-300 bg-amber-400/15 text-amber-100 font-black"
               : "border border-white/10 bg-white/5 text-zinc-300"
@@ -599,7 +599,7 @@ export function RunOverModal({
           <button
             type="button"
             onClick={onOpenLeaderboard}
-            className="w-full rounded-xl px-3 py-2 text-xs font-mono font-bold border border-amber-300/50 bg-amber-400/10 text-amber-100"
+            className="w-full rounded-xl px-3 py-2.5 text-[13px] font-semibold border border-amber-300/50 bg-amber-400/10 text-amber-100"
           >
             {rankLine ?? "🏆 See the leaderboard"}
           </button>
@@ -609,14 +609,14 @@ export function RunOverModal({
           <button
             type="button"
             onClick={onClose}
-            className="py-2.5 rounded-xl bg-white/10 border border-white/20 text-white font-mono text-xs font-bold"
+            className="py-3 rounded-xl bg-white/[0.06] border border-white/15 text-white/90 text-[13px] font-semibold"
           >
             Look at board
           </button>
           <button
             type="button"
             onClick={onNewRun}
-            className="py-2.5 rounded-xl bg-emerald-300 text-slate-950 font-mono text-xs font-black"
+            className="py-3 rounded-xl bg-teal-300 text-slate-950 text-[14px] font-bold"
           >
             {newRunLabel}
           </button>

@@ -164,18 +164,18 @@ export default function ScoreTally({
         initial={{ scale: 0.85, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
-        className="relative my-auto w-full max-w-[400px] rounded-2xl p-3 min-[360px]:p-4 space-y-3 text-white border-2 border-cyan-300/60 bg-gradient-to-b from-[#0F1830] via-[#0B1022] to-[#070A16] shadow-[0_0_40px_rgba(34,211,238,0.35)] overflow-hidden"
+        className="relative my-auto w-full max-w-[400px] rounded-2xl p-3 min-[360px]:p-4 space-y-3 text-white border border-white/[0.08] bg-[#151B2E] shadow-2xl shadow-black/50 overflow-hidden"
       >
         {/* Header */}
         <div className="text-center">
-          <div className="text-[10px] font-mono font-black uppercase tracking-[0.12em] min-[360px]:tracking-[0.2em] leading-snug text-emerald-300">
+          <div className="text-[12px] font-semibold leading-snug text-emerald-300/90">
             {floorLabel}
           </div>
           {boss && (
             <motion.div
               initial={{ scale: 1.6, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="mt-1 text-sm font-black text-rose-200 drop-shadow-[0_0_10px_rgba(244,63,94,0.9)]"
+              className="mt-1 text-sm font-black text-rose-200"
             >
               {boss.icon} {boss.name} defeated!
             </motion.div>
@@ -188,8 +188,8 @@ export default function ScoreTally({
                 animate={{ scale: 1, rotate: 0, transition: { delay: 0.1 + i * 0.12 } }}
                 className={
                   earned
-                    ? "text-amber-300 drop-shadow-[0_0_8px_rgba(250,204,21,0.9)]"
-                    : "text-zinc-700"
+                    ? "text-amber-300"
+                    : "text-white/15"
                 }
               >
                 ★
@@ -200,8 +200,8 @@ export default function ScoreTally({
 
         {/* Value × Length boxes */}
         <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-1.5 min-[360px]:gap-2">
-          <div className="rounded-xl border-2 border-sky-400 bg-sky-500/15 p-2 shadow-[0_0_18px_rgba(56,189,248,0.4)]">
-            <div className="text-[9px] font-mono font-black uppercase text-sky-200 text-center">
+          <div className="rounded-xl border border-sky-300/40 bg-sky-500/10 p-2">
+            <div className="text-[11px] font-semibold text-sky-200 text-center">
               Value
             </div>
             <motion.div
@@ -217,7 +217,7 @@ export default function ScoreTally({
                   key={line.label}
                   initial={{ opacity: 0, x: -10 }}
                   animate={stage >= 1 ? { opacity: 1, x: 0, transition: { delay: i * 0.15 } } : {}}
-                  className="flex justify-between items-start text-[10px] leading-tight font-mono text-sky-100/85 gap-1"
+                  className="flex justify-between items-start text-[11px] leading-tight text-sky-100/80 gap-1"
                 >
                   <span className="min-w-0 break-words">{line.label}</span>
                   <span className="font-bold shrink-0">+{line.value}</span>
@@ -226,10 +226,10 @@ export default function ScoreTally({
             </div>
           </div>
 
-          <div className="flex items-center text-2xl font-black text-zinc-300">×</div>
+          <div className="flex items-center text-2xl font-black text-white/40">×</div>
 
-          <div className="rounded-xl border-2 border-emerald-400 bg-emerald-500/15 p-2 shadow-[0_0_18px_rgba(16,185,129,0.35)]">
-            <div className="text-[9px] font-mono font-black uppercase text-emerald-200 text-center">
+          <div className="rounded-xl border border-emerald-300/40 bg-emerald-500/10 p-2">
+            <div className="text-[11px] font-semibold text-emerald-200 text-center">
               Length
             </div>
             <motion.div
@@ -245,7 +245,7 @@ export default function ScoreTally({
                   key={line.label}
                   initial={{ opacity: 0, x: 10 }}
                   animate={stage >= 2 ? { opacity: 1, x: 0, transition: { delay: i * 0.15 } } : {}}
-                  className="flex justify-between items-start text-[10px] leading-tight font-mono text-emerald-100/85 gap-1"
+                  className="flex justify-between items-start text-[11px] leading-tight text-emerald-100/80 gap-1"
                 >
                   <span className="min-w-0 break-words">{line.label}</span>
                   <span className="font-bold shrink-0">+{line.value}</span>
@@ -267,7 +267,7 @@ export default function ScoreTally({
                     ? { scale: [1.6, 1], opacity: 1, transition: { delay: i * 0.18 } }
                     : {}
                 }
-                className="px-2 py-1 rounded-lg border-2 border-fuchsia-300 bg-fuchsia-500/25 text-[11px] font-mono font-black text-fuchsia-100 shadow-[0_0_14px_rgba(217,70,239,0.55)]"
+                className="px-2 py-1 rounded-lg border border-violet-300/50 bg-violet-500/15 text-[12px] font-bold text-violet-100"
               >
                 {x.label} ×{x.value}
               </motion.span>
@@ -276,14 +276,14 @@ export default function ScoreTally({
         )}
 
         {/* Total */}
-        <div className="relative rounded-xl border-2 border-amber-300 bg-amber-400/10 py-2 text-center shadow-[0_0_24px_rgba(250,204,21,0.35)]">
-          <div className="text-[9px] font-mono font-black uppercase text-amber-200">
+        <div className="relative rounded-xl border border-amber-300/50 bg-amber-400/10 py-2 text-center">
+          <div className="text-[11px] font-semibold text-amber-200">
             {scoreLabel}
           </div>
           <motion.div
             animate={stage >= 4 ? { scale: [1.8, 0.9, 1] } : { scale: 1 }}
             transition={{ duration: 0.5 }}
-            className="text-4xl font-mono font-black text-amber-200 drop-shadow-[0_0_14px_rgba(250,204,21,0.9)]"
+            className="text-4xl font-mono font-black text-amber-200"
           >
             {stage >= 4 ? fmt(Math.round(totalShown)) : "?"}
           </motion.div>
@@ -291,7 +291,7 @@ export default function ScoreTally({
             {runningTotalLabel}: {stage >= 4 ? fmt(Math.round(runShown)) : fmt(runTotalBefore)}
             {targetScore != null && <span className="text-amber-100/60"> / {fmt(targetScore)}</span>}
             {parPercent != null && stage >= 4 && (
-              <span className="ml-1.5 text-cyan-200">· {parPercent}% of par</span>
+              <span className="ml-1.5 text-teal-200">· {parPercent}% of par</span>
             )}
           </div>
 
@@ -303,7 +303,7 @@ export default function ScoreTally({
                 initial={{ y: 0, opacity: 1, scale: 0.8 }}
                 animate={{ y: -70, opacity: 0, scale: 1.4 }}
                 transition={{ duration: 1.3, ease: "easeOut" }}
-                className="pointer-events-none absolute inset-x-0 top-0 text-2xl font-black text-white drop-shadow-[0_0_10px_rgba(250,204,21,1)]"
+                className="pointer-events-none absolute inset-x-0 top-0 text-2xl font-black text-amber-100"
               >
                 +{breakdown.total.toLocaleString()}
               </motion.div>
@@ -331,7 +331,7 @@ export default function ScoreTally({
           <motion.div
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="text-center text-xs font-mono font-black text-amber-200"
+            className="text-center text-[12px] font-semibold text-amber-200"
           >
             Garden payout: +{clearReward} 🌱 Seeds to spend in the Shop
           </motion.div>
@@ -353,10 +353,10 @@ export default function ScoreTally({
             e.stopPropagation();
             skip();
           }}
-          className={`w-full rounded-xl py-2.5 font-mono font-black text-xs uppercase border-2 transition active:scale-95 ${
+          className={`w-full rounded-xl py-3 font-bold text-[14px] transition active:scale-95 ${
             stage >= 5
-              ? "border-fuchsia-300 bg-fuchsia-500/30 text-white shadow-[0_0_18px_rgba(217,70,239,0.55)]"
-              : "border-white/15 bg-white/5 text-zinc-400"
+              ? "bg-teal-300 text-slate-950"
+              : "border border-white/15 bg-white/[0.05] text-white/60"
           }`}
         >
           {stage < 5
