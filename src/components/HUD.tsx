@@ -53,6 +53,7 @@ import {
   TRAIL_SKINS,
 } from "@/lib/engine";
 import { hasExpansionAccess } from "@/lib/supabase";
+import { getGardenerRank } from "@/lib/unlocks";
 import EntityIcon from "@/components/EntityIcon";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 
@@ -779,12 +780,24 @@ export function TopHUD({
                 </button>
               </div>
 
-              {totalStars !== undefined && (
-                <div className="mx-1 mb-2 rounded-xl bg-amber-400/[0.07] border border-amber-300/20 px-3 py-2 flex items-center justify-between">
-                  <span className="text-[13px] font-semibold text-white/80">Stars collected</span>
-                  <span className="text-[15px] font-mono font-black text-amber-200">⭐ {totalStars}</span>
-                </div>
-              )}
+              {totalStars !== undefined && (() => {
+                const { rank, next } = getGardenerRank();
+                return (
+                  <div className="mx-1 mb-2 rounded-xl bg-amber-400/[0.07] border border-amber-300/20 px-3 py-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[13px] font-bold text-amber-100">
+                        {rank.icon} {rank.name}
+                      </span>
+                      <span className="text-[15px] font-mono font-black text-amber-200">⭐ {totalStars}</span>
+                    </div>
+                    {next && (
+                      <div className="text-[11px] text-white/50 mt-0.5">
+                        Next: {next.icon} {next.name} — {next.needText}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
 
               {relicCounts.length > 0 && (
                 <div className="mx-1 mb-2 rounded-xl bg-white/[0.03] border border-white/[0.06] p-2 space-y-1.5">
