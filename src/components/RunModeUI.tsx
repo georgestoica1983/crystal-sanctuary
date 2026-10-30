@@ -57,7 +57,7 @@ export function RunHudStrip({
   const strokesUsed = RUN_STROKES_PER_GARDEN - garden.strokesLeft;
   return (
     <div
-      className={`w-full max-w-[430px] min-w-0 rounded-xl px-3 pt-2 pb-1.5 border space-y-1.5 bg-white/[0.04] ${
+      className={`w-full max-w-[430px] min-w-0 rounded-xl px-3 pt-2 pb-1.5 [@media(max-height:640px)]:pt-1.5 [@media(max-height:640px)]:pb-1 border space-y-1.5 [@media(max-height:640px)]:space-y-1 bg-white/[0.04] ${
         isBoss ? "border-rose-300/40" : "border-white/[0.07]"
       }`}
     >

@@ -210,6 +210,28 @@ svg text,
 .board-cq {
   container-type: inline-size;
 }
+/* Board frame padding and tile gaps: tighter on narrow boards so tiles stay big.
+   The line overlay and pops use the same inset so they stay on the tiles. */
+.board-pad {
+  padding: 10px;
+}
+.board-inset {
+  inset: 10px;
+}
+.board-gap {
+  gap: 8px;
+}
+@container (max-width: 330px) {
+  .board-pad {
+    padding: 6px;
+  }
+  .board-inset {
+    inset: 6px;
+  }
+  .board-gap {
+    gap: 5px;
+  }
+}
 @container (max-width: 330px) {
   .tile-tag {
     font-size: 8px !important;

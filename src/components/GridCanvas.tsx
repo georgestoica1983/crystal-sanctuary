@@ -578,7 +578,7 @@ export default function GridCanvas({
         onPointerUp={finishStroke}
         onPointerCancel={finishStroke}
         style={{ touchAction: "none" }}
-        className={`relative w-full h-full rounded-2xl p-2.5 overflow-hidden cursor-crosshair select-none touch-none ${
+        className={`relative w-full h-full rounded-2xl board-pad overflow-hidden cursor-crosshair select-none touch-none ${
           isSanctuary
             ? "bg-[#10162A] border border-white/[0.07]"
             : "bg-gradient-to-b from-[#0E101F]/95 via-[#0A0B14] to-[#06070D] border border-indigo-500/25 shadow-2xl shadow-indigo-950/40"
@@ -606,7 +606,7 @@ export default function GridCanvas({
         </AnimatePresence>
 
         {/* 5x5 Luminous Metallic / Crystal Garden Plates */}
-        <div className="grid grid-cols-5 grid-rows-5 gap-2 w-full h-full relative z-10">
+        <div className="grid grid-cols-5 grid-rows-5 board-gap w-full h-full relative z-10">
           {grid.map((rowCells, r) =>
             rowCells.map((cell, c) => {
               // Locked/Inactive VOID tile for Floor 0 Interactive Tutorial
@@ -750,6 +750,19 @@ export default function GridCanvas({
                   data-col={c}
                   className={`relative rounded-xl transition-colors duration-150 flex items-center justify-center overflow-visible ${plateClass}`}
                 >
+                  {/* Harmful tiles (Thorn, Spike) carry faint diagonal stripes, so they
+                      differ by pattern as well as colour (colour-blind friendly) */}
+                  {isSanctuary && !stepSim && (cell.type === "ENEMY" || cell.type === "TRAP") && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute inset-0 rounded-xl pointer-events-none"
+                      style={{
+                        backgroundImage:
+                          "repeating-linear-gradient(135deg, rgba(255,255,255,0.07) 0 3px, transparent 3px 8px)",
+                      }}
+                    />
+                  )}
+
                   {/* Restored Blooming Tile Sparkle Accents during Resolution */}
                   {isResolvedInPlayback && isSanctuary && (
                     <span className="absolute top-0.5 left-1 text-[9px] pointer-events-none select-none z-20 animate-pulse">
@@ -936,7 +949,7 @@ export default function GridCanvas({
         {/* SVG Illuminated Energy Trail, Phase Mage Warp Line & Chevron Animations */}
         <svg
           viewBox="0 0 500 500"
-          className="absolute inset-0 w-full h-full pointer-events-none z-20 p-2.5"
+          className="absolute inset-0 w-full h-full pointer-events-none z-20 board-pad"
         >
           <defs>
             <filter
@@ -1530,9 +1543,9 @@ function TileIconWithValue({
         </span>
       )}
       <span
-        className={`absolute -bottom-1.5 -right-2 min-w-[22px] h-[20px] px-1 rounded-full flex items-center justify-center font-mono font-black text-[12px] leading-none border-[1.5px] select-none pointer-events-none ${
-          struck ? "line-through opacity-70" : ""
-        }`}
+        className={`absolute -bottom-1.5 -right-2 min-w-[22px] h-[20px] px-1 flex items-center justify-center font-mono font-black text-[12px] leading-none border-[1.5px] select-none pointer-events-none ${
+          harmful ? "rounded-[4px]" : "rounded-full"
+        } ${struck ? "line-through opacity-70" : ""}`}
         style={
           harmful
             ? { backgroundColor: type === "TRAP" ? "#475569" : "#E11D48", borderColor: type === "TRAP" ? "#CBD5E1" : "#FDA4AF", color: "#FFFFFF" }
@@ -1875,7 +1888,7 @@ function GuideHand({ path }: { path: GridCoord[] }) {
   const times = path.map((_, i) => ((0.45 * i + 0.3) / duration));
   const start = path[0];
   return (
-    <div className="absolute inset-2.5 z-40 pointer-events-none" aria-hidden="true">
+    <div className="absolute board-inset z-40 pointer-events-none" aria-hidden="true">
       <div
         className="absolute -translate-x-1/2 whitespace-nowrap rounded-full bg-amber-300 px-2 py-0.5 text-[11px] font-black text-slate-950 shadow-lg"
         style={{
@@ -1912,7 +1925,7 @@ function GuideHand({ path }: { path: GridCoord[] }) {
 /** One tile's effect, popped over it as the line replays */
 function PlaybackPop({ step }: { step: PathStepSimulation }) {
   return (
-    <div className="absolute inset-2.5 z-40 pointer-events-none" aria-hidden="true">
+    <div className="absolute board-inset z-40 pointer-events-none" aria-hidden="true">
       <StepEffectPop step={step} stepKey={`play-${step.stepIndex}`} />
     </div>
   );

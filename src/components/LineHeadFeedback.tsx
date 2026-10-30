@@ -116,7 +116,7 @@ export default function LineHeadFeedback({
   const bubbleX = Math.max(11, Math.min(89, p.x));
 
   return (
-    <div className="absolute inset-2.5 z-40 pointer-events-none" aria-hidden="true">
+    <div className="absolute board-inset z-40 pointer-events-none" aria-hidden="true">
       <div
         className="absolute -translate-x-1/2 -translate-y-1/2 transition-[left,top] duration-150 ease-out"
         style={{ left: `${bubbleX}%`, top: `${bubbleY}%` }}
