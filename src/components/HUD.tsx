@@ -470,6 +470,8 @@ interface TopHUDProps {
   mode: GameMode;
   /** Hides the mode tabs and Daily-only bits (the app is Run-only) */
   runOnly?: boolean;
+  /** Best stars collected across all Garden Beds (shown in the menu) */
+  totalStars?: number;
   /** Opens the Help menu (lessons and guide) */
   onOpenGuide?: () => void;
   /** Opens the Run leaderboard (Run-only game) */
@@ -519,6 +521,7 @@ interface TopHUDProps {
 export function TopHUD({
   mode,
   runOnly = false,
+  totalStars,
   onOpenGuide,
   hideGoalLine = false,
   onOpenRunLeaderboard,
@@ -772,6 +775,13 @@ export function TopHUD({
                   <X className="w-4 h-4 text-white/80" />
                 </button>
               </div>
+
+              {totalStars !== undefined && (
+                <div className="mx-1 mb-2 rounded-xl bg-amber-400/[0.07] border border-amber-300/20 px-3 py-2 flex items-center justify-between">
+                  <span className="text-[13px] font-semibold text-white/80">Stars collected</span>
+                  <span className="text-[15px] font-mono font-black text-amber-200">⭐ {totalStars}</span>
+                </div>
+              )}
 
               {relicCounts.length > 0 && (
                 <div className="mx-1 mb-2 rounded-xl bg-white/[0.03] border border-white/[0.06] p-2 space-y-1.5">

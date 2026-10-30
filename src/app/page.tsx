@@ -155,7 +155,9 @@ import {
   RUN_LESSONS,
   RUN_LESSONS_DONE_KEY,
 } from "@/lib/runLessons";
+import { loadBestStars, saveBestStars, totalBestStars } from "@/lib/runStars";
 import {
+  getRunBedStars,
   RunClearInfo,
   RunEndReason,
   RunGardenClearModal,
@@ -269,6 +271,11 @@ export default function OneStrokeTacticianPage() {
   const [pendingWalkthrough, setPendingWalkthrough] = useState<boolean>(false);
   /** Set while a committed line is replaying: jumps to its end */
   const skipPlaybackRef = useRef<(() => void) | null>(null);
+  /** Best stars collected across all Garden Beds (this device), for the menu */
+  const [totalStars, setTotalStars] = useState<number>(0);
+  useEffect(() => {
+    setTotalStars(totalBestStars());
+  }, []);
   /** One-line Shop explanation, shown on the first real Shop visit only */
   const [shopIntroVisible, setShopIntroVisible] = useState<boolean>(false);
   /** The best line on this board can't keep pace with the target: nudge Swap */
@@ -1776,7 +1783,20 @@ export default function OneStrokeTacticianPage() {
       legendary,
       relicsAfter,
       lifeBonus: runClearLifeFor(runLogRef.current?.v ?? RUN_LOG_VERSION),
+      ...bedStarsInfo(garden, !practiceStep),
     });
+  };
+
+  /** Saves this bed's stars (not in practice) and reads the Season's bests */
+  const bedStarsInfo = (garden: RunGardenState, save: boolean) => {
+    const stars = getRunBedStars(garden.score, garden.target, garden.strokesLeft);
+    const saved = save ? saveBestStars(garden.gardenIndex, stars) : { best: loadBestStars(), improved: false };
+    setTotalStars(totalBestStars(saved.best));
+    const first = garden.gardenIndex - (garden.gardenIndex % 3);
+    const seasonBestStars: [number, number, number] = [0, 1, 2].map(
+      (k) => saved.best[first + k] ?? 0
+    ) as [number, number, number];
+    return { seasonBestStars, newBestStars: saved.improved };
   };
 
   const handleRunClearContinue = () => {
@@ -1935,6 +1955,7 @@ export default function OneStrokeTacticianPage() {
           legendary: b.legendary,
           relicsAfter: b.relicsAfter,
           lifeBonus: runClearLifeFor(r.log.v),
+          ...bedStarsInfo(b.garden, true),
         });
         setPhase("FLOOR_CLEARED");
       } else {
@@ -2694,6 +2715,7 @@ export default function OneStrokeTacticianPage() {
       <TopHUD
         mode={mode}
         runOnly={RUN_ONLY}
+        totalStars={totalStars}
         isDailyCompanionLocked={mode === "DAILY" && !isInteractiveTutorial}
         dungeon={dungeon}
         currentFloorIndex={currentFloorIndex}

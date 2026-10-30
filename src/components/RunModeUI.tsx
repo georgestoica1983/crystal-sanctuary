@@ -257,6 +257,10 @@ export interface RunClearInfo {
   relicsAfter: RelicId[];
   /** ❤️ Life restored for the next garden (rules v5+) */
   lifeBonus?: number;
+  /** Best stars ever on this Season's Small, Big and Boss beds (this device) */
+  seasonBestStars?: [number, number, number];
+  /** These stars beat the best ever on this bed */
+  newBestStars?: boolean;
 }
 
 const BAG_ORDER = ["ENEMY", "TRAP", "WEAPON", "SHIELD", "POTION", "GOLD"] as const;
@@ -305,7 +309,15 @@ const STAR_HINT: Record<number, string> = {
 };
 
 /** Small → Big → Boss beds of this Season, with the one just cleared */
-function SeasonMap({ season, clearedKind }: { season: number; clearedKind: string }) {
+function SeasonMap({
+  season,
+  clearedKind,
+  bestStars,
+}: {
+  season: number;
+  clearedKind: string;
+  bestStars?: [number, number, number];
+}) {
   const order = ["SMALL", "BIG", "BOSS"] as const;
   const done = order.indexOf(clearedKind as (typeof order)[number]);
   return (
@@ -330,6 +342,11 @@ function SeasonMap({ season, clearedKind }: { season: number; clearedKind: strin
               {i <= done ? "✓" : k === "BOSS" ? "👑" : "🌼"}
             </span>
             {k === "SMALL" ? "Small" : k === "BIG" ? "Big" : "Boss"}
+            {bestStars && (
+              <span className="text-[10px] leading-none tracking-[-0.05em] text-amber-200" aria-label={`best ${bestStars[i]} stars`}>
+                {bestStars[i] > 0 ? "★".repeat(bestStars[i]) + "☆".repeat(3 - bestStars[i]) : "☆☆☆"}
+              </span>
+            )}
           </span>
         </React.Fragment>
       ))}
@@ -397,8 +414,11 @@ export function RunGardenClearModal({
           <div className="text-xs font-mono text-emerald-100/80 mt-1">
             {fmt(info.score)} / {fmt(info.target)}
           </div>
-          <div className="text-[10px] text-emerald-100/55 mt-0.5">{STAR_HINT[stars]}</div>
-          <SeasonMap season={season} clearedKind={kind} />
+          <div className="text-[10px] text-emerald-100/55 mt-0.5">
+            {info.newBestStars ? "✨ New best for this Garden Bed! " : ""}
+            {STAR_HINT[stars]}
+          </div>
+          <SeasonMap season={season} clearedKind={kind} bestStars={info.seasonBestStars} />
         </div>
 
         <div className="rounded-xl border border-amber-300/50 bg-amber-400/10 p-2.5 space-y-1">
