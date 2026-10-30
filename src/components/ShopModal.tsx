@@ -18,12 +18,16 @@ import {
   getRelicSellValue,
   MAX_COMMON_RELICS,
   RELIC_REGISTRY,
+  RUN_INTEREST_MAX,
+  RUN_INTEREST_STEP,
   SHOP_STAT_BOOSTS,
 } from "@/lib/engine";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 
 interface ShopModalProps {
   isOpen: boolean;
+  /** First Shop visit: a one-line explanation under the header */
+  showIntro?: boolean;
   gems: number;
   offers: ShopOffer[];
   soldIds: string[];
@@ -89,6 +93,7 @@ function describeOffer(offer: ShopOffer, isSanctuary: boolean) {
  */
 export default function ShopModal({
   isOpen,
+  showIntro = false,
   gems,
   offers,
   soldIds,
@@ -149,7 +154,7 @@ export default function ShopModal({
                 `${isSanctuary ? "Garden" : "Floor"} ${clearedFloorNumber}/${totalFloors} cleared`}
             </div>
             <h2 className="text-xl font-black uppercase tracking-tight text-fuchsia-200 drop-shadow-[0_0_10px_rgba(217,70,239,0.9)]">
-              Sanctuary Shop
+              {isSanctuary ? "Garden Shop" : "Sanctuary Shop"}
             </h2>
           </div>
           <div className="shrink-0 rounded-xl px-3 py-1.5 border-2 border-amber-300/80 bg-amber-400/10 shadow-[0_0_16px_rgba(250,204,21,0.45)] text-right">
@@ -166,6 +171,17 @@ export default function ShopModal({
             </motion.div>
           </div>
         </div>
+
+        {showIntro && (
+          <motion.div
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="rounded-xl border border-cyan-300/50 bg-cyan-400/10 px-3 py-2 text-[12.5px] leading-snug text-cyan-50"
+          >
+            <b className="text-white">Spend 🌱 Seeds on relics</b> — lasting powers for this Garden Run. Or save them:
+            every {RUN_INTEREST_STEP} you keep earns +1 more after each Garden Bed (up to +{RUN_INTEREST_MAX}).
+          </motion.div>
+        )}
 
         {/* Boss reward */}
         {legendary && (

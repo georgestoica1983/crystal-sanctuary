@@ -184,6 +184,7 @@ const WALKTHROUGH_SKIPPED_KEY = "ost_walkthrough_skipped_v1";
 const THORN_TIP_SEEN_KEY = "ost_thorn_tip_seen_v1";
 /** After this many full score screens, lines 1–3 of a bed show a small card instead */
 const FULL_TALLIES_SEEN_KEY = "ost_full_tallies_seen_v1";
+const SHOP_INTRO_SEEN_KEY = "ost_shop_intro_seen_v1";
 const FULL_TALLIES_BEFORE_COMPACT = 3;
 const THORN_TIP = "🌺 Thorns cost ❤️ Life. Grab ✂️ Shears first to cut one, or 🧤 Gloves to block it.";
 const RUN_LESSONS_PROGRESS_KEY = "ost_run_lessons_progress_v1";
@@ -268,6 +269,8 @@ export default function OneStrokeTacticianPage() {
   const [pendingWalkthrough, setPendingWalkthrough] = useState<boolean>(false);
   /** Set while a committed line is replaying: jumps to its end */
   const skipPlaybackRef = useRef<(() => void) | null>(null);
+  /** One-line Shop explanation, shown on the first real Shop visit only */
+  const [shopIntroVisible, setShopIntroVisible] = useState<boolean>(false);
   /** The best line on this board can't keep pace with the target: nudge Swap */
   const [swapSuggested, setSwapSuggested] = useState<boolean>(false);
   /** Small score card over the meter after lines 1–3 of a bed */
@@ -660,6 +663,23 @@ export default function OneStrokeTacticianPage() {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [swapCheckKey]);
+
+  // First real Shop visit: show the one-line explanation (once per device)
+  useEffect(() => {
+    if (phase !== "SHOP") {
+      setShopIntroVisible(false);
+      return;
+    }
+    if (mode !== "RUN" || practiceStep) return;
+    try {
+      if (!window.localStorage.getItem(SHOP_INTRO_SEEN_KEY)) {
+        window.localStorage.setItem(SHOP_INTRO_SEEN_KEY, "1");
+        setShopIntroVisible(true);
+      }
+    } catch {
+      // Ignore storage errors
+    }
+  }, [phase, mode, practiceStep]);
 
   const handleNotice = useCallback((msg: string) => {
     setRetractNotice(msg);
@@ -3313,6 +3333,7 @@ export default function OneStrokeTacticianPage() {
       <ShopModal
         key={`shop-${currentFloorIndex}`}
         isOpen={phase === "SHOP"}
+        showIntro={shopIntroVisible}
         gems={(pendingPostFloorStats ?? hero).gold}
         offers={shopOffers}
         soldIds={shopSoldIds}
