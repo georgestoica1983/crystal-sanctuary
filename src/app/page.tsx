@@ -277,6 +277,8 @@ export default function OneStrokeTacticianPage() {
   /** Set while a committed line is replaying: jumps to its end */
   const skipPlaybackRef = useRef<(() => void) | null>(null);
   const [looksOpen, setLooksOpen] = useState<boolean>(false);
+  /** Ascension level for new Garden Runs (the picker comes in the next step) */
+  const runAscensionRef = useRef<number>(0);
   const [vibrationOn, setVibrationOn] = useState<boolean>(true);
   const [reduceMotion, setReduceMotion] = useState<boolean>(false);
   useEffect(() => {
@@ -998,15 +1000,17 @@ export default function OneStrokeTacticianPage() {
    * Starts a fresh Run: a new seed, a new Tile Bag and Season 1's Small Garden.
    */
   const startRun = useCallback(
-    (overrideClassId?: HeroClassId, isTrial?: boolean, options?: { practice?: boolean }) => {
+    (overrideClassId?: HeroClassId, isTrial?: boolean, options?: { practice?: boolean; asc?: number }) => {
       const practice = Boolean(options?.practice);
+      // Ascension level: the one passed in, or the last one chosen
+      const asc = practice ? 0 : options?.asc ?? runAscensionRef.current;
       // A new Run (or the Practice Garden) replaces any saved one
       clearRunSave();
       const runSeed = practice
         ? PRACTICE_GARDEN_SEED
         : `run-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
       const classId = practice ? "KNIGHT" : overrideClassId ?? heroClassId;
-      const { bag, ...first } = startRunGarden(runSeed, classId);
+      const { bag, ...first } = startRunGarden(runSeed, classId, RUN_LOG_VERSION, asc);
       const runDungeon: DungeonTheme = {
         seedKey: runSeed,
         dateKey: getTodayDateKey(),
@@ -1023,7 +1027,7 @@ export default function OneStrokeTacticianPage() {
         isTrial ?? (overrideClassId ? false : trialClassFloorActive)
       );
       setRunBag(bag);
-      runLogRef.current = practice ? null : createRunLog(runSeed, classId);
+      runLogRef.current = practice ? null : createRunLog(runSeed, classId, asc);
       runBloomRef.current = null;
       setLessonIndex(null);
       setLessonResult(null);
@@ -1038,6 +1042,9 @@ export default function OneStrokeTacticianPage() {
         setPracticeStep("intro");
       } else {
         setRunGarden(first.state);
+        // The level can change the starting Companion (Ascension 5: 8 Life)
+        setHero(first.hero);
+        setFloorStartHero(first.hero);
         setPracticeStep(null);
       }
     },
@@ -1334,6 +1341,7 @@ export default function OneStrokeTacticianPage() {
         gardenIndex: nextIndex,
         // A resumed older Run keeps its own rules (it replays on the server)
         logVersion: runLogRef.current?.v,
+        asc: runLogRef.current?.asc,
       });
       logRunAction({ k: "l", h: nextClassId });
       // The Run's own rules decide the next garden's Companion (same as its replay)
@@ -1809,6 +1817,7 @@ export default function OneStrokeTacticianPage() {
         relics: activeRelics,
         counters,
         logVersion: runLogRef.current?.v ?? RUN_LOG_VERSION,
+        asc: runLogRef.current?.asc,
       });
     runBloomRef.current = { statsWithPayout, offers };
     setRelicCounters(countersAfter);
@@ -1825,7 +1834,7 @@ export default function OneStrokeTacticianPage() {
       gemsBefore: stats.gold,
       legendary,
       relicsAfter,
-      lifeBonus: runClearLifeFor(runLogRef.current?.v ?? RUN_LOG_VERSION),
+      lifeBonus: runClearLifeFor(runLogRef.current?.v ?? RUN_LOG_VERSION, runLogRef.current?.asc),
       ...bedStarsInfo(garden, !practiceStep),
     });
   };
@@ -2004,7 +2013,7 @@ export default function OneStrokeTacticianPage() {
           gemsBefore: b.afterStroke.gold,
           legendary: b.legendary,
           relicsAfter: b.relicsAfter,
-          lifeBonus: runClearLifeFor(r.log.v),
+          lifeBonus: runClearLifeFor(r.log.v, r.log.asc),
           ...bedStarsInfo(b.garden, true),
         });
         setPhase("FLOOR_CLEARED");

@@ -129,8 +129,8 @@ export function rebuildRunFromSave(raw: unknown): { ok: true; run: RestoredRun }
     const log = parseRunLog(save.log);
     if (!log) return { ok: false, error: "unreadable save" };
 
-    const bag = startRunGarden(log.seed, log.hero, log.v).bag;
-    const run = createRunReplayer(log.seed, log.hero, log.v);
+    const bag = startRunGarden(log.seed, log.hero, log.v, log.asc ?? 0).bag;
+    const run = createRunReplayer(log.seed, log.hero, log.v, log.asc ?? 0);
     const s = run.state;
     const floors: DungeonFloor[] = [];
     const history: FloorHistoryRecord[] = [];
@@ -180,6 +180,7 @@ export function rebuildRunFromSave(raw: unknown): { ok: true; run: RestoredRun }
             relics,
             counters: countersAfter,
             logVersion: log.v,
+            asc: log.asc ?? 0,
           });
           bloom = { garden: s.garden, strokeStartHero: startHero, afterStroke, ...result };
           purchases = 0;

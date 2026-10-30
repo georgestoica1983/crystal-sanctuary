@@ -322,6 +322,10 @@ export interface RunGardenState {
   tileSerial: number; // keeps refilled tile ids unique
   bossRuleId?: BossRuleId;
   bestStars: number;
+  /** Ascension (rules v8+): extra Thorn strength on tiles laid in this garden */
+  thornBonus?: number;
+  /** Lines this garden started with (Ascension 6 Boss gardens have 3) */
+  strokesTotal?: number;
 }
 
 export interface FloorHistoryRecord {

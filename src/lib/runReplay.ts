@@ -61,15 +61,71 @@ export function runModifierFor(logVersion: number): ModifierId {
 /** Lays out the first garden of a Run for a seed and Companion */
 /** Life restored after each cleared garden, from rules v5 (up to max Life) */
 export const RUN_CLEAR_LIFE = 3;
-export const runClearLifeFor = (logVersion: number) => (logVersion >= 5 ? RUN_CLEAR_LIFE : 0);
+export const runClearLifeFor = (logVersion: number, asc = 0) =>
+  logVersion >= 5 ? ascensionRules(runAscensionFor(logVersion, asc)).clearLife : 0;
 
 /** Extra Seeds for clearing a Run's first garden, from rules v6 */
 export const RUN_WELCOME_BONUS = 4;
-export const runWelcomeBonusFor = (logVersion: number, gardenIndex: number) =>
-  logVersion >= 6 && gardenIndex === 0 ? RUN_WELCOME_BONUS : 0;
+export const runWelcomeBonusFor = (logVersion: number, gardenIndex: number, asc = 0) =>
+  logVersion >= 6 && gardenIndex === 0 && ascensionRules(runAscensionFor(logVersion, asc)).welcomeBonus
+    ? RUN_WELCOME_BONUS
+    : 0;
 
 /** Rules v7+: Boss gardens use all eight Boss rules */
 export const runRulesUseAllBosses = (logVersion: number) => logVersion >= 7;
+
+// ── Ascension (rules v8+): harder levels, each adding to the ones below ──
+
+export const RUN_MAX_ASCENSION = 6;
+
+export interface AscensionRules {
+  targetMult: number;
+  welcomeBonus: boolean;
+  /** Base interest cap (relics still raise it) */
+  interestBase: number | undefined;
+  thornBonus: number;
+  weedOuts: number | undefined;
+  /** Starting Life (out of the usual max) */
+  startHp: number | undefined;
+  clearLife: number;
+  bossLines: number | undefined;
+}
+
+export const ASCENSION_LEVELS: Array<{ level: number; icon: string; adds: string }> = [
+  { level: 0, icon: "🌱", adds: "The normal game" },
+  { level: 1, icon: "🌿", adds: "Score targets +25%" },
+  { level: 2, icon: "🌾", adds: "No welcome bonus · interest max +3" },
+  { level: 3, icon: "🌺", adds: "Thorns +1" },
+  { level: 4, icon: "🍃", adds: "2 Swaps per Garden Bed" },
+  { level: 5, icon: "❄️", adds: "Start with 8 ❤️ · +2 ❤️ per cleared bed" },
+  { level: 6, icon: "👑", adds: "Boss Garden Beds give 3 lines" },
+];
+
+/** What a level changes (0 = the normal game); only for rules v8+ logs */
+export function ascensionRules(asc: number): AscensionRules {
+  const a = Math.max(0, Math.min(RUN_MAX_ASCENSION, Math.floor(asc)));
+  return {
+    targetMult: a >= 1 ? 1.25 : 1,
+    welcomeBonus: a < 2,
+    interestBase: a >= 2 ? 3 : undefined,
+    thornBonus: a >= 3 ? 1 : 0,
+    weedOuts: a >= 4 ? 2 : undefined,
+    startHp: a >= 5 ? 8 : undefined,
+    clearLife: a >= 5 ? 2 : RUN_CLEAR_LIFE,
+    bossLines: a >= 6 ? 3 : undefined,
+  };
+}
+
+/** Ascension only exists from rules v8; older logs always play level 0 */
+export const runAscensionFor = (logVersion: number, asc = 0) => (logVersion >= 8 ? asc : 0);
+
+/** The garden-layout part of a level's rules */
+const ascensionGardenParams = (r: AscensionRules) => ({
+  targetMult: r.targetMult,
+  thornBonus: r.thornBonus,
+  weedOuts: r.weedOuts,
+  bossLines: r.bossLines,
+});
 
 /** Rules v3+ introduce tiles gradually in the first gardens */
 export const runRulesUseIntroTiles = (logVersion: number) => logVersion >= 3;
@@ -77,7 +133,8 @@ export const runRulesUseIntroTiles = (logVersion: number) => logVersion >= 3;
 export function startRunGarden(
   runSeed: string,
   classId: HeroClassId,
-  logVersion: number = RUN_LOG_VERSION
+  logVersion: number = RUN_LOG_VERSION,
+  asc = 0
 ): {
   bag: SeedTile[];
   hero: HeroStats;
@@ -87,8 +144,10 @@ export function startRunGarden(
   const bag = generateRunSeedBag(runSeed);
   const base = getInitialHeroStatsForClass(classId);
   // Shears rule: a starting Power counts as one cut
-  const hero =
+  const shearsHero =
     runModifierFor(logVersion) === "SHEARS" ? { ...base, weapon: Math.min(base.weapon, 1) } : base;
+  const rules = ascensionRules(runAscensionFor(logVersion, asc));
+  const hero = rules.startHp !== undefined ? { ...shearsHero, hp: Math.min(shearsHero.hp, rules.startHp) } : shearsHero;
   const first = createRunGarden({
     runSeed,
     bag,
@@ -99,6 +158,7 @@ export function startRunGarden(
     activeRelics: [],
     introTiles: runRulesUseIntroTiles(logVersion),
     allBossRules: runRulesUseAllBosses(logVersion),
+    ...ascensionGardenParams(rules),
   });
   return { bag, hero, ...first };
 }
@@ -136,6 +196,8 @@ export function getRunBloomResult(params: {
   counters?: RelicCounters;
   /** Rules version of the Run's log (defaults to the current one) */
   logVersion?: number;
+  /** Ascension level of the Run (rules v8+) */
+  asc?: number;
 }): {
   payout: ReturnType<typeof getRunClearPayout>;
   legendary: RelicId | null;
@@ -150,7 +212,8 @@ export function getRunBloomResult(params: {
     strokesLeft: garden.strokesLeft,
     gemsHeld: stats.gold,
     relics,
-    welcomeBonus: runWelcomeBonusFor(params.logVersion ?? RUN_LOG_VERSION, garden.gardenIndex),
+    welcomeBonus: runWelcomeBonusFor(params.logVersion ?? RUN_LOG_VERSION, garden.gardenIndex, params.asc),
+    interestBase: ascensionRules(runAscensionFor(params.logVersion ?? RUN_LOG_VERSION, params.asc)).interestBase,
   });
   // Scaling relics owned while the garden bloomed grow
   const countersAfter = growRelicCountersOnBloom(params.counters ?? {}, relics, garden);
@@ -249,14 +312,18 @@ export function createNextRunGarden(params: {
   gardenIndex: number;
   /** Rules version of the Run's log (defaults to the current one) */
   logVersion?: number;
+  /** Ascension level of the Run (rules v8+) */
+  asc?: number;
 }): { hero: HeroStats; floor: DungeonFloor; state: RunGardenState } {
+  const v = params.logVersion ?? RUN_LOG_VERSION;
+  const rules = ascensionRules(runAscensionFor(v, params.asc));
   const hero = getNextFloorHeroStats(
     params.stats,
     params.classId,
     params.relics,
     params.upgrades,
-    runModifierFor(params.logVersion ?? RUN_LOG_VERSION),
-    runClearLifeFor(params.logVersion ?? RUN_LOG_VERSION)
+    runModifierFor(v),
+    runClearLifeFor(v, params.asc)
   );
   const next = createRunGarden({
     runSeed: params.runSeed,
@@ -266,8 +333,9 @@ export function createNextRunGarden(params: {
     hero,
     heroClassId: params.classId,
     activeRelics: params.relics,
-    introTiles: runRulesUseIntroTiles(params.logVersion ?? RUN_LOG_VERSION),
-    allBossRules: runRulesUseAllBosses(params.logVersion ?? RUN_LOG_VERSION),
+    introTiles: runRulesUseIntroTiles(v),
+    allBossRules: runRulesUseAllBosses(v),
+    ...ascensionGardenParams(rules),
   });
   return { hero, ...next };
 }
@@ -313,9 +381,10 @@ export function getRunPathError(
  * v5: clearing a garden restores ❤️ Life (RUN_CLEAR_LIFE) for the next one.
  * v6: the first garden pays a welcome bonus (RUN_WELCOME_BONUS).
  * v7: Boss gardens draw from eight Boss rules instead of four.
+ * v8: Ascension levels (the log's `asc`, 0–6).
  * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 7;
+export const RUN_LOG_VERSION = 8;
 export const RUN_LOG_MIN_VERSION = 2;
 /** Rule set of new Runs (the current version) */
 export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);
@@ -337,6 +406,8 @@ export interface RunActionLog {
   v: number;
   seed: string;
   hero: HeroClassId;
+  /** Ascension level (rules v8+); missing = 0 */
+  asc?: number;
   a: RunLogAction[];
 }
 
@@ -344,8 +415,8 @@ export const packCoord = (c: GridCoord): number => c.row * 5 + c.col;
 export const packCoords = (coords: GridCoord[]): number[] => coords.map(packCoord);
 const unpackCoord = (n: number): GridCoord => ({ row: Math.floor(n / 5), col: n % 5 });
 
-export function createRunLog(seed: string, hero: HeroClassId): RunActionLog {
-  return { v: RUN_LOG_VERSION, seed, hero, a: [] };
+export function createRunLog(seed: string, hero: HeroClassId, asc = 0): RunActionLog {
+  return asc > 0 ? { v: RUN_LOG_VERSION, seed, hero, asc, a: [] } : { v: RUN_LOG_VERSION, seed, hero, a: [] };
 }
 
 // ── Replay ──────────────────────────────────────────────────────────────────
@@ -395,6 +466,12 @@ export function parseRunLog(raw: unknown): RunActionLog | null {
     return null;
   }
   if (!isHeroClass(log.hero)) return null;
+  if (
+    log.asc !== undefined &&
+    (typeof log.asc !== "number" || !Number.isInteger(log.asc) || log.asc < 0 || log.asc > RUN_MAX_ASCENSION || log.v < 8)
+  ) {
+    return null;
+  }
   if (!Array.isArray(log.a) || log.a.length > RUN_LOG_MAX_ACTIONS) return null;
   for (const item of log.a) {
     if (!item || typeof item !== "object") return null;
@@ -439,9 +516,10 @@ export interface RunReplayState {
 export function createRunReplayer(
   runSeed: string,
   heroClassId: HeroClassId,
-  logVersion: number = RUN_LOG_VERSION
+  logVersion: number = RUN_LOG_VERSION,
+  asc = 0
 ) {
-  const first = startRunGarden(runSeed, heroClassId, logVersion);
+  const first = startRunGarden(runSeed, heroClassId, logVersion, asc);
   const modifier = runModifierFor(logVersion);
   const bag = first.bag;
   const s: RunReplayState = {
@@ -506,6 +584,7 @@ export function createRunReplayer(
           relics: s.relics,
           counters: s.counters,
           logVersion,
+          asc,
         });
         s.relics = bloom.relicsAfter;
         s.counters = bloom.countersAfter;
@@ -598,6 +677,7 @@ export function createRunReplayer(
       bag,
       gardenIndex: s.garden.gardenIndex + 1,
       logVersion,
+      asc,
     });
     s.floor = next.floor;
     s.grid = next.floor.grid;
@@ -617,7 +697,7 @@ export function createRunReplayer(
 export function replayRun(raw: unknown): RunReplayResult {
   const log = parseRunLog(raw);
   if (!log) return { ok: false, error: "malformed log", actionIndex: null };
-  const run = createRunReplayer(log.seed, log.hero, log.v);
+  const run = createRunReplayer(log.seed, log.hero, log.v, log.asc ?? 0);
   for (let i = 0; i < log.a.length; i++) {
     const error = run.apply(log.a[i]);
     if (error) return { ok: false, error, actionIndex: i };

@@ -15,6 +15,7 @@ import {
 import {
   createRunReplayer,
   packCoords,
+  parseRunLog,
   replayRun,
   RUN_LOG_VERSION,
   RUN_MODIFIER,
@@ -39,9 +40,9 @@ function check(label: string, ok: boolean, detail = "") {
  * afford, and with full slots sells its oldest relic for a relic on offer.
  * Returns its log and the score it expects from the searched lines' scores.
  */
-function playBotRun(seed: string, hero: HeroClassId, maxGardens: number) {
-  const run = createRunReplayer(seed, hero);
-  const log: RunActionLog = { v: RUN_LOG_VERSION, seed, hero, a: [] };
+function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0) {
+  const run = createRunReplayer(seed, hero, RUN_LOG_VERSION, asc);
+  const log: RunActionLog = asc ? { v: RUN_LOG_VERSION, seed, hero, asc, a: [] } : { v: RUN_LOG_VERSION, seed, hero, a: [] };
   let expected = 0;
   const act = (a: RunLogAction) => {
     const err = run.apply(a);
@@ -270,6 +271,25 @@ refused("lower score than replay", submit(clone(), base.score - 1));
 refused("practice garden seed", submit({ ...clone(), seed: PRACTICE_GARDEN_SEED }));
 refused("missing log", submit(undefined));
 refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
+
+// 5. Ascension: the level is part of the log and changes the rules
+{
+  const a6 = playBotRun("run-1700000000009-asc", "KNIGHT", 4, 6);
+  const replay = replayRun(JSON.parse(JSON.stringify(a6.log)));
+  check(
+    `Ascension 6 bot Run replays (${a6.state.gardensBloomed} gardens)`,
+    replay.ok && replay.score === a6.state.score,
+    replay.ok ? `${replay.score} vs ${a6.state.score}` : replay.error
+  );
+  const asA0 = replayRun({ ...JSON.parse(JSON.stringify(a6.log)), asc: 0 });
+  check(
+    "refused or different: the same actions at Ascension 0",
+    !asA0.ok || asA0.score !== a6.state.score,
+    asA0.ok ? `${asA0.score}` : asA0.error
+  );
+  check("refused: Ascension on an old rules version", !parseRunLog({ v: 7, seed: "x", hero: "KNIGHT", asc: 2, a: [] }));
+  check("refused: Ascension above the top level", !parseRunLog({ v: RUN_LOG_VERSION, seed: "x", hero: "KNIGHT", asc: 9, a: [] }));
+}
 
 console.log(failures ? `\n${failures} check(s) failed` : "\nAll replay checks passed");
 process.exit(failures ? 1 : 0);

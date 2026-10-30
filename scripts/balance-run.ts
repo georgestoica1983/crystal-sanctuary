@@ -10,6 +10,8 @@ const VERSIONS = (process.env.VERSIONS ?? "3,4").split(",").map(Number);
 const SEEDS = Number(process.env.SEEDS ?? 16);
 const BUDGETS = (process.env.BUDGET ?? "20000,600").split(",").map(Number);
 const MAX_GARDENS = Number(process.env.GARDENS ?? 9);
+/** Ascension level to test (rules v8+) */
+const ASC = Number(process.env.ASC ?? 0);
 
 for (const budget of BUDGETS) {
   for (const v of VERSIONS) {
@@ -23,7 +25,7 @@ for (const budget of BUDGETS) {
     // Why Runs ended before MAX_GARDENS: out of lines (short of target) or no safe line left
     const endings = { shortOfTarget: 0, noSafeLine: 0 };
     for (let i = 0; i < SEEDS; i++) {
-      const run = createRunReplayer(`bal-run-${i}`, "KNIGHT", v);
+      const run = createRunReplayer(`bal-run-${i}`, "KNIGHT", v, ASC);
       let lastGarden = -1;
       for (let guard = 0; guard < 400 && run.state.phase !== "OVER"; guard++) {
         const s = run.state;
@@ -78,7 +80,7 @@ for (const budget of BUDGETS) {
       const b = [...a].sort((x, y) => x - y);
       return b[Math.floor(b.length / 2)];
     };
-    console.log(`\n== rules v${v} (${modifier}), budget ${budget}, ${SEEDS} seeds`);
+    console.log(`\n== rules v${v} (${modifier}) A${ASC}, budget ${budget}, ${SEEDS} seeds`);
     console.log(
       `gardens cleared: median ${median(reachedCounts)}, avg ${avg(reachedCounts).toFixed(1)}, ` +
         `cleared all ${MAX_GARDENS}: ${reachedCounts.filter((n) => n >= MAX_GARDENS).length}`

@@ -3021,6 +3021,13 @@ export function getRunSeasonGrowth(season: number): { briar: number; thistle: nu
   return { briar: s - 1, thistle: Math.floor((s - 1) / 2) };
 }
 
+/** A score target scaled for Ascension, kept on a round number */
+export function scaleRunTarget(target: number, mult: number): number {
+  if (mult === 1) return target;
+  const step = target >= 10000 ? 500 : 50;
+  return Math.round((target * mult) / step) * step;
+}
+
 export function getRunClearPayout(params: {
   kind: RunGardenKind;
   strokesLeft: number;
@@ -3028,6 +3035,8 @@ export function getRunClearPayout(params: {
   relics?: RelicId[];
   /** One-off bonus (the first garden of a Run, rules v6+) */
   welcomeBonus?: number;
+  /** Ascension: a lower base interest cap (relics still raise it) */
+  interestBase?: number;
 }): {
   clearReward: number;
   strokeBonus: number;
@@ -3040,13 +3049,17 @@ export function getRunClearPayout(params: {
   const relics = params.relics ?? [];
   const clearReward = RUN_CLEAR_REWARD[params.kind];
   const strokeBonus = Math.max(0, params.strokesLeft) * (relics.includes("SUN_HAT") ? 2 : 1);
-  const interest = getRunInterest(params.gemsHeld, relics);
+  const cap =
+    params.interestBase !== undefined
+      ? getRunInterestCap(relics) - RUN_INTEREST_MAX + params.interestBase
+      : getRunInterestCap(relics);
+  const interest = Math.min(cap, getRunInterest(params.gemsHeld, relics));
   const relicBonus = relics.includes("SEED_PURSE") ? 2 : 0;
   return {
     clearReward,
     strokeBonus,
     interest,
-    interestCap: getRunInterestCap(relics),
+    interestCap: cap,
     relicBonus,
     welcomeBonus: params.welcomeBonus ?? 0,
     total: clearReward + strokeBonus + interest + relicBonus + (params.welcomeBonus ?? 0),
@@ -3083,11 +3096,12 @@ function runTileToCell(
   col: number,
   id: string,
   season: number,
-  bossRuleId?: BossRuleId
+  bossRuleId?: BossRuleId,
+  thornBonus = 0
 ): GridCell {
   const growth = getRunSeasonGrowth(season);
   const bonus =
-    tile.type === "ENEMY" ? growth.briar : tile.type === "TRAP" ? growth.thistle : 0;
+    tile.type === "ENEMY" ? growth.briar + thornBonus : tile.type === "TRAP" ? growth.thistle : 0;
   const cell: GridCell = {
     id,
     row,
@@ -3168,6 +3182,11 @@ export function createRunGarden(params: {
   introTiles?: boolean;
   /** Rules v7+: Boss gardens pick from all eight Boss rules */
   allBossRules?: boolean;
+  /** Ascension (rules v8+): harder targets, stronger Thorns, fewer Swaps / Boss lines */
+  targetMult?: number;
+  thornBonus?: number;
+  weedOuts?: number;
+  bossLines?: number;
 }): { floor: DungeonFloor; state: RunGardenState } {
   const { runSeed, bag, gardenIndex } = params;
   const allowedTypes = params.introTiles ? getRunIntroTileTypes(gardenIndex) : null;
@@ -3208,17 +3227,19 @@ export function createRunGarden(params: {
           if (r === exitCoord.row && c === exitCoord.col) {
             return { id, row: r, col: c, type: "EXIT", value: 0 };
           }
-          return runTileToCell(pile[next++], r, c, id, season, bossRuleId);
+          return runTileToCell(pile[next++], r, c, id, season, bossRuleId, params.thornBonus ?? 0);
         })
       );
       const state: RunGardenState = {
         gardenIndex,
         season,
         kind,
-        target: getRunGardenTarget(season, kind),
+        target: scaleRunTarget(getRunGardenTarget(season, kind), params.targetMult ?? 1),
         score: 0,
-        strokesLeft: RUN_STROKES_PER_GARDEN,
-        weedOutsLeft: RUN_WEEDOUTS_PER_GARDEN,
+        strokesLeft: kind === "BOSS" && params.bossLines ? params.bossLines : RUN_STROKES_PER_GARDEN,
+        strokesTotal: kind === "BOSS" && params.bossLines ? params.bossLines : RUN_STROKES_PER_GARDEN,
+        weedOutsLeft: params.weedOuts ?? RUN_WEEDOUTS_PER_GARDEN,
+        thornBonus: params.thornBonus || undefined,
         drawPile: pile.slice(next),
         discardPile: [],
         reshuffles: 0,
@@ -3295,7 +3316,8 @@ export function refillRunGarden(
       c.col,
       `run-g${state.gardenIndex}-t${serial++}`,
       state.season,
-      state.bossRuleId
+      state.bossRuleId,
+      state.thornBonus ?? 0
     );
   });
   return { grid: nextGrid, state: { ...drawn.state, tileSerial: serial } };
