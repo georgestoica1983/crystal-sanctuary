@@ -664,6 +664,46 @@ export default function OneStrokeTacticianPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [swapCheckKey]);
 
+  // Shop: what each score relic would have added to your best line of the
+  // Garden Bed just cleared (same tiles, same start, relic added)
+  const shopScorePreview = useMemo(() => {
+    if (phase !== "SHOP" || mode !== "RUN") return undefined;
+    const bedNumber = floorHistory[floorHistory.length - 1]?.floorNumber;
+    const bedLines = floorHistory.filter((r) => r.floorNumber === bedNumber);
+    if (bedLines.length === 0) return undefined;
+    const bestIdx = bedLines.reduce((bi, r, i) => ((r.floorScore ?? 0) > (bedLines[bi].floorScore ?? 0) ? i : bi), 0);
+    const best = bedLines[bestIdx];
+    const first = best.steps[0];
+    if (!first) return undefined;
+    const start: HeroStats = {
+      hp: first.hpBefore,
+      maxHp: floorStartHero.maxHp,
+      shield: first.shieldBefore,
+      weapon: first.weaponBefore,
+      gold: first.goldBefore,
+    };
+    const ctx: RelicScoreContext = {
+      counters: relicCounters,
+      strokesLeft: RUN_STROKES_PER_GARDEN - bestIdx,
+    };
+    // Relics that count Seeds held use your purse as it would be after buying
+    const purse = (pendingPostFloorStats ?? hero).gold;
+    const scoreWith = (relics: RelicId[], gold: number) => {
+      const from = { ...start, gold };
+      const sim = simulatePath(best.gridSnapshot, best.path, from, dungeon.modifierId, heroClassId, relics);
+      return calculateFloorScoreBreakdown(sim, from, best.path.length, relics, ctx).total;
+    };
+    const out: Record<string, number> = {};
+    for (const offer of shopOffers) {
+      if (offer.kind !== "RELIC" || !offer.relicId) continue;
+      const cat = RELIC_REGISTRY[offer.relicId]?.category;
+      if (cat !== "CHIPS" && cat !== "MULT" && cat !== "XMULT") continue;
+      const gold = Math.max(0, purse - offer.cost);
+      out[offer.id] = Math.max(0, scoreWith([...activeRelics, offer.relicId], gold) - scoreWith(activeRelics, gold));
+    }
+    return out;
+  }, [phase, mode, floorHistory, floorStartHero.maxHp, relicCounters, dungeon.modifierId, heroClassId, activeRelics, shopOffers, pendingPostFloorStats, hero]);
+
   // First real Shop visit: show the one-line explanation (once per device)
   useEffect(() => {
     if (phase !== "SHOP") {
@@ -3334,6 +3374,7 @@ export default function OneStrokeTacticianPage() {
         key={`shop-${currentFloorIndex}`}
         isOpen={phase === "SHOP"}
         showIntro={shopIntroVisible}
+        scorePreview={shopScorePreview}
         gems={(pendingPostFloorStats ?? hero).gold}
         offers={shopOffers}
         soldIds={shopSoldIds}

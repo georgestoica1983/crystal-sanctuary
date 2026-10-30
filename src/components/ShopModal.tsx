@@ -28,6 +28,8 @@ interface ShopModalProps {
   isOpen: boolean;
   /** First Shop visit: a one-line explanation under the header */
   showIntro?: boolean;
+  /** Relic offer id → extra points it would have added to your best line */
+  scorePreview?: Record<string, number>;
   gems: number;
   offers: ShopOffer[];
   soldIds: string[];
@@ -94,6 +96,7 @@ function describeOffer(offer: ShopOffer, isSanctuary: boolean) {
 export default function ShopModal({
   isOpen,
   showIntro = false,
+  scorePreview,
   gems,
   offers,
   soldIds,
@@ -257,6 +260,17 @@ export default function ShopModal({
                     >
                       {info.tag}
                     </div>
+                    {scorePreview && scorePreview[offer.id] !== undefined && !sold && (
+                      <div
+                        className={`mt-0.5 text-[11px] font-mono font-black ${
+                          scorePreview[offer.id] > 0 ? "text-emerald-300" : "text-white/40"
+                        }`}
+                      >
+                        {scorePreview[offer.id] > 0
+                          ? `≈ +${scorePreview[offer.id].toLocaleString()} on your best line`
+                          : "No boost on your best line"}
+                      </div>
+                    )}
                     <div className="text-[11px] text-zinc-300 leading-snug">
                       {info.description}
                       {blockedBySlots && !sold && (
