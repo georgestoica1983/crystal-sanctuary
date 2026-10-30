@@ -33,6 +33,7 @@ export function RunHudStrip({
   soundOn,
   onToggleSound,
   suggestSwap = false,
+  asc = 0,
 }: {
   garden: RunGardenState;
   previewScore: number | null;
@@ -47,6 +48,8 @@ export function RunHudStrip({
   onToggleSound?: () => void;
   /** The board looks too weak for the target: Swap glows gently */
   suggestSwap?: boolean;
+  /** Ascension level of this Garden Run */
+  asc?: number;
 }) {
   const pct = Math.min(100, (garden.score / garden.target) * 100);
   const previewPct =
@@ -55,7 +58,8 @@ export function RunHudStrip({
       : 0;
   const isBoss = garden.kind === "BOSS";
   const boss = garden.bossRuleId ? BOSS_RULE_REGISTRY[garden.bossRuleId] : null;
-  const strokesUsed = RUN_STROKES_PER_GARDEN - garden.strokesLeft;
+  const strokesTotal = garden.strokesTotal ?? RUN_STROKES_PER_GARDEN;
+  const strokesUsed = strokesTotal - garden.strokesLeft;
   const [bagOpen, setBagOpen] = useState(false);
   return (
     <div
@@ -72,6 +76,11 @@ export function RunHudStrip({
               {boss ? `${boss.icon} ` : ""}
               {getRunGardenKindLabel(garden.kind)}
             </span>
+            {asc > 0 && (
+              <span className="ml-1.5 rounded-md bg-orange-400/15 px-1 py-px text-[10.5px] font-bold text-orange-200" title={`Ascension ${asc}`}>
+                🔥A{asc}
+              </span>
+            )}
           </div>
         </div>
         <div className="shrink-0 text-[12px] text-white/55">
@@ -108,7 +117,7 @@ export function RunHudStrip({
           aria-label={`${garden.strokesLeft} lines left`}
         >
           <span className="hidden min-[360px]:inline">Lines</span>
-          {Array.from({ length: RUN_STROKES_PER_GARDEN }, (_, i) => (
+          {Array.from({ length: strokesTotal }, (_, i) => (
             <span
               key={i}
               className={`w-2.5 h-2.5 rounded-full ${

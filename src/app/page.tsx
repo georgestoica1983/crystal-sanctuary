@@ -161,6 +161,14 @@ import LooksModal from "@/components/LooksModal";
 import { applyReduceMotion, loadReduceMotion, saveReduceMotion } from "@/lib/motionPrefs";
 import { track } from "@/lib/analytics";
 import {
+  ASCENSION_UNLOCK_BED,
+  loadChosenAscension,
+  loadUnlockedAscension,
+  saveChosenAscension,
+  unlockAscensionAfter,
+} from "@/lib/ascension";
+import AscensionPicker from "@/components/AscensionPicker";
+import {
   getRunBedStars,
   RunClearInfo,
   RunEndReason,
@@ -277,6 +285,8 @@ export default function OneStrokeTacticianPage() {
   /** Set while a committed line is replaying: jumps to its end */
   const skipPlaybackRef = useRef<(() => void) | null>(null);
   const [looksOpen, setLooksOpen] = useState<boolean>(false);
+  /** Ascension picker before a new Garden Run (only once a level is unlocked) */
+  const [ascPickerOpen, setAscPickerOpen] = useState<boolean>(false);
   /** Ascension level for new Garden Runs (the picker comes in the next step) */
   const runAscensionRef = useRef<number>(0);
   const [vibrationOn, setVibrationOn] = useState<boolean>(true);
@@ -445,6 +455,8 @@ export default function OneStrokeTacticianPage() {
     // stay available from the Tutorial tab). Resumes an unfinished official
     // Daily visit if there is one.
     if (RUN_ONLY) {
+      // New Garden Runs use the last Ascension level chosen
+      runAscensionRef.current = loadChosenAscension();
       // Continue a Run saved on this device, or start a new one
       resumeSavedRun();
       try {
@@ -1051,6 +1063,12 @@ export default function OneStrokeTacticianPage() {
     [resetRunWithDungeon, heroClassId, trialClassFloorActive]
   );
 
+  /** A new Garden Run: choose the Ascension level first once one is unlocked */
+  const requestNewRun = () => {
+    if (loadUnlockedAscension() > 0) setAscPickerOpen(true);
+    else startRun();
+  };
+
   /** Opens hands-on lesson `index` on a fresh board */
   const startLesson = (index: number) => {
     const next = RUN_LESSONS[index];
@@ -1545,7 +1563,7 @@ export default function OneStrokeTacticianPage() {
     logRunAction({ k: "s", p: packCoords(path) });
     track("line_drawn", {
       bed: garden.gardenIndex,
-      line: RUN_STROKES_PER_GARDEN - garden.strokesLeft + 1,
+      line: (garden.strokesTotal ?? RUN_STROKES_PER_GARDEN) - garden.strokesLeft + 1,
       tiles: path.length - 1,
       score: breakdown.total,
       survived: simResult.survives,
@@ -1639,7 +1657,7 @@ export default function OneStrokeTacticianPage() {
       });
     }
 
-    const strokeNumber = RUN_STROKES_PER_GARDEN - garden.strokesLeft + 1;
+    const strokeNumber = (garden.strokesTotal ?? RUN_STROKES_PER_GARDEN) - garden.strokesLeft + 1;
     const scored: RunGardenState = {
       ...garden,
       score: garden.score + breakdown.total,
@@ -1680,7 +1698,7 @@ export default function OneStrokeTacticianPage() {
     const tallyInfo: typeof tally = {
       breakdown,
       stars: simResult.stars,
-      floorLabel: `Line ${strokeNumber}/${RUN_STROKES_PER_GARDEN} · ${getRunGardenLabel(garden.gardenIndex)}`,
+      floorLabel: `Line ${strokeNumber}/${garden.strokesTotal ?? RUN_STROKES_PER_GARDEN} · ${getRunGardenLabel(garden.gardenIndex)}`,
       runTotalBefore: garden.score,
       bossRuleId: bloomed ? garden.bossRuleId : undefined,
       parPercent: null,
@@ -1854,6 +1872,11 @@ export default function OneStrokeTacticianPage() {
     // Looks earned by playing: new stars or a new Season can unlock some
     if (save) recordBedReached(garden.gardenIndex + 1);
     const unlocked = save ? takeNewUnlocks().map((u) => ({ icon: u.icon, name: u.name })) : [];
+    // Clearing the Season 3 Boss unlocks the next Ascension level
+    if (save && garden.gardenIndex === ASCENSION_UNLOCK_BED) {
+      const level = unlockAscensionAfter(runLogRef.current?.asc ?? 0);
+      if (level !== null) unlocked.push({ icon: "🔥", name: `Ascension ${level}` });
+    }
     const deepestSeason = Math.floor(loadUnlockProgress().highestBed / 3) + 1;
     return { seasonBestStars, newBestStars: saved.improved, unlocked, deepestSeason };
   };
@@ -2855,7 +2878,7 @@ export default function OneStrokeTacticianPage() {
           RUN_ONLY
             ? () => {
                 const inProgress = floorHistory.length > 0 && phase !== "DEFEAT" && !lesson;
-                if (!inProgress || window.confirm("Start a new Garden Run? This one will end.")) startRun();
+                if (!inProgress || window.confirm("Start a new Garden Run? This one will end.")) requestNewRun();
               }
             : undefined
         }
@@ -2982,7 +3005,7 @@ export default function OneStrokeTacticianPage() {
             phase === "DEFEAT" && runOver === null ? (
               <button
                 type="button"
-                onClick={() => startRun()}
+                onClick={() => requestNewRun()}
                 className="w-full max-w-[430px] rounded-xl py-2 bg-emerald-300 text-slate-950 font-mono text-xs font-black"
               >
                 Garden Run over — start a new one
@@ -3010,6 +3033,7 @@ export default function OneStrokeTacticianPage() {
                 soundOn={soundEnabled}
                 onToggleSound={handleToggleSound}
                 suggestSwap={swapSuggested}
+                asc={runLogRef.current?.asc ?? 0}
               />
             )
           )}
@@ -3592,6 +3616,19 @@ export default function OneStrokeTacticianPage() {
 
       {/* Run mode: garden-clear payout and the end-of-run summary */}
       <RunGardenClearModal info={runClear} onContinue={handleRunClearContinue} />
+      <AscensionPicker
+        isOpen={ascPickerOpen}
+        unlocked={ascPickerOpen ? loadUnlockedAscension() : 0}
+        initial={runAscensionRef.current}
+        onStart={(level) => {
+          setAscPickerOpen(false);
+          saveChosenAscension(level);
+          runAscensionRef.current = level;
+          setRunOver(null);
+          startRun(undefined, undefined, { asc: level });
+        }}
+        onClose={() => setAscPickerOpen(false)}
+      />
       <LooksModal
         isOpen={looksOpen}
         cosmetics={cosmetics}
@@ -3610,7 +3647,7 @@ export default function OneStrokeTacticianPage() {
         onOpenLeaderboard={practiceStep ? undefined : () => setIsRunLeaderboardOpen(true)}
         newRunLabel={practiceStep ? "Try the practice again" : undefined}
         onNewRun={() =>
-          practiceStep ? startRun(undefined, undefined, { practice: true }) : startRun()
+          practiceStep ? startRun(undefined, undefined, { practice: true }) : requestNewRun()
         }
         onClose={() => setRunOver(null)}
       />
