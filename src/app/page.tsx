@@ -159,6 +159,7 @@ import { loadBestStars, saveBestStars, totalBestStars } from "@/lib/runStars";
 import { recordBedReached, takeNewUnlocks } from "@/lib/unlocks";
 import LooksModal from "@/components/LooksModal";
 import { applyReduceMotion, loadReduceMotion, saveReduceMotion } from "@/lib/motionPrefs";
+import { track } from "@/lib/analytics";
 import {
   getRunBedStars,
   RunClearInfo,
@@ -190,6 +191,7 @@ const THORN_TIP_SEEN_KEY = "ost_thorn_tip_seen_v1";
 /** After this many full score screens, lines 1–3 of a bed show a small card instead */
 const FULL_TALLIES_SEEN_KEY = "ost_full_tallies_seen_v1";
 const SHOP_INTRO_SEEN_KEY = "ost_shop_intro_seen_v1";
+const LAST_OPEN_KEY = "ost_last_open_v1";
 const FULL_TALLIES_BEFORE_COMPACT = 3;
 const THORN_TIP = "🌺 Thorns cost ❤️ Life. Grab ✂️ Shears first to cut one, or 🧤 Gloves to block it.";
 const RUN_LESSONS_PROGRESS_KEY = "ost_run_lessons_progress_v1";
@@ -455,6 +457,13 @@ export default function OneStrokeTacticianPage() {
         } catch {
           setSeenTileIntros([]);
         }
+        // Anonymous tester stats: first visit or a return (and after how many days)
+        const lastOpen = Number(window.localStorage.getItem(LAST_OPEN_KEY)) || 0;
+        track("app_open", {
+          first_visit: !window.localStorage.getItem(RUN_WELCOME_KEY),
+          days_since_last: lastOpen ? Math.floor((Date.now() - lastOpen) / 86400000) : null,
+        });
+        window.localStorage.setItem(LAST_OPEN_KEY, String(Date.now()));
         // First visit: a short hands-on walkthrough starts right away (Skip leaves it)
         if (!window.localStorage.getItem(RUN_WELCOME_KEY)) {
           window.localStorage.setItem(RUN_WELCOME_KEY, "1");
@@ -1063,6 +1072,7 @@ export default function OneStrokeTacticianPage() {
   useEffect(() => {
     if (!pendingWalkthrough) return;
     setPendingWalkthrough(false);
+    track("walkthrough_start");
     startLesson(0);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingWalkthrough]);
@@ -1184,6 +1194,12 @@ export default function OneStrokeTacticianPage() {
         soldIds: shopSoldIds,
       });
       if (!bought) return;
+      track("shop_buy", {
+        item: offer.relicId ?? offer.stat ?? offer.id,
+        kind: offer.kind,
+        cost: offer.cost,
+        bed: currentFloorIndex,
+      });
       const next = bought.stats;
       setActiveRelics(bought.relics);
       setRunUpgrades(bought.upgrades);
@@ -1297,6 +1313,7 @@ export default function OneStrokeTacticianPage() {
     if (mode === "RUN" && practiceStep) {
       // The Practice Garden ends after its Shop
       setPracticeStep("done");
+      track("walkthrough_done");
       try {
         window.localStorage.setItem(RUN_LESSONS_DONE_KEY, "1");
       } catch {
@@ -1435,6 +1452,9 @@ export default function OneStrokeTacticianPage() {
     clearRunSave();
     const runScore = calculateRunScore(history);
     setFinalScore(runScore);
+    if (!practiceStep) {
+      track("run_over", { reason, bed: garden.gardenIndex, season: garden.season, run_score: runScore });
+    }
     const { record, isNew } = practiceStep
       ? {
           record: { season: 1, gardenIndex: garden.gardenIndex, score: runScore },
@@ -1515,6 +1535,14 @@ export default function OneStrokeTacticianPage() {
     );
     setRelicCounters(countersAfter);
     logRunAction({ k: "s", p: packCoords(path) });
+    track("line_drawn", {
+      bed: garden.gardenIndex,
+      line: RUN_STROKES_PER_GARDEN - garden.strokesLeft + 1,
+      tiles: path.length - 1,
+      score: breakdown.total,
+      survived: simResult.survives,
+      practice: Boolean(practiceStep),
+    });
     const record: FloorHistoryRecord = {
       floorNumber: garden.gardenIndex + 1,
       path,
@@ -1811,6 +1839,9 @@ export default function OneStrokeTacticianPage() {
     const seasonBestStars: [number, number, number] = [0, 1, 2].map(
       (k) => saved.best[first + k] ?? 0
     ) as [number, number, number];
+    if (save) {
+      track("bed_cleared", { bed: garden.gardenIndex, season: garden.season, stars, score: garden.score, target: garden.target, lines_left: garden.strokesLeft });
+    }
     // Looks earned by playing: new stars or a new Season can unlock some
     if (save) recordBedReached(garden.gardenIndex + 1);
     const unlocked = save ? takeNewUnlocks().map((u) => ({ icon: u.icon, name: u.name })) : [];
@@ -3293,6 +3324,7 @@ export default function OneStrokeTacticianPage() {
               }}
               onRestart={() => startLesson(lessonIndex)}
               onLeave={() => {
+                track("walkthrough_skip", { step: (lessonIndex ?? 0) + 1 });
                 try {
                   window.localStorage.setItem(WALKTHROUGH_SKIPPED_KEY, "1");
                 } catch {

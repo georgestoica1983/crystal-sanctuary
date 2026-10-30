@@ -54,6 +54,7 @@ import {
 } from "@/lib/engine";
 import { hasExpansionAccess } from "@/lib/supabase";
 import { getGardenerRank } from "@/lib/unlocks";
+import { FEEDBACK_URL, track } from "@/lib/analytics";
 import EntityIcon from "@/components/EntityIcon";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 
@@ -845,6 +846,21 @@ export function TopHUD({
                   <button type="button" className={menuRow} onClick={() => { setShowRunMenu(false); onOpenRunLeaderboard(); }}>
                     <Trophy className="w-5 h-5 mx-0.5 text-amber-300" /> Leaderboard
                   </button>
+                )}
+                {FEEDBACK_URL && (
+                  <a
+                    href={FEEDBACK_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={menuRow}
+                    onClick={() => {
+                      track("feedback_open");
+                      setShowRunMenu(false);
+                    }}
+                  >
+                    <span className="w-6 text-center" aria-hidden="true">💬</span> Send feedback
+                    <span className="ml-auto text-[12px] text-white/50">2 min</span>
+                  </a>
                 )}
                 <div className="px-3 pt-2 pb-0.5 text-[11px] font-semibold text-white/40">Settings</div>
                 <button type="button" className={menuRow} onClick={onToggleSound}>
