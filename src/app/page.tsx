@@ -657,6 +657,9 @@ export default function OneStrokeTacticianPage() {
   useEffect(() => {
     setSwapSuggested(false);
     if (!swapCheckKey || !runGarden) return;
+    // Very slow phones skip this background search (Hint still works)
+    const nav = navigator as Navigator & { deviceMemory?: number };
+    if ((nav.hardwareConcurrency ?? 4) <= 2 || (nav.deviceMemory ?? 4) <= 1) return;
     let cancelled = false;
     const grid = activeGrid;
     const startHero = floorStartHero;

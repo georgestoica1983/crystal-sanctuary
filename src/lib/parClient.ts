@@ -99,8 +99,34 @@ export function requestFloorPar(
   );
 }
 
-/** The par line itself (used by hints to point at one tile on it). */
-export function requestParLine(
+/** Same board, Companion, rules and relics → the same best line (searches are deterministic) */
+const lineCache = new Map<string, Promise<GridCoord[] | null>>();
+const LINE_CACHE_SIZE = 24;
+const lineKey = (a: FloorSearchArgs) =>
+  JSON.stringify([
+    a.grid.map((row) => row.map((c) => `${c.type}${c.value}`).join(",")),
+    a.startHero,
+    a.modifierId,
+    a.heroClassId,
+    a.activeRelics,
+    a.scoreCtx ?? null,
+  ]);
+
+/**
+ * The par line itself (Hint ghost, Swap check, line compare). Cached, so a
+ * Hint right after the board's Swap check is instant on slow phones.
+ */
+export function requestParLine(args: FloorSearchArgs): Promise<GridCoord[] | null> {
+  const key = lineKey(args);
+  const hit = lineCache.get(key);
+  if (hit) return hit;
+  const promise = searchParLine(args);
+  lineCache.set(key, promise);
+  if (lineCache.size > LINE_CACHE_SIZE) lineCache.delete(lineCache.keys().next().value as string);
+  return promise;
+}
+
+function searchParLine(
   args: FloorSearchArgs
 ): Promise<GridCoord[] | null> {
   return run({ kind: "line", ...args }, () =>
