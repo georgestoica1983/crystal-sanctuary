@@ -866,19 +866,62 @@ export const BOSS_RULE_REGISTRY: Record<BossRuleId, BossRuleDefinition> = {
     icon: "🌑",
     description: "✂️ Shears tiles score half.",
   },
+  FROST: {
+    id: "FROST",
+    name: "The Frost",
+    icon: "❄️",
+    description: "🍓 Berries heal half.",
+  },
+  ACORN_THIEF: {
+    id: "ACORN_THIEF",
+    name: "The Acorn Thief",
+    icon: "🐿️",
+    description: "🌰 Acorns are worth half.",
+  },
+  SPIKE_BLOOM: {
+    id: "SPIKE_BLOOM",
+    name: "Spike Bloom",
+    icon: "🌵",
+    description: "🌰 Acorns worth 5+ turned into Spikes — step on them diagonally ↗.",
+  },
+  EVEN_GARDEN: {
+    id: "EVEN_GARDEN",
+    name: "The Even Garden",
+    icon: "⚖️",
+    description: "Every tile is 4 · Thorns and Spikes are 2.",
+  },
 };
 
-const BOSS_RULE_TARGET: Record<BossRuleId, EntityType> = {
+/** The Even Garden sets every tile to these numbers (Thorns and Spikes lower) */
+const EVEN_GARDEN_VALUE = 4;
+const EVEN_GARDEN_HARM = 2;
+
+/** The first four Boss rules: Runs before rules v7 (and the Daily) only use these */
+export const LEGACY_BOSS_RULES: BossRuleId[] = ["THISTLE_KING", "BRIAR_QUEEN", "DROUGHT", "ECLIPSE"];
+
+const BOSS_RULE_TARGET: Record<BossRuleId, EntityType | "ALL"> = {
   THISTLE_KING: "TRAP",
   BRIAR_QUEEN: "ENEMY",
   DROUGHT: "SHIELD",
   ECLIPSE: "WEAPON",
+  FROST: "POTION",
+  ACORN_THIEF: "GOLD",
+  SPIKE_BLOOM: "GOLD",
+  EVEN_GARDEN: "ALL",
 };
 
 /** One tile with a boss twist baked into its value (unchanged if unaffected) */
 export function bakeBossTile(cell: GridCell, rule: BossRuleId): GridCell {
-  if (cell.type !== BOSS_RULE_TARGET[rule]) return cell;
+  const target = BOSS_RULE_TARGET[rule];
+  if (target === "ALL") {
+    if (cell.type === "HERO" || cell.type === "EXIT" || cell.type === "VOID") return cell;
+    const even = cell.type === "ENEMY" || cell.type === "TRAP" ? EVEN_GARDEN_HARM : EVEN_GARDEN_VALUE;
+    return cell.value === even ? cell : { ...cell, value: even };
+  }
+  if (cell.type !== target) return cell;
   const v = cell.value;
+  if (rule === "SPIKE_BLOOM") return v >= 5 ? { ...cell, type: "TRAP" } : cell;
+  if (rule === "FROST" || rule === "ACORN_THIEF") return { ...cell, value: Math.max(1, Math.floor(v / 2)) };
   const value =
     rule === "THISTLE_KING"
       ? v * 2
@@ -920,7 +963,7 @@ export function applyBossBlinds(
   return floors.map((floor) => {
     if (floor.floorNumber % 3 !== 0 || floor.bossRuleId) return floor;
     const rng = mulberry32(hashStringToSeed(`boss-${seedKey}-f${floor.floorNumber}`));
-    const order = (Object.keys(BOSS_RULE_REGISTRY) as BossRuleId[])
+    const order = [...LEGACY_BOSS_RULES]
       .map((id) => ({ id, k: rng() }))
       .sort((a, b) => a.k - b.k)
       .map((x) => x.id);
@@ -995,6 +1038,15 @@ export const TRAIL_SKINS: TrailSkinOption[] = [
     glowClass: "stroke-purple-600/40 stroke-[8px] blur-sm",
     dashStroke: "#F3E8FF",
     unlockGold: 150,
+  },
+  {
+    // Endless reward (reach Season 9)
+    id: "RAINBOW",
+    name: "Rainbow",
+    primaryStroke: "#F472B6",
+    glowClass: "stroke-pink-400/40 stroke-[8px] blur-sm",
+    dashStroke: "#FDE68A",
+    unlockGold: 0,
   },
 ];
 
@@ -3114,6 +3166,8 @@ export function createRunGarden(params: {
   activeRelics: RelicId[];
   /** Rules v3+: the first gardens only use some tile types */
   introTiles?: boolean;
+  /** Rules v7+: Boss gardens pick from all eight Boss rules */
+  allBossRules?: boolean;
 }): { floor: DungeonFloor; state: RunGardenState } {
   const { runSeed, bag, gardenIndex } = params;
   const allowedTypes = params.introTiles ? getRunIntroTileTypes(gardenIndex) : null;
@@ -3122,7 +3176,10 @@ export function createRunGarden(params: {
     kind === "BOSS"
       ? (() => {
           const rng = mulberry32(hashStringToSeed(`boss-${runSeed}-s${season}`));
-          return (Object.keys(BOSS_RULE_REGISTRY) as BossRuleId[])
+          const pool = params.allBossRules
+            ? (Object.keys(BOSS_RULE_REGISTRY) as BossRuleId[])
+            : LEGACY_BOSS_RULES;
+          return [...pool]
             .map((id) => ({ id, k: rng() }))
             .sort((a, b) => a.k - b.k)
             .map((x) => x.id);

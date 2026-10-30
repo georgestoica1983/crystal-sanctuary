@@ -263,6 +263,8 @@ export interface RunClearInfo {
   newBestStars?: boolean;
   /** Looks unlocked by this clear (companions, line colours, ranks) */
   unlocked?: Array<{ icon: string; name: string }>;
+  /** Deepest Season ever reached on this device (shown in Endless) */
+  deepestSeason?: number;
 }
 
 const BAG_ORDER = ["ENEMY", "TRAP", "WEAPON", "SHIELD", "POTION", "GOLD"] as const;
@@ -421,6 +423,11 @@ export function RunGardenClearModal({
             {STAR_HINT[stars]}
           </div>
           <SeasonMap season={season} clearedKind={kind} bestStars={info.seasonBestStars} />
+          {season > RUN_FINAL_SEASON && (
+            <div className="mt-2 rounded-lg border border-violet-300/40 bg-violet-500/10 px-2.5 py-1 text-[12px] text-violet-100">
+              🌌 Endless · your deepest: <b>Season {Math.max(season, info.deepestSeason ?? season)}</b> — go further!
+            </div>
+          )}
         </div>
 
         <div className="rounded-xl border border-white/10 bg-white/[0.04] p-2.5 space-y-1">

@@ -68,6 +68,9 @@ export const RUN_WELCOME_BONUS = 4;
 export const runWelcomeBonusFor = (logVersion: number, gardenIndex: number) =>
   logVersion >= 6 && gardenIndex === 0 ? RUN_WELCOME_BONUS : 0;
 
+/** Rules v7+: Boss gardens use all eight Boss rules */
+export const runRulesUseAllBosses = (logVersion: number) => logVersion >= 7;
+
 /** Rules v3+ introduce tiles gradually in the first gardens */
 export const runRulesUseIntroTiles = (logVersion: number) => logVersion >= 3;
 
@@ -95,6 +98,7 @@ export function startRunGarden(
     heroClassId: classId,
     activeRelics: [],
     introTiles: runRulesUseIntroTiles(logVersion),
+    allBossRules: runRulesUseAllBosses(logVersion),
   });
   return { bag, hero, ...first };
 }
@@ -263,6 +267,7 @@ export function createNextRunGarden(params: {
     heroClassId: params.classId,
     activeRelics: params.relics,
     introTiles: runRulesUseIntroTiles(params.logVersion ?? RUN_LOG_VERSION),
+    allBossRules: runRulesUseAllBosses(params.logVersion ?? RUN_LOG_VERSION),
   });
   return { hero, ...next };
 }
@@ -307,9 +312,10 @@ export function getRunPathError(
  * v4: ✂️ Shears cut the next Thorn completely (the "SHEARS" rule set).
  * v5: clearing a garden restores ❤️ Life (RUN_CLEAR_LIFE) for the next one.
  * v6: the first garden pays a welcome bonus (RUN_WELCOME_BONUS).
+ * v7: Boss gardens draw from eight Boss rules instead of four.
  * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 6;
+export const RUN_LOG_VERSION = 7;
 export const RUN_LOG_MIN_VERSION = 2;
 /** Rule set of new Runs (the current version) */
 export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);

@@ -128,7 +128,15 @@ export interface RelicDefinition {
 }
 
 /** Boss Garden twists, baked into the board's tile values when generated */
-export type BossRuleId = "THISTLE_KING" | "BRIAR_QUEEN" | "DROUGHT" | "ECLIPSE";
+export type BossRuleId =
+  | "THISTLE_KING"
+  | "BRIAR_QUEEN"
+  | "DROUGHT"
+  | "ECLIPSE"
+  | "FROST"
+  | "ACORN_THIEF"
+  | "SPIKE_BLOOM"
+  | "EVEN_GARDEN";
 
 export interface BossRuleDefinition {
   id: BossRuleId;
@@ -358,7 +366,8 @@ export type TrailSkinId =
   | "CYBER_CYAN"
   | "SOLAR_GOLD"
   | "EMERALD_FLAME"
-  | "PLASMA_VIOLET";
+  | "PLASMA_VIOLET"
+  | "RAINBOW";
 
 export type VisualThemeMode = "SANCTUARY" | "TACTICIAN";
 

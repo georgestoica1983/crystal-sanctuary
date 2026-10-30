@@ -35,11 +35,13 @@ export const UNLOCKS: UnlockItem[] = [
   { id: "t-gold", kind: "TRAIL", target: "SOLAR_GOLD", icon: "☀️", name: "Solar Gold line", need: { threeStar: true }, needText: "A ⭐⭐⭐ Garden Bed" },
   { id: "t-emerald", kind: "TRAIL", target: "EMERALD_FLAME", icon: "🌿", name: "Emerald Flame line", need: { season: 3 }, needText: "Reach Season 3" },
   { id: "t-violet", kind: "TRAIL", target: "PLASMA_VIOLET", icon: "💜", name: "Plasma Violet line", need: { stars: 40 }, needText: "40 ⭐" },
+  { id: "t-rainbow", kind: "TRAIL", target: "RAINBOW", icon: "🌈", name: "Rainbow line", need: { season: 9 }, needText: "Reach Endless (Season 9)" },
   { id: "r-seedling", kind: "RANK", icon: "🌱", name: "Seedling", need: {}, needText: "From the start" },
   { id: "r-sprout", kind: "RANK", icon: "🌿", name: "Sprout", need: { stars: 10 }, needText: "10 ⭐" },
   { id: "r-gardener", kind: "RANK", icon: "🧑‍🌾", name: "Gardener", need: { stars: 25 }, needText: "25 ⭐" },
   { id: "r-head", kind: "RANK", icon: "🏡", name: "Head Gardener", need: { stars: 50 }, needText: "50 ⭐" },
   { id: "r-master", kind: "RANK", icon: "👑", name: "Master of Seasons", need: { season: 9 }, needText: "Clear Season 8" },
+  { id: "r-endless", kind: "RANK", icon: "🌌", name: "Endless Gardener", need: { season: 10 }, needText: "Reach Season 10" },
 ];
 
 const HIGHEST_BED_KEY = "ost_highest_bed_v1";
