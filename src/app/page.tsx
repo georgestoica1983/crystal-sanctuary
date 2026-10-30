@@ -164,6 +164,7 @@ import {
   ASCENSION_UNLOCK_BED,
   loadChosenAscension,
   loadUnlockedAscension,
+  recordAscensionCleared,
   saveChosenAscension,
   unlockAscensionAfter,
 } from "@/lib/ascension";
@@ -1508,6 +1509,7 @@ export default function OneStrokeTacticianPage() {
       gardensCleared: garden.gardenIndex,
       best: record,
       isNewBest: isNew,
+      asc: practiceStep ? 0 : runLogRef.current?.asc ?? 0,
     });
     setRunNoSafeLine(false);
     setWeedOutMode(false);
@@ -1853,6 +1855,7 @@ export default function OneStrokeTacticianPage() {
       legendary,
       relicsAfter,
       lifeBonus: runClearLifeFor(runLogRef.current?.v ?? RUN_LOG_VERSION, runLogRef.current?.asc),
+      asc: practiceStep ? 0 : runLogRef.current?.asc ?? 0,
       ...bedStarsInfo(garden, !practiceStep),
     });
   };
@@ -1874,6 +1877,7 @@ export default function OneStrokeTacticianPage() {
     const unlocked = save ? takeNewUnlocks().map((u) => ({ icon: u.icon, name: u.name })) : [];
     // Clearing the Season 3 Boss unlocks the next Ascension level
     if (save && garden.gardenIndex === ASCENSION_UNLOCK_BED) {
+      recordAscensionCleared(runLogRef.current?.asc ?? 0);
       const level = unlockAscensionAfter(runLogRef.current?.asc ?? 0);
       if (level !== null) unlocked.push({ icon: "🔥", name: `Ascension ${level}` });
     }
@@ -2037,6 +2041,7 @@ export default function OneStrokeTacticianPage() {
           legendary: b.legendary,
           relicsAfter: b.relicsAfter,
           lifeBonus: runClearLifeFor(r.log.v, r.log.asc),
+          asc: r.log.asc ?? 0,
           ...bedStarsInfo(b.garden, true),
         });
         setPhase("FLOOR_CLEARED");

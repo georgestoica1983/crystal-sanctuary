@@ -57,6 +57,7 @@ export async function POST(request: NextRequest) {
         score: verified.score,
         gardenIndex: verified.gardenIndex,
         runSeed: verified.runSeed,
+        asc: verified.asc,
       });
       if (result === "too_fast") {
         return NextResponse.json({ error: "too_fast" }, { status: 429 });

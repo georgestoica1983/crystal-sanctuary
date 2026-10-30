@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { CosmeticPreferences } from "@/types/game";
 import { TRAIL_SKINS } from "@/lib/engine";
 import { getGardenerRank, isUnlocked, loadUnlockProgress, UNLOCKS } from "@/lib/unlocks";
+import { loadBestClearedAscension } from "@/lib/ascension";
 
 /** Pick a companion and line colour earned by playing (looks only) */
 export default function LooksModal({
@@ -63,6 +64,9 @@ export default function LooksModal({
             {rank.icon} {rank.name}
           </span>
           <span className="text-white/60"> · ⭐ {progress.stars}</span>
+          {loadBestClearedAscension() > 0 && (
+            <span className="text-orange-200"> · 🔥A{loadBestClearedAscension()}</span>
+          )}
           {next && <div className="text-[11px] text-white/50 mt-0.5">Next: {next.icon} {next.name} — {next.needText}</div>}
         </div>
 

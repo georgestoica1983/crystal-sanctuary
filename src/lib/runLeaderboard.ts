@@ -10,6 +10,8 @@ export interface RunLeaderboardRow {
   name: string;
   score: number;
   gardenIndex: number;
+  /** Ascension level of that best Run (0 when unknown) */
+  asc?: number;
   updatedAt: string;
   isYou: boolean;
 }

@@ -32,6 +32,9 @@ function Row({ row }: { row: RunLeaderboardRow }) {
       <div className="min-w-0">
         <div className="text-[13px] font-bold text-white truncate">
           {row.name}
+          {!!row.asc && (
+            <span className="ml-1.5 rounded bg-orange-400/15 px-1 text-[10.5px] font-bold text-orange-200">🔥A{row.asc}</span>
+          )}
           {row.isYou && <span className="ml-1 text-[10px] font-mono text-emerald-300">(you)</span>}
         </div>
         <div className="text-[10px] font-mono text-indigo-200/75 truncate">

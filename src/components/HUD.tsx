@@ -54,6 +54,7 @@ import {
 } from "@/lib/engine";
 import { hasExpansionAccess } from "@/lib/supabase";
 import { getGardenerRank } from "@/lib/unlocks";
+import { loadBestClearedAscension } from "@/lib/ascension";
 import { FEEDBACK_URL, track } from "@/lib/analytics";
 import EntityIcon from "@/components/EntityIcon";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
@@ -792,11 +793,20 @@ export function TopHUD({
 
               {totalStars !== undefined && (() => {
                 const { rank, next } = getGardenerRank();
+                const flame = loadBestClearedAscension();
                 return (
                   <div className="mx-1 mb-2 rounded-xl bg-amber-400/[0.07] border border-amber-300/20 px-3 py-2">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-[13px] font-bold text-amber-100">
                         {rank.icon} {rank.name}
+                        {flame > 0 && (
+                          <span
+                            className="ml-1.5 rounded bg-orange-400/15 px-1 text-[11px] text-orange-200"
+                            title={`Season 3 Boss cleared on Ascension ${flame}`}
+                          >
+                            🔥A{flame}
+                          </span>
+                        )}
                       </span>
                       <span className="text-[15px] font-mono font-black text-amber-200">⭐ {totalStars}</span>
                     </div>

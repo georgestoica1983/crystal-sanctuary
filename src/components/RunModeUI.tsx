@@ -274,6 +274,8 @@ export interface RunClearInfo {
   unlocked?: Array<{ icon: string; name: string }>;
   /** Deepest Season ever reached on this device (shown in Endless) */
   deepestSeason?: number;
+  /** Ascension level of this Garden Run */
+  asc?: number;
 }
 
 const BAG_ORDER = ["ENEMY", "TRAP", "WEAPON", "SHIELD", "POTION", "GOLD"] as const;
@@ -408,6 +410,7 @@ export function RunGardenClearModal({
         <div className="text-center">
           <div className="text-[12px] font-semibold text-emerald-300/90">
             {getRunGardenLabel(info.gardenIndex)}
+            {!!info.asc && <span className="ml-1 text-orange-200">· 🔥 Ascension {info.asc}</span>}
           </div>
           <div className="text-2xl font-black text-white">
             Garden Bed cleared! 🌸
@@ -514,6 +517,8 @@ export interface RunOverInfo {
   gardensCleared: number;
   best: { season: number; gardenIndex: number; score: number };
   isNewBest: boolean;
+  /** Ascension level of this Garden Run */
+  asc?: number;
 }
 
 const REASON_COPY: Record<RunEndReason, { title: string; body: string; icon: string }> = {
@@ -580,7 +585,10 @@ export function RunOverModal({
         <div className="rounded-xl border border-white/10 bg-white/[0.04] p-2.5 space-y-1 text-[12px]">
           <div className="flex justify-between">
             <span className="text-zinc-300">Reached</span>
-            <span className="font-black text-emerald-200">{getRunGardenLabel(info.gardenIndex)}</span>
+            <span className="font-black text-emerald-200">
+              {getRunGardenLabel(info.gardenIndex)}
+              {!!info.asc && <span className="ml-1 text-orange-200">· 🔥A{info.asc}</span>}
+            </span>
           </div>
           {info.reason !== "ENDED" && (
             <div className="flex justify-between">

@@ -15,6 +15,8 @@ export interface RunLeaderboardRow {
   name: string;
   score: number;
   gardenIndex: number;
+  /** Ascension level of that best Run */
+  asc: number;
   updatedAt: string;
   isYou: boolean;
 }
@@ -31,6 +33,8 @@ interface DbRow {
   player_name: string;
   best_score: number;
   best_garden_index: number;
+  /** Missing until the 20261030 migration has run */
+  best_asc?: number;
   updated_at: string;
   last_submit_at: string;
   runs_submitted: number;
@@ -59,7 +63,7 @@ export function isPlausibleRun(score: unknown, gardenIndex: unknown): boolean {
 }
 
 export type RunVerification =
-  | { ok: true; score: number; gardenIndex: number; runSeed: string }
+  | { ok: true; score: number; gardenIndex: number; runSeed: string; asc: number }
   | { ok: false; error: string };
 
 /**
@@ -72,7 +76,7 @@ export function verifyRunSubmission(body: {
   log?: unknown;
 }): RunVerification {
   if (!isPlausibleRun(body.score, body.gardenIndex)) return { ok: false, error: "invalid_score" };
-  const log = body.log as { seed?: unknown } | undefined;
+  const log = body.log as { seed?: unknown; asc?: unknown } | undefined;
   if (!log || typeof log !== "object" || typeof log.seed !== "string") {
     return { ok: false, error: "invalid_log" };
   }
@@ -82,7 +86,13 @@ export function verifyRunSubmission(body: {
   if (replay.score !== body.score || replay.score <= 0) {
     return { ok: false, error: "score_mismatch" };
   }
-  return { ok: true, score: replay.score, gardenIndex: replay.gardenIndex, runSeed: log.seed };
+  return {
+    ok: true,
+    score: replay.score,
+    gardenIndex: replay.gardenIndex,
+    runSeed: log.seed,
+    asc: typeof log.asc === "number" ? log.asc : 0,
+  };
 }
 
 /** Top players plus the caller's own row and rank */
@@ -92,7 +102,7 @@ export async function readRunLeaderboard(playerId: string | null): Promise<RunLe
 
   const { data, error, count } = await db
     .from("run_leaderboard")
-    .select("player_id, player_name, best_score, best_garden_index, updated_at", {
+    .select("player_id, player_name, best_score, best_garden_index, best_asc, updated_at", {
       count: "exact",
     })
     .gt("best_score", 0)
@@ -108,6 +118,7 @@ export async function readRunLeaderboard(playerId: string | null): Promise<RunLe
     name: r.player_name,
     score: Number(r.best_score),
     gardenIndex: r.best_garden_index,
+    asc: r.best_asc ?? 0,
     updatedAt: r.updated_at,
     isYou: r.player_id === playerId,
   }));
@@ -116,7 +127,7 @@ export async function readRunLeaderboard(playerId: string | null): Promise<RunLe
   if (!you && playerId) {
     const { data: mine } = await db
       .from("run_leaderboard")
-      .select("player_id, player_name, best_score, best_garden_index, updated_at")
+      .select("player_id, player_name, best_score, best_garden_index, best_asc, updated_at")
       .eq("player_id", playerId)
       .maybeSingle();
     const row = mine as DbRow | null;
@@ -130,6 +141,7 @@ export async function readRunLeaderboard(playerId: string | null): Promise<RunLe
         name: row.player_name,
         score: Number(row.best_score),
         gardenIndex: row.best_garden_index,
+        asc: row.best_asc ?? 0,
         updatedAt: row.updated_at,
         isYou: true,
       };
@@ -151,6 +163,7 @@ export async function submitRunScore(params: {
   score: number;
   gardenIndex: number;
   runSeed: string | null;
+  asc?: number;
 }): Promise<SubmitResult> {
   const db = getSupabaseAdmin();
   if (!db) throw new Error("Supabase admin client is not configured");
@@ -183,6 +196,7 @@ export async function submitRunScore(params: {
     update.best_score = params.score;
     update.best_garden_index = params.gardenIndex;
     update.best_run_seed = params.runSeed;
+    update.best_asc = params.asc ?? 0;
     update.updated_at = now.toISOString();
   }
   const { error } = await db.from("run_leaderboard").upsert(update, { onConflict: "player_id" });

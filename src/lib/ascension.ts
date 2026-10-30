@@ -6,6 +6,7 @@ import { RUN_MAX_ASCENSION } from "@/lib/runReplay";
  */
 const UNLOCKED_KEY = "ost_asc_unlocked_v1";
 const CHOSEN_KEY = "ost_asc_chosen_v1";
+const CLEARED_KEY = "ost_asc_cleared_v1";
 
 /** The Season 3 Boss Garden Bed (0-based run position) */
 export const ASCENSION_UNLOCK_BED = 8;
@@ -39,4 +40,16 @@ export function unlockAscensionAfter(level: number): number | null {
     return null;
   }
   return next;
+}
+
+/** Highest level whose Season 3 Boss has been cleared (0 = none above Normal) */
+export const loadBestClearedAscension = () => read(CLEARED_KEY);
+
+export function recordAscensionCleared(level: number): void {
+  if (level <= loadBestClearedAscension()) return;
+  try {
+    window.localStorage.setItem(CLEARED_KEY, String(level));
+  } catch {
+    // Ignore storage errors
+  }
 }

@@ -13,13 +13,14 @@ Things that are ready in code but wait on a setup step, plus work planned for la
 ## Phase 3 — online and habit (needs a free Supabase account)
 
 - [ ] Online leaderboard with player names, and a share-your-score image.
+  - When setting up Supabase, run **both** migrations in `supabase/migrations/` (the 20261030 one adds the Ascension level column).
 - [ ] Progress tied to an account (stars and unlocks survive a new phone).
 - [ ] Daily board (same seed for everyone) + streak.
 
 ## Phase 4 — depth for players who get hooked
 
-- [ ] More Boss rules (4 today) and a reward for Endless (after Season 8).
-- [ ] Harder start for veterans (Season 3 start / Ascension levels).
+- [x] More Boss rules (now 8) and a reward for Endless (after Season 8).
+- [x] Harder start for veterans: Ascension levels 0–6.
 - [ ] Build depth: remove a tile from the bag, relic synergy tags, companions with a small rule of their own.
 - [ ] More unlocks (one every ~10 ⭐, board themes).
 - [ ] Quick mode (a 3-minute run) — only if testers ask.
