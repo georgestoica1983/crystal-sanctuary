@@ -166,7 +166,7 @@ async function generateWithGemini(params: {
       ? `You MUST select modifierId: "${params.preferredModifier}".`
       : `Choose the most fitting modifierId from: MIRROR_VERTICAL, BLOOD_GOLD, GLASS_ARMOR, MOMENTUM, ORTHOGONAL_ONLY.`;
 
-    const systemPrompt = `You are the level designer for "Crystal Sanctuary", a cozy 5x5 one-line garden puzzle (internally modelled as a path-drawing grid game). Give gardens warm, gentle names and lore.
+    const systemPrompt = `You are the level designer for "Bloomline", a cozy 5x5 one-line garden puzzle (internally modelled as a path-drawing grid game). Give gardens warm, gentle names and lore.
 ${promptInstruction}
 ${modifierConstraint}
 

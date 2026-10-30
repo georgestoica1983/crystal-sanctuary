@@ -989,7 +989,7 @@ export default function OneStrokeTacticianPage() {
       const runDungeon: DungeonTheme = {
         seedKey: runSeed,
         dateKey: getTodayDateKey(),
-        title: "Seasons Run",
+        title: "Garden Run",
         lore: "Season after season the gardens grow wilder. Clear each one before your lines run out.",
         modifierId: runModifierFor(RUN_LOG_VERSION),
         source: "deterministic-fallback",
@@ -1912,7 +1912,7 @@ export default function OneStrokeTacticianPage() {
     const runDungeon: DungeonTheme = {
       seedKey: r.seed,
       dateKey: getTodayDateKey(),
-      title: "Seasons Run",
+      title: "Garden Run",
       lore: "Season after season the gardens grow wilder. Clear each one before your lines run out.",
       modifierId: runModifierFor(r.log.v),
       source: "deterministic-fallback",
@@ -2703,7 +2703,7 @@ export default function OneStrokeTacticianPage() {
         <div className="text-5xl" aria-hidden="true">📱</div>
         <div className="text-lg font-black text-white">Turn your phone upright</div>
         <p className="text-sm text-indigo-100/80 max-w-xs">
-          Crystal Sanctuary is played in portrait so the whole garden fits on screen.
+          Bloomline is played in portrait so the whole garden fits on screen.
         </p>
       </div>
 
@@ -3210,7 +3210,7 @@ export default function OneStrokeTacticianPage() {
                     {isInteractiveTutorial
                       ? activeTutorialStage.stageNumber === TUTORIAL_STAGES.length
                         ? isSanctuary
-                          ? "Entering Daily Crystal Sanctuary..."
+                          ? "Entering Daily Bloomline..."
                           : "Entering Daily Dungeon..."
                         : `Loading Lesson ${
                             activeTutorialStage.stageNumber + 1

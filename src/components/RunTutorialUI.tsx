@@ -335,7 +335,7 @@ export function RunHelpMenu({
         <div className="text-center space-y-0.5">
           <div className="text-3xl">🌸</div>
           <div className="text-lg font-black">
-            {isFirstVisit ? "Welcome to Crystal Sanctuary" : "Help"}
+            {isFirstVisit ? "Welcome to Bloomline" : "Help"}
           </div>
           <p className="text-[12px] text-indigo-100/80">
             {isFirstVisit

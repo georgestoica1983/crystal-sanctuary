@@ -896,7 +896,7 @@ export function TopHUD({
                 : "text-[11px] font-sans font-black tracking-wide uppercase text-white whitespace-nowrap"
             }
           >
-            {isSanctuary ? "Crystal Sanctuary" : "1-Stroke Tactician"}
+            {isSanctuary ? "Bloomline" : "1-Stroke Tactician"}
           </span>
         </div>
 

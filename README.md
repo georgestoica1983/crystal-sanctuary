@@ -1,4 +1,6 @@
-# 1-Stroke Tactician
+# Bloomline
+
+*A one-line garden roguelike: draw one unbroken line to the Exit, clear Garden Bed after Garden Bed, and see how far your Garden Run goes.* (Originally prototyped as "1-Stroke Tactician".)
 
 **Minimalist Path-Drawing Dungeon Auto-Battler (Mobile-First PWA)**
 

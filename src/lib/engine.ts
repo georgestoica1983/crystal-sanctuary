@@ -2826,7 +2826,7 @@ export function generateShareCardAscii(params: {
   const perfectCount = floorHistory.filter(isPerfectFloor).length;
 
   return [
-    `🌸 Crystal Sanctuary · ${dungeon.dateKey}${isPractice ? " (practice)" : ""}`,
+    `🌸 Bloomline · ${dungeon.dateKey}${isPractice ? " (practice)" : ""}`,
     title,
     gardensLine,
     [

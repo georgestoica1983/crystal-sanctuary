@@ -545,7 +545,7 @@ export function SanctuaryModal({
           <div>
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-extrabold uppercase bg-amber-400/20 border border-amber-300/50 text-amber-200">
               <Sparkles className="w-3 h-3 text-amber-300" />
-              Crystal Sanctuary Gallery
+              Bloomline Gallery
             </span>
             <h2 className="text-lg font-sans font-black tracking-tight text-white mt-1">
               Stained-Glass Gem Mosaics
