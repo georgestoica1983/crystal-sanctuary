@@ -260,3 +260,12 @@ svg text,
     display: flex;
   }
 }
+
+/* Reduce motion (menu setting or the phone's own): no pulsing, shaking or bouncing */
+.reduce-motion *,
+.reduce-motion *::before,
+.reduce-motion *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  scroll-behavior: auto !important;
+}

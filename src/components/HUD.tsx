@@ -513,6 +513,11 @@ interface TopHUDProps {
   onSelectTutorialStage?: (stageIdx: number) => void;
   onOpenReferenceManual?: () => void;
   onToggleSound: () => void;
+  /** Settings (Run menu): vibration and reduce motion */
+  vibrationOn?: boolean;
+  onToggleVibration?: () => void;
+  reduceMotion?: boolean;
+  onToggleReduceMotion?: () => void;
   onSwitchMode: (mode: GameMode) => void;
   onSelectHeroClass: (classId: HeroClassId, isFreeTrial?: boolean) => void;
   onSelectCosmetics: (next: CosmeticPreferences) => void;
@@ -558,6 +563,10 @@ export function TopHUD({
   onSelectTutorialStage,
   onOpenReferenceManual,
   onToggleSound,
+  vibrationOn,
+  onToggleVibration,
+  reduceMotion,
+  onToggleReduceMotion,
   onSwitchMode,
   onSelectHeroClass,
   onSelectCosmetics,
@@ -837,6 +846,7 @@ export function TopHUD({
                     <Trophy className="w-5 h-5 mx-0.5 text-amber-300" /> Leaderboard
                   </button>
                 )}
+                <div className="px-3 pt-2 pb-0.5 text-[11px] font-semibold text-white/40">Settings</div>
                 <button type="button" className={menuRow} onClick={onToggleSound}>
                   {soundEnabled ? <Volume2 className="w-5 h-5 mx-0.5 text-white/80" /> : <VolumeX className="w-5 h-5 mx-0.5 text-white/50" />}
                   Sound
@@ -847,6 +857,21 @@ export function TopHUD({
                   Board look
                   <span className="ml-auto text-[12px] text-white/50">{isSanctuarySkin ? "Garden" : "Night"}</span>
                 </button>
+                {onToggleVibration && (
+                  <button type="button" className={menuRow} onClick={onToggleVibration} aria-pressed={vibrationOn}>
+                    <span className="w-6 text-center" aria-hidden="true">📳</span>
+                    Vibration
+                    <span className="ml-auto text-[12px] text-white/50">{vibrationOn ? "On" : "Off"}</span>
+                  </button>
+                )}
+                {onToggleReduceMotion && (
+                  <button type="button" className={menuRow} onClick={onToggleReduceMotion} aria-pressed={reduceMotion}>
+                    <span className="w-6 text-center" aria-hidden="true">🍃</span>
+                    Reduce motion
+                    <span className="ml-auto text-[12px] text-white/50">{reduceMotion ? "On" : "Off"}</span>
+                  </button>
+                )}
+                <div className="px-3 pt-2 pb-0.5 text-[11px] font-semibold text-white/40">Garden Run</div>
                 {onNewRun && (
                   <button type="button" className={menuRow} onClick={() => { setShowRunMenu(false); onNewRun(); }}>
                     <RefreshCw className="w-5 h-5 mx-0.5 text-white/80" /> New Garden Run

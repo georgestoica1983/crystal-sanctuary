@@ -109,7 +109,7 @@ import RunLeaderboardModal from "@/components/RunLeaderboard";
 import { submitRunToLeaderboard } from "@/lib/runLeaderboard";
 import LineMeter from "@/components/LineMeter";
 import LineCompare from "@/components/LineCompare";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import {
   FIRST_LINE_DONE_KEY,
   getLineTier,
@@ -158,6 +158,7 @@ import {
 import { loadBestStars, saveBestStars, totalBestStars } from "@/lib/runStars";
 import { recordBedReached, takeNewUnlocks } from "@/lib/unlocks";
 import LooksModal from "@/components/LooksModal";
+import { applyReduceMotion, loadReduceMotion, saveReduceMotion } from "@/lib/motionPrefs";
 import {
   getRunBedStars,
   RunClearInfo,
@@ -274,6 +275,14 @@ export default function OneStrokeTacticianPage() {
   /** Set while a committed line is replaying: jumps to its end */
   const skipPlaybackRef = useRef<(() => void) | null>(null);
   const [looksOpen, setLooksOpen] = useState<boolean>(false);
+  const [vibrationOn, setVibrationOn] = useState<boolean>(true);
+  const [reduceMotion, setReduceMotion] = useState<boolean>(false);
+  useEffect(() => {
+    setVibrationOn(soundEngine.hapticsEnabled);
+    const rm = loadReduceMotion();
+    applyReduceMotion(rm);
+    setReduceMotion(rm);
+  }, []);
   /** Best stars collected across all Garden Beds (this device), for the menu */
   const [totalStars, setTotalStars] = useState<number>(0);
   useEffect(() => {
@@ -2691,6 +2700,7 @@ export default function OneStrokeTacticianPage() {
   }
 
   return (
+    <MotionConfig reducedMotion={reduceMotion ? "always" : "user"}>
     <main
       className={`h-[100dvh] w-full text-white flex flex-col justify-start items-center gap-1.5 sm:gap-2 [@media(max-height:700px)]:gap-1 overflow-x-hidden overflow-y-auto [&>*]:shrink-0 pt-[max(0.5rem,env(safe-area-inset-top))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] transition-colors duration-500 ${
         isSanctuarySkin
@@ -2781,6 +2791,20 @@ export default function OneStrokeTacticianPage() {
         }
         onOpenGuide={RUN_ONLY ? () => setHelpMenu("help") : undefined}
         onOpenLooks={RUN_ONLY ? () => setLooksOpen(true) : undefined}
+        vibrationOn={vibrationOn}
+        onToggleVibration={() => {
+          const next = !vibrationOn;
+          soundEngine.setHapticsEnabled(next);
+          setVibrationOn(next);
+          if (next) soundEngine.vibrate(20);
+        }}
+        reduceMotion={reduceMotion}
+        onToggleReduceMotion={() => {
+          const next = !reduceMotion;
+          saveReduceMotion(next);
+          applyReduceMotion(next);
+          setReduceMotion(next);
+        }}
         onOpenRunLeaderboard={RUN_ONLY ? () => setIsRunLeaderboardOpen(true) : undefined}
         flashRelics={flashRelics}
         onNewRun={
@@ -3634,5 +3658,6 @@ export default function OneStrokeTacticianPage() {
         }
       />
     </main>
+    </MotionConfig>
   );
 }

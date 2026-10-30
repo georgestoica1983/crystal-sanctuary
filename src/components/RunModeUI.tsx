@@ -151,7 +151,7 @@ export function RunHudStrip({
               : noSafeLine
               ? "bg-lime-400/20 border-lime-300 text-lime-100 animate-pulse"
               : suggestSwap
-              ? "bg-lime-400/10 border-lime-300/70 text-lime-100 shadow-[0_0_12px_rgba(190,242,100,0.35)] animate-pulse"
+              ? "bg-lime-400/10 border-lime-300/70 text-lime-100 shadow-[0_0_12px_rgba(190,242,100,0.35)]"
               : "bg-white/[0.05] border-white/[0.1] text-white/85"
           }`}
         >
@@ -337,7 +337,7 @@ function SeasonMap({
                 i <= done
                   ? "bg-emerald-400/25 border-emerald-300"
                   : i === done + 1
-                  ? "border-white/50 animate-pulse"
+                  ? "border-white/50"
                   : "border-white/15"
               }`}
             >

@@ -770,7 +770,7 @@ export default function GridCanvas({
 
                   {/* Restored Blooming Tile Sparkle Accents during Resolution */}
                   {isResolvedInPlayback && isSanctuary && (
-                    <span className="absolute top-0.5 left-1 text-[9px] pointer-events-none select-none z-20 animate-pulse">
+                    <span className="absolute top-0.5 left-1 text-[9px] pointer-events-none select-none z-20">
                       🌸
                     </span>
                   )}
@@ -1670,7 +1670,7 @@ export function CellGeometricNode({
     case "EXIT": {
       return (
         <div className="relative w-[80%] h-[80%] flex items-center justify-center">
-          <span className="absolute inset-[12%] rounded-full bg-purple-500/25 blur-md animate-pulse" />
+          <span className="absolute inset-[12%] rounded-full bg-purple-500/25 blur-md" />
           <EntityIcon type="EXIT" size="100%" className="relative" />
         </div>
       );
