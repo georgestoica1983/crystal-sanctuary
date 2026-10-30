@@ -156,6 +156,7 @@ import {
   RUN_LESSONS_DONE_KEY,
 } from "@/lib/runLessons";
 import { loadBestStars, saveBestStars, totalBestStars } from "@/lib/runStars";
+import { recordBedReached, takeNewUnlocks } from "@/lib/unlocks";
 import {
   getRunBedStars,
   RunClearInfo,
@@ -1796,7 +1797,10 @@ export default function OneStrokeTacticianPage() {
     const seasonBestStars: [number, number, number] = [0, 1, 2].map(
       (k) => saved.best[first + k] ?? 0
     ) as [number, number, number];
-    return { seasonBestStars, newBestStars: saved.improved };
+    // Looks earned by playing: new stars or a new Season can unlock some
+    if (save) recordBedReached(garden.gardenIndex + 1);
+    const unlocked = save ? takeNewUnlocks().map((u) => ({ icon: u.icon, name: u.name })) : [];
+    return { seasonBestStars, newBestStars: saved.improved, unlocked };
   };
 
   const handleRunClearContinue = () => {

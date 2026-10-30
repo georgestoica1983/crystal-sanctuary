@@ -261,6 +261,8 @@ export interface RunClearInfo {
   seasonBestStars?: [number, number, number];
   /** These stars beat the best ever on this bed */
   newBestStars?: boolean;
+  /** Looks unlocked by this clear (companions, line colours, ranks) */
+  unlocked?: Array<{ icon: string; name: string }>;
 }
 
 const BAG_ORDER = ["ENEMY", "TRAP", "WEAPON", "SHIELD", "POTION", "GOLD"] as const;
@@ -441,6 +443,20 @@ export function RunGardenClearModal({
             {info.gemsBefore} → {info.gemsBefore + info.total} 🌱 Seeds to spend
           </div>
         </div>
+
+        {info.unlocked && info.unlocked.length > 0 && (
+          <motion.div
+            initial={{ scale: 0.7, opacity: 0 }}
+            animate={{ scale: [0.7, 1.08, 1], opacity: 1, transition: { delay: 0.6, duration: 0.45 } }}
+            className="rounded-xl border-2 border-fuchsia-300/70 bg-fuchsia-500/15 px-3 py-2 text-center"
+          >
+            <div className="text-[11px] font-mono font-black uppercase tracking-wider text-fuchsia-200">🎉 Unlocked</div>
+            <div className="mt-0.5 text-[14px] font-black text-white leading-snug">
+              {info.unlocked.map((u) => `${u.icon} ${u.name}`).join(" · ")}
+            </div>
+            <div className="text-[10.5px] text-white/60">Pick it in ☰ → Looks</div>
+          </motion.div>
+        )}
 
         {!!info.lifeBonus && (
           <motion.div
