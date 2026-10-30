@@ -157,6 +157,7 @@ import {
 } from "@/lib/runLessons";
 import { loadBestStars, saveBestStars, totalBestStars } from "@/lib/runStars";
 import { recordBedReached, takeNewUnlocks } from "@/lib/unlocks";
+import LooksModal from "@/components/LooksModal";
 import {
   getRunBedStars,
   RunClearInfo,
@@ -272,6 +273,7 @@ export default function OneStrokeTacticianPage() {
   const [pendingWalkthrough, setPendingWalkthrough] = useState<boolean>(false);
   /** Set while a committed line is replaying: jumps to its end */
   const skipPlaybackRef = useRef<(() => void) | null>(null);
+  const [looksOpen, setLooksOpen] = useState<boolean>(false);
   /** Best stars collected across all Garden Beds (this device), for the menu */
   const [totalStars, setTotalStars] = useState<number>(0);
   useEffect(() => {
@@ -2778,6 +2780,7 @@ export default function OneStrokeTacticianPage() {
           RUN_ONLY ? undefined : () => setIsSanctuaryModalOpen(true)
         }
         onOpenGuide={RUN_ONLY ? () => setHelpMenu("help") : undefined}
+        onOpenLooks={RUN_ONLY ? () => setLooksOpen(true) : undefined}
         onOpenRunLeaderboard={RUN_ONLY ? () => setIsRunLeaderboardOpen(true) : undefined}
         flashRelics={flashRelics}
         onNewRun={
@@ -3520,6 +3523,12 @@ export default function OneStrokeTacticianPage() {
 
       {/* Run mode: garden-clear payout and the end-of-run summary */}
       <RunGardenClearModal info={runClear} onContinue={handleRunClearContinue} />
+      <LooksModal
+        isOpen={looksOpen}
+        cosmetics={cosmetics}
+        onSelect={handleSelectCosmetics}
+        onClose={() => setLooksOpen(false)}
+      />
       <RunLeaderboardModal
         isOpen={isRunLeaderboardOpen}
         refreshKey={leaderboardRefreshKey}

@@ -98,7 +98,10 @@ export default function GridCanvas({
 
   const activeEmblemSymbol = React.useMemo(() => {
     if (isSanctuary) {
-      return heroClassDef.emblem;
+      // A chosen companion also rides the line while it replays
+      return cosmetics?.companionId && cosmetics.companionId !== "CAT"
+        ? companionDef.icon
+        : heroClassDef.emblem;
     }
     if (heroClassId !== "KNIGHT") {
       return heroClassDef.emblem;
@@ -111,6 +114,8 @@ export default function GridCanvas({
     heroClassId,
     heroClassDef.emblem,
     cosmetics?.emblemId,
+    companionDef.icon,
+    cosmetics?.companionId,
   ]);
 
   const activeTrail = React.useMemo(() => {
@@ -899,6 +904,7 @@ export default function GridCanvas({
                       heroClassId={heroClassId}
                       heroSymbol={activeEmblemSymbol}
                       heroAccentColor={heroClassDef.accentColor}
+                      companionEmoji={isSanctuary && cosmetics?.companionId && cosmetics.companionId !== "CAT" ? companionDef.icon : undefined}
                       isSanctuary={isSanctuary}
                       isEnemyNeutralized={isEnemyNeutralized}
                       isResolvedBloomed={isResolvedInPlayback && isSanctuary && !isThornHurt}
@@ -1567,6 +1573,7 @@ export function CellGeometricNode({
   isEnemyNeutralized = false,
   isResolvedBloomed = false,
   isThornWilted = false,
+  companionEmoji,
   hideHero,
 }: {
   cell: GridCell;
@@ -1579,6 +1586,8 @@ export function CellGeometricNode({
   isResolvedBloomed?: boolean;
   /** The line took Life from this Thorn */
   isThornWilted?: boolean;
+  /** A chosen companion (Otter, Butterfly, Fox) drawn on the home tile */
+  companionEmoji?: string;
   hideHero?: boolean;
   isPortalReady?: boolean;
 }) {
@@ -1639,6 +1648,11 @@ export function CellGeometricNode({
             />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            {companionEmoji ? (
+              <span className="text-[min(7cqw,28px)] leading-none drop-shadow-[0_0_6px_rgba(253,224,71,0.7)]" aria-hidden="true">
+                {companionEmoji}
+              </span>
+            ) : (
             <IconComponent
               className={`w-[44%] h-[44%] ${
                 isSanctuary
@@ -1647,6 +1661,7 @@ export function CellGeometricNode({
               }`}
               strokeWidth={2.5}
             />
+            )}
           </div>
         </div>
       );

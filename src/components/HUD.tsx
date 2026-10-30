@@ -474,6 +474,8 @@ interface TopHUDProps {
   totalStars?: number;
   /** Opens the Help menu (lessons and guide) */
   onOpenGuide?: () => void;
+  /** Companion and line colour picker (looks earned by playing) */
+  onOpenLooks?: () => void;
   /** Opens the Run leaderboard (Run-only game) */
   onOpenRunLeaderboard?: () => void;
   /** Run-only menu actions */
@@ -523,6 +525,7 @@ export function TopHUD({
   runOnly = false,
   totalStars,
   onOpenGuide,
+  onOpenLooks,
   hideGoalLine = false,
   onOpenRunLeaderboard,
   onNewRun,
@@ -805,6 +808,12 @@ export function TopHUD({
               )}
 
               <div className="space-y-0.5">
+                {onOpenLooks && (
+                  <button type="button" className={menuRow} onClick={() => { setShowRunMenu(false); onOpenLooks(); }}>
+                    <span className="w-6 text-center" aria-hidden="true">🎨</span> Looks
+                    <span className="ml-auto text-[12px] text-white/50">Companion · line</span>
+                  </button>
+                )}
                 {onOpenGuide && (
                   <button type="button" className={menuRow} onClick={() => { setShowRunMenu(false); onOpenGuide(); }}>
                     <span className="w-6 text-center" aria-hidden="true">❓</span> How to play
