@@ -1987,10 +1987,15 @@ export default function OneStrokeTacticianPage() {
   ]);
 
   /**
-   * Hint: glows one tile that lies on the par line for 5 seconds, so the
-   * player learns where a great line goes without being handed the route.
+   * Hint: shows the best line on the board as a ghost (with a guiding finger)
+   * until the board changes.
    */
   const hintPendingRef = useRef(false);
+  /** Run: the full best line shown as a ghost after a Hint */
+  const [hintLine, setHintLine] = useState<GridCoord[] | null>(null);
+  useEffect(() => {
+    setHintLine(null);
+  }, [activeGrid]);
   const latestGridRef = useRef(activeGrid);
   latestGridRef.current = activeGrid;
   const handleRequestHint = useCallback(() => {
@@ -2029,38 +2034,12 @@ export default function OneStrokeTacticianPage() {
         );
         return;
       }
-      // If the drawn line follows the winning route so far, light the next 3
-      // steps after it; otherwise light the first 3 steps from the Companion.
-      let shared = 0;
-      while (
-        shared < drawnPath.length &&
-        shared < route.length &&
-        isSameCoord(drawnPath[shared], route[shared])
-      ) {
-        shared++;
-      }
-      const onRoute = drawnPath.length > 1 && shared === drawnPath.length;
-      const from = onRoute ? drawnPath.length : 1;
-      const nextSteps = route.slice(from, from + 3);
-      if (nextSteps.length === 0) {
-        handleNotice("You're already on a great line — head for the Exit.");
-        return;
-      }
-
+      // Show the whole best line as a ghost to trace (it stays until the board changes)
       setHintsRemaining((prev) => Math.max(0, prev - 1));
-      setHintCoords(nextSteps);
+      setDrawnPath([]);
+      setHintLine(route);
       soundEngine.playHintReveal();
-      handleNotice(
-        onRoute
-          ? "Follow the glowing steps 1 → 2 → 3."
-          : drawnPath.length > 1
-          ? "A winning line starts here — clear your line and follow 1 → 2 → 3."
-          : "Follow the glowing steps 1 → 2 → 3 from your Companion."
-      );
-      const timerId = window.setTimeout(() => {
-        setHintCoords([]);
-      }, 5000);
-      resolutionTimersRef.current.push(timerId);
+      handleNotice("Here's a great line — trace it, or use it as a guide for your own.");
     };
 
     requestParLine({
@@ -3074,6 +3053,8 @@ export default function OneStrokeTacticianPage() {
                     : undefined
                   : isInteractiveTutorial
                   ? activeTutorialStage.ghostGuidePath
+                  : hintLine && phase === "PLANNING"
+                  ? hintLine
                   : undefined
               }
               cosmetics={cosmetics}
