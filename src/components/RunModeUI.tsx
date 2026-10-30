@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { motion } from "framer-motion";
+import EntityIcon from "@/components/EntityIcon";
 import { GridCell, GridCoord, RelicId, RunGardenState } from "@/types/game";
 import {
   BOSS_RULE_REGISTRY,
@@ -55,6 +56,7 @@ export function RunHudStrip({
   const isBoss = garden.kind === "BOSS";
   const boss = garden.bossRuleId ? BOSS_RULE_REGISTRY[garden.bossRuleId] : null;
   const strokesUsed = RUN_STROKES_PER_GARDEN - garden.strokesLeft;
+  const [bagOpen, setBagOpen] = useState(false);
   return (
     <div
       className={`w-full max-w-[430px] min-w-0 rounded-xl px-3 pt-2 pb-1.5 [@media(max-height:640px)]:pt-1.5 [@media(max-height:640px)]:pb-1 border space-y-1.5 [@media(max-height:640px)]:space-y-1 bg-white/[0.04] ${
@@ -105,7 +107,7 @@ export function RunHudStrip({
           className="flex items-center gap-1.5 text-[12px] text-white/55"
           aria-label={`${garden.strokesLeft} lines left`}
         >
-          <span>Lines</span>
+          <span className="hidden min-[360px]:inline">Lines</span>
           {Array.from({ length: RUN_STROKES_PER_GARDEN }, (_, i) => (
             <span
               key={i}
@@ -117,6 +119,17 @@ export function RunHudStrip({
           <span className="ml-0.5 font-mono font-black text-white/85">{garden.strokesLeft}</span>
         </div>
         <div className="flex items-center gap-1.5 shrink-0">
+        <button
+          type="button"
+          onClick={() => setBagOpen((v) => !v)}
+          aria-expanded={bagOpen}
+          aria-label="Tiles left in the bag"
+          className={`h-8 px-2 rounded-lg border text-[12px] font-semibold leading-none active:scale-95 ${
+            bagOpen ? "bg-white/15 border-white/30 text-white" : "border-white/[0.1] bg-white/[0.05] text-white/85"
+          }`}
+        >
+          <span aria-hidden="true">🎒</span> {garden.drawPile.length}
+        </button>
         {onToggleSound && (
           <button
             type="button"
@@ -147,6 +160,8 @@ export function RunHudStrip({
         </div>
       </div>
       )}
+
+      {bagOpen && !weedOutActive && <BagPanel garden={garden} />}
 
       {weedOutActive && (
         <div className="flex items-center gap-1.5 h-8">
@@ -242,6 +257,37 @@ export interface RunClearInfo {
   relicsAfter: RelicId[];
   /** ❤️ Life restored for the next garden (rules v5+) */
   lifeBonus?: number;
+}
+
+const BAG_ORDER = ["ENEMY", "TRAP", "WEAPON", "SHIELD", "POTION", "GOLD"] as const;
+
+/** What's still in the Tile Bag: the tiles that will refill the board next */
+function BagPanel({ garden }: { garden: RunGardenState }) {
+  const counts = new Map<string, number>();
+  for (const t of garden.drawPile) counts.set(t.type, (counts.get(t.type) ?? 0) + 1);
+  const shown = BAG_ORDER.filter((t) => (counts.get(t) ?? 0) > 0);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -4 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="rounded-lg border border-white/10 bg-black/25 px-2.5 py-1.5"
+    >
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        {shown.map((t) => (
+          <span key={t} className="flex items-center gap-1 text-[12px] font-mono font-black text-white/90">
+            <EntityIcon type={t} size={16} />
+            {counts.get(t)}
+          </span>
+        ))}
+        {shown.length === 0 && <span className="text-[11px] text-white/60">The bag is empty.</span>}
+      </div>
+      <div className="mt-1 text-[10.5px] leading-snug text-white/50">
+        Next tiles to refill the board.
+        {garden.discardPile.length > 0 &&
+          ` Then your ${garden.discardPile.length} used tiles get shuffled back in.`}
+      </div>
+    </motion.div>
+  );
 }
 
 /**
