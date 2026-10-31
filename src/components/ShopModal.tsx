@@ -36,11 +36,12 @@ import {
   summarizeBuild,
 } from "@/lib/relicTags";
 import RelicIcon from "@/components/RelicIcon";
+import { artify } from "@/components/ArtText";
 
 /** Small build-theme chip (🌺 Thorns) */
 function TagChip({ tag }: { tag: RelicTag }) {
   const info = RELIC_TAG_INFO[tag];
-  return (
+  return artify(
     <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 ${info.className}`}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={themeArt(tag)} alt="" aria-hidden="true" draggable={false} className="h-3.5 w-3.5 object-contain" />
@@ -176,7 +177,7 @@ export default function ShopModal({
   const nextBoss = nextBossRuleId ? BOSS_RULE_REGISTRY[nextBossRuleId] : null;
   const legendary = legendaryAward ? RELIC_REGISTRY[legendaryAward] : null;
 
-  return (
+  return artify(
     <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 overflow-y-auto select-none">
       <motion.div
         initial={{ opacity: 0, y: 24, scale: 0.96 }}
@@ -256,7 +257,7 @@ export default function ShopModal({
               const blockedBySlots = offer.kind === "RELIC" && slotsFull;
               const affordable = gems >= offer.cost;
               const disabled = sold || blockedBySlots || !affordable;
-              return (
+              return artify(
                 <motion.button
                   key={offer.id}
                   type="button"
@@ -322,7 +323,7 @@ export default function ShopModal({
                       const completes = relicSets
                         ? progress.filter((p) => p.have < RELIC_SET_SIZE && p.after >= RELIC_SET_SIZE)
                         : [];
-                      return (
+                      return artify(
                         <div className="text-[11px] font-semibold text-lime-200">
                           ✓ Fits your build ·{" "}
                           {progress
@@ -395,7 +396,7 @@ export default function ShopModal({
               const id = commonOwned[i];
               const relic = id ? getRelicDisplay(RELIC_REGISTRY[id], isSanctuary) : null;
               const selected = Boolean(id) && id === selectedSlotRelic;
-              return (
+              return artify(
                 <button
                   key={i}
                   type="button"

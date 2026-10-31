@@ -4,6 +4,7 @@ import React from "react";
 import { GridCell, GridCoord } from "@/types/game";
 import { ENTITY_COLORS } from "@/components/EntityIcon";
 import { getLineTier } from "@/lib/lineTiers";
+import { artify } from "@/components/ArtText";
 
 /** Tiny picture of a board with a line drawn over it */
 export function MiniBoard({
@@ -20,7 +21,7 @@ export function MiniBoard({
   const cell = 20;
   const center = (c: GridCoord) => `${c.col * cell + cell / 2},${c.row * cell + cell / 2}`;
   const onPath = new Set(path.map((c) => `${c.row},${c.col}`));
-  return (
+  return artify(
     <svg viewBox="0 0 100 100" width={size} height={size} role="img" aria-label={`A ${path.length}-tile line`}>
       {grid.map((row, r) =>
         row.map((c, col) =>
@@ -81,7 +82,7 @@ export default function LineCompare({
   const bestTier = bestPath ? getLineTier(bestPath.length) : null;
   const ratio =
     bestScore && yourScore > 0 ? Math.round((bestScore / yourScore) * 10) / 10 : null;
-  return (
+  return artify(
     <div className="rounded-xl border border-white/10 bg-white/[0.04] p-2 space-y-1.5">
       <div className="grid grid-cols-2 gap-2">
         <figure className="flex flex-col items-center gap-0.5">

@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { getLineTier, getNextLineTier, LINE_TIERS } from "@/lib/lineTiers";
+import { artify } from "@/components/ArtText";
 
 const fmt = (n: number) => Math.round(n).toLocaleString();
 
@@ -107,7 +108,7 @@ export default function LineMeter({
           {LINE_TIERS.slice(1).map((t, i) => {
             const lower = LINE_TIERS[i].minTiles;
             const filled = Math.max(0, Math.min(1, (tiles - lower) / (t.minTiles - lower)));
-            return (
+            return artify(
               <span key={t.name} className="h-full flex-1 border-r border-black/40 last:border-0">
                 <span
                   className="block h-full transition-all duration-200"
@@ -124,7 +125,7 @@ export default function LineMeter({
     );
   }
 
-  return (
+  return artify(
     <div
       className="relative w-full max-w-[430px] min-w-0 h-[64px] rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-1.5 flex flex-col justify-center"
       aria-live="polite"

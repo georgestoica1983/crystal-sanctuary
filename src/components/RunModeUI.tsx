@@ -19,6 +19,7 @@ import {
 } from "@/lib/engine";
 import RelicIcon from "@/components/RelicIcon";
 import { soundEngine } from "@/lib/audio";
+import { artify } from "@/components/ArtText";
 
 const fmt = (n: number) => Math.round(n).toLocaleString();
 
@@ -66,7 +67,7 @@ export function RunHudStrip({
   const strokesTotal = garden.strokesTotal ?? RUN_STROKES_PER_GARDEN;
   const strokesUsed = strokesTotal - garden.strokesLeft;
   const [bagOpen, setBagOpen] = useState(false);
-  return (
+  return artify(
     <div
       className={`w-full max-w-[430px] min-w-0 rounded-xl px-3 pt-2 pb-1.5 [@media(max-height:640px)]:pt-1.5 [@media(max-height:640px)]:pb-1 border space-y-1.5 [@media(max-height:640px)]:space-y-1 bg-white/[0.04] ${
         isBoss ? "border-rose-300/40" : "border-white/[0.07]"
@@ -216,7 +217,7 @@ export function RunWeedOutOverlay({
 }) {
   const isSelected = (r: number, c: number) =>
     selected.some((s) => s.row === r && s.col === c);
-  return (
+  return artify(
     <div className="absolute inset-0 z-30 flex flex-col">
       <div className="relative flex-1 rounded-2xl p-2.5 bg-lime-950/35 ring-2 ring-lime-300/70">
         <div className="grid grid-cols-5 grid-rows-5 gap-2 w-full h-full">
@@ -224,7 +225,7 @@ export function RunWeedOutOverlay({
             row.map((cell, c) => {
               const locked = cell.type === "HERO" || cell.type === "EXIT" || cell.type === "VOID";
               const on = isSelected(r, c);
-              return (
+              return artify(
                 <button
                   key={cell.id}
                   type="button"
@@ -292,7 +293,7 @@ function BagPanel({ garden, prunedCount = 0 }: { garden: RunGardenState; prunedC
   const counts = new Map<string, number>();
   for (const t of garden.drawPile) counts.set(t.type, (counts.get(t.type) ?? 0) + 1);
   const shown = BAG_ORDER.filter((t) => (counts.get(t) ?? 0) > 0);
-  return (
+  return artify(
     <motion.div
       initial={{ opacity: 0, y: -4 }}
       animate={{ opacity: 1, y: 0 }}
@@ -343,7 +344,7 @@ function SeasonMap({
 }) {
   const order = ["SMALL", "BIG", "BOSS"] as const;
   const done = order.indexOf(clearedKind as (typeof order)[number]);
-  return (
+  return artify(
     <div className="mt-2.5 flex items-center justify-center gap-1" aria-label={`Season ${season} map`}>
       {order.map((k, i) => (
         <React.Fragment key={k}>
@@ -416,7 +417,7 @@ export function RunGardenClearModal({
     ...(info.relicBonus ? [{ label: "👛 Seed Purse", value: info.relicBonus }] : []),
     ...(info.welcomeBonus ? [{ label: "🎁 Welcome bonus", value: info.welcomeBonus }] : []),
   ];
-  return (
+  return artify(
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3">
       <motion.div
         initial={{ scale: 0.85, opacity: 0 }}
@@ -598,7 +599,7 @@ export function RunOverModal({
         ? `So close — just ${fmt(shortBy)} points short. One longer line would have made it.`
         : `${fmt(shortBy)} points short. Longer lines multiply your score — and score relics from the Shop push it further.`
       : copy.body;
-  return (
+  return artify(
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3">
       <motion.div
         initial={{ y: 20, opacity: 0 }}

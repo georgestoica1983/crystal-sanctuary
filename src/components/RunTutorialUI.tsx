@@ -11,6 +11,7 @@ import {
   MAX_COMMON_RELICS,
 } from "@/lib/engine";
 import { tileArt } from "@/lib/art";
+import { artify } from "@/components/ArtText";
 
 /** Lesson card above the board: what you learn, what to do, live goal check */
 export function RunLessonCoach({
@@ -24,7 +25,7 @@ export function RunLessonCoach({
   total: number;
   status: LessonGoalStatus | null;
 }) {
-  return (
+  return artify(
     <div className="w-full max-w-[430px] min-w-0 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 space-y-2">
       <div className="flex items-center justify-between gap-2">
         <div className="text-[12px] font-semibold text-white/55 flex items-center gap-1.5">
@@ -77,7 +78,7 @@ export function RunLessonControls({
 }) {
   const btn =
     "h-11 px-1.5 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[12px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-40 whitespace-nowrap";
-  return (
+  return artify(
     <div className="w-full max-w-[430px] grid grid-cols-4 gap-1.5">
       <button type="button" disabled={disabled} onClick={onClear} className={btn}>
         Clear<span className="hidden min-[360px]:inline"> line</span>
@@ -121,7 +122,7 @@ export function RunLessonResult({
   onRetry: () => void;
 }) {
   if (!info) return null;
-  return (
+  return artify(
     <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-[2px] flex items-end sm:items-center justify-center p-3">
       <motion.div
         initial={{ y: 30, opacity: 0 }}
@@ -240,7 +241,7 @@ export function PracticeCoach({
   // Over the payout and Shop screens the card sits at the top (their buttons
   // are at the bottom); on the board it is part of the page, below the controls
   const atTop = step === "bloom" || step === "shop";
-  return (
+  return artify(
     <div
       className={
         isModal
@@ -326,7 +327,7 @@ export function RunHelpMenu({
   const canResume = lessonsProgress > 0 && lessonsProgress < totalLessons;
   const option =
     "w-full text-left rounded-xl border p-3 transition active:scale-[0.98] space-y-0.5";
-  return (
+  return artify(
     <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-3">
       <motion.div
         initial={{ scale: 0.92, opacity: 0 }}

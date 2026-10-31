@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { HeroClassId } from "@/types/game";
 import { TutorialStageConfig } from "@/lib/tutorial";
+import { artify } from "@/components/ArtText";
 
 interface TutorialCoachProps {
   currentStage: TutorialStageConfig;
@@ -99,7 +100,7 @@ export default function TutorialCoach({
       ? COMPANIONS_SHOWCASE.find((c) => c.id === activeHeroClassId)?.icon ?? "🐱"
       : companionAvatars[stageIndex] ?? "🐱";
 
-  return (
+  return artify(
     <div className="w-full max-w-[430px] min-w-0 mx-auto select-none space-y-1.5">
       {/* Companion Speech Bubble Container */}
       <div
@@ -198,7 +199,7 @@ export default function TutorialCoach({
             <div className="grid grid-cols-4 gap-1">
               {COMPANIONS_SHOWCASE.map((comp) => {
                 const isSelected = activeHeroClassId === comp.id;
-                return (
+                return artify(
                   <button
                     key={comp.id}
                     type="button"
@@ -263,7 +264,7 @@ export default function TutorialCoach({
           {Array.from({ length: totalStages }, (_, i) => {
             const isCurrent = i === stageIndex;
             const isCompleted = i < stageIndex;
-            return (
+            return artify(
               <button
                 key={i}
                 type="button"

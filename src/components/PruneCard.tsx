@@ -4,6 +4,7 @@ import React, { useMemo, useState } from "react";
 import { EntityType, SeedTile } from "@/types/game";
 import EntityIcon from "@/components/EntityIcon";
 import { RUN_BAG_MIN_SIZE, RUN_PRUNE_COST } from "@/lib/runReplay";
+import { artify } from "@/components/ArtText";
 
 const PRUNE_ORDER: EntityType[] = ["ENEMY", "TRAP", "WEAPON", "SHIELD", "POTION", "GOLD"];
 export const TILE_NAMES: Partial<Record<EntityType, string>> = {
@@ -67,7 +68,7 @@ export default function PruneCard({
     ? `Your bag is at its smallest (${RUN_BAG_MIN_SIZE} tiles).`
     : `Take one tile out of your bag for the rest of the run · ${bag.length} tiles`;
 
-  return (
+  return artify(
     <div className="rounded-xl border border-lime-300/35 bg-white/[0.04]">
       <button
         type="button"
@@ -115,7 +116,7 @@ export default function PruneCard({
                 <span className="w-14 text-[10.5px] font-semibold text-white/55">{TILE_NAMES[row.type]}</span>
                 {row.items.map((g) => {
                   const selected = picked?.type === g.type && picked.value === g.value;
-                  return (
+                  return artify(
                     <button
                       key={`${g.type}-${g.value}`}
                       type="button"

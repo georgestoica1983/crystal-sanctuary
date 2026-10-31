@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { GridCoord, PathSimulationResult, PathStepSimulation } from "@/types/game";
 import { soundEngine } from "@/lib/audio";
 import { getLineTier } from "@/lib/lineTiers";
+import { artify } from "@/components/ArtText";
 
 const fmt = (n: number) => Math.round(n).toLocaleString();
 
@@ -115,7 +116,7 @@ export default function LineHeadFeedback({
   const bubbleY = above ? p.y - 15.5 : p.y + 15.5;
   const bubbleX = Math.max(11, Math.min(89, p.x));
 
-  return (
+  return artify(
     <div className="absolute board-inset z-40 pointer-events-none" aria-hidden="true">
       <div
         className="absolute -translate-x-1/2 -translate-y-1/2 transition-[left,top] duration-150 ease-out"
@@ -149,7 +150,7 @@ export default function LineHeadFeedback({
 export function StepEffectPop({ step, stepKey }: { step: PathStepSimulation; stepKey: string }) {
   const effects = describeStepEffect(step);
   const p = pos(step.coord);
-  return (
+  return artify(
     <AnimatePresence>
       {effects.length > 0 && (
         <motion.div

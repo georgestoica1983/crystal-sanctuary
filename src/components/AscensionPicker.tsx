@@ -7,6 +7,7 @@ import { HERO_CLASS_REGISTRY } from "@/lib/engine";
 import { ASCENSION_LEVELS } from "@/lib/runReplay";
 import { companionUnlockFor, RUN_COMPANION_ORDER } from "@/lib/unlocks";
 import EntityIcon from "@/components/EntityIcon";
+import { artify } from "@/components/ArtText";
 
 /** Each companion's rule in a Garden Run, in plain words */
 export const COMPANION_RULES: Record<HeroClassId, string> = {
@@ -55,7 +56,7 @@ export default function AscensionPicker({
   if (!isOpen) return null;
   const pickedDef = HERO_CLASS_REGISTRY[companion];
 
-  return (
+  return artify(
     <div className="fixed inset-0 z-[60] bg-black/70 flex items-end sm:items-center justify-center" onClick={onClose}>
       <div
         role="dialog"
@@ -83,7 +84,7 @@ export default function AscensionPicker({
             const def = HERO_CLASS_REGISTRY[id];
             const locked = !companions.includes(id);
             const selected = id === companion;
-            return (
+            return artify(
               <button
                 key={id}
                 type="button"
@@ -121,7 +122,7 @@ export default function AscensionPicker({
           {ASCENSION_LEVELS.map((l) => {
             const locked = l.level > unlocked;
             const selected = l.level === level;
-            return (
+            return artify(
               <button
                 key={l.level}
                 type="button"

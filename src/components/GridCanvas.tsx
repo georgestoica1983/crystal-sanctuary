@@ -30,6 +30,7 @@ import { boardThemeStyle } from "@/lib/boardThemes";
 import EntityIcon, { ENTITY_COLORS } from "@/components/EntityIcon";
 import { getLineTier } from "@/lib/lineTiers";
 import LineHeadFeedback, { LiveLineScore, StepEffectPop } from "@/components/LineHeadFeedback";
+import { artify } from "@/components/ArtText";
 
 interface GridCanvasProps {
   grid: GridCell[][];
@@ -825,7 +826,7 @@ export default function GridCanvas({
                           className="absolute inset-0 flex items-center justify-center pointer-events-none z-40"
                         >
                           <span className="px-2 py-0.5 rounded-full bg-amber-300/95 text-slate-950 font-mono text-[10px] font-black shadow-[0_0_20px_rgba(251,191,36,0.95)] flex items-center gap-0.5">
-                            {cell.type === "GOLD" ? "🌰" : "🌸"} +{cell.value || 1}
+                            {artify(cell.type === "GOLD" ? "🌰" : "🌸")} +{cell.value || 1}
                           </span>
                         </motion.div>
                       )}
@@ -903,7 +904,7 @@ export default function GridCanvas({
                       className="tile-tag absolute -top-2 left-1 whitespace-nowrap bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 text-slate-950 font-mono font-black text-[9px] px-1.5 py-0.5 rounded-full border border-white/70 shadow-[0_0_12px_rgba(250,204,21,0.95)] leading-none pointer-events-none z-30"
                     >
                       {isSanctuary
-                        ? <>🌰<span className="tile-tag-long"> ACORN</span> x{stepSim.goldComboCount}</>
+                        ? artify(<>🌰<span className="tile-tag-long"> ACORN</span> x{stepSim.goldComboCount}</>)
                         : `COMBO x${stepSim.goldComboCount}`}
                     </motion.span>
                   )}
@@ -1344,13 +1345,13 @@ function StepFloatingBadge({
   if (step.isFirstDeathStep) {
     if (isSanctuary) {
       const needed = Math.max(1, 1 - step.hpAfter);
-      return (
+      return artify(
         <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-amber-300 text-slate-950 border border-white/60 shadow-[0_0_12px_rgba(251,191,36,0.95)] tracking-tight whitespace-nowrap">
           ❤️ Needs +{needed}
         </span>
       );
     }
-    return (
+    return artify(
       <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-[#F43F5E] text-white border border-white/40 shadow-[0_0_12px_rgba(244,63,94,0.95)] tracking-tighter uppercase whitespace-nowrap">
         💀 {step.hpDelta} HP
       </span>
@@ -1358,7 +1359,7 @@ function StepFloatingBadge({
   }
 
   if (step.shatteredShield) {
-    return (
+    return artify(
       <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold bg-[#CFEA8F] text-slate-950 shadow-[0_0_10px_rgba(207,234,143,0.8)] whitespace-nowrap">
         {isSanctuary ? <>🧤 0<span className="tile-tag-long"> GLOVES</span></> : "❄️ 0 SHD"}
       </span>
@@ -1366,7 +1367,7 @@ function StepFloatingBadge({
   }
 
   if (step.trapDodgedDiagonally) {
-    return (
+    return artify(
       <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold bg-emerald-300 text-slate-950 shadow-[0_0_10px_rgba(52,211,153,0.85)] whitespace-nowrap">
         {isSanctuary ? <>🌸<span className="tile-tag-long"> HOPPED!</span></> : "⚡ DODGED"}
       </span>
@@ -1374,7 +1375,7 @@ function StepFloatingBadge({
   }
 
   if (step.spikedBootsTriggered) {
-    return (
+    return artify(
       <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-amber-400 text-slate-950 shadow-[0_0_10px_rgba(245,158,11,0.9)] whitespace-nowrap">
         🥾 +{step.weaponDelta} {isSanctuary ? "✂️" : "WPN"}
       </span>
@@ -1384,7 +1385,7 @@ function StepFloatingBadge({
   if (step.cell.type === "ENEMY") {
     const dmg = step.hpDelta;
     if (isSanctuary) {
-      return (
+      return artify(
         <span
           className={`tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold shadow-md whitespace-nowrap ${
             dmg < 0
@@ -1396,7 +1397,7 @@ function StepFloatingBadge({
         </span>
       );
     }
-    return (
+    return artify(
       <span
         className={`tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold shadow-md whitespace-nowrap ${
           dmg < 0
@@ -1415,13 +1416,13 @@ function StepFloatingBadge({
 
   if (step.cell.type === "SHIELD") {
     if (step.vampireTransmuteWeapon && step.vampireTransmuteWeapon > 0) {
-      return (
+      return artify(
         <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-rose-500 text-white shadow-[0_0_10px_rgba(244,63,94,0.85)] whitespace-nowrap">
           🩸 +{step.vampireTransmuteWeapon} WPN
         </span>
       );
     }
-    return (
+    return artify(
       <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-sky-300 text-slate-950 shadow-[0_0_10px_rgba(56,189,248,0.8)] whitespace-nowrap">
         +{step.shieldDelta} {isSanctuary ? "🧤" : "SHD"}
       </span>
@@ -1429,7 +1430,7 @@ function StepFloatingBadge({
   }
 
   if (step.cell.type === "WEAPON") {
-    return (
+    return artify(
       <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-amber-300 text-slate-950 shadow-[0_0_10px_rgba(251,191,36,0.85)] whitespace-nowrap">
         +{step.weaponDelta} {isSanctuary ? "✂️" : "WPN"}
       </span>
@@ -1437,7 +1438,7 @@ function StepFloatingBadge({
   }
 
   if (step.cell.type === "POTION") {
-    return (
+    return artify(
       <span
         className={`tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold shadow-md whitespace-nowrap ${
           step.hpDelta < 0
@@ -1459,7 +1460,7 @@ function StepFloatingBadge({
   }
 
   if (step.cell.type === "GOLD") {
-    return (
+    return artify(
       <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-[#FDE047] text-slate-950 shadow-[0_0_10px_rgba(250,204,21,0.85)] whitespace-nowrap">
         +{step.goldDelta} {isSanctuary ? "🌰" : "GLD"}
         {step.shieldDelta > 0 ? ` +${step.shieldDelta}🧤` : ""}
@@ -1469,7 +1470,7 @@ function StepFloatingBadge({
   }
 
   if (step.cell.type === "TRAP") {
-    return (
+    return artify(
       <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-rose-400 text-slate-950 shadow-[0_0_10px_rgba(251,113,133,0.8)] whitespace-nowrap">
         {step.hpDelta} {isSanctuary ? "❤️" : "HP"}
       </span>
@@ -1477,7 +1478,7 @@ function StepFloatingBadge({
   }
 
   if (step.cell.type === "EXIT") {
-    return (
+    return artify(
       <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-gradient-to-r from-amber-300 via-pink-300 to-violet-300 text-slate-950 border border-white/50 shadow-[0_0_12px_rgba(244,114,182,0.9)] whitespace-nowrap">
         {isSanctuary ? "🌈 EXIT ✓" : "EXIT ✓"}
       </span>
@@ -1872,7 +1873,7 @@ function InspectorCard({
       }
     : getTileInspectionData(cell, isSanctuary);
 
-  return (
+  return artify(
     <div
       className={`rounded-2xl p-3 border shadow-2xl backdrop-blur-xl flex items-start gap-3 transition-all ${
         isSanctuary
@@ -1969,7 +1970,7 @@ function GuideHand({ path }: { path: GridCoord[] }) {
 
 /** One tile's effect, popped over it as the line replays */
 function PlaybackPop({ step }: { step: PathStepSimulation }) {
-  return (
+  return artify(
     <div className="absolute board-inset z-40 pointer-events-none" aria-hidden="true">
       <StepEffectPop step={step} stepKey={`play-${step.stepIndex}`} />
     </div>

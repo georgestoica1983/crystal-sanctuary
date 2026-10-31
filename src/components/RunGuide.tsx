@@ -27,6 +27,7 @@ import {
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import { RELIC_SET_SIZE, RELIC_SET_X } from "@/lib/relicTags";
 import RelicIcon from "@/components/RelicIcon";
+import { artify } from "@/components/ArtText";
 
 export const RUN_GUIDE_STORAGE_KEY = "ost_run_guide_seen_v1";
 
@@ -45,7 +46,7 @@ function Tile({
   size?: number;
 }) {
   const color = ENTITY_COLORS[type] ?? "#fff";
-  return (
+  return artify(
     <div
       className="relative shrink-0 rounded-xl bg-[#223328] border border-white/10 flex items-center justify-center"
       style={{ width: size, height: size }}
@@ -77,7 +78,7 @@ function Row({
   title: string;
   children: React.ReactNode;
 }) {
-  return (
+  return artify(
     <div className="flex gap-3 items-start rounded-xl bg-white/[0.04] border border-white/10 p-2.5">
       <div className="pt-0.5">{icon}</div>
       <div className="min-w-0 flex-1">
@@ -89,7 +90,7 @@ function Row({
 }
 
 function Example({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
+  return artify(
     <div className="rounded-xl border border-amber-300/40 bg-amber-400/[0.07] p-2.5">
       <div className="text-[10px] font-mono font-black uppercase tracking-wider text-amber-200 mb-1">
         {title}
@@ -113,7 +114,7 @@ function MiniLine({
 }: {
   cells: Array<{ type: EntityType | null; step?: number; value?: number; label?: string }>;
 }) {
-  return (
+  return artify(
     <div className="grid grid-cols-3 gap-1.5 w-[156px] shrink-0">
       {cells.map((c, i) =>
         c.type ? (
@@ -140,7 +141,7 @@ interface GuidePage {
 }
 
 function Bullets({ items }: { items: React.ReactNode[] }) {
-  return (
+  return artify(
     <ul className="space-y-1.5">
       {items.map((it, i) => (
         <li key={i} className="flex gap-2 text-[14px] leading-snug text-white/85">
@@ -153,7 +154,7 @@ function Bullets({ items }: { items: React.ReactNode[] }) {
 }
 
 function TileLine({ type, value, name, text }: { type: EntityType; value?: number; name: string; text: string }) {
-  return (
+  return artify(
     <div className="flex items-center gap-3">
       <Tile type={type} value={value} size={44} />
       <div className="text-[14px] leading-snug text-white/85">
@@ -191,7 +192,7 @@ function buildPages(): GuidePage[] {
           </div>
           <Bullets
             items={[
-              <>Drag one line from <B>YOU</B> to the <B>🌈 EXIT</B>, then let go.</>,
+              <>Draw one line from <B>YOU</B> to the <B>🌈 EXIT</B>: drag, tap tile by tile, or mix both.</>,
               <><B>Longer lines score far more.</B></>,
               <>Don&apos;t run out of <B>❤️ Life</B>.</>,
               <>Reach the garden&apos;s <B>target</B> in {RUN_STROKES_PER_GARDEN} lines.</>,
@@ -347,7 +348,7 @@ export default function RunGuide({
     onClose();
   };
 
-  return (
+  return artify(
     <div className="fixed inset-0 z-[60] bg-black/85 backdrop-blur-sm flex items-stretch sm:items-center justify-center sm:p-3">
       <div className="relative w-full max-w-[440px] sm:max-h-[92dvh] flex flex-col bg-gradient-to-b from-[#1F3125] via-[#1A281F] to-[#111A14] rounded-2xl border border-emerald-300/40 shadow-[0_0_40px_rgba(52,211,153,0.25)] text-white overflow-hidden">
         {/* Header */}

@@ -62,6 +62,7 @@ import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import { completedRelicSets, getRelicTags, RELIC_SET_X, RELIC_TAG_INFO } from "@/lib/relicTags";
 import { statArt, StatArtId, themeArt } from "@/lib/art";
 import RelicIcon from "@/components/RelicIcon";
+import { artify } from "@/components/ArtText";
 
 export function getLiveStepNarratorText(
   simulation: PathSimulationResult,
@@ -703,7 +704,7 @@ export function TopHUD({
     ];
     const menuRow =
       "w-full h-12 px-3 rounded-xl flex items-center gap-3 text-left text-[14px] font-semibold text-white/90 hover:bg-white/[0.06] active:bg-white/[0.1] transition";
-    return (
+    return artify(
       <div className="w-full max-w-[430px] mx-auto select-none">
         <div className="flex items-stretch gap-1.5">
           <button

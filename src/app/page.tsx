@@ -212,6 +212,7 @@ import {
   markTutorialDone,
   TUTORIAL_STAGES,
 } from "@/lib/tutorial";
+import { artify } from "@/components/ArtText";
 
 const COACH_STORAGE_KEY = "ost_first_daily_coach_v1";
 /** The game is Run-only: other modes stay in the code but have no way in */
@@ -3530,8 +3531,7 @@ export default function OneStrokeTacticianPage() {
                       : "bg-[#2A1018]/95 border-rose-300/60 text-rose-50"
                   }`}
                 >
-                  {retractNotice ??
-                    "🪨 No safe line on this board — tap 🌿 Swap to swap some tiles."}
+                  {artify(retractNotice ?? "🪨 No safe line on this board — tap 🌿 Swap to swap some tiles.")}
                 </div>
               </div>
             )}

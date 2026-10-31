@@ -7,6 +7,7 @@ import { BOSS_RULE_REGISTRY, RELIC_REGISTRY } from "@/lib/engine";
 import { soundEngine } from "@/lib/audio";
 import { themeArt, tileArt } from "@/lib/art";
 import RelicIcon from "@/components/RelicIcon";
+import { artify } from "@/components/ArtText";
 
 interface ScoreTallyProps {
   isOpen: boolean;
@@ -167,7 +168,7 @@ export default function ScoreTally({
     ? [stars.star1Survivor, stars.star2Greed, stars.star3Flawless]
     : [];
 
-  return (
+  return artify(
     <div
       className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-start justify-center overflow-y-auto p-3 select-none"
       onClick={skip}
