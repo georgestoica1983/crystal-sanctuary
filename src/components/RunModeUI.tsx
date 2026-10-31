@@ -82,6 +82,7 @@ export function RunHudStrip({
               {boss ? `${boss.icon} ` : ""}
               {getRunGardenKindLabel(garden.kind)}
             </span>
+            <SeasonDots gardenIndex={garden.gardenIndex} />
             {asc > 0 && (
               <span className="ml-1.5 rounded-md bg-orange-400/15 px-1 py-px text-[10.5px] font-bold text-orange-200" title={`Ascension ${asc}`}>
                 🔥A{asc}
@@ -388,6 +389,76 @@ function SeasonMap({
 }
 
 /** Garden-clear screen: the Seed payout, then on to the Shop */
+/** Where you are in the Season: Small → Big → Boss (done, current, still to come) */
+function SeasonDots({ gardenIndex }: { gardenIndex: number }) {
+  const at = gardenIndex % 3;
+  return (
+    <span className="ml-1.5 inline-flex items-center gap-[3px] align-middle" aria-label={`Bed ${at + 1} of 3 this Season`}>
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className={`rounded-full ${i === 2 ? "h-2 w-2" : "h-1.5 w-1.5"} ${
+            i < at ? "bg-amber-300/80" : i === at ? "bg-amber-200 ring-2 ring-amber-200/30" : "bg-white/20"
+          }`}
+        />
+      ))}
+    </span>
+  );
+}
+
+/**
+ * Shown once, before the very first Garden Bed: the goal in one sentence and
+ * how a Season is built, so a new player knows what winning looks like.
+ */
+export function RunGoalCard({ target, lines, onStart }: { target: number; lines: number; onStart: () => void }) {
+  const beds = [
+    { name: "Small bed", note: "now" },
+    { name: "Big bed", note: "" },
+    { name: "Boss bed", note: "a twist" },
+  ];
+  return artify(
+    <div className="fixed inset-0 z-[65] bg-black/70 flex items-end sm:items-center justify-center p-3">
+      <motion.div
+        role="dialog"
+        aria-label="Your goal"
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-[400px] rounded-2xl border border-amber-300/30 bg-[#1B281F] p-4 text-white space-y-3"
+      >
+        <div className="text-center">
+          <div className="text-[24px] font-display font-semibold">Your goal</div>
+          <p className="text-[14.5px] leading-snug text-white/85 mt-1">
+            Harvest <b className="text-amber-200">{fmt(target)}</b> points in <b>{lines} lines</b> to make this bed bloom 🌸
+          </p>
+        </div>
+        <div className="grid grid-cols-3 gap-1.5 text-center">
+          {beds.map((b, i) => (
+            <div
+              key={b.name}
+              className={`rounded-xl border px-1.5 py-2 ${i === 0 ? "border-amber-300/60 bg-amber-400/10" : "border-white/10 bg-white/[0.03]"}`}
+            >
+              <div className={`text-[12.5px] font-bold ${i === 0 ? "text-amber-100" : "text-white/75"}`}>{b.name}</div>
+              <div className="text-[10.5px] text-white/50">{b.note || "\u00a0"}</div>
+            </div>
+          ))}
+        </div>
+        <ul className="text-[12.5px] leading-snug text-white/75 space-y-1">
+          <li>• Three beds make a Season. Between beds, spend 🌱 Seeds in the Shop.</li>
+          <li>• Longer lines multiply your points. Thorns pay well but cost ❤️ Life.</li>
+          <li>• When a line is enough, the gate glows gold.</li>
+        </ul>
+        <button
+          type="button"
+          onClick={onStart}
+          className="w-full h-12 rounded-xl bg-lime-300 text-slate-950 text-[15px] font-bold active:scale-95 transition"
+        >
+          Let&apos;s grow
+        </button>
+      </motion.div>
+    </div>
+  );
+}
+
 export function RunGardenClearModal({
   info,
   onContinue,

@@ -198,6 +198,7 @@ import {
   RunClearInfo,
   RunEndReason,
   RunGardenClearModal,
+  RunGoalCard,
   RunHudStrip,
   RunOverInfo,
   RunOverModal,
@@ -230,6 +231,8 @@ const LAST_OPEN_KEY = "ost_last_open_v1";
 const FULL_TALLIES_BEFORE_COMPACT = 3;
 const THORN_TIP = "🌺 Thorns cost ❤️ Life. Grab ✂️ Shears first to cut one, or 🧤 Gloves to block it.";
 const RUN_LESSONS_PROGRESS_KEY = "ost_run_lessons_progress_v1";
+/** The one-time "Your goal" card before a new player's first Garden Bed */
+const GOAL_CARD_SEEN_KEY = "ost_goal_card_seen_v1";
 const RUN_ONLY_NOTICE = "The Sanctuary is in Run mode for now — Gauntlet, past Dailies and the Crafter are resting.";
 
 export default function OneStrokeTacticianPage() {
@@ -394,6 +397,7 @@ export default function OneStrokeTacticianPage() {
   );
   const [drawnPath, setDrawnPath] = useState<GridCoord[]>([]);
   const [phase, setPhase] = useState<GamePhase>("PLANNING");
+  const [showGoalCard, setShowGoalCard] = useState(false);
   const [activeResolutionStep, setActiveResolutionStep] = useState<
     number | null
   >(null);
@@ -518,6 +522,13 @@ export default function OneStrokeTacticianPage() {
         // First visit: a short hands-on walkthrough starts right away (Skip leaves it)
         if (!window.localStorage.getItem(RUN_WELCOME_KEY)) {
           window.localStorage.setItem(RUN_WELCOME_KEY, "1");
+          setPendingWalkthrough(true);
+        } else if (
+          !window.localStorage.getItem(RUN_LESSONS_DONE_KEY) &&
+          !window.localStorage.getItem(WALKTHROUGH_SKIPPED_KEY) &&
+          (Number(window.localStorage.getItem(RUN_LESSONS_PROGRESS_KEY)) || 0) < RUN_LESSONS.length
+        ) {
+          // Reloaded in the middle of the lessons: pick them back up
           setPendingWalkthrough(true);
         }
       } catch {
@@ -677,6 +688,30 @@ export default function OneStrokeTacticianPage() {
     activeClassForBoard,
     activeRelicsForBoard,
   ]);
+
+  // A new player's first real Garden Bed opens with the "Your goal" card (once)
+  useEffect(() => {
+    // (the Practice Garden counts: for a new player it is the first bed)
+    if (lesson) {
+      setShowGoalCard(false);
+      return;
+    }
+    if (mode !== "RUN" || lessonIndex !== null || !runGarden) return;
+    if (runGarden.gardenIndex !== 0 || runGarden.score > 0 || phase !== "PLANNING") return;
+    try {
+      const ls = window.localStorage;
+      if (ls.getItem(GOAL_CARD_SEEN_KEY)) return;
+      // Only after the lessons (finished or skipped), never between them
+      const lessonsOver =
+        ls.getItem(RUN_LESSONS_DONE_KEY) ||
+        ls.getItem(WALKTHROUGH_SKIPPED_KEY) ||
+        (Number(ls.getItem(RUN_LESSONS_PROGRESS_KEY)) || 0) >= RUN_LESSONS.length;
+      if (!lessonsOver) return;
+    } catch {
+      return;
+    }
+    setShowGoalCard(true);
+  }, [mode, lesson, lessonIndex, runGarden, phase]);
 
   // Points this Garden Bed still needs (Garden Run only, not lessons)
   const bedToGo =
@@ -1207,8 +1242,14 @@ export default function OneStrokeTacticianPage() {
   useEffect(() => {
     if (!pendingWalkthrough) return;
     setPendingWalkthrough(false);
-    track("walkthrough_start");
-    startLesson(0);
+    let from = 0;
+    try {
+      from = Math.min(Number(window.localStorage.getItem(RUN_LESSONS_PROGRESS_KEY)) || 0, RUN_LESSONS.length - 1);
+    } catch {
+      // Ignore storage errors
+    }
+    track("walkthrough_start", { from });
+    startLesson(from);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pendingWalkthrough]);
 
@@ -2955,7 +2996,7 @@ export default function OneStrokeTacticianPage() {
           : "bg-[radial-gradient(ellipse_at_top,_#121B15_0%,_#0B0F0C_55%,_#060706_100%)]"
       }`}
     >
-      <SoundPrompt ready={lessonIndex === null || lessonIndex >= 1} onChoose={handleSoundPrompt} />
+      <SoundPrompt ready={(lessonIndex === null || lessonIndex >= 1) && !showGoalCard} onChoose={handleSoundPrompt} />
       {/* Phones held sideways: the game is played upright */}
       <div className="rotate-hint fixed inset-0 z-[90] bg-[#101813] flex-col items-center justify-center gap-3 text-center px-6">
         <div className="text-5xl" aria-hidden="true">📱</div>
@@ -3899,6 +3940,21 @@ export default function OneStrokeTacticianPage() {
 
       {/* Run mode: garden-clear payout and the end-of-run summary */}
       <RunGardenClearModal info={runClear} onContinue={handleRunClearContinue} />
+      {showGoalCard && runGarden && !lesson && (
+        <RunGoalCard
+          target={runGarden.target}
+          lines={runGarden.strokesLeft}
+          onStart={() => {
+            setShowGoalCard(false);
+            try {
+              window.localStorage.setItem(GOAL_CARD_SEEN_KEY, "1");
+            } catch {
+              // Ignore storage errors
+            }
+            track("goal_card_seen");
+          }}
+        />
+      )}
       <AscensionPicker
         isOpen={ascPickerOpen}
         unlocked={ascPickerOpen ? loadUnlockedAscension() : 0}

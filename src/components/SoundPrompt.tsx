@@ -43,7 +43,7 @@ export default function SoundPrompt({ ready, onChoose }: { ready: boolean; onCho
 
   return (
     <AnimatePresence>
-      {open && (
+      {open && ready && (
         <motion.div
           role="dialog"
           aria-label="Play with sound?"

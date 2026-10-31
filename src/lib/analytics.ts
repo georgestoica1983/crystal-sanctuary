@@ -40,6 +40,7 @@ export type TrackEvent =
   | "demo_replay"
   | "relic_set"
   | "sound_prompt"
+  | "goal_card_seen"
   | "run_over"
   | "feedback_open";
 

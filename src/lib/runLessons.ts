@@ -142,29 +142,26 @@ export const RUN_LESSONS: RunLesson[] = [
     failHint: "Go around every Acorn before the Exit.",
   },
   {
-    id: "sunbeams",
-    title: "Thorns hurt",
+    id: "thorn-trade",
+    title: "Thorns pay",
     icon: "🌺",
     learn: "",
-    steps: ["Grab ✂️ Shears, then the Thorn."],
-    goalLabel: "Lose no ❤️ Life",
-    hero: hero(4),
+    steps: ["Score 100 or more. The safe way isn't enough."],
+    goalLabel: "Score 100+",
+    hero: hero(10),
     grid: board("L6", [
       ". . . . .",
-      ". S5 . . .",
-      "H B5 A . .",
+      ". G2 B8 G2 .",
+      "H G1 G1 G1 A",
       ". . . . .",
       ". . . . .",
     ]),
-    solution: path([2, 0], [1, 1], [2, 1], [2, 2]),
-    checkGoal: (sim, _b, start) => {
-      const hit = visits(sim, "ENEMY").length > 0;
-      return {
-        ok: reached(sim) && hit && sim.finalStats.hp === start.hp,
-        detail: hit ? `❤️ ${start.hp} → ${sim.finalStats.hp}` : "Pass the Thorn",
-      };
+    solution: path([2, 0], [2, 1], [1, 1], [1, 2], [2, 2], [1, 3], [2, 3], [2, 4]),
+    checkGoal: (sim, breakdown) => {
+      const total = reached(sim) ? breakdown.total : 0;
+      return { ok: total >= 100, detail: `${total} / 100` };
     },
-    success: "✂️ Shears cut the next Thorn completely. Grab them right before a big Thorn.",
-    failHint: "Take the ✂️ Shears first.",
+    success: "The Thorn cost 8 ❤️ Life but its +8 more than doubled your points. On a long line a Thorn is often worth it — just keep some Life for the next lines.",
+    failHint: "Take the Thorn (+8) on a long line.",
   },
 ];
