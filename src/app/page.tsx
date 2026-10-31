@@ -160,7 +160,16 @@ import {
   RUN_LESSONS_DONE_KEY,
 } from "@/lib/runLessons";
 import { loadBestStars, saveBestStars, totalBestStars } from "@/lib/runStars";
-import { loadUnlockProgress, recordBedReached, takeNewUnlocks } from "@/lib/unlocks";
+import {
+  CLASS_COMPANION,
+  isCompanionUnlocked,
+  loadChosenCompanion,
+  loadUnlockProgress,
+  recordBedReached,
+  saveChosenCompanion,
+  takeNewUnlocks,
+  unlockedRunCompanions,
+} from "@/lib/unlocks";
 import LooksModal from "@/components/LooksModal";
 import { applyReduceMotion, loadReduceMotion, saveReduceMotion } from "@/lib/motionPrefs";
 import { track } from "@/lib/analytics";
@@ -172,7 +181,7 @@ import {
   saveChosenAscension,
   unlockAscensionAfter,
 } from "@/lib/ascension";
-import AscensionPicker from "@/components/AscensionPicker";
+import AscensionPicker, { COMPANION_RULES } from "@/components/AscensionPicker";
 import {
   getRunBedStars,
   RunClearInfo,
@@ -296,6 +305,8 @@ export default function OneStrokeTacticianPage() {
   const [ascPickerOpen, setAscPickerOpen] = useState<boolean>(false);
   /** Ascension level for new Garden Runs (the picker comes in the next step) */
   const runAscensionRef = useRef<number>(0);
+  // Companion for new Garden Runs (each plays by its own rule)
+  const runCompanionRef = useRef<HeroClassId>("KNIGHT");
   const [vibrationOn, setVibrationOn] = useState<boolean>(true);
   const [reduceMotion, setReduceMotion] = useState<boolean>(false);
   useEffect(() => {
@@ -464,6 +475,7 @@ export default function OneStrokeTacticianPage() {
     if (RUN_ONLY) {
       // New Garden Runs use the last Ascension level chosen
       runAscensionRef.current = loadChosenAscension();
+      runCompanionRef.current = loadChosenCompanion(loadCosmeticPreferences().companionId);
       // Continue a Run saved on this device, or start a new one
       resumeSavedRun();
       try {
@@ -1020,7 +1032,7 @@ export default function OneStrokeTacticianPage() {
    * Starts a fresh Run: a new seed, a new Tile Bag and Season 1's Small Garden.
    */
   const startRun = useCallback(
-    (overrideClassId?: HeroClassId, isTrial?: boolean, options?: { practice?: boolean; asc?: number }) => {
+    (overrideClassId?: HeroClassId, _isTrial?: boolean, options?: { practice?: boolean; asc?: number }) => {
       const practice = Boolean(options?.practice);
       // Ascension level: the one passed in, or the last one chosen
       const asc = practice ? 0 : options?.asc ?? runAscensionRef.current;
@@ -1029,7 +1041,9 @@ export default function OneStrokeTacticianPage() {
       const runSeed = practice
         ? PRACTICE_GARDEN_SEED
         : `run-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
-      const classId = practice ? "KNIGHT" : overrideClassId ?? heroClassId;
+      // Companions are earned by playing (no free trials): a locked one falls back to the Keeper
+      const wanted = overrideClassId ?? runCompanionRef.current;
+      const classId: HeroClassId = practice || !isCompanionUnlocked(wanted) ? "KNIGHT" : wanted;
       const { bag, ...first } = startRunGarden(runSeed, classId, RUN_LOG_VERSION, asc);
       const runDungeon: DungeonTheme = {
         seedKey: runSeed,
@@ -1040,12 +1054,7 @@ export default function OneStrokeTacticianPage() {
         source: "deterministic-fallback",
         floors: [first.floor],
       };
-      resetRunWithDungeon(
-        runDungeon,
-        "RUN",
-        classId,
-        isTrial ?? (overrideClassId ? false : trialClassFloorActive)
-      );
+      resetRunWithDungeon(runDungeon, "RUN", classId, false);
       setRunBag(bag);
       runLogRef.current = practice ? null : createRunLog(runSeed, classId, asc);
       runBloomRef.current = null;
@@ -1068,12 +1077,12 @@ export default function OneStrokeTacticianPage() {
         setPracticeStep(null);
       }
     },
-    [resetRunWithDungeon, heroClassId, trialClassFloorActive]
+    [resetRunWithDungeon]
   );
 
-  /** A new Garden Run: choose the Ascension level first once one is unlocked */
+  /** A new Garden Run: pick the companion (and Ascension level) once there's a choice */
   const requestNewRun = () => {
-    if (loadUnlockedAscension() > 0) setAscPickerOpen(true);
+    if (loadUnlockedAscension() > 0 || unlockedRunCompanions().length > 1) setAscPickerOpen(true);
     else startRun();
   };
 
@@ -2032,7 +2041,8 @@ export default function OneStrokeTacticianPage() {
       source: "deterministic-fallback",
       floors: r.floors,
     };
-    resetRunWithDungeon(runDungeon, "RUN", r.classId, r.trial);
+    // Old free-trial saves keep their companion (no more trials in Runs)
+    resetRunWithDungeon(runDungeon, "RUN", r.classId, false);
     setRunBag(r.bag);
     runLogRef.current = { ...r.log, a: [...r.log.a] };
     runBloomRef.current = null;
@@ -2900,6 +2910,21 @@ export default function OneStrokeTacticianPage() {
         }
         onOpenGuide={RUN_ONLY ? () => setHelpMenu("help") : undefined}
         onOpenLooks={RUN_ONLY ? () => setLooksOpen(true) : undefined}
+        onCompanionTap={
+          RUN_ONLY
+            ? () => {
+                // Before the first line a new Run can still switch companion; after it, show the rule
+                if (mode === "RUN" && floorHistory.length === 0 && !practiceStep && lessonIndex === null && unlockedRunCompanions().length > 1) {
+                  setAscPickerOpen(true);
+                  return;
+                }
+                const def = HERO_CLASS_REGISTRY[heroClassId];
+                showLongNotice(
+                  `${def.sanctuaryEmblem ?? def.emblem} ${def.sanctuaryShortName ?? def.shortName}: ${COMPANION_RULES[heroClassId]}. Pick a companion when you start a new run.`
+                );
+              }
+            : undefined
+        }
         vibrationOn={vibrationOn}
         onToggleVibration={() => {
           const next = !vibrationOn;
@@ -3221,7 +3246,11 @@ export default function OneStrokeTacticianPage() {
                   ? hintLine
                   : undefined
               }
-              cosmetics={cosmetics}
+              cosmetics={
+                mode === "RUN" && lessonIndex === null
+                  ? { ...cosmetics, companionId: CLASS_COMPANION[heroClassId] ?? "CAT" }
+                  : cosmetics
+              }
               onPathChange={(nextPath) => {
                 // Keep a "why it pulled back" notice until the next line starts
                 // (the one-time Thorn tip stays up while the line keeps growing)
@@ -3666,12 +3695,16 @@ export default function OneStrokeTacticianPage() {
         isOpen={ascPickerOpen}
         unlocked={ascPickerOpen ? loadUnlockedAscension() : 0}
         initial={runAscensionRef.current}
-        onStart={(level) => {
+        companions={ascPickerOpen ? unlockedRunCompanions() : ["KNIGHT"]}
+        initialCompanion={runCompanionRef.current}
+        onStart={(level, companion) => {
           setAscPickerOpen(false);
           saveChosenAscension(level);
+          saveChosenCompanion(companion);
           runAscensionRef.current = level;
+          runCompanionRef.current = companion;
           setRunOver(null);
-          startRun(undefined, undefined, { asc: level });
+          startRun(companion, false, { asc: level });
         }}
         onClose={() => setAscPickerOpen(false)}
       />

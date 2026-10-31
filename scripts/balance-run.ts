@@ -5,6 +5,7 @@
 // Env: VERSIONS=3,4  SEEDS=16  BUDGET=20000 (strong player) / 600 (casual)
 //      PRUNE=none|spike|thorn (rules v9+: what the bot cuts with Pruning Shears)
 import { findEntityCoord, searchBestFloorLine } from "@/lib/engine";
+import type { HeroClassId } from "@/types/game";
 import { createRunReplayer, packCoords, RUN_PRUNE_COST, runModifierFor } from "@/lib/runReplay";
 
 const VERSIONS = (process.env.VERSIONS ?? "3,4").split(",").map(Number);
@@ -14,6 +15,8 @@ const MAX_GARDENS = Number(process.env.GARDENS ?? 9);
 /** Ascension level to test (rules v8+) */
 const ASC = Number(process.env.ASC ?? 0);
 const PRUNE = process.env.PRUNE ?? "none";
+/** Companion the bot plays (KNIGHT = Keeper, ROGUE = Otter, MAGE = Fox, VAMPIRE = Sprite) */
+const HERO = (process.env.HERO ?? "KNIGHT") as HeroClassId;
 
 for (const budget of BUDGETS) {
   for (const v of VERSIONS) {
@@ -27,7 +30,7 @@ for (const budget of BUDGETS) {
     // Why Runs ended before MAX_GARDENS: out of lines (short of target) or no safe line left
     const endings = { shortOfTarget: 0, noSafeLine: 0 };
     for (let i = 0; i < SEEDS; i++) {
-      const run = createRunReplayer(`bal-run-${i}`, "KNIGHT", v, ASC);
+      const run = createRunReplayer(`bal-run-${i}`, HERO, v, ASC);
       let lastGarden = -1;
       for (let guard = 0; guard < 400 && run.state.phase !== "OVER"; guard++) {
         const s = run.state;

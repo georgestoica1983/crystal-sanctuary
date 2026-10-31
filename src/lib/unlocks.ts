@@ -1,4 +1,4 @@
-import { SanctuaryCompanionId, TrailSkinId } from "@/types/game";
+import { HeroClassId, SanctuaryCompanionId, TrailSkinId } from "@/types/game";
 import { loadBestStars, totalBestStars } from "@/lib/runStars";
 
 /**
@@ -112,4 +112,59 @@ export function getGardenerRank(p: UnlockProgress = loadUnlockProgress()): {
   const rank = earned[earned.length - 1] ?? ranks[0];
   const next = ranks.find((r) => !isUnlocked(r, p)) ?? null;
   return { rank, next };
+}
+
+// ── Companions in Garden Runs: each animal plays by its own rule ──
+
+/** The Run companion (rules class) behind each animal */
+export const COMPANION_CLASS: Record<SanctuaryCompanionId, HeroClassId> = {
+  CAT: "KNIGHT",
+  OTTER: "ROGUE",
+  BUTTERFLY: "VAMPIRE",
+  FOX: "MAGE",
+};
+export const CLASS_COMPANION: Record<HeroClassId, SanctuaryCompanionId> = {
+  KNIGHT: "CAT",
+  ROGUE: "OTTER",
+  VAMPIRE: "BUTTERFLY",
+  MAGE: "FOX",
+};
+/** Order shown in the New Garden Run sheet */
+export const RUN_COMPANION_ORDER: HeroClassId[] = ["KNIGHT", "ROGUE", "VAMPIRE", "MAGE"];
+
+const CHOSEN_COMPANION_KEY = "ost_run_companion_v1";
+
+export function companionUnlockFor(classId: HeroClassId): UnlockItem {
+  const target = CLASS_COMPANION[classId];
+  return UNLOCKS.find((u) => u.kind === "COMPANION" && u.target === target) ?? UNLOCKS[0];
+}
+
+export function isCompanionUnlocked(classId: HeroClassId, p: UnlockProgress = loadUnlockProgress()): boolean {
+  return classId === "KNIGHT" || isUnlocked(companionUnlockFor(classId), p);
+}
+
+/** Companions this device has earned (the Keeper always) */
+export function unlockedRunCompanions(p: UnlockProgress = loadUnlockProgress()): HeroClassId[] {
+  return RUN_COMPANION_ORDER.filter((c) => isCompanionUnlocked(c, p));
+}
+
+/** Last companion picked for a Garden Run (falls back to the Keeper if it's locked) */
+export function loadChosenCompanion(fallback?: SanctuaryCompanionId): HeroClassId {
+  let id: string | null = null;
+  try {
+    id = window.localStorage.getItem(CHOSEN_COMPANION_KEY);
+  } catch {
+    // Ignore storage errors
+  }
+  const fromLooks = fallback ? COMPANION_CLASS[fallback] : undefined;
+  const pick = (RUN_COMPANION_ORDER as string[]).includes(id ?? "") ? (id as HeroClassId) : fromLooks ?? "KNIGHT";
+  return isCompanionUnlocked(pick) ? pick : "KNIGHT";
+}
+
+export function saveChosenCompanion(classId: HeroClassId): void {
+  try {
+    window.localStorage.setItem(CHOSEN_COMPANION_KEY, classId);
+  } catch {
+    // Ignore storage errors
+  }
 }

@@ -479,6 +479,8 @@ interface TopHUDProps {
   onOpenGuide?: () => void;
   /** Companion and line colour picker (looks earned by playing) */
   onOpenLooks?: () => void;
+  /** Garden Run: the companion button opens this instead of the old companion drawer */
+  onCompanionTap?: () => void;
   /** Opens the Run leaderboard (Run-only game) */
   onOpenRunLeaderboard?: () => void;
   /** Run-only menu actions */
@@ -534,6 +536,7 @@ export function TopHUD({
   totalStars,
   onOpenGuide,
   onOpenLooks,
+  onCompanionTap,
   hideGoalLine = false,
   onOpenRunLeaderboard,
   onNewRun,
@@ -682,8 +685,10 @@ export function TopHUD({
         <div className="flex items-stretch gap-1.5">
           <button
             type="button"
-            onClick={() => setShowCompanionDrawer(true)}
-            aria-label={`Companion: ${activeClassDef.sanctuaryShortName ?? activeClassDef.shortName}. Tap to change.`}
+            onClick={() => (onCompanionTap ? onCompanionTap() : setShowCompanionDrawer(true))}
+            aria-label={`Companion: ${activeClassDef.sanctuaryShortName ?? activeClassDef.shortName}. ${
+              onCompanionTap ? "Tap to see its rule." : "Tap to change."
+            }`}
             className="relative h-11 w-11 shrink-0 rounded-xl bg-white/[0.04] border border-white/[0.07] flex items-center justify-center active:scale-95 transition"
           >
             <EntityIcon type="HERO" companionId={heroClassId} size={22} />
