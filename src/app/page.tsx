@@ -28,6 +28,8 @@ import {
 } from "@/types/game";
 import {
   BOSS_RULE_REGISTRY,
+  countPathBlinks,
+  countPathSelfCrosses,
   RUN_SEED_BAG_SIZE,
   calculateFloorScoreBreakdown,
   calculateRunScore,
@@ -2910,6 +2912,15 @@ export default function OneStrokeTacticianPage() {
         }
         onOpenGuide={RUN_ONLY ? () => setHelpMenu("help") : undefined}
         onOpenLooks={RUN_ONLY ? () => setLooksOpen(true) : undefined}
+        companionMoveUsed={
+          RUN_ONLY && mode === "RUN" && lessonIndex === null
+            ? heroClassId === "ROGUE"
+              ? countPathSelfCrosses(drawnPath) > 0
+              : heroClassId === "MAGE"
+              ? countPathBlinks(drawnPath) > 0
+              : null
+            : null
+        }
         onCompanionTap={
           RUN_ONLY
             ? () => {

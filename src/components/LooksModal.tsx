@@ -4,10 +4,21 @@ import React, { useMemo } from "react";
 import { X } from "lucide-react";
 import { CosmeticPreferences } from "@/types/game";
 import { TRAIL_SKINS } from "@/lib/engine";
-import { getGardenerRank, isUnlocked, loadUnlockProgress, UNLOCKS } from "@/lib/unlocks";
+import {
+  companionUnlockFor,
+  getGardenerRank,
+  isCompanionUnlocked,
+  isUnlocked,
+  loadChosenCompanion,
+  loadUnlockProgress,
+  RUN_COMPANION_ORDER,
+  UNLOCKS,
+} from "@/lib/unlocks";
 import { loadBestClearedAscension } from "@/lib/ascension";
+import { HERO_CLASS_REGISTRY } from "@/lib/engine";
+import { COMPANION_RULES, companionStartText } from "@/components/AscensionPicker";
 
-/** Pick a companion and line colour earned by playing (looks only) */
+/** Companions (each plays differently) and line colours (looks only), earned by playing */
 export default function LooksModal({
   isOpen,
   cosmetics,
@@ -23,9 +34,8 @@ export default function LooksModal({
   const progress = useMemo(() => (isOpen ? loadUnlockProgress() : null), [isOpen]);
   if (!isOpen || !progress) return null;
   const { rank, next } = getGardenerRank(progress);
-  const companions = UNLOCKS.filter((u) => u.kind === "COMPANION");
+  const nextRunCompanion = loadChosenCompanion(cosmetics.companionId);
   const trails = UNLOCKS.filter((u) => u.kind === "TRAIL");
-  const currentCompanion = cosmetics.companionId ?? "CAT";
 
   const tile = (selected: boolean, unlocked: boolean) =>
     `relative rounded-xl border-2 p-2 flex flex-col items-center gap-1 text-center min-h-[92px] transition active:scale-95 ${
@@ -40,14 +50,16 @@ export default function LooksModal({
     <div className="fixed inset-0 z-[60] bg-black/70 flex items-end sm:items-center justify-center" onClick={onClose}>
       <div
         role="dialog"
-        aria-label="Looks"
+        aria-label="Companions and looks"
         onClick={(e) => e.stopPropagation()}
         className="w-full max-w-[430px] max-h-[88dvh] overflow-y-auto rounded-2xl bg-[#121A2E] border border-white/[0.08] p-3 space-y-3 text-white"
       >
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-[16px] font-bold">Looks</div>
-            <div className="text-[11.5px] text-white/55">Earned by playing. Looks only — same rules for everyone.</div>
+            <div className="text-[16px] font-bold">Companions &amp; looks</div>
+            <div className="text-[11.5px] text-white/55">
+              Earned by playing. Line colours are looks only — companions change how you play.
+            </div>
           </div>
           <button
             type="button"
@@ -71,25 +83,40 @@ export default function LooksModal({
         </div>
 
         <section>
-          <div className="text-[12px] font-semibold text-white/60 mb-1.5">Companion</div>
-          <div className="grid grid-cols-4 gap-1.5">
-            {companions.map((u) => {
-              if (u.kind !== "COMPANION") return null;
-              const unlocked = isUnlocked(u, progress);
-              const selected = currentCompanion === u.target;
+          <div className="text-[12px] font-semibold text-white/60 mb-1.5">
+            Companions · pick one when you start a Garden Run
+          </div>
+          <div className="space-y-1.5">
+            {RUN_COMPANION_ORDER.map((id) => {
+              const def = HERO_CLASS_REGISTRY[id];
+              const unlocked = isCompanionUnlocked(id, progress);
+              const isNext = id === nextRunCompanion;
               return (
-                <button
-                  key={u.id}
-                  type="button"
-                  disabled={!unlocked}
-                  aria-pressed={selected}
-                  onClick={() => onSelect({ ...cosmetics, companionId: u.target })}
-                  className={tile(selected, unlocked)}
+                <div
+                  key={id}
+                  className={`rounded-xl border px-2.5 py-2 flex items-start gap-2.5 ${
+                    unlocked ? "border-white/15 bg-white/[0.04]" : "border-white/[0.06] bg-black/20 opacity-60"
+                  }`}
                 >
-                  <span className="text-[26px] leading-none">{u.icon}</span>
-                  <span className="text-[10.5px] font-bold leading-tight">{u.name}</span>
-                  {!unlocked && <span className="text-[9.5px] text-white/60 leading-tight">🔒 {u.needText}</span>}
-                </button>
+                  <span className="text-[26px] leading-none mt-0.5" aria-hidden="true">
+                    {def.sanctuaryEmblem ?? def.emblem}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-wrap items-center gap-x-1.5">
+                      <span className="text-[13px] font-bold">{def.sanctuaryShortName ?? def.shortName}</span>
+                      <span className="text-[10.5px] font-mono text-white/55">{companionStartText(id)}</span>
+                      {isNext && unlocked && (
+                        <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-100">
+                          Next run
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[11.5px] leading-snug text-white/70">{COMPANION_RULES[id]}</div>
+                    {!unlocked && (
+                      <div className="text-[11px] text-white/60">🔒 {companionUnlockFor(id).needText}</div>
+                    )}
+                  </div>
+                </div>
               );
             })}
           </div>

@@ -481,6 +481,8 @@ interface TopHUDProps {
   onOpenLooks?: () => void;
   /** Garden Run: the companion button opens this instead of the old companion drawer */
   onCompanionTap?: () => void;
+  /** Otter's cross / Fox's hop on the line being drawn: false = ready, true = used, null = no such move */
+  companionMoveUsed?: boolean | null;
   /** Opens the Run leaderboard (Run-only game) */
   onOpenRunLeaderboard?: () => void;
   /** Run-only menu actions */
@@ -537,6 +539,7 @@ export function TopHUD({
   onOpenGuide,
   onOpenLooks,
   onCompanionTap,
+  companionMoveUsed = null,
   hideGoalLine = false,
   onOpenRunLeaderboard,
   onNewRun,
@@ -688,10 +691,18 @@ export function TopHUD({
             onClick={() => (onCompanionTap ? onCompanionTap() : setShowCompanionDrawer(true))}
             aria-label={`Companion: ${activeClassDef.sanctuaryShortName ?? activeClassDef.shortName}. ${
               onCompanionTap ? "Tap to see its rule." : "Tap to change."
-            }`}
+            }${companionMoveUsed === null ? "" : companionMoveUsed ? " Special move used on this line." : " Special move ready."}`}
             className="relative h-11 w-11 shrink-0 rounded-xl bg-white/[0.04] border border-white/[0.07] flex items-center justify-center active:scale-95 transition"
           >
             <EntityIcon type="HERO" companionId={heroClassId} size={22} />
+            {companionMoveUsed !== null && (
+              <span
+                aria-hidden="true"
+                className={`absolute top-1 right-1 h-2.5 w-2.5 rounded-full border border-black/40 ${
+                  companionMoveUsed ? "bg-white/25" : "bg-lime-300 shadow-[0_0_6px_rgba(190,242,100,0.8)]"
+                }`}
+              />
+            )}
           </button>
           <div className="flex-1 min-w-0 h-11 grid grid-cols-4 rounded-xl bg-white/[0.04] border border-white/[0.07] divide-x divide-white/[0.06]">
             {stats.map((st) => (
@@ -848,8 +859,8 @@ export function TopHUD({
               <div className="space-y-0.5">
                 {onOpenLooks && (
                   <button type="button" className={menuRow} onClick={() => { setShowRunMenu(false); onOpenLooks(); }}>
-                    <span className="w-6 text-center" aria-hidden="true">🎨</span> Looks
-                    <span className="ml-auto text-[12px] text-white/50">Companion · line</span>
+                    <span className="w-6 text-center" aria-hidden="true">🎨</span> Companions &amp; looks
+                    <span className="ml-auto text-[12px] text-white/50">Rules · line</span>
                   </button>
                 )}
                 {onOpenGuide && (

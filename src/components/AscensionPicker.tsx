@@ -10,9 +10,9 @@ import { companionUnlockFor, RUN_COMPANION_ORDER } from "@/lib/unlocks";
 /** Each companion's rule in a Garden Run, in plain words */
 export const COMPANION_RULES: Record<HeroClassId, string> = {
   KNIGHT: "+2 🧤 each bed · keeps half its spare Gloves",
-  ROGUE: "Cross your own line once per bed · Thorns 2 softer from a diagonal",
+  ROGUE: "Each line may cross itself once · Thorns 2 softer from a diagonal",
   VAMPIRE: "🌰 heal +1 · cut Thorns heal +2 · no Gloves (they give ✂️)",
-  MAGE: "Hop over one tile once per bed · 🍓 heal +2 more",
+  MAGE: "Each line may hop over one tile · 🍓 heal +2 more",
 };
 
 /** Starting stats line (a Run's Shears rule counts one starting cut) */
