@@ -18,6 +18,10 @@ import {
   RUN_WEEDOUTS_PER_GARDEN,
 } from "@/lib/engine";
 import RelicIcon from "@/components/RelicIcon";
+import { tileArt } from "@/lib/art";
+import { getNextStarUnlocks, loadUnlockProgress } from "@/lib/unlocks";
+
+const BLOOM_ART = tileArt("ENEMY", { bloomed: true }) ?? "";
 import { soundEngine } from "@/lib/audio";
 import { artify } from "@/components/ArtText";
 
@@ -115,12 +119,29 @@ export function RunHudStrip({
             style={{ left: `${pct}%`, width: `${previewPct}%` }}
           />
         )}
-        <div className="absolute inset-0 flex items-center justify-center text-[11px] font-mono font-black text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">
+        <div className="absolute inset-0 flex items-center justify-start pl-2.5 text-[11px] font-mono font-black text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">
           {fmt(garden.score)} / {fmt(garden.target)}
-          {previewScore != null && previewScore > 0 && (
-            <span className="ml-1 text-amber-200">(+{fmt(previewScore)})</span>
-          )}
         </div>
+      </div>
+      {/* Bloom bar: buds at half, three quarters and full open as the bed fills (the line you draw previews it) */}
+      <div className="relative h-0" aria-hidden="true">
+        {[50, 75, 100].map((mark) => {
+          const open = pct >= mark;
+          const soon = !open && pct + previewPct >= mark;
+          return (
+            <motion.img
+              key={mark}
+              src={BLOOM_ART}
+              alt=""
+              draggable={false}
+              initial={false}
+              animate={open ? { scale: [1.5, 1], opacity: 1, filter: "grayscale(0)" } : { scale: soon ? 0.85 : 0.6, opacity: soon ? 0.9 : 0.45, filter: "grayscale(1)" }}
+              transition={{ type: "spring", stiffness: 260, damping: 14 }}
+              className="absolute -top-[23px] h-[20px] w-[20px] object-contain pointer-events-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]"
+              style={{ left: `calc(${mark}% - ${mark === 100 ? 21 : 10}px)` }}
+            />
+          );
+        })}
       </div>
 
       {!weedOutActive && (
@@ -507,8 +528,24 @@ export function RunGardenClearModal({
             {getRunGardenLabel(info.gardenIndex)}
             {!!info.asc && <span className="ml-1 text-orange-200">· 🔥 Ascension {info.asc}</span>}
           </div>
-          <div className="text-2xl font-black text-white">
-            Garden Bed cleared! 🌸
+          {/* The bed bursts into bloom */}
+          <div className="flex justify-center items-end gap-1 h-10 mb-1" aria-hidden="true">
+            {[0.8, 1, 1.25, 1.5, 1.25, 1, 0.8].map((size, i) => (
+              <motion.img
+                key={i}
+                src={BLOOM_ART}
+                alt=""
+                draggable={false}
+                initial={{ scale: 0, rotate: -30, opacity: 0, y: 8 }}
+                animate={{ scale: 1, rotate: 0, opacity: 1, y: 0 }}
+                transition={{ delay: 0.05 + Math.abs(i - 3) * 0.09, type: "spring", stiffness: 300, damping: 12 }}
+                className="object-contain"
+                style={{ width: 22 * size, height: 22 * size }}
+              />
+            ))}
+          </div>
+          <div className="text-[24px] font-display font-semibold text-white">
+            Garden Bed bloomed!
           </div>
           <div className="flex justify-center gap-1.5 mt-1.5" aria-label={`${stars} of 3 stars`}>
             {[1, 2, 3].map((n) => (
@@ -669,6 +706,12 @@ export function RunOverModal({
 }) {
   if (!info) return null;
   const copy = REASON_COPY[info.reason];
+  // What the next Run can earn: the nearest star unlock
+  const progress = loadUnlockProgress();
+  const next = getNextStarUnlocks(progress);
+  const nextUnlock = next
+    ? { stars: next.stars, have: progress.stars, text: next.items.map((u) => `${u.icon} ${u.name}`).join(" · ") }
+    : null;
   const shortBy = Math.max(0, info.target - info.gardenScore);
   const body =
     info.reason === "MISSED_TARGET"
@@ -725,6 +768,12 @@ export function RunOverModal({
           {info.isNewBest ? "✨ New best Garden Run! " : "Best Garden Run: "}
           {getRunGardenLabel(info.best.gardenIndex)}
         </div>
+        {nextUnlock && (
+          <div className="text-center text-[12px] text-white/60 -mt-1">
+            ⭐ {nextUnlock.have} · next unlock: <span className="font-semibold text-white/85">{nextUnlock.text}</span> in{" "}
+            {nextUnlock.stars - nextUnlock.have} ⭐
+          </div>
+        )}
 
         {onOpenLeaderboard && (
           <button
