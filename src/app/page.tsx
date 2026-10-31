@@ -1334,10 +1334,10 @@ export default function OneStrokeTacticianPage() {
           : [];
         handleNotice(
           newSets.length > 0
-            ? `${relic.icon} ${relic.name} joins your relics! ${newSets
+            ? `${relic.name} joins your relics! ${newSets
                 .map((t) => `${RELIC_TAG_INFO[t].icon} ${RELIC_TAG_INFO[t].name}`)
                 .join(" + ")} set complete: every line ×${RELIC_SET_X}`
-            : `${relic.icon} ${relic.name} joins your relics!`
+            : `${relic.name} joins your relics!`
         );
         if (newSets.length > 0) track("relic_set", { tag: newSets.join(","), bed: currentFloorIndex });
       } else if (offer.stat === "MAX_MAGIC") {
@@ -1374,7 +1374,7 @@ export default function OneStrokeTacticianPage() {
       setHero(sold.stats);
       setShopPurchases((prev) => prev + 1);
       const relic = getRelicDisplay(RELIC_REGISTRY[relicId], true);
-      handleNotice(`${relic.icon} ${relic.name} sold for ${sold.value} 🌱`);
+      handleNotice(`${relic.name} sold for ${sold.value} 🌱`);
       soundEngine.playGoldPickup(2);
     },
     [mode, pendingPostFloorStats, hero, activeRelics, relicCounters, handleNotice]

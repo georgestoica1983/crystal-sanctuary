@@ -17,6 +17,7 @@ import {
   RUN_WEEDOUT_MAX_TILES,
   RUN_WEEDOUTS_PER_GARDEN,
 } from "@/lib/engine";
+import RelicIcon from "@/components/RelicIcon";
 
 const fmt = (n: number) => Math.round(n).toLocaleString();
 
@@ -502,7 +503,12 @@ export function RunGardenClearModal({
 
         {legendary && (
           <div className="rounded-xl border border-amber-300/50 bg-amber-400/10 px-3 py-2 text-xs text-amber-50">
-            👑 Legendary relic earned: <span className="font-black">{legendary.icon} {legendary.name}</span>
+            <span className="flex items-center gap-1.5">
+              <RelicIcon id={legendary.id} size={28} />
+              <span>
+                Legendary relic earned: <span className="font-black">{legendary.name}</span>
+              </span>
+            </span>
             <div className="text-[11px] opacity-85">{legendary.description}</div>
           </div>
         )}

@@ -1,4 +1,4 @@
-import type { EntityType, HeroClassId, SanctuaryCompanionId } from "@/types/game";
+import type { EntityType, HeroClassId, RelicId, SanctuaryCompanionId } from "@/types/game";
 import type { RelicTag } from "@/lib/relicTags";
 
 /**
@@ -53,3 +53,6 @@ const THEME_ART: Record<RelicTag, string> = {
   ANY: "theme-any",
 };
 export const themeArt = (tag: RelicTag) => icon(THEME_ART[tag]);
+
+/** relic-<id in kebab case>, e.g. GOLDEN_BEE → relic-golden-bee */
+export const relicArt = (id: RelicId) => icon(`relic-${id.toLowerCase().replace(/_/g, "-")}`);

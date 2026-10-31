@@ -26,6 +26,7 @@ import {
 } from "@/lib/engine";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import { RELIC_SET_SIZE, RELIC_SET_X } from "@/lib/relicTags";
+import RelicIcon from "@/components/RelicIcon";
 
 export const RUN_GUIDE_STORAGE_KEY = "ost_run_guide_seen_v1";
 
@@ -301,7 +302,7 @@ function buildPages(): GuidePage[] {
                 .filter((r) => (r.category ?? "MAGIC") === g.category)
                 .map((r) => (
                   <div key={r.id} className="flex gap-2.5 items-start">
-                    <span className="text-xl leading-6 w-7 shrink-0 text-center" aria-hidden="true">{r.icon}</span>
+                    <RelicIcon id={r.id} size={28} />
                     <div className="text-[13px] leading-snug text-white/80">
                       <B>{r.name}</B> · {r.cost ?? 10} 🌱{r.scaling ? " 📈" : ""}
                       <div className="text-white/60">{r.description}</div>
@@ -313,7 +314,7 @@ function buildPages(): GuidePage[] {
           <div className="text-[12px] font-bold text-fuchsia-200 pt-1">Legendary (Boss rewards)</div>
           {legendaryRelics.map((r) => (
             <div key={r.id} className="flex gap-2.5 items-start">
-              <span className="text-xl leading-6 w-7 shrink-0 text-center" aria-hidden="true">{r.icon}</span>
+              <RelicIcon id={r.id} size={28} />
               <div className="text-[13px] leading-snug text-white/80">
                 <B>{r.name}</B>
                 <div className="text-white/60">{r.description}</div>

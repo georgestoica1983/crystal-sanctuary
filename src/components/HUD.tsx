@@ -60,6 +60,7 @@ import EntityIcon from "@/components/EntityIcon";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import { completedRelicSets, getRelicTags, RELIC_SET_X, RELIC_TAG_INFO } from "@/lib/relicTags";
 import { statArt, StatArtId, themeArt } from "@/lib/art";
+import RelicIcon from "@/components/RelicIcon";
 
 export function getLiveStepNarratorText(
   simulation: PathSimulationResult,
@@ -765,7 +766,7 @@ export function TopHUD({
                         : "bg-white/[0.04] border-white/[0.08]"
                     }`}
                   >
-                    <span aria-hidden="true">{rDef.icon}</span>
+                    <RelicIcon id={relicId} size={26} />
                     {count > 1 && <span className="text-[10px] font-black text-teal-200">×{count}</span>}
                   </motion.button>
                 );
@@ -785,9 +786,7 @@ export function TopHUD({
             </div>
             {openRelic && relicCounts.some(([id]) => id === openRelic) && (
               <div className="absolute left-0 right-0 top-full mt-1 z-40 rounded-xl bg-[#203226] border border-white/[0.12] shadow-xl p-2.5 flex gap-2.5">
-                <span className="text-2xl leading-7" aria-hidden="true">
-                  {getRelicDisplay(RELIC_REGISTRY[openRelic], isSanctuary).icon}
-                </span>
+                <RelicIcon id={openRelic} size={36} />
                 <div className="min-w-0 flex-1">
                   <div className="text-[13px] font-bold text-white">
                     {getRelicDisplay(RELIC_REGISTRY[openRelic], isSanctuary).name}
@@ -874,7 +873,7 @@ export function TopHUD({
                     const rDef = getRelicDisplay(RELIC_REGISTRY[relicId], isSanctuary);
                     return (
                       <div key={relicId} className="flex gap-2.5 px-1">
-                        <span className="text-lg leading-6" aria-hidden="true">{rDef.icon}</span>
+                        <RelicIcon id={relicId} size={26} />
                         <div className="min-w-0">
                           <div className="text-[13px] font-bold text-white">
                             {rDef.name}

@@ -35,6 +35,7 @@ import {
   setProgressFor,
   summarizeBuild,
 } from "@/lib/relicTags";
+import RelicIcon from "@/components/RelicIcon";
 
 /** Small build-theme chip (🌺 Thorns) */
 function TagChip({ tag }: { tag: RelicTag }) {
@@ -228,7 +229,7 @@ export default function ShopModal({
             animate={{ opacity: 1, scale: 1 }}
             className="rounded-xl px-3 py-2 border border-amber-300/60 bg-amber-400/10 flex items-center gap-2.5"
           >
-            <span className="text-2xl">{legendary.icon}</span>
+            <RelicIcon id={legendary.id} size={36} />
             <div className="min-w-0">
               <div className="text-[11px] font-semibold text-amber-200">
                 👑 Boss defeated · Legendary relic
@@ -284,7 +285,7 @@ export default function ShopModal({
                       borderColor: `${info.accent}66`,
                     }}
                   >
-                    {info.icon}
+                    {offer.relicId ? <RelicIcon id={offer.relicId} size={34} /> : info.icon}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col items-start gap-0.5">
@@ -401,7 +402,7 @@ export default function ShopModal({
                 >
                   {relic ? (
                     <>
-                      <span className="text-xl leading-none" aria-hidden="true">{relic.icon}</span>
+                      <RelicIcon id={id} size={30} />
                       <span className="sr-only">{relic.name}</span>
                     </>
                   ) : (
@@ -415,7 +416,7 @@ export default function ShopModal({
             <div className="rounded-lg border border-amber-300/40 bg-amber-400/5 px-2 py-1.5 flex items-center gap-2">
               <div className="min-w-0 flex-1">
                 <div className="text-xs font-black text-white flex flex-wrap items-center gap-1">
-                  {selectedInfo.icon} {selectedInfo.name}
+                  <RelicIcon id={selectedSlotRelic} size={18} /> {selectedInfo.name}
                   {getRelicTags(selectedSlotRelic).map((t) => <TagChip key={t} tag={t} />)}
                 </div>
                 <div className="text-[11px] text-zinc-300 leading-snug">
@@ -468,7 +469,7 @@ export default function ShopModal({
             <div className="text-[11px] text-amber-200">
               Legendary:{" "}
               {legendaryOwned
-                .map((id) => `${RELIC_REGISTRY[id].icon} ${RELIC_REGISTRY[id].name}`)
+                .map((id) => RELIC_REGISTRY[id].name)
                 .join(" · ")}
             </div>
           )}

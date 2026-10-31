@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { BossRuleId, FloorScoreBreakdown, FloorStarBreakdown, RelicId } from "@/types/game";
 import { BOSS_RULE_REGISTRY, RELIC_REGISTRY } from "@/lib/engine";
 import { soundEngine } from "@/lib/audio";
+import RelicIcon from "@/components/RelicIcon";
 
 interface ScoreTallyProps {
   isOpen: boolean;
@@ -343,7 +344,9 @@ export default function ScoreTally({
             animate={{ opacity: 1, y: 0 }}
             className="text-center text-xs font-bold text-amber-100"
           >
-            👑 Legendary relic earned: {legendary.icon} {legendary.name}
+            <span className="inline-flex items-center gap-1.5">
+              <RelicIcon id={legendary.id} size={24} /> Legendary relic earned: {legendary.name}
+            </span>
           </motion.div>
         )}
 

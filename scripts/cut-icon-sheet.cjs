@@ -1,30 +1,43 @@
-// Cuts the Gemini icon sheet (5×5 grid on a flat dark background) into
+// Cuts a Gemini icon sheet (a grid on a flat dark background) into
 // transparent 256 px PNGs in public/art/icons. The background is flood-filled
 // from each cell's edges and faded out softly so glows and outlines survive.
 // Run with: node scripts/cut-icon-sheet.cjs design/gemini-icon-sheet.webp
+//      or:  node scripts/cut-icon-sheet.cjs design/gemini-relic-sheet.webp relics
 const sharp = require("sharp");
 const path = require("path");
 
-const NAMES = [
+const ICON_NAMES = [
   "tile-thorn", "tile-thorn-bloomed", "tile-spike", "tile-shears", "tile-gloves",
   "tile-berry", "tile-acorn", "tile-exit", "companion-keeper", "companion-otter",
   "companion-fox", "companion-sprite", "stat-life", "stat-gloves", "stat-shears",
   "stat-seeds", "theme-thorns", "theme-acorns", "theme-berries-gloves", "theme-shears",
   "theme-long-lines", "theme-careful", "theme-growing", "theme-seeds", "theme-any",
 ];
+// Relic sheet: 6×6, in the order of the Gemini relic prompt
+const RELIC_NAMES = [
+  "GILDED_AEGIS", "VORPAL_EDGE", "ALCHEMIST_FLASK", "SPIKED_BOOTS", "LONG_STRIDE", "GREED_CROWN",
+  "GLASS_WATERING_CAN", "GOLDEN_BEE", "STARLIGHT_COMPASS", "MOSSY_STONE", "BRIAR_PRESS", "BRAMBLE_HEART",
+  "MAGPIE_NEST", "COMPOST_HEAP", "LADYBUG", "THISTLE_WALTZ", "DEW_LENS", "BERRY_BASKET",
+  "ZIGZAG_KITE", "DAWN_CHORUS", "OAK_SAPLING", "RAIN_BARREL", "SUN_PRISM", "QUIET_SNAIL",
+  "EVENING_LANTERN", "HARVEST_MOON", "ELDER_TREE", "SQUIRREL_STASH", "SEED_PURSE", "SUN_HAT",
+  "WISHING_WELL", "DEEP_TAPROOT", "SUNFLOWER", "THORN_CROWN", "RAINBOW_HEART", "ETERNAL_SPRING",
+].map((id) => `relic-${id.toLowerCase().replace(/_/g, "-")}`);
 const SOLID = 14; // closer than this to the background: fully transparent
 const SOFT = 46; // up to this (and reachable from the edge): partly transparent
 const OUT = 256;
 
 (async () => {
   const src = process.argv[2];
+  const NAMES = process.argv[3] === "relics" ? RELIC_NAMES : ICON_NAMES;
+  const GRID = Math.round(Math.sqrt(NAMES.length));
   const { data, info } = await sharp(src).raw().toBuffer({ resolveWithObject: true });
   const { width: W, channels: C } = info;
   const bg = [data[2 * C], data[2 * C + 1], data[2 * C + 2]];
-  const cell = W / 5;
-  for (let n = 0; n < 25; n++) {
-    const x0 = Math.round((n % 5) * cell), y0 = Math.round(Math.floor(n / 5) * cell);
-    const w = Math.round(((n % 5) + 1) * cell) - x0, h = Math.round((Math.floor(n / 5) + 1) * cell) - y0;
+  const cell = W / GRID;
+  for (let n = 0; n < NAMES.length; n++) {
+    const col = n % GRID, row = Math.floor(n / GRID);
+    const x0 = Math.round(col * cell), y0 = Math.round(row * cell);
+    const w = Math.round((col + 1) * cell) - x0, h = Math.round((row + 1) * cell) - y0;
     const rgba = Buffer.alloc(w * h * 4);
     const dist = new Float32Array(w * h);
     for (let y = 0; y < h; y++)
