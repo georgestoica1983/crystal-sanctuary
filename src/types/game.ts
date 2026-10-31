@@ -371,7 +371,14 @@ export type TrailSkinId =
   | "SOLAR_GOLD"
   | "EMERALD_FLAME"
   | "PLASMA_VIOLET"
-  | "RAINBOW";
+  | "RAINBOW"
+  | "BLOSSOM"
+  | "SUNSET"
+  | "STARLIGHT"
+  | "EMBER";
+
+/** Garden board colour themes (looks only) */
+export type BoardThemeId = "SPRING" | "AUTUMN" | "NIGHT" | "WINTER" | "GOLDEN" | "ROYAL";
 
 export type VisualThemeMode = "SANCTUARY" | "TACTICIAN";
 
@@ -382,6 +389,7 @@ export interface CosmeticPreferences {
   trailId: TrailSkinId;
   visualTheme?: VisualThemeMode;
   companionId?: SanctuaryCompanionId;
+  boardThemeId?: BoardThemeId;
 }
 
 export interface DailyPlayerStats {

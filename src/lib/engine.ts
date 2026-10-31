@@ -1048,6 +1048,39 @@ export const TRAIL_SKINS: TrailSkinOption[] = [
     dashStroke: "#FDE68A",
     unlockGold: 0,
   },
+  // Star and Ascension rewards (see src/lib/unlocks.ts)
+  {
+    id: "BLOSSOM",
+    name: "Blossom",
+    primaryStroke: "#F9A8D4",
+    glowClass: "stroke-pink-300/40 stroke-[8px] blur-sm",
+    dashStroke: "#FDF2F8",
+    unlockGold: 0,
+  },
+  {
+    id: "SUNSET",
+    name: "Sunset",
+    primaryStroke: "#FB923C",
+    glowClass: "stroke-orange-400/40 stroke-[8px] blur-sm",
+    dashStroke: "#FFEDD5",
+    unlockGold: 0,
+  },
+  {
+    id: "STARLIGHT",
+    name: "Starlight",
+    primaryStroke: "#F8FAFC",
+    glowClass: "stroke-sky-200/50 stroke-[8px] blur-sm",
+    dashStroke: "#FEF9C3",
+    unlockGold: 0,
+  },
+  {
+    id: "EMBER",
+    name: "Ember",
+    primaryStroke: "#EF4444",
+    glowClass: "stroke-orange-500/45 stroke-[8px] blur-sm",
+    dashStroke: "#FED7AA",
+    unlockGold: 0,
+  },
 ];
 
 export const MODIFIER_REGISTRY: Record<ModifierId, ModifierDefinition> = {

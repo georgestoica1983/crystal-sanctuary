@@ -275,6 +275,8 @@ export interface RunClearInfo {
   newBestStars?: boolean;
   /** Looks unlocked by this clear (companions, line colours, ranks) */
   unlocked?: Array<{ icon: string; name: string }>;
+  /** The next star reward, e.g. 🌙 Night Garden board at 30 ⭐ */
+  nextUnlock?: { stars: number; have: number; text: string } | null;
   /** Deepest Season ever reached on this device (shown in Endless) */
   deepestSeason?: number;
   /** Ascension level of this Garden Run */
@@ -477,8 +479,15 @@ export function RunGardenClearModal({
             <div className="mt-0.5 text-[14px] font-black text-white leading-snug">
               {info.unlocked.map((u) => `${u.icon} ${u.name}`).join(" · ")}
             </div>
-            <div className="text-[10.5px] text-white/60">Pick it in ☰ → Looks</div>
+            <div className="text-[10.5px] text-white/60">See it in ☰ → Companions &amp; looks</div>
           </motion.div>
+        )}
+
+        {info.nextUnlock && (
+          <div className="text-center text-[11.5px] text-white/60">
+            ⭐ {info.nextUnlock.have} · next: <span className="font-semibold text-white/85">{info.nextUnlock.text}</span> at{" "}
+            {info.nextUnlock.stars} ⭐
+          </div>
         )}
 
         {!!info.lifeBonus && (

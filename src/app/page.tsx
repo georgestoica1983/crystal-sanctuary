@@ -164,6 +164,7 @@ import {
 import { loadBestStars, saveBestStars, totalBestStars } from "@/lib/runStars";
 import {
   CLASS_COMPANION,
+  getNextStarUnlocks,
   isCompanionUnlocked,
   loadChosenCompanion,
   loadUnlockProgress,
@@ -1918,15 +1919,21 @@ export default function OneStrokeTacticianPage() {
     }
     // Looks earned by playing: new stars or a new Season can unlock some
     if (save) recordBedReached(garden.gardenIndex + 1);
-    const unlocked = save ? takeNewUnlocks().map((u) => ({ icon: u.icon, name: u.name })) : [];
-    // Clearing the Season 3 Boss unlocks the next Ascension level
+    // Clearing the Season 3 Boss unlocks the next Ascension level (and Ascension rewards)
+    let ascLevel: number | null = null;
     if (save && garden.gardenIndex === ASCENSION_UNLOCK_BED) {
       recordAscensionCleared(runLogRef.current?.asc ?? 0);
-      const level = unlockAscensionAfter(runLogRef.current?.asc ?? 0);
-      if (level !== null) unlocked.push({ icon: "🔥", name: `Ascension ${level}` });
+      ascLevel = unlockAscensionAfter(runLogRef.current?.asc ?? 0);
     }
-    const deepestSeason = Math.floor(loadUnlockProgress().highestBed / 3) + 1;
-    return { seasonBestStars, newBestStars: saved.improved, unlocked, deepestSeason };
+    const unlocked = save ? takeNewUnlocks().map((u) => ({ icon: u.icon, name: u.name })) : [];
+    if (ascLevel !== null) unlocked.push({ icon: "🔥", name: `Ascension ${ascLevel}` });
+    const progress = loadUnlockProgress();
+    const deepestSeason = Math.floor(progress.highestBed / 3) + 1;
+    const next = getNextStarUnlocks(progress);
+    const nextUnlock = next
+      ? { stars: next.stars, have: progress.stars, text: next.items.map((u) => `${u.icon} ${u.name}`).join(" · ") }
+      : null;
+    return { seasonBestStars, newBestStars: saved.improved, unlocked, deepestSeason, nextUnlock };
   };
 
   const handleRunClearContinue = () => {

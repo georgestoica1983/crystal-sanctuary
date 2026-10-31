@@ -1,9 +1,10 @@
-import { HeroClassId, SanctuaryCompanionId, TrailSkinId } from "@/types/game";
+import { BoardThemeId, HeroClassId, SanctuaryCompanionId, TrailSkinId } from "@/types/game";
 import { loadBestStars, totalBestStars } from "@/lib/runStars";
+import { loadBestClearedAscension } from "@/lib/ascension";
 
 /**
- * Looks earned by playing (never by paying): companions, line colours and
- * Gardener ranks. Purely cosmetic — rules and scores are the same for all.
+ * Earned by playing (never by paying): companions (each with its own rule),
+ * line colours, board themes and Gardener ranks.
  */
 
 export interface UnlockProgress {
@@ -13,17 +14,22 @@ export interface UnlockProgress {
   highestBed: number;
   /** At least one Garden Bed cleared with ⭐⭐⭐ */
   hasThreeStar: boolean;
+  /** Highest Ascension level whose Season 3 Boss was beaten */
+  bestAsc: number;
 }
 
 interface Need {
   stars?: number;
   season?: number;
   threeStar?: boolean;
+  /** Beat the Season 3 Boss on this Ascension level */
+  asc?: number;
 }
 
 export type UnlockItem =
   | { id: string; kind: "COMPANION"; target: SanctuaryCompanionId; icon: string; name: string; need: Need; needText: string }
   | { id: string; kind: "TRAIL"; target: TrailSkinId; icon: string; name: string; need: Need; needText: string }
+  | { id: string; kind: "BOARD"; target: BoardThemeId; icon: string; name: string; need: Need; needText: string }
   | { id: string; kind: "RANK"; icon: string; name: string; need: Need; needText: string };
 
 export const UNLOCKS: UnlockItem[] = [
@@ -36,10 +42,21 @@ export const UNLOCKS: UnlockItem[] = [
   { id: "t-emerald", kind: "TRAIL", target: "EMERALD_FLAME", icon: "🌿", name: "Emerald Flame line", need: { season: 3 }, needText: "Reach Season 3" },
   { id: "t-violet", kind: "TRAIL", target: "PLASMA_VIOLET", icon: "💜", name: "Plasma Violet line", need: { stars: 40 }, needText: "40 ⭐" },
   { id: "t-rainbow", kind: "TRAIL", target: "RAINBOW", icon: "🌈", name: "Rainbow line", need: { season: 9 }, needText: "Reach Endless (Season 9)" },
+  { id: "t-blossom", kind: "TRAIL", target: "BLOSSOM", icon: "🌸", name: "Blossom line", need: { stars: 15 }, needText: "15 ⭐" },
+  { id: "t-sunset", kind: "TRAIL", target: "SUNSET", icon: "🌅", name: "Sunset line", need: { stars: 35 }, needText: "35 ⭐" },
+  { id: "t-starlight", kind: "TRAIL", target: "STARLIGHT", icon: "🌟", name: "Starlight line", need: { stars: 70 }, needText: "70 ⭐" },
+  { id: "t-ember", kind: "TRAIL", target: "EMBER", icon: "🔥", name: "Ember line", need: { asc: 3 }, needText: "Beat the Season 3 Boss on Ascension 3" },
+  { id: "b-spring", kind: "BOARD", target: "SPRING", icon: "🌱", name: "Spring board", need: {}, needText: "From the start" },
+  { id: "b-autumn", kind: "BOARD", target: "AUTUMN", icon: "🍂", name: "Autumn board", need: { stars: 10 }, needText: "10 ⭐" },
+  { id: "b-night", kind: "BOARD", target: "NIGHT", icon: "🌙", name: "Night Garden board", need: { stars: 30 }, needText: "30 ⭐" },
+  { id: "b-winter", kind: "BOARD", target: "WINTER", icon: "❄️", name: "Winter Frost board", need: { stars: 50 }, needText: "50 ⭐" },
+  { id: "b-golden", kind: "BOARD", target: "GOLDEN", icon: "🌾", name: "Golden Hour board", need: { stars: 60 }, needText: "60 ⭐" },
+  { id: "b-royal", kind: "BOARD", target: "ROYAL", icon: "👑", name: "Royal Garden board", need: { asc: 6 }, needText: "Beat the Season 3 Boss on Ascension 6" },
   { id: "r-seedling", kind: "RANK", icon: "🌱", name: "Seedling", need: {}, needText: "From the start" },
   { id: "r-sprout", kind: "RANK", icon: "🌿", name: "Sprout", need: { stars: 10 }, needText: "10 ⭐" },
   { id: "r-gardener", kind: "RANK", icon: "🧑‍🌾", name: "Gardener", need: { stars: 25 }, needText: "25 ⭐" },
   { id: "r-head", kind: "RANK", icon: "🏡", name: "Head Gardener", need: { stars: 50 }, needText: "50 ⭐" },
+  { id: "r-star", kind: "RANK", icon: "✨", name: "Star Gardener", need: { stars: 70 }, needText: "70 ⭐" },
   { id: "r-master", kind: "RANK", icon: "👑", name: "Master of Seasons", need: { season: 9 }, needText: "Clear Season 8" },
   { id: "r-endless", kind: "RANK", icon: "🌌", name: "Endless Gardener", need: { season: 10 }, needText: "Reach Season 10" },
 ];
@@ -48,10 +65,11 @@ const HIGHEST_BED_KEY = "ost_highest_bed_v1";
 const SEEN_UNLOCKS_KEY = "ost_unlocks_seen_v1";
 
 export function isUnlocked(item: UnlockItem, p: UnlockProgress): boolean {
-  const { stars, season, threeStar } = item.need;
+  const { stars, season, threeStar, asc } = item.need;
   if (stars !== undefined && p.stars < stars) return false;
   if (season !== undefined && Math.floor(p.highestBed / 3) + 1 < season) return false;
   if (threeStar && !p.hasThreeStar) return false;
+  if (asc !== undefined && p.bestAsc < asc) return false;
   return true;
 }
 
@@ -67,6 +85,7 @@ export function loadUnlockProgress(): UnlockProgress {
     stars: totalBestStars(best),
     highestBed,
     hasThreeStar: Object.values(best).some((n) => n >= 3),
+    bestAsc: loadBestClearedAscension(),
   };
 }
 
@@ -100,6 +119,14 @@ export function takeNewUnlocks(p: UnlockProgress = loadUnlockProgress()): Unlock
     }
   }
   return fresh;
+}
+
+/** The next star reward(s): everything unlocked at the lowest star count still ahead */
+export function getNextStarUnlocks(p: UnlockProgress = loadUnlockProgress()): { stars: number; items: UnlockItem[] } | null {
+  const ahead = UNLOCKS.filter((u) => u.need.stars !== undefined && u.need.stars > p.stars);
+  if (ahead.length === 0) return null;
+  const stars = Math.min(...ahead.map((u) => u.need.stars!));
+  return { stars, items: ahead.filter((u) => u.need.stars === stars) };
 }
 
 /** Current Gardener rank and the next one to aim for */

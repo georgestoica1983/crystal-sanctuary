@@ -26,6 +26,7 @@ import {
 } from "@/lib/engine";
 import { soundEngine } from "@/lib/audio";
 import { SANCTUARY_COMPANIONS } from "@/components/SanctuaryModal";
+import { boardThemeStyle } from "@/lib/boardThemes";
 import EntityIcon, { ENTITY_COLORS } from "@/components/EntityIcon";
 import { getLineTier } from "@/lib/lineTiers";
 import LineHeadFeedback, { LiveLineScore, StepEffectPop } from "@/components/LineHeadFeedback";
@@ -569,7 +570,10 @@ export default function GridCanvas({
     !isResolving;
 
   return (
-    <div className="board-cq relative w-full max-w-[430px] aspect-square mx-auto select-none touch-none">
+    <div
+      className="board-cq relative w-full max-w-[430px] aspect-square mx-auto select-none touch-none"
+      style={isSanctuary ? boardThemeStyle(cosmetics?.boardThemeId) : undefined}
+    >
       {/* Outer Frame: Crystal Sanctuary Garden OR Swiss Cyberpunk Frame */}
       <div
         key={
@@ -585,7 +589,7 @@ export default function GridCanvas({
         style={{ touchAction: "none" }}
         className={`relative w-full h-full rounded-2xl board-pad overflow-hidden cursor-crosshair select-none touch-none ${
           isSanctuary
-            ? "bg-[#10162A] border border-white/[0.07]"
+            ? "bg-[var(--board-frame,#10162A)] border border-[color:var(--board-border,rgba(255,255,255,0.07))] shadow-[var(--board-glow,none)]"
             : "bg-gradient-to-b from-[#0E101F]/95 via-[#0A0B14] to-[#06070D] border border-indigo-500/25 shadow-2xl shadow-indigo-950/40"
         } ${shouldShakeHeavyHit ? "animate-shake" : ""}`}
       >
@@ -673,7 +677,7 @@ export default function GridCanvas({
 
               // Base Plate Styling (Crystal Sanctuary vs Cyber Tactician)
               let plateClass = isSanctuary
-                ? "bg-gradient-to-b from-[#252D52] to-[#1B213E] border-t border-white/15 shadow-[inset_0_1px_2px_rgba(255,255,255,0.12),0_4px_10px_rgba(8,10,24,0.45)] hover:from-[#2C3560] hover:to-[#202749]"
+                ? "bg-gradient-to-b from-[var(--plate-top,#252D52)] to-[var(--plate-bottom,#1B213E)] border-t border-white/15 shadow-[inset_0_1px_2px_rgba(255,255,255,0.12),0_4px_10px_rgba(8,10,24,0.45)] hover:from-[var(--plate-top-hover,#2C3560)] hover:to-[var(--plate-bottom-hover,#202749)]"
                 : "bg-gradient-to-b from-[#181A2D] to-[#111220] border-t border-[#2A2D4A] shadow-[inset_0_1px_2px_rgba(255,255,255,0.05),0_4px_10px_rgba(0,0,0,0.4)] hover:from-[#1E2138] hover:to-[#141628]";
 
               if (isInspected) {

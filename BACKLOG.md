@@ -26,7 +26,7 @@ Things that are ready in code but wait on a setup step, plus work planned for la
   - [x] Relic theme tags (Thorns, Acorns, Berries & Gloves, Shears, Long lines, Careful, Growing, Seeds, Any build) + "Fits your build" mark.
   - [ ] Optional: set bonus for 3 relics with the same tag (rules change).
   - [x] Companions with their own rule: pick Keeper / Otter / Sprite / Fox per run, Companions & looks screen, leaderboard emoji.
-- [ ] More unlocks (one every ~10 ⭐, board themes).
+- [x] More unlocks: board themes (Autumn, Night Garden, Winter Frost, Golden Hour, Royal Garden), Blossom / Sunset / Starlight / Ember lines, Star Gardener rank, next-unlock line.
 - [ ] Quick mode (a 3-minute run) — only if testers ask.
 - [ ] A 10-second "how to score big" demo replacing walkthrough step 2.
 

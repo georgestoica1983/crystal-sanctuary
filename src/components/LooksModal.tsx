@@ -17,6 +17,7 @@ import {
 import { loadBestClearedAscension } from "@/lib/ascension";
 import { HERO_CLASS_REGISTRY } from "@/lib/engine";
 import { COMPANION_RULES, companionStartText } from "@/components/AscensionPicker";
+import { getBoardTheme } from "@/lib/boardThemes";
 
 /** Companions (each plays differently) and line colours (looks only), earned by playing */
 export default function LooksModal({
@@ -36,6 +37,8 @@ export default function LooksModal({
   const { rank, next } = getGardenerRank(progress);
   const nextRunCompanion = loadChosenCompanion(cosmetics.companionId);
   const trails = UNLOCKS.filter((u) => u.kind === "TRAIL");
+  const boards = UNLOCKS.filter((u) => u.kind === "BOARD");
+  const currentBoard = cosmetics.boardThemeId ?? "SPRING";
 
   const tile = (selected: boolean, unlocked: boolean) =>
     `relative rounded-xl border-2 p-2 flex flex-col items-center gap-1 text-center min-h-[92px] transition active:scale-95 ${
@@ -145,6 +148,46 @@ export default function LooksModal({
                     aria-hidden="true"
                   />
                   <span className="text-[10.5px] font-bold leading-tight mt-1">{u.name.replace(" line", "")}</span>
+                  {!unlocked && <span className="text-[9.5px] text-white/60 leading-tight">🔒 {u.needText}</span>}
+                </button>
+              );
+            })}
+          </div>
+        </section>
+
+        <section>
+          <div className="text-[12px] font-semibold text-white/60 mb-1.5">Board</div>
+          <div className="grid grid-cols-3 gap-1.5">
+            {boards.map((u) => {
+              if (u.kind !== "BOARD") return null;
+              const unlocked = isUnlocked(u, progress);
+              const selected = currentBoard === u.target;
+              const theme = getBoardTheme(u.target);
+              return (
+                <button
+                  key={u.id}
+                  type="button"
+                  disabled={!unlocked}
+                  aria-pressed={selected}
+                  onClick={() => onSelect({ ...cosmetics, boardThemeId: u.target })}
+                  className={tile(selected, unlocked)}
+                >
+                  <span
+                    className="mt-0.5 grid grid-cols-3 gap-[3px] rounded-md p-[4px] border"
+                    style={{ backgroundColor: theme.frame, borderColor: theme.border, boxShadow: theme.glow }}
+                    aria-hidden="true"
+                  >
+                    {Array.from({ length: 6 }, (_, i) => (
+                      <span
+                        key={i}
+                        className="h-3 w-3 rounded-[3px]"
+                        style={{ backgroundImage: `linear-gradient(${theme.plateTop}, ${theme.plateBottom})` }}
+                      />
+                    ))}
+                  </span>
+                  <span className="text-[10.5px] font-bold leading-tight mt-0.5">
+                    {u.icon} {u.name.replace(" board", "")}
+                  </span>
                   {!unlocked && <span className="text-[9.5px] text-white/60 leading-tight">🔒 {u.needText}</span>}
                 </button>
               );
