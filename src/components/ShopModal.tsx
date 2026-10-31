@@ -178,7 +178,7 @@ export default function ShopModal({
         initial={{ opacity: 0, y: 24, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 22 }}
-        className="w-full max-w-[430px] my-auto rounded-2xl p-4 space-y-3 text-white border border-white/[0.08] bg-[#151B2E] shadow-2xl shadow-black/50"
+        className="w-full max-w-[430px] my-auto rounded-2xl p-4 space-y-3 text-white border border-white/[0.08] bg-[#1B281F] shadow-2xl shadow-black/50"
       >
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
@@ -187,7 +187,7 @@ export default function ShopModal({
               {headerLabel ??
                 `${isSanctuary ? "Garden" : "Floor"} ${clearedFloorNumber}/${totalFloors} cleared`}
             </div>
-            <h2 className="text-[22px] font-black leading-tight text-white">
+            <h2 className="text-[24px] font-display font-semibold leading-tight text-white">
               {isSanctuary ? "Garden Shop" : "Sanctuary Shop"}
             </h2>
           </div>

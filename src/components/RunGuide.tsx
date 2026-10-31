@@ -46,13 +46,13 @@ function Tile({
   const color = ENTITY_COLORS[type] ?? "#fff";
   return (
     <div
-      className="relative shrink-0 rounded-xl bg-[#1B1F3A] border border-white/10 flex items-center justify-center"
+      className="relative shrink-0 rounded-xl bg-[#223328] border border-white/10 flex items-center justify-center"
       style={{ width: size, height: size }}
     >
       <EntityIcon type={type} size={size * 0.62} glow />
       {value !== undefined && (
         <span
-          className="absolute -bottom-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-mono font-black flex items-center justify-center bg-[#0B0E1C] border"
+          className="absolute -bottom-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-mono font-black flex items-center justify-center bg-[#0F1812] border"
           style={{ color, borderColor: color }}
         >
           {value}
@@ -348,7 +348,7 @@ export default function RunGuide({
 
   return (
     <div className="fixed inset-0 z-[60] bg-black/85 backdrop-blur-sm flex items-stretch sm:items-center justify-center sm:p-3">
-      <div className="relative w-full max-w-[440px] sm:max-h-[92dvh] flex flex-col bg-gradient-to-b from-[#16203A] via-[#111831] to-[#0B1020] rounded-2xl border border-emerald-300/40 shadow-[0_0_40px_rgba(52,211,153,0.25)] text-white overflow-hidden">
+      <div className="relative w-full max-w-[440px] sm:max-h-[92dvh] flex flex-col bg-gradient-to-b from-[#1F3125] via-[#1A281F] to-[#111A14] rounded-2xl border border-emerald-300/40 shadow-[0_0_40px_rgba(52,211,153,0.25)] text-white overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between gap-2 px-3 pt-3 pb-2 border-b border-white/10">
           <button
@@ -392,7 +392,7 @@ export default function RunGuide({
 
         {/* Chapter list */}
         {showIndex && (
-          <div className="mx-3 mt-2 rounded-xl border border-white/10 bg-[#0B1020] p-1.5 grid grid-cols-1 gap-0.5 max-h-[50dvh] overflow-y-auto">
+          <div className="mx-3 mt-2 rounded-xl border border-white/10 bg-[#111A14] p-1.5 grid grid-cols-1 gap-0.5 max-h-[50dvh] overflow-y-auto">
             {pages.map((p, i) => (
               <button
                 key={p.title}

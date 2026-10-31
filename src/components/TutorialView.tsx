@@ -154,7 +154,7 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-[#141418] border border-[#26262E] rounded-2xl p-4 space-y-3">
+    <div className="bg-[#141815] border border-[#262E29] rounded-2xl p-4 space-y-3">
       <h3
         className={`text-xs font-mono font-extrabold uppercase tracking-wider flex items-center gap-1.5 ${accent}`}
       >
@@ -191,8 +191,8 @@ function NumberedRule({
   children: React.ReactNode;
 }) {
   return (
-    <div className="bg-[#0A0A0C] border border-[#26262E] rounded-xl p-3 flex gap-3 items-start">
-      <span className="w-6 h-6 rounded-lg bg-amber-300 text-[#0A0A0C] font-mono font-black text-xs flex items-center justify-center shrink-0">
+    <div className="bg-[#0A0C0B] border border-[#262E29] rounded-xl p-3 flex gap-3 items-start">
+      <span className="w-6 h-6 rounded-lg bg-amber-300 text-[#0A0C0B] font-mono font-black text-xs flex items-center justify-center shrink-0">
         {n}
       </span>
       <div>
@@ -226,7 +226,7 @@ export default function TutorialView({
   return (
     <div className="w-full max-w-[430px] mx-auto flex flex-col gap-3 pb-4 select-none text-white">
       {/* Banner */}
-      <div className="bg-[#141418] border border-[#26262E] rounded-2xl p-4 space-y-2.5 shadow-lg">
+      <div className="bg-[#141815] border border-[#262E29] rounded-2xl p-4 space-y-2.5 shadow-lg">
         <div className="flex items-center justify-between gap-1.5">
           <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-extrabold uppercase bg-amber-400/15 border border-amber-300/45 text-amber-200">
             <BookOpen className="w-3 h-3" />
@@ -246,7 +246,7 @@ export default function TutorialView({
             <button
               type="button"
               onClick={onStartPlaying}
-              className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-white text-[#0A0A0C] font-mono text-xs font-black uppercase hover:bg-zinc-200 transition shadow"
+              className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-white text-[#0A0C0B] font-mono text-xs font-black uppercase hover:bg-zinc-200 transition shadow"
             >
               <Play className="w-3 h-3 fill-current" />
               <span>Play</span>
@@ -265,7 +265,7 @@ export default function TutorialView({
           at least <strong className="text-emerald-300">1 Magic</strong> left.
         </p>
 
-        <div className="grid grid-cols-5 gap-1 bg-[#0A0A0C] p-1 rounded-xl border border-[#26262E]">
+        <div className="grid grid-cols-5 gap-1 bg-[#0A0C0B] p-1 rounded-xl border border-[#262E29]">
           {SECTIONS.map((tab) => (
             <button
               key={tab.id}
@@ -331,9 +331,9 @@ export default function TutorialView({
             {TILE_GUIDE.map((tile) => (
               <div
                 key={tile.type}
-                className="bg-[#0A0A0C] border border-[#26262E] rounded-xl p-2.5 flex items-center gap-3"
+                className="bg-[#0A0C0B] border border-[#262E29] rounded-xl p-2.5 flex items-center gap-3"
               >
-                <div className="w-11 h-11 rounded-lg bg-[#141418] border border-[#26262E] flex items-center justify-center shrink-0">
+                <div className="w-11 h-11 rounded-lg bg-[#141815] border border-[#262E29] flex items-center justify-center shrink-0">
                   <EntityIcon type={tile.type} size={32} />
                 </div>
                 <div className="text-xs">
@@ -369,7 +369,7 @@ export default function TutorialView({
             Sunbeam first, then Dew, and only then Magic. Try it:
           </p>
 
-          <div className="bg-[#0A0A0C] border border-[#26262E] rounded-xl p-3 space-y-2.5 font-mono text-xs">
+          <div className="bg-[#0A0C0B] border border-[#262E29] rounded-xl p-3 space-y-2.5 font-mono text-xs">
             {(
               [
                 ["Briar", simBriar, setSimBriar, 3, 9, "text-rose-300", "accent-rose-400"],
@@ -394,7 +394,7 @@ export default function TutorialView({
             ))}
           </div>
 
-          <div className="bg-[#0A0A0C] border border-[#26262E] rounded-xl p-3 space-y-2 font-mono text-[11px]">
+          <div className="bg-[#0A0C0B] border border-[#262E29] rounded-xl p-3 space-y-2 font-mono text-[11px]">
             <div className="flex justify-between gap-2 text-zinc-300">
               <span>1. Sunbeam</span>
               <span className="text-amber-300 font-bold text-right">
@@ -407,7 +407,7 @@ export default function TutorialView({
                 {dewUsed} used · {simDew - dewUsed} Dew left
               </span>
             </div>
-            <div className="flex justify-between gap-2 text-zinc-300 border-t border-[#26262E] pt-1.5">
+            <div className="flex justify-between gap-2 text-zinc-300 border-t border-[#262E29] pt-1.5">
               <span>3. Magic</span>
               <span
                 className={`font-black text-right ${
@@ -434,7 +434,7 @@ export default function TutorialView({
           accent="text-amber-300"
         >
           <div className="space-y-2 text-[11px] text-zinc-400 leading-relaxed">
-            <div className="bg-[#0A0A0C] border border-[#26262E] rounded-xl p-3 space-y-1.5">
+            <div className="bg-[#0A0C0B] border border-[#262E29] rounded-xl p-3 space-y-1.5">
               <div className="font-mono font-bold text-white text-xs">
                 Three stars per garden
               </div>
@@ -454,7 +454,7 @@ export default function TutorialView({
               <p>Tap the stars above the board to see your progress live.</p>
             </div>
 
-            <div className="bg-[#0A0A0C] border border-[#26262E] rounded-xl p-3 space-y-1.5">
+            <div className="bg-[#0A0C0B] border border-[#262E29] rounded-xl p-3 space-y-1.5">
               <div className="font-mono font-bold text-white text-xs">
                 A garden&apos;s score
               </div>
@@ -468,7 +468,7 @@ export default function TutorialView({
               </p>
             </div>
 
-            <div className="bg-[#0A0A0C] border border-[#26262E] rounded-xl p-3 space-y-1.5">
+            <div className="bg-[#0A0C0B] border border-[#262E29] rounded-xl p-3 space-y-1.5">
               <div className="font-mono font-bold text-white text-xs">
                 Sanctuary Shop &amp; Boss Gardens
               </div>
@@ -480,7 +480,7 @@ export default function TutorialView({
               </p>
             </div>
 
-            <div className="bg-[#0A0A0C] border border-[#26262E] rounded-xl p-3 space-y-1.5">
+            <div className="bg-[#0A0C0B] border border-[#262E29] rounded-xl p-3 space-y-1.5">
               <div className="font-mono font-bold text-white text-xs">Par</div>
               <p>
                 Par is the best line the Sanctuary found for that garden. In
@@ -501,7 +501,7 @@ export default function TutorialView({
               </p>
             </div>
 
-            <div className="bg-[#0A0A0C] border border-[#26262E] rounded-xl p-3 space-y-1.5">
+            <div className="bg-[#0A0C0B] border border-[#262E29] rounded-xl p-3 space-y-1.5">
               <div className="font-mono font-bold text-white text-xs">
                 The Daily
               </div>
@@ -538,7 +538,7 @@ export default function TutorialView({
               return (
                 <div
                   key={base.id}
-                  className="bg-[#0A0A0C] border border-[#26262E] rounded-xl p-3 space-y-1"
+                  className="bg-[#0A0C0B] border border-[#262E29] rounded-xl p-3 space-y-1"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
@@ -551,7 +551,7 @@ export default function TutorialView({
                       </span>
                     </div>
                     <span
-                      className="text-[9px] font-mono font-extrabold px-1.5 py-0.5 rounded bg-[#141418] border border-white/10 text-right"
+                      className="text-[9px] font-mono font-extrabold px-1.5 py-0.5 rounded bg-[#141815] border border-white/10 text-right"
                       style={{ color: mod.accentColor }}
                     >
                       {mod.shortTag}
@@ -572,7 +572,7 @@ export default function TutorialView({
             <button
               type="button"
               onClick={onStartPlaying}
-              className="flex-1 py-2.5 px-4 rounded-xl bg-white text-[#0A0A0C] font-mono text-xs font-black uppercase hover:bg-zinc-200 transition flex items-center justify-center gap-1.5 shadow"
+              className="flex-1 py-2.5 px-4 rounded-xl bg-white text-[#0A0C0B] font-mono text-xs font-black uppercase hover:bg-zinc-200 transition flex items-center justify-center gap-1.5 shadow"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
               <span>Visit today&apos;s garden</span>

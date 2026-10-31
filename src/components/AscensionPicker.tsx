@@ -60,7 +60,7 @@ export default function AscensionPicker({
         role="dialog"
         aria-label="New Garden Run"
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[430px] max-h-[88dvh] overflow-y-auto rounded-2xl bg-[#151B2E] border border-white/[0.08] p-3 space-y-3 text-white"
+        className="w-full max-w-[430px] max-h-[88dvh] overflow-y-auto rounded-2xl bg-[#1B281F] border border-white/[0.08] p-3 space-y-3 text-white"
       >
         <div className="flex items-center justify-between">
           <div>

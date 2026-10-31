@@ -30,6 +30,11 @@ Things that are ready in code but wait on a setup step, plus work planned for la
 - [ ] Quick mode (a 3-minute run) — only if testers ask.
 - [x] A 10-second "how to score big" demo opening walkthrough step 2 (skip, watch again, still card with reduce motion).
 
+## Design and sound (now)
+
+- [ ] Art direction: replace emoji (HUD stats, relics, companions, menus) with one illustrated symbol set; redraw the board tiles in the same style.
+- [ ] Music: calmer, warmer loop (soft pads, plucked melody), and more rewarding sounds for scoring, bed clears and relic buys.
+
 ## Phase 5 — last
 
 - [ ] Payments (Stripe): cosmetics or a supporter pack only, never power.

@@ -1,11 +1,19 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
+import { Fraunces, JetBrains_Mono, Nunito } from "next/font/google";
 import "./globals.css";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+const nunito = Nunito({
   subsets: ["latin"],
-  weight: ["500", "600", "700", "800"],
+  weight: ["500", "600", "700", "800", "900"],
   variable: "--font-sans",
+  display: "swap",
+});
+
+// Soft serif for the title and big score numbers
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+  variable: "--font-display",
   display: "swap",
 });
 
@@ -41,7 +49,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
-  themeColor: "#131B2E",
+  themeColor: "#19281E",
 };
 
 const EXTENSION_SHIELD_SCRIPT = `
@@ -135,7 +143,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${plusJakartaSans.variable} ${jetBrainsMono.variable}`}
+      className={`dark ${nunito.variable} ${fraunces.variable} ${jetBrainsMono.variable}`}
       suppressHydrationWarning
     >
       <head>
@@ -145,7 +153,7 @@ export default function RootLayout({
       </head>
       <body
         suppressHydrationWarning
-        className="min-h-dvh bg-[#0B101D] font-sans text-white antialiased selection:bg-violet-500 selection:text-white"
+        className="min-h-dvh bg-[#101813] font-sans text-white antialiased selection:bg-violet-500 selection:text-white"
       >
         {children}
       </body>

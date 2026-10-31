@@ -105,8 +105,8 @@ export default function TutorialCoach({
       <div
         className={`relative rounded-2xl p-2.5 sm:p-3.5 border shadow-xl transition-all duration-300 ${
           isSanctuary
-            ? "bg-gradient-to-br from-[#231A3E]/95 via-[#1D1734]/95 to-[#151228]/95 border-amber-300/40 shadow-[0_0_28px_rgba(251,191,36,0.18)]"
-            : "bg-gradient-to-br from-[#121428]/95 via-[#0F1020]/95 to-[#0A0B16]/95 border-cyan-400/40 shadow-[0_0_25px_rgba(6,182,212,0.18)]"
+            ? "bg-gradient-to-br from-[#223629]/95 via-[#1E2D23]/95 to-[#17231B]/95 border-amber-300/40 shadow-[0_0_28px_rgba(251,191,36,0.18)]"
+            : "bg-gradient-to-br from-[#17231B]/95 via-[#131C16]/95 to-[#0D130F]/95 border-cyan-400/40 shadow-[0_0_25px_rgba(6,182,212,0.18)]"
         }`}
       >
         {/* Top Meta Header: Lesson Stepper & Actions */}
@@ -207,7 +207,7 @@ export default function TutorialCoach({
                     className={`py-1 px-0.5 rounded-lg border flex flex-col items-center gap-0.5 transition-all duration-200 ${
                       isSelected
                         ? "bg-amber-400/25 border-amber-300 shadow-[0_0_12px_rgba(251,191,36,0.45)]"
-                        : "bg-[#111426]/80 border-white/10 hover:border-white/25 text-white/80"
+                        : "bg-[#16211A]/80 border-white/10 hover:border-white/25 text-white/80"
                     }`}
                   >
                     <span className="text-base leading-none">{comp.icon}</span>
@@ -236,8 +236,8 @@ export default function TutorialCoach({
         <div
           className={`absolute -bottom-2 left-8 w-4 h-4 rotate-45 border-r border-b ${
             isSanctuary
-              ? "bg-[#151228] border-amber-300/40"
-              : "bg-[#0A0B16] border-cyan-400/40"
+              ? "bg-[#17231B] border-amber-300/40"
+              : "bg-[#0D130F] border-cyan-400/40"
           }`}
         />
       </div>

@@ -95,7 +95,7 @@ export const SANCTUARY_SCENES: SanctuarySceneDefinition[] = [
     companionReward: "OTTER",
     companionEmoji: "🦦",
     companionName: "River Otter",
-    skyGradient: ["#1A2942", "#0F172A"],
+    skyGradient: ["#24382B", "#16231A"],
     accentColor: "#38BDF8",
     facets: [
       { points: "20,140 80,140 50,110", color: "#0284C7" },
@@ -126,7 +126,7 @@ export const SANCTUARY_SCENES: SanctuarySceneDefinition[] = [
     companionReward: "BUTTERFLY",
     companionEmoji: "🦋",
     companionName: "Crystal Butterfly",
-    skyGradient: ["#3B1D38", "#1F1630"],
+    skyGradient: ["#3B1D38", "#1C2A21"],
     accentColor: "#FBBF24",
     facets: [
       { points: "20,142 90,142 60,105", color: "#D97706" },
@@ -157,7 +157,7 @@ export const SANCTUARY_SCENES: SanctuarySceneDefinition[] = [
     companionReward: "FOX",
     companionEmoji: "🦊",
     companionName: "Starlight Fox",
-    skyGradient: ["#0F292E", "#091921"],
+    skyGradient: ["#0F292E", "#101A13"],
     accentColor: "#34D399",
     facets: [
       { points: "15,140 85,140 55,112", color: "#059669" },
@@ -187,7 +187,7 @@ export const SANCTUARY_SCENES: SanctuarySceneDefinition[] = [
     prevUnlockGems: 75,
     companionEmoji: "🦋",
     companionName: "Astral Bloom",
-    skyGradient: ["#261844", "#120D28"],
+    skyGradient: ["#24382B", "#152019"],
     accentColor: "#C084FC",
     facets: [
       { points: "24,142 88,142 58,106", color: "#7C3AED" },
@@ -217,7 +217,7 @@ export const SANCTUARY_SCENES: SanctuarySceneDefinition[] = [
     prevUnlockGems: 120,
     companionEmoji: "🦊",
     companionName: "Sakura Kitsune",
-    skyGradient: ["#3D1830", "#1E1024"],
+    skyGradient: ["#3D1830", "#142018"],
     accentColor: "#FB7185",
     facets: [
       { points: "18,136 86,136 54,104", color: "#E11D48" },
@@ -247,7 +247,7 @@ export const SANCTUARY_SCENES: SanctuarySceneDefinition[] = [
     prevUnlockGems: 180,
     companionEmoji: "👑",
     companionName: "Grand Sanctuary Keeper",
-    skyGradient: ["#1B264F", "#0D132A"],
+    skyGradient: ["#294131", "#152219"],
     accentColor: "#FDE047",
     facets: [
       { points: "20,142 86,142 54,108", color: "#4F46E5" },
@@ -368,7 +368,7 @@ export function SanctuaryGemArtCanvas({
             <g key={idx}>
               <polygon
                 points={facet.points}
-                fill={isFilled ? facet.color : "rgba(15, 23, 42, 0.65)"}
+                fill={isFilled ? facet.color : "rgba(22,35,26, 0.65)"}
                 fillOpacity={isFilled ? 0.92 : 0.65}
                 stroke={isFilled ? "#FEF3C7" : "rgba(148, 163, 184, 0.35)"}
                 strokeWidth={compact ? "1.4" : "1.8"}
@@ -420,7 +420,7 @@ export function SanctuaryProgressBar({
     progress;
 
   return (
-    <div className="w-full max-w-[430px] mx-auto bg-gradient-to-r from-[#1E2642]/95 via-[#271F4A]/95 to-[#1E2642]/95 backdrop-blur-md border border-amber-300/35 rounded-2xl p-2 shadow-[0_0_24px_rgba(251,191,36,0.14)] flex items-center justify-between gap-2.5 select-none">
+    <div className="w-full max-w-[430px] mx-auto bg-gradient-to-r from-[#263A2D]/95 via-[#294031]/95 to-[#263A2D]/95 backdrop-blur-md border border-amber-300/35 rounded-2xl p-2 shadow-[0_0_24px_rgba(251,191,36,0.14)] flex items-center justify-between gap-2.5 select-none">
       {/* Clickable Mini Stained-Glass Thumbnail + Progress */}
       <button
         type="button"
@@ -444,7 +444,7 @@ export function SanctuaryProgressBar({
           </div>
 
           {/* Shimmering Gem Progress Bar */}
-          <div className="w-full h-2 rounded-full bg-[#0F1424] border border-amber-200/25 overflow-hidden mt-1 p-0.5">
+          <div className="w-full h-2 rounded-full bg-[#141F18] border border-amber-200/25 overflow-hidden mt-1 p-0.5">
             <div
               className="h-full rounded-full bg-gradient-to-r from-amber-300 via-pink-400 to-cyan-300 transition-all duration-500"
               style={{
@@ -467,7 +467,7 @@ export function SanctuaryProgressBar({
       </button>
 
       {/* Quick Companion Switcher Pill */}
-      <div className="flex items-center gap-1 shrink-0 bg-[#121629]/90 border border-white/15 rounded-xl p-1">
+      <div className="flex items-center gap-1 shrink-0 bg-[#17241B]/90 border border-white/15 rounded-xl p-1">
         {SANCTUARY_COMPANION_LIST.map((comp) => {
           const unlocked = totalGems >= comp.unlockGems;
           const active = companionId === comp.id;
@@ -539,7 +539,7 @@ export function SanctuaryModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 overflow-y-auto">
-      <div className="w-full max-w-[440px] bg-gradient-to-b from-[#1E2746] via-[#1B1838] to-[#111526] border border-amber-300/40 rounded-3xl p-4 text-white shadow-[0_0_50px_rgba(251,191,36,0.2)] space-y-3.5 my-auto">
+      <div className="w-full max-w-[440px] bg-gradient-to-b from-[#273D2E] via-[#1F3125] to-[#16211A] border border-amber-300/40 rounded-3xl p-4 text-white shadow-[0_0_50px_rgba(251,191,36,0.2)] space-y-3.5 my-auto">
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           <div>
@@ -567,7 +567,7 @@ export function SanctuaryModal({
 
         {/* Total Gems & Restored Counter */}
         <div className="grid grid-cols-2 gap-2">
-          <div className="bg-[#121629]/90 border border-amber-300/30 rounded-2xl px-3 py-2 flex items-center justify-between">
+          <div className="bg-[#17241B]/90 border border-amber-300/30 rounded-2xl px-3 py-2 flex items-center justify-between">
             <span className="text-[11px] font-sans font-bold text-amber-100/80">
               Sanctuary Gems
             </span>
@@ -575,7 +575,7 @@ export function SanctuaryModal({
               💎 {totalGems}
             </span>
           </div>
-          <div className="bg-[#121629]/90 border border-emerald-400/30 rounded-2xl px-3 py-2 flex items-center justify-between">
+          <div className="bg-[#17241B]/90 border border-emerald-400/30 rounded-2xl px-3 py-2 flex items-center justify-between">
             <span className="text-[11px] font-sans font-bold text-emerald-100/80">
               Scenes Restored
             </span>
@@ -586,7 +586,7 @@ export function SanctuaryModal({
         </div>
 
         {/* Featured Gem Art Canvas */}
-        <div className="bg-[#111528]/90 border border-white/15 rounded-2xl p-3 space-y-2">
+        <div className="bg-[#16231A]/90 border border-white/15 rounded-2xl p-3 space-y-2">
           <div className="flex items-center justify-between">
             <div>
               <div className="text-xs font-sans font-extrabold text-amber-200 flex items-center gap-1.5">
@@ -656,8 +656,8 @@ export function SanctuaryModal({
                     isCurrentSelected
                       ? "bg-amber-400/15 border-amber-300 shadow-[0_0_14px_rgba(251,191,36,0.3)]"
                       : unlocked
-                      ? "bg-[#141A30] border-emerald-400/40 hover:border-amber-300/60"
-                      : "bg-[#0F1324] border-white/10 hover:border-white/25"
+                      ? "bg-[#1B2920] border-emerald-400/40 hover:border-amber-300/60"
+                      : "bg-[#141F18] border-white/10 hover:border-white/25"
                   }`}
                 >
                   <div className="h-12 w-full">
@@ -709,8 +709,8 @@ export function SanctuaryModal({
                     selected
                       ? "bg-amber-400/20 border-amber-300 text-white shadow-[0_0_12px_rgba(251,191,36,0.35)]"
                       : unlocked
-                      ? "bg-[#141A30] border-white/15 text-amber-100 hover:border-amber-300/50"
-                      : "bg-[#0D1020] border-white/5 text-slate-500 opacity-55 cursor-not-allowed"
+                      ? "bg-[#1B2920] border-white/15 text-amber-100 hover:border-amber-300/50"
+                      : "bg-[#121B15] border-white/5 text-slate-500 opacity-55 cursor-not-allowed"
                   }`}
                 >
                   <span className="text-xl">{comp.icon}</span>

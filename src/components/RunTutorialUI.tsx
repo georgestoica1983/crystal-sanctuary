@@ -127,7 +127,7 @@ export function RunLessonResult({
         animate={{ y: 0, opacity: 1 }}
         className={`w-full max-w-[400px] rounded-2xl p-4 space-y-2.5 text-white border-2 ${
           info.ok
-            ? "border-emerald-300/70 bg-gradient-to-b from-[#0E2622] to-[#0A1218]"
+            ? "border-emerald-300/70 bg-gradient-to-b from-[#0E2622] to-[#0D1510]"
             : "border-amber-300/70 bg-gradient-to-b from-[#2A1F0E] to-[#140F0A]"
         }`}
       >
@@ -330,11 +330,11 @@ export function RunHelpMenu({
       <motion.div
         initial={{ scale: 0.92, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="w-full max-w-[400px] rounded-2xl p-4 space-y-2.5 text-white border border-emerald-300/40 bg-gradient-to-b from-[#16203A] to-[#0B1020]"
+        className="w-full max-w-[400px] rounded-2xl p-4 space-y-2.5 text-white border border-emerald-300/40 bg-gradient-to-b from-[#1F3125] to-[#111A14]"
       >
         <div className="text-center space-y-0.5">
           <div className="text-3xl">🌸</div>
-          <div className="text-lg font-black">
+          <div className="text-[22px] font-display font-semibold">
             {isFirstVisit ? "Welcome to Bloomline" : "Help"}
           </div>
           <p className="text-[12px] text-indigo-100/80">

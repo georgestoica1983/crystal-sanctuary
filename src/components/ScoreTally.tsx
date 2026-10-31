@@ -164,7 +164,7 @@ export default function ScoreTally({
         initial={{ scale: 0.85, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 20 }}
-        className="relative my-auto w-full max-w-[400px] rounded-2xl p-3 min-[360px]:p-4 space-y-3 text-white border border-white/[0.08] bg-[#151B2E] shadow-2xl shadow-black/50 overflow-hidden"
+        className="relative my-auto w-full max-w-[400px] rounded-2xl p-3 min-[360px]:p-4 space-y-3 text-white border border-white/[0.08] bg-[#1B281F] shadow-2xl shadow-black/50 overflow-hidden"
       >
         {/* Header */}
         <div className="text-center">
@@ -207,7 +207,7 @@ export default function ScoreTally({
             <motion.div
               key={`c-${stage >= 1}`}
               animate={stage >= 1 ? { scale: [1.25, 1] } : {}}
-              className="text-3xl font-mono font-black text-center text-sky-100 leading-tight"
+              className="text-3xl font-display font-semibold tabular-nums text-center text-sky-100 leading-tight"
             >
               {fmt(Math.round(chipsShown))}
             </motion.div>
@@ -235,7 +235,7 @@ export default function ScoreTally({
             <motion.div
               key={`m-${stage >= 2}`}
               animate={stage >= 2 ? { scale: [1.25, 1] } : {}}
-              className="text-3xl font-mono font-black text-center text-emerald-100 leading-tight"
+              className="text-3xl font-display font-semibold tabular-nums text-center text-emerald-100 leading-tight"
             >
               {fmt(Math.round(multShown))}
             </motion.div>
@@ -283,7 +283,7 @@ export default function ScoreTally({
           <motion.div
             animate={stage >= 4 ? { scale: [1.8, 0.9, 1] } : { scale: 1 }}
             transition={{ duration: 0.5 }}
-            className="text-4xl font-mono font-black text-amber-200"
+            className="text-4xl font-display font-semibold tabular-nums text-amber-200"
           >
             {stage >= 4 ? fmt(Math.round(totalShown)) : "?"}
           </motion.div>

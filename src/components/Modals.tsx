@@ -85,7 +85,7 @@ export function RelicDraftModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto select-none">
-      <div className="w-full max-w-[430px] bg-gradient-to-b from-[#15172B] via-[#101220] to-[#0A0B14] border-2 border-violet-400/60 rounded-2xl p-5 text-white shadow-[0_0_50px_rgba(139,92,246,0.35)] space-y-4 my-auto">
+      <div className="w-full max-w-[430px] bg-gradient-to-b from-[#1A261E] via-[#141C17] to-[#0C120E] border-2 border-violet-400/60 rounded-2xl p-5 text-white shadow-[0_0_50px_rgba(139,92,246,0.35)] space-y-4 my-auto">
         {/* Header */}
         <div className="text-center space-y-1">
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 font-mono text-[10px] font-extrabold uppercase tracking-wider">
@@ -130,7 +130,7 @@ export function RelicDraftModal({
                 style={{
                   borderColor: `${relic.accentColor}66`,
                 }}
-                className="w-full text-left bg-[#0B0C16]/95 hover:bg-[#14172B] border-2 rounded-xl p-3.5 transition-all duration-150 hover:scale-[1.01] active:scale-[0.99] shadow-lg group flex items-start gap-3"
+                className="w-full text-left bg-[#0D140F]/95 hover:bg-[#19261D] border-2 rounded-xl p-3.5 transition-all duration-150 hover:scale-[1.01] active:scale-[0.99] shadow-lg group flex items-start gap-3"
               >
                 <div
                   className="w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 border"
@@ -156,7 +156,7 @@ export function RelicDraftModal({
                       )}
                     </div>
                     <span
-                      className="text-[9px] font-mono font-extrabold px-1.5 py-0.5 rounded bg-[#141628] border border-white/10 shrink-0"
+                      className="text-[9px] font-mono font-extrabold px-1.5 py-0.5 rounded bg-[#18241C] border border-white/10 shrink-0"
                       style={{ color: relic.accentColor }}
                     >
                       {relic.shortTag}
@@ -306,7 +306,7 @@ export function RunSummaryModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-      <div className="w-full max-w-[420px] bg-[#141418] border border-[#26262E] rounded-2xl p-5 text-white shadow-2xl space-y-4 my-auto">
+      <div className="w-full max-w-[420px] bg-[#141815] border border-[#262E29] rounded-2xl p-5 text-white shadow-2xl space-y-4 my-auto">
         {/* Header */}
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -329,7 +329,7 @@ export function RunSummaryModal({
                 {totalRunStars}/{maxStars} STARS
               </span>
               <span
-                className="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#0A0A0C] border border-white/15"
+                className="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#0A0C0B] border border-white/15"
                 style={{ color: heroClassDef.accentColor }}
               >
                 {heroClassDef.emblem}{" "}
@@ -360,7 +360,7 @@ export function RunSummaryModal({
 
         {/* Active Relics Summary */}
         {activeRelics.length > 0 && (
-          <div className="flex flex-wrap items-center gap-1.5 bg-[#0A0A0C] border border-[#26262E] rounded-xl p-2.5">
+          <div className="flex flex-wrap items-center gap-1.5 bg-[#0A0C0B] border border-[#262E29] rounded-xl p-2.5">
             <span className="text-[10px] font-mono uppercase text-zinc-400 mr-1">
               {isSanctuary ? "Blessings:" : "Relics:"}
             </span>
@@ -369,7 +369,7 @@ export function RunSummaryModal({
               return (
                 <span
                   key={`${rId}-${idx}`}
-                  className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#141418] border border-white/10 text-zinc-200"
+                  className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#141815] border border-white/10 text-zinc-200"
                 >
                   {r.icon} {r.name}
                 </span>
@@ -391,7 +391,7 @@ export function RunSummaryModal({
         )}
 
         {/* Score Breakdown Card */}
-        <div className="bg-[#0A0A0C] border border-[#26262E] rounded-xl p-3.5 space-y-2 font-mono text-xs">
+        <div className="bg-[#0A0C0B] border border-[#262E29] rounded-xl p-3.5 space-y-2 font-mono text-xs">
           <div className="text-[10px] text-zinc-500 leading-snug">
             Each {isSanctuary ? "garden" : "floor"} scores{" "}
             <span className="text-sky-300 font-bold">Chips</span> ×{" "}
@@ -421,7 +421,7 @@ export function RunSummaryModal({
               </div>
             ) : null
           )}
-          <div className="border-t border-[#26262E] pt-2 flex justify-between items-baseline">
+          <div className="border-t border-[#262E29] pt-2 flex justify-between items-baseline">
             <span className="text-zinc-200 font-sans font-bold uppercase">
               {isSanctuary ? "Today's Score" : "Final Tactical Score"}
             </span>
@@ -430,7 +430,7 @@ export function RunSummaryModal({
             </span>
           </div>
           {/* Per-floor stars + par comparison */}
-          <div className="border-t border-[#26262E] pt-2 space-y-1">
+          <div className="border-t border-[#262E29] pt-2 space-y-1">
             {dungeon.floors.map((floor, idx) => {
               const record = floorHistory[idx];
               const earned = record?.stars?.totalStars ?? 0;
@@ -509,7 +509,7 @@ export function RunSummaryModal({
         )}
 
         {/* Spoiler-free share card (results only) */}
-        <div className="bg-[#0A0A0C] border border-[#26262E] rounded-xl p-3 space-y-2.5">
+        <div className="bg-[#0A0C0B] border border-[#262E29] rounded-xl p-3 space-y-2.5">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-sans font-bold uppercase text-zinc-300 flex items-center gap-1.5">
               <Share2 className="w-3.5 h-3.5 text-violet-400" />
@@ -533,7 +533,7 @@ export function RunSummaryModal({
               )}
             </button>
           </div>
-          <pre className="text-[11px] font-mono leading-snug text-zinc-200 bg-[#141418] border border-[#26262E] rounded-lg p-2.5 whitespace-pre-wrap break-words">
+          <pre className="text-[11px] font-mono leading-snug text-zinc-200 bg-[#141815] border border-[#262E29] rounded-lg p-2.5 whitespace-pre-wrap break-words">
             {shareText}
           </pre>
         </div>
@@ -542,7 +542,7 @@ export function RunSummaryModal({
         {!(isDaily && isOfficial) ? null : !submitted ? (
           <form
             onSubmit={handleScoreSubmit}
-            className="flex items-center gap-2 bg-[#0A0A0C] border border-[#26262E] rounded-xl p-2"
+            className="flex items-center gap-2 bg-[#0A0C0B] border border-[#262E29] rounded-xl p-2"
           >
             <input
               type="text"
@@ -572,7 +572,7 @@ export function RunSummaryModal({
           <button
             type="button"
             onClick={onRetryRun}
-            className="py-2.5 px-3 rounded-xl bg-white text-[#0A0A0C] font-mono text-xs font-black uppercase hover:bg-zinc-200 transition flex items-center justify-center gap-1.5"
+            className="py-2.5 px-3 rounded-xl bg-white text-[#0A0C0B] font-mono text-xs font-black uppercase hover:bg-zinc-200 transition flex items-center justify-center gap-1.5"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>{isSanctuary ? "Play Again" : "Replay Dungeon"}</span>
@@ -580,7 +580,7 @@ export function RunSummaryModal({
           <button
             type="button"
             onClick={onNewSandbox}
-            className="py-2.5 px-3 rounded-xl bg-[#0A0A0C] border border-[#26262E] hover:border-zinc-600 text-white font-mono text-xs font-bold uppercase transition flex items-center justify-center gap-1.5"
+            className="py-2.5 px-3 rounded-xl bg-[#0A0C0B] border border-[#262E29] hover:border-zinc-600 text-white font-mono text-xs font-bold uppercase transition flex items-center justify-center gap-1.5"
           >
             <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
             <span>{isSanctuary ? "Free Play" : "New Sandbox"}</span>
@@ -631,7 +631,7 @@ function GardenCalendar({
     days.push({ key, day: d.getDate(), isFuture: d > today });
   }
   return (
-    <div className="bg-[#0A0A0C] border border-[#26262E] rounded-xl p-3 space-y-2">
+    <div className="bg-[#0A0C0B] border border-[#262E29] rounded-xl p-3 space-y-2">
       <div className="flex items-center justify-between text-[11px] font-sans font-bold text-zinc-200">
         <span>Your garden calendar</span>
         <span className="font-mono text-amber-300">
@@ -705,7 +705,7 @@ export function LeaderboardModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
-      <div className="w-full max-w-[420px] bg-[#141418] border border-[#26262E] rounded-2xl p-5 text-white shadow-2xl space-y-4">
+      <div className="w-full max-w-[420px] bg-[#141815] border border-[#262E29] rounded-2xl p-5 text-white shadow-2xl space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-amber-400" />
@@ -727,8 +727,8 @@ export function LeaderboardModal({
           </button>
         </div>
 
-        <div className="bg-[#0A0A0C] border border-[#26262E] rounded-xl overflow-hidden">
-          <div className="divide-y divide-[#26262E] max-h-[340px] overflow-y-auto pb-6 [mask-image:linear-gradient(to_bottom,black_82%,transparent_100%)]">
+        <div className="bg-[#0A0C0B] border border-[#262E29] rounded-xl overflow-hidden">
+          <div className="divide-y divide-[#262E29] max-h-[340px] overflow-y-auto pb-6 [mask-image:linear-gradient(to_bottom,black_82%,transparent_100%)]">
             {entries.length === 0 && (
               <div className="px-3.5 py-6 text-center font-mono text-xs text-zinc-500">
                 {isSanctuary
@@ -993,7 +993,7 @@ export function PassAndCrafterModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
-      <div className="w-full max-w-[440px] bg-[#12131F] border border-indigo-500/30 rounded-2xl p-5 text-white shadow-2xl space-y-4 my-auto">
+      <div className="w-full max-w-[440px] bg-[#151C17] border border-indigo-500/30 rounded-2xl p-5 text-white shadow-2xl space-y-4 my-auto">
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -1060,7 +1060,7 @@ export function PassAndCrafterModal({
         )}
 
         {/* Offer card */}
-        <div className="bg-gradient-to-b from-[#1C1836] via-[#131324] to-[#0B0C16] border-2 border-violet-400/60 rounded-2xl p-4 space-y-3.5 shadow-[0_0_30px_rgba(139,92,246,0.25)]">
+        <div className="bg-gradient-to-b from-[#1F2F24] via-[#17201A] to-[#0D140F] border-2 border-violet-400/60 rounded-2xl p-4 space-y-3.5 shadow-[0_0_30px_rgba(139,92,246,0.25)]">
           <div className="flex items-center justify-between gap-2">
             <div>
               <span className="inline-block text-[10px] font-mono font-extrabold uppercase px-2 py-0.5 rounded bg-violet-500/25 border border-violet-400/50 text-violet-200">
@@ -1099,8 +1099,8 @@ export function PassAndCrafterModal({
                     key={cls.id}
                     className={`rounded-xl p-2 border flex flex-col justify-between gap-1.5 min-w-0 ${
                       isSelected
-                        ? "bg-[#1E223D] border-white"
-                        : "bg-[#0A0B14]/90 border-indigo-500/30"
+                        ? "bg-[#25362B] border-white"
+                        : "bg-[#0C120E]/90 border-indigo-500/30"
                     }`}
                   >
                     <div className="min-w-0">
@@ -1145,7 +1145,7 @@ export function PassAndCrafterModal({
           </div>
 
           {/* Ten-Garden Trail / Gauntlet */}
-          <div className="bg-[#0A0B14]/90 border border-indigo-500/30 rounded-xl p-2.5 flex items-center justify-between gap-3">
+          <div className="bg-[#0C120E]/90 border border-indigo-500/30 rounded-xl p-2.5 flex items-center justify-between gap-3">
             <div className="space-y-0.5 min-w-0">
               <div className="text-xs font-sans font-extrabold text-violet-200 flex items-center gap-1.5">
                 <Layers className="w-3.5 h-3.5 text-violet-400 shrink-0" />
@@ -1215,7 +1215,7 @@ export function PassAndCrafterModal({
                       value={restoreEmail}
                       onChange={(e) => setRestoreEmail(e.target.value)}
                       placeholder="you@example.com"
-                      className="flex-1 min-w-0 bg-[#141628] border border-indigo-500/30 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-cyan-400"
+                      className="flex-1 min-w-0 bg-[#18241C] border border-indigo-500/30 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-cyan-400"
                     />
                     <button
                       type="submit"
@@ -1232,7 +1232,7 @@ export function PassAndCrafterModal({
         </div>
 
         {/* Past Dailies / Archive */}
-        <div className="bg-[#0A0B14] border border-indigo-500/25 rounded-xl p-3.5 space-y-2.5">
+        <div className="bg-[#0C120E] border border-indigo-500/25 rounded-xl p-3.5 space-y-2.5">
           <div className="flex items-center justify-between">
             <span className="text-xs font-sans font-bold text-cyan-300 flex items-center gap-1.5">
               <Calendar className="w-4 h-4 text-cyan-400" />
@@ -1254,7 +1254,7 @@ export function PassAndCrafterModal({
               max={todayKey}
               value={archiveDate}
               onChange={(e) => setArchiveDate(e.target.value)}
-              className="flex-1 min-w-0 bg-[#141628] border border-indigo-500/30 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-cyan-400"
+              className="flex-1 min-w-0 bg-[#18241C] border border-indigo-500/30 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-cyan-400"
             />
             <button
               type="button"
@@ -1281,7 +1281,7 @@ export function PassAndCrafterModal({
                     onLaunchArchiveDate(dKey);
                     onClose();
                   }}
-                  className="px-2 py-1.5 rounded-lg bg-[#141628] hover:bg-[#1B1E36] disabled:opacity-45 border border-indigo-500/20 text-left font-mono text-[10px] flex items-center justify-between transition"
+                  className="px-2 py-1.5 rounded-lg bg-[#18241C] hover:bg-[#213026] disabled:opacity-45 border border-indigo-500/20 text-left font-mono text-[10px] flex items-center justify-between transition"
                 >
                   <span className="text-indigo-200">{dKey.slice(5)}</span>
                   <span className="text-amber-400 font-bold">
@@ -1296,7 +1296,7 @@ export function PassAndCrafterModal({
         </div>
 
         {/* Cosmetics */}
-        <div className="bg-[#0A0B14] border border-indigo-500/25 rounded-xl p-3.5 space-y-2.5">
+        <div className="bg-[#0C120E] border border-indigo-500/25 rounded-xl p-3.5 space-y-2.5">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-sans font-bold text-yellow-300 flex items-center gap-1.5">
               <Palette className="w-4 h-4 text-yellow-400" />
@@ -1330,8 +1330,8 @@ export function PassAndCrafterModal({
                     selected
                       ? "bg-cyan-500/20 border-cyan-400 text-white"
                       : unlocked
-                      ? "bg-[#141628] border-indigo-500/20 text-zinc-300 hover:border-cyan-400/50"
-                      : "bg-[#101014] border-zinc-800/80 text-zinc-500 opacity-60 cursor-not-allowed"
+                      ? "bg-[#18241C] border-indigo-500/20 text-zinc-300 hover:border-cyan-400/50"
+                      : "bg-[#101411] border-zinc-800/80 text-zinc-500 opacity-60 cursor-not-allowed"
                   }`}
                 >
                   <span className="text-sm font-black">{emblem.symbol}</span>
@@ -1365,8 +1365,8 @@ export function PassAndCrafterModal({
                     selected
                       ? "bg-violet-500/20 border-white text-white"
                       : unlocked
-                      ? "bg-[#141628] border-indigo-500/20 text-zinc-300 hover:border-zinc-500"
-                      : "bg-[#101014] border-zinc-800/80 text-zinc-500 opacity-60 cursor-not-allowed"
+                      ? "bg-[#18241C] border-indigo-500/20 text-zinc-300 hover:border-zinc-500"
+                      : "bg-[#101411] border-zinc-800/80 text-zinc-500 opacity-60 cursor-not-allowed"
                   }`}
                 >
                   <span
@@ -1390,7 +1390,7 @@ export function PassAndCrafterModal({
         {/* AI Crafter */}
         <form
           onSubmit={handleCraftSubmit}
-          className="bg-[#0A0B14] border border-indigo-500/25 rounded-xl p-3.5 space-y-2.5"
+          className="bg-[#0C120E] border border-indigo-500/25 rounded-xl p-3.5 space-y-2.5"
         >
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-sans font-bold text-white flex items-center gap-1.5">
@@ -1412,7 +1412,7 @@ export function PassAndCrafterModal({
             maxLength={200}
             onChange={(e) => setCustomPrompt(e.target.value)}
             placeholder={copy.crafterPlaceholder}
-            className="w-full bg-[#141628] border border-indigo-500/30 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-violet-500"
+            className="w-full bg-[#18241C] border border-indigo-500/30 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-violet-500"
           />
 
           <div className="flex flex-wrap gap-1.5">
@@ -1421,7 +1421,7 @@ export function PassAndCrafterModal({
                 key={preset}
                 type="button"
                 onClick={() => setCustomPrompt(preset)}
-                className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#141628] hover:bg-zinc-800 border border-indigo-500/20 text-zinc-300"
+                className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#18241C] hover:bg-zinc-800 border border-indigo-500/20 text-zinc-300"
               >
                 {preset}
               </button>
@@ -1434,7 +1434,7 @@ export function PassAndCrafterModal({
               onChange={(e) =>
                 setSelectedModifier(e.target.value as ModifierId | "AUTO")
               }
-              className="flex-1 min-w-0 bg-[#141628] border border-indigo-500/30 rounded-lg px-2 py-1.5 text-xs font-mono text-zinc-200 focus:outline-none"
+              className="flex-1 min-w-0 bg-[#18241C] border border-indigo-500/30 rounded-lg px-2 py-1.5 text-xs font-mono text-zinc-200 focus:outline-none"
             >
               <option value="AUTO">{copy.crafterAuto}</option>
               {MODIFIER_LIST.map((mod) => {

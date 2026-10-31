@@ -169,7 +169,7 @@ export default function LineMeter({
               )}
             </div>
             <div
-              className={`ml-auto text-[19px] font-mono font-black leading-none ${
+              className={`ml-auto text-[21px] font-display font-semibold tabular-nums leading-none ${
                 wilts ? "text-rose-300/70 line-through" : reachesArchway ? "text-amber-200" : "text-amber-200/50"
               }`}
             >

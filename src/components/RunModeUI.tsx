@@ -411,7 +411,7 @@ export function RunGardenClearModal({
         initial={{ scale: 0.85, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 22 }}
-        className="w-full max-w-[380px] rounded-2xl p-4 space-y-3 text-white border border-white/[0.08] bg-[#151B2E] shadow-2xl shadow-black/50"
+        className="w-full max-w-[380px] rounded-2xl p-4 space-y-3 text-white border border-white/[0.08] bg-[#1B281F] shadow-2xl shadow-black/50"
       >
         <div className="text-center">
           <div className="text-[12px] font-semibold text-emerald-300/90">
@@ -587,7 +587,7 @@ export function RunOverModal({
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="w-full max-w-[380px] rounded-2xl p-4 space-y-3 text-white border border-white/[0.08] bg-[#151A2C]"
+        className="w-full max-w-[380px] rounded-2xl p-4 space-y-3 text-white border border-white/[0.08] bg-[#1A271E]"
       >
         <div className="text-center">
           <div className="text-3xl">{copy.icon}</div>

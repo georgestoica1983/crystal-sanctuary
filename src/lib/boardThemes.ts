@@ -21,8 +21,8 @@ export interface BoardTheme {
 }
 
 export const BOARD_THEMES: BoardTheme[] = [
-  { id: "SPRING", name: "Spring", icon: "🌱", frame: "#10162A", border: "rgba(255,255,255,0.07)", plateTop: "#252D52", plateBottom: "#1B213E", plateTopHover: "#2C3560", plateBottomHover: "#202749" },
-  { id: "AUTUMN", name: "Autumn", icon: "🍂", frame: "#1C130E", border: "rgba(251,146,60,0.28)", plateTop: "#4A2F1F", plateBottom: "#352116", plateTopHover: "#563823", plateBottomHover: "#3F2819" },
+  { id: "SPRING", name: "Moss", icon: "🌿", frame: "#18221B", border: "rgba(207,234,143,0.12)", plateTop: "#3B4A3E", plateBottom: "#324035", plateTopHover: "#455646", plateBottomHover: "#3A4A3D" },
+  { id: "AUTUMN", name: "Autumn", icon: "🍂", frame: "#1E1712", border: "rgba(232,170,96,0.24)", plateTop: "#3E3024", plateBottom: "#33271D", plateTopHover: "#4A3A2B", plateBottomHover: "#3D3023" },
   { id: "NIGHT", name: "Night Garden", icon: "🌙", frame: "#060A1A", border: "rgba(147,197,253,0.22)", plateTop: "#18214B", plateBottom: "#0F1535", plateTopHover: "#1F2959", plateBottomHover: "#141B41", glow: "0 0 26px rgba(253,230,138,0.18), inset 0 0 30px rgba(190,242,100,0.06)" },
   { id: "WINTER", name: "Winter Frost", icon: "❄️", frame: "#0D1824", border: "rgba(186,230,253,0.32)", plateTop: "#2A4259", plateBottom: "#1C3044", plateTopHover: "#33506B", plateBottomHover: "#233A51" },
   { id: "GOLDEN", name: "Golden Hour", icon: "🌾", frame: "#1D1507", border: "rgba(253,224,71,0.3)", plateTop: "#4A3815", plateBottom: "#33270D", plateTopHover: "#584219", plateBottomHover: "#3D2E10" },

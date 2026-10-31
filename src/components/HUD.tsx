@@ -304,7 +304,7 @@ export function CompanionDrawerModal({
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-3 select-none">
-      <div className="w-full max-w-[430px] bg-gradient-to-b from-[#181A2E] via-[#121322] to-[#0A0B14] border-2 border-indigo-500/40 rounded-2xl p-4 text-white shadow-2xl space-y-3 my-auto">
+      <div className="w-full max-w-[430px] bg-gradient-to-b from-[#1D2921] via-[#161E19] to-[#0C120E] border-2 border-indigo-500/40 rounded-2xl p-4 text-white shadow-2xl space-y-3 my-auto">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xl">🦊</span>
@@ -343,8 +343,8 @@ export function CompanionDrawerModal({
                   isSelected
                     ? "bg-indigo-950/60 border-cyan-400 shadow-[0_0_16px_rgba(34,211,238,0.25)]"
                     : isUnlocked
-                    ? "bg-[#0E1020]/90 border-indigo-500/30 hover:border-indigo-400/60"
-                    : "bg-[#090A14]/90 border-zinc-800 opacity-85"
+                    ? "bg-[#121C15]/90 border-indigo-500/30 hover:border-indigo-400/60"
+                    : "bg-[#0B120D]/90 border-zinc-800 opacity-85"
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
@@ -778,7 +778,7 @@ export function TopHUD({
               ))}
             </div>
             {openRelic && relicCounts.some(([id]) => id === openRelic) && (
-              <div className="absolute left-0 right-0 top-full mt-1 z-40 rounded-xl bg-[#18213A] border border-white/[0.12] shadow-xl p-2.5 flex gap-2.5">
+              <div className="absolute left-0 right-0 top-full mt-1 z-40 rounded-xl bg-[#203226] border border-white/[0.12] shadow-xl p-2.5 flex gap-2.5">
                 <span className="text-2xl leading-7" aria-hidden="true">
                   {getRelicDisplay(RELIC_REGISTRY[openRelic], isSanctuary).icon}
                 </span>
@@ -819,7 +819,7 @@ export function TopHUD({
               role="dialog"
               aria-label="Menu"
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-[430px] max-h-[85dvh] overflow-y-auto rounded-2xl bg-[#121A2E] border border-white/[0.08] p-2"
+              className="w-full max-w-[430px] max-h-[85dvh] overflow-y-auto rounded-2xl bg-[#19271E] border border-white/[0.08] p-2"
             >
               <div className="flex items-center justify-between px-2 pt-1 pb-2">
                 <div className="text-[15px] font-bold text-white">Menu</div>
@@ -972,14 +972,14 @@ export function TopHUD({
   return (
     <div className="w-full max-w-[430px] mx-auto flex flex-col gap-1 sm:gap-1.5 select-none">
       {/* ROW 1: Game Title / Theme Pill (Left) + Gallery & Icon Buttons (Right) */}
-      <div className={`flex items-center justify-between gap-1 bg-[#121320]/80 backdrop-blur-md border border-indigo-500/20 rounded-xl shadow-lg ${runOnly ? "pl-2 pr-1 py-1" : "px-2.5 py-1 sm:py-1.5"}`}>
+      <div className={`flex items-center justify-between gap-1 bg-[#151D18]/80 backdrop-blur-md border border-indigo-500/20 rounded-xl shadow-lg ${runOnly ? "pl-2 pr-1 py-1" : "px-2.5 py-1 sm:py-1.5"}`}>
         {/* Left: Brand Icon + Title */}
         <div className="flex items-center gap-1.5 min-w-0">
           <span
             className={`w-2 h-2 rounded-full shrink-0 ${
               isSanctuary
                 ? "bg-amber-300 shadow-[0_0_8px_#FDE68A]"
-                : "bg-cyan-400 shadow-[0_0_8px_#00D2FF]"
+                : "bg-cyan-400 shadow-[0_0_8px_#CFEA8F]"
             }`}
           />
           <span
@@ -1100,7 +1100,7 @@ export function TopHUD({
 
       {/* ROW 2: Full-Width 4-Tab Segmented Mode Control */}
       {!runOnly && (
-      <div className="flex items-center justify-between gap-1 bg-[#0F101C]/80 backdrop-blur-md border border-indigo-500/20 rounded-xl p-1 shadow-md">
+      <div className="flex items-center justify-between gap-1 bg-[#121914]/80 backdrop-blur-md border border-indigo-500/20 rounded-xl p-1 shadow-md">
         <button
           type="button"
           disabled={isResolving}
@@ -1188,7 +1188,7 @@ export function TopHUD({
       )}
 
       {/* ROW 3: Floor & Modifier Pill + Companion Picker & 4 Stat Pills */}
-      <div className={`flex flex-col bg-[#121320]/80 backdrop-blur-md border border-indigo-500/20 rounded-xl shadow-lg ${runOnly ? "gap-1 p-1" : "gap-1 sm:gap-1.5 p-1.5 sm:p-2"}`}>
+      <div className={`flex flex-col bg-[#151D18]/80 backdrop-blur-md border border-indigo-500/20 rounded-xl shadow-lg ${runOnly ? "gap-1 p-1" : "gap-1 sm:gap-1.5 p-1.5 sm:p-2"}`}>
         {runOnly && !isInteractiveTutorial && (
           <div className="grid grid-cols-[2.75rem_repeat(4,minmax(0,1fr))] gap-1">
             <button
@@ -1196,7 +1196,7 @@ export function TopHUD({
               onClick={() => setShowCompanionDrawer(true)}
               aria-label={`Companion: ${activeClassDef.sanctuaryShortName ?? activeClassDef.shortName}. Tap to change.`}
               title="Switch Companion"
-              className="relative h-11 rounded-lg bg-[#0E1022] border border-amber-400/40 flex items-center justify-center active:scale-95 transition"
+              className="relative h-11 rounded-lg bg-[#131D16] border border-amber-400/40 flex items-center justify-center active:scale-95 transition"
             >
               <EntityIcon type="HERO" companionId={heroClassId} size={22} />
               <span className="absolute bottom-0.5 right-1 text-[9px] leading-none text-amber-200/80" aria-hidden="true">▾</span>
@@ -1213,7 +1213,7 @@ export function TopHUD({
                   </>
                 ),
                 color: "text-white",
-                box: "bg-[#1A1530]/80 border-rose-400/35",
+                box: "bg-[#1B2A20]/80 border-rose-400/35",
               },
               {
                 key: "dew",
@@ -1221,7 +1221,7 @@ export function TopHUD({
                 icon: <EntityIcon type="SHIELD" size={14} />,
                 value: heroClassId === "VAMPIRE" ? "—" : hero.shield,
                 color: "text-[#38BDF8]",
-                box: "bg-[#142038]/80 border-sky-400/35",
+                box: "bg-[#1E2E23]/80 border-sky-400/35",
               },
               {
                 key: "sun",
@@ -1229,7 +1229,7 @@ export function TopHUD({
                 icon: <EntityIcon type="WEAPON" size={14} />,
                 value: hero.weapon,
                 color: "text-[#FBBF24]",
-                box: "bg-[#231B2E]/80 border-amber-400/35",
+                box: "bg-[#1F2A23]/80 border-amber-400/35",
               },
               {
                 key: "gems",
@@ -1237,7 +1237,7 @@ export function TopHUD({
                 icon: <span className="text-[13px] leading-none" aria-hidden="true">🌱</span>,
                 value: hero.gold,
                 color: "text-[#FACC15]",
-                box: "bg-[#221D32]/80 border-yellow-300/40",
+                box: "bg-[#222D26]/80 border-yellow-300/40",
               },
             ].map((st) => (
               <div
@@ -1281,7 +1281,7 @@ export function TopHUD({
               type="button"
               onClick={() => setShowStarBreakdown((prev) => !prev)}
               title="Live 3-Star Mastery (Tap for targets)"
-              className="flex items-center gap-0.5 px-1 py-0.5 rounded bg-[#0A0B14] border border-amber-400/30 hover:border-amber-300 transition"
+              className="flex items-center gap-0.5 px-1 py-0.5 rounded bg-[#0C120E] border border-amber-400/30 hover:border-amber-300 transition"
             >
               {starFlags.map((st, idx) => (
                 <Star
@@ -1303,7 +1303,7 @@ export function TopHUD({
               type="button"
               onClick={() => setShowModifierDetail((prev) => !prev)}
               title="Tap for modifier details & tactical tips"
-              className="flex-1 min-w-0 flex items-center justify-between gap-1 px-2 py-0.5 rounded-lg bg-[#0A0B14]/80 border border-white/10 hover:border-indigo-400/40 text-[10px] font-mono transition"
+              className="flex-1 min-w-0 flex items-center justify-between gap-1 px-2 py-0.5 rounded-lg bg-[#0C120E]/80 border border-white/10 hover:border-indigo-400/40 text-[10px] font-mono transition"
             >
               <div className="flex items-center gap-1.5 truncate">
                 <span
@@ -1333,7 +1333,7 @@ export function TopHUD({
                 ? "Today's Daily is played with the Keeper. Other companions play in Free Play."
                 : "Switch Companion"
             }
-            className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[#0E1022] hover:bg-[#151832] border border-amber-400/35 text-[10px] font-mono font-bold text-amber-200 transition active:scale-95 shrink-0"
+            className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[#131D16] hover:bg-[#1C2B21] border border-amber-400/35 text-[10px] font-mono font-bold text-amber-200 transition active:scale-95 shrink-0"
           >
             <EntityIcon type="HERO" companionId={heroClassId} size={13} />
             <span className="truncate max-w-[65px]">
@@ -1355,8 +1355,8 @@ export function TopHUD({
           <div
             className={`rounded-lg px-1.5 py-0.5 sm:py-1 flex items-center justify-between gap-0.5 min-w-0 border ${
               isSanctuary
-                ? "bg-[#1A1530]/80 border-rose-400/30 text-rose-100"
-                : "bg-[#121320]/80 border-red-500/30 text-red-100"
+                ? "bg-[#1B2A20]/80 border-rose-400/30 text-rose-100"
+                : "bg-[#151D18]/80 border-red-500/30 text-red-100"
             }`}
           >
             <div className="flex items-center gap-1">
@@ -1375,8 +1375,8 @@ export function TopHUD({
           <div
             className={`rounded-lg px-1.5 py-0.5 sm:py-1 flex items-center justify-between gap-0.5 min-w-0 border ${
               isSanctuary
-                ? "bg-[#142038]/80 border-sky-400/30 text-sky-100"
-                : "bg-[#121320]/80 border-cyan-500/30 text-cyan-100"
+                ? "bg-[#1E2E23]/80 border-sky-400/30 text-sky-100"
+                : "bg-[#151D18]/80 border-cyan-500/30 text-cyan-100"
             }`}
           >
             <div className="flex items-center gap-1">
@@ -1398,8 +1398,8 @@ export function TopHUD({
           <div
             className={`rounded-lg px-1.5 py-0.5 sm:py-1 flex items-center justify-between gap-0.5 min-w-0 border ${
               isSanctuary
-                ? "bg-[#231B2E]/80 border-amber-400/30 text-amber-100"
-                : "bg-[#121320]/80 border-amber-500/30 text-amber-100"
+                ? "bg-[#1F2A23]/80 border-amber-400/30 text-amber-100"
+                : "bg-[#151D18]/80 border-amber-500/30 text-amber-100"
             }`}
           >
             <div className="flex items-center gap-1">
@@ -1418,8 +1418,8 @@ export function TopHUD({
             onClick={isSanctuary ? onOpenSanctuaryGallery : undefined}
             className={`rounded-lg px-1.5 py-0.5 sm:py-1 flex items-center justify-between gap-0.5 min-w-0 border cursor-pointer ${
               isSanctuary
-                ? "bg-[#221D32]/80 border-yellow-300/35 hover:border-amber-300 text-yellow-100"
-                : "bg-[#121320]/80 border-yellow-500/30 hover:border-yellow-400 text-yellow-100"
+                ? "bg-[#222D26]/80 border-yellow-300/35 hover:border-amber-300 text-yellow-100"
+                : "bg-[#151D18]/80 border-yellow-500/30 hover:border-yellow-400 text-yellow-100"
             }`}
           >
             <div className="flex items-center gap-1">
@@ -1496,7 +1496,7 @@ export function TopHUD({
                 <div
                   key={relicId}
                   title={rDef.description}
-                  className="inline-flex items-center gap-1 px-1.5 py-1 rounded-md bg-[#0A0B14] border border-white/10 text-[10px] font-mono font-bold text-white shrink-0 whitespace-nowrap"
+                  className="inline-flex items-center gap-1 px-1.5 py-1 rounded-md bg-[#0C120E] border border-white/10 text-[10px] font-mono font-bold text-white shrink-0 whitespace-nowrap"
                 >
                   <span>{rDef.icon}</span>
                   <span>{rDef.name}</span>
@@ -1521,10 +1521,10 @@ export function TopHUD({
                   : "bg-[#F43F5E]/20 border-[#F43F5E] text-white shadow-[0_0_16px_rgba(244,63,94,0.35)]"
                 : simulation.canCommit
                 ? "bg-[#8B5CF6]/25 border-[#8B5CF6] text-white shadow-[0_0_16px_rgba(139,92,246,0.35)]"
-                : "bg-[#121320]/90 border-[#00D2FF]/50 text-cyan-50 shadow-[0_0_14px_rgba(0,210,255,0.2)]"
+                : "bg-[#151D18]/90 border-[#CFEA8F]/50 text-cyan-50 shadow-[0_0_14px_rgba(207,234,143,0.2)]"
               : retractNotice
               ? "bg-amber-500/15 border-amber-500/50 text-amber-200"
-              : "bg-[#121320]/80 border-[#2A2D4A] text-indigo-200/75"
+              : "bg-[#151D18]/80 border-[#314337] text-indigo-200/75"
           }`}
         >
           {isDrawingPreview ? (
@@ -1539,7 +1539,7 @@ export function TopHUD({
                 ) : simulation.canCommit ? (
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
                 ) : (
-                  <Compass className="w-3.5 h-3.5 text-[#00D2FF] shrink-0 animate-spin-slow" />
+                  <Compass className="w-3.5 h-3.5 text-[#CFEA8F] shrink-0 animate-spin-slow" />
                 )}
                 <div className="min-w-0 flex-1 flex flex-col">
                   <div className="text-[10px] font-sans font-bold text-white truncate leading-tight">
@@ -1581,13 +1581,13 @@ export function TopHUD({
                       ? isSanctuary
                         ? "bg-amber-500/35 border-amber-300/60 text-amber-100"
                         : "bg-[#F43F5E] border-white/30 text-white"
-                      : "bg-[#0A0B14]/80 border-emerald-400/40 text-emerald-400"
+                      : "bg-[#0C120E]/80 border-emerald-400/40 text-emerald-400"
                   }`}
                 >
                   {isSanctuary ? "❤️" : "HP:"} {simulation.projectedHp}/
                   {hero.maxHp}
                 </span>
-                <span className="px-1.5 py-0.5 rounded bg-[#0A0B14]/80 border border-yellow-500/40 text-[#FACC15]">
+                <span className="px-1.5 py-0.5 rounded bg-[#0C120E]/80 border border-yellow-500/40 text-[#FACC15]">
                   {isSanctuary ? "🌰" : "GLD:"} {simulation.projectedGold}
                 </span>
               </div>
@@ -1664,7 +1664,7 @@ export function BottomControls({
           type="button"
           disabled={isResolving}
           onClick={onResetFloorStroke}
-          className={mode === "RUN" ? "h-11 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[13px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-40" : "flex-1 h-10 px-2 rounded-xl whitespace-nowrap bg-[#131526]/80 hover:bg-[#1C1F3A]/90 border border-indigo-500/40 text-[11px] font-mono font-bold text-indigo-200 hover:text-white shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition disabled:opacity-40"}
+          className={mode === "RUN" ? "h-11 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[13px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-40" : "flex-1 h-10 px-2 rounded-xl whitespace-nowrap bg-[#17221B]/80 hover:bg-[#233328]/90 border border-indigo-500/40 text-[11px] font-mono font-bold text-indigo-200 hover:text-white shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition disabled:opacity-40"}
         >
           {mode === "RUN" ? "Clear line" : "CLEAR LINE"}
         </button>
@@ -1688,7 +1688,7 @@ export function BottomControls({
           type="button"
           disabled={isResolving}
           onClick={onRestartRun}
-          className="h-10 px-2 rounded-xl whitespace-nowrap bg-[#131526]/80 hover:bg-[#1C1F3A]/90 border border-indigo-500/40 text-[11px] font-mono font-bold text-indigo-200 hover:text-white shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition flex items-center justify-center gap-1 disabled:opacity-40"
+          className="h-10 px-2 rounded-xl whitespace-nowrap bg-[#17221B]/80 hover:bg-[#233328]/90 border border-indigo-500/40 text-[11px] font-mono font-bold text-indigo-200 hover:text-white shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition flex items-center justify-center gap-1 disabled:opacity-40"
         >
           <RefreshCw className="w-3 h-3 text-cyan-400" />
           <span>{isSanctuary ? "RESTART" : "RESET"}</span>
@@ -1698,7 +1698,7 @@ export function BottomControls({
           type="button"
           disabled={isResolving}
           onClick={onForfeitRun}
-          className="h-10 px-2 rounded-xl whitespace-nowrap bg-[#131526]/80 hover:bg-[#2A1526]/90 border border-indigo-500/40 hover:border-red-500/50 text-[11px] font-mono font-bold text-indigo-200 hover:text-red-200 shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition disabled:opacity-40 flex items-center"
+          className="h-10 px-2 rounded-xl whitespace-nowrap bg-[#17221B]/80 hover:bg-[#2A1526]/90 border border-indigo-500/40 hover:border-red-500/50 text-[11px] font-mono font-bold text-indigo-200 hover:text-red-200 shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition disabled:opacity-40 flex items-center"
         >
           {isSanctuary ? "END VISIT" : "END RUN"}
         </button>
@@ -1710,7 +1710,7 @@ export function BottomControls({
             type="button"
             disabled={isResolving}
             onClick={onNewSandboxDungeon}
-            className="h-10 px-2 rounded-xl whitespace-nowrap bg-[#131526]/80 hover:bg-[#1C1F3A]/90 border border-indigo-500/40 text-[11px] font-mono font-bold text-indigo-200 hover:text-white shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition flex items-center justify-center gap-1 disabled:opacity-40"
+            className="h-10 px-2 rounded-xl whitespace-nowrap bg-[#17221B]/80 hover:bg-[#233328]/90 border border-indigo-500/40 text-[11px] font-mono font-bold text-indigo-200 hover:text-white shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition flex items-center justify-center gap-1 disabled:opacity-40"
           >
             <Sparkles className="w-3 h-3 text-violet-400" />
             <span>{isSanctuary ? "NEW GARDEN" : "SEED"}</span>

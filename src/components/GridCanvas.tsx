@@ -589,8 +589,8 @@ export default function GridCanvas({
         style={{ touchAction: "none" }}
         className={`relative w-full h-full rounded-2xl board-pad overflow-hidden cursor-crosshair select-none touch-none ${
           isSanctuary
-            ? "bg-[var(--board-frame,#10162A)] border border-[color:var(--board-border,rgba(255,255,255,0.07))] shadow-[var(--board-glow,none)]"
-            : "bg-gradient-to-b from-[#0E101F]/95 via-[#0A0B14] to-[#06070D] border border-indigo-500/25 shadow-2xl shadow-indigo-950/40"
+            ? "bg-[var(--board-frame,#17231B)] border border-[color:var(--board-border,rgba(255,255,255,0.07))] shadow-[var(--board-glow,none)]"
+            : "bg-gradient-to-b from-[#121B15]/95 via-[#0C120E] to-[#080B09] border border-indigo-500/25 shadow-2xl shadow-indigo-950/40"
         } ${shouldShakeHeavyHit ? "animate-shake" : ""}`}
       >
         {/* Floating Tap-to-Inspect Inspector Card */}
@@ -627,8 +627,8 @@ export default function GridCanvas({
                     data-col={c}
                     className={`rounded-xl pointer-events-none shadow-inner ${
                       isSanctuary
-                        ? "bg-[#121629] border border-indigo-900/30 opacity-25"
-                        : "bg-[#070810] border border-indigo-950/30 opacity-20"
+                        ? "bg-[#17241B] border border-indigo-900/30 opacity-25"
+                        : "bg-[#090E0B] border border-indigo-950/30 opacity-20"
                     }`}
                   />
                 );
@@ -677,8 +677,8 @@ export default function GridCanvas({
 
               // Base Plate Styling (Crystal Sanctuary vs Cyber Tactician)
               let plateClass = isSanctuary
-                ? "bg-gradient-to-b from-[var(--plate-top,#252D52)] to-[var(--plate-bottom,#1B213E)] border-t border-white/15 shadow-[inset_0_1px_2px_rgba(255,255,255,0.12),0_4px_10px_rgba(8,10,24,0.45)] hover:from-[var(--plate-top-hover,#2C3560)] hover:to-[var(--plate-bottom-hover,#202749)]"
-                : "bg-gradient-to-b from-[#181A2D] to-[#111220] border-t border-[#2A2D4A] shadow-[inset_0_1px_2px_rgba(255,255,255,0.05),0_4px_10px_rgba(0,0,0,0.4)] hover:from-[#1E2138] hover:to-[#141628]";
+                ? "bg-gradient-to-b from-[var(--plate-top,#2F4837)] to-[var(--plate-bottom,#233629)] border-t border-white/15 shadow-[inset_0_1px_2px_rgba(255,255,255,0.12),0_4px_10px_rgba(12,20,15,0.45)] hover:from-[var(--plate-top-hover,#385441)] hover:to-[var(--plate-bottom-hover,#294031)]"
+                : "bg-gradient-to-b from-[#1D2821] to-[#141D17] border-t border-[#314337] shadow-[inset_0_1px_2px_rgba(255,255,255,0.05),0_4px_10px_rgba(0,0,0,0.4)] hover:from-[#243229] hover:to-[#18241C]";
 
               if (isInspected) {
                 plateClass += isSanctuary
@@ -693,41 +693,41 @@ export default function GridCanvas({
                   : "bg-gradient-to-br from-emerald-500/30 via-teal-500/25 to-amber-300/25 border border-emerald-300/75 shadow-[0_0_18px_rgba(52,211,153,0.35),inset_0_1px_4px_rgba(254,240,138,0.3)]";
               } else if (isFirstDeathCell) {
                 plateClass = isSanctuary
-                  ? "bg-gradient-to-b from-amber-900/65 to-[#2D1B36] border-2 border-amber-300 shadow-[0_0_22px_rgba(251,191,36,0.65)] ring-2 ring-amber-300/80"
+                  ? "bg-gradient-to-b from-amber-900/65 to-[#213026] border-2 border-amber-300 shadow-[0_0_22px_rgba(251,191,36,0.65)] ring-2 ring-amber-300/80"
                   : "bg-gradient-to-b from-[#3A1222] to-[#1F0913] border-2 border-[#F43F5E] shadow-[0_0_25px_rgba(244,63,94,0.75),inset_0_1px_3px_rgba(255,255,255,0.2)] ring-2 ring-[#F43F5E]";
               } else if (isCurrentPlaybackCell) {
                 plateClass =
-                  "bg-gradient-to-b from-[#1A3650] to-[#122038] border-2 border-[#00D2FF] shadow-[0_0_30px_rgba(0,210,255,0.85),inset_0_0_18px_rgba(255,255,255,0.35)] ring-2 ring-white z-20";
+                  "bg-gradient-to-b from-[#294131] to-[#1D2D22] border-2 border-[#CFEA8F] shadow-[0_0_30px_rgba(207,234,143,0.85),inset_0_0_18px_rgba(255,255,255,0.35)] ring-2 ring-white z-20";
               } else if (hintStepNum !== undefined && !isVisited) {
                 plateClass = isSanctuary
-                  ? "bg-gradient-to-b from-amber-900/60 to-[#1B213E] border-2 border-dashed border-amber-300 ring-2 ring-amber-300/80 shadow-[0_0_24px_rgba(251,191,36,0.7)] animate-pulse"
-                  : "bg-gradient-to-b from-amber-950/60 to-[#141628] border-2 border-dashed border-amber-400 ring-2 ring-amber-400/80 shadow-[0_0_20px_rgba(250,204,21,0.65)] animate-pulse";
+                  ? "bg-gradient-to-b from-amber-900/60 to-[#233629] border-2 border-dashed border-amber-300 ring-2 ring-amber-300/80 shadow-[0_0_24px_rgba(251,191,36,0.7)] animate-pulse"
+                  : "bg-gradient-to-b from-amber-950/60 to-[#18241C] border-2 border-dashed border-amber-400 ring-2 ring-amber-400/80 shadow-[0_0_20px_rgba(250,204,21,0.65)] animate-pulse";
               } else if (isHeroCell && !isResolving) {
                 plateClass = isSanctuary
-                  ? "border-2 border-amber-300/90 bg-gradient-to-b from-amber-500/25 to-[#1E2544] shadow-[0_0_22px_rgba(251,191,36,0.35)]"
+                  ? "border-2 border-amber-300/90 bg-gradient-to-b from-amber-500/25 to-[#273B2E] shadow-[0_0_22px_rgba(251,191,36,0.35)]"
                   : "border-2 border-cyan-300/80 bg-gradient-to-b from-cyan-950/60 to-slate-900 shadow-[0_0_20px_rgba(34,211,238,0.25)]";
               } else if (isExitCell) {
                 plateClass = simulation.canCommit
-                  ? "border-2 border-emerald-300 bg-gradient-to-b from-fuchsia-900/70 to-indigo-950 shadow-[0_0_28px_rgba(52,211,153,0.6),0_0_22px_rgba(244,114,182,0.45)]"
-                  : "border-2 border-purple-300/80 bg-gradient-to-b from-purple-900/65 to-indigo-950 shadow-[0_0_22px_rgba(192,132,252,0.35)]";
+                  ? "border-2 border-lime-200 bg-gradient-to-b from-amber-400/45 to-[#3A3A22] shadow-[0_0_28px_rgba(207,234,143,0.6),0_0_18px_rgba(251,191,36,0.4)]"
+                  : "border-2 border-amber-200/70 bg-gradient-to-b from-amber-400/30 to-[#33321F] shadow-[0_0_20px_rgba(251,191,36,0.28)]";
               } else if (crossSim) {
                 plateClass =
-                  "bg-gradient-to-b from-emerald-950/70 to-[#131D2B] border-2 border-emerald-400/80 shadow-[0_0_18px_rgba(16,185,129,0.45)]";
+                  "bg-gradient-to-b from-emerald-950/70 to-[#18261D] border-2 border-emerald-400/80 shadow-[0_0_18px_rgba(16,185,129,0.45)]";
               } else if (isEnemyNeutralized) {
                 plateClass = isSanctuary
-                  ? "scale-105 bg-gradient-to-b from-emerald-800/60 via-teal-900/50 to-[#1B253B] border-2 border-emerald-300/80 shadow-[0_0_20px_rgba(52,211,153,0.4)]"
-                  : "scale-105 bg-gradient-to-b from-[#13292A] to-[#101924] border border-emerald-400/65 shadow-[inset_0_1px_3px_rgba(16,185,129,0.3),0_0_16px_rgba(16,185,129,0.25)]";
+                  ? "scale-105 bg-gradient-to-b from-emerald-800/60 via-teal-900/50 to-[#223428] border-2 border-emerald-300/80 shadow-[0_0_20px_rgba(52,211,153,0.4)]"
+                  : "scale-105 bg-gradient-to-b from-[#13292A] to-[#142018] border border-emerald-400/65 shadow-[inset_0_1px_3px_rgba(16,185,129,0.3),0_0_16px_rgba(16,185,129,0.25)]";
               } else if (isVisited) {
                 plateClass = isDeadAfter
                   ? isSanctuary
-                    ? "bg-gradient-to-b from-amber-950/50 to-[#1D1830] border-t border-amber-300/40"
+                    ? "bg-gradient-to-b from-amber-950/50 to-[#1D2B22] border-t border-amber-300/40"
                     : "bg-gradient-to-b from-[#28121E] to-[#160B12] border-t border-[#F43F5E]/40 shadow-[0_4px_10px_rgba(0,0,0,0.4)]"
                   : isSanctuary
-                  ? "bg-gradient-to-b from-[#313B68] to-[#22294A] border-t border-amber-300/70 shadow-[inset_0_1px_4px_rgba(254,240,138,0.3),0_0_16px_rgba(251,191,36,0.22)]"
-                  : "bg-gradient-to-b from-[#202645] to-[#15182E] border-t border-[#00D2FF]/60 shadow-[inset_0_1px_3px_rgba(0,210,255,0.25),0_0_16px_rgba(0,210,255,0.22),0_4px_10px_rgba(0,0,0,0.45)]";
+                  ? "bg-gradient-to-b from-[#3D5C47] to-[#2B4132] border-t border-amber-300/70 shadow-[inset_0_1px_4px_rgba(254,240,138,0.3),0_0_16px_rgba(251,191,36,0.22)]"
+                  : "bg-gradient-to-b from-[#283D2F] to-[#1B281F] border-t border-[#CFEA8F]/60 shadow-[inset_0_1px_3px_rgba(207,234,143,0.25),0_0_16px_rgba(207,234,143,0.22),0_4px_10px_rgba(0,0,0,0.45)]";
               } else if (isGuideCell && showGhostGuide) {
                 plateClass =
-                  "bg-gradient-to-b from-[#2A3158] to-[#1B203C] border border-amber-300/60 shadow-[0_0_16px_rgba(250,204,21,0.28)]";
+                  "bg-gradient-to-b from-[#344E3D] to-[#223528] border border-amber-300/60 shadow-[0_0_16px_rgba(250,204,21,0.28)]";
               }
 
               if (isSanctuary) {
@@ -821,7 +821,7 @@ export default function GridCanvas({
                     <span
                       className={`tile-tag absolute top-0.5 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono font-black text-[9px] px-1.5 py-0.5 rounded shadow leading-none pointer-events-none z-20 ${
                         isSanctuary
-                          ? "bg-gradient-to-r from-amber-300 via-pink-300 to-violet-300 text-slate-950"
+                          ? "bg-amber-200 text-slate-950"
                           : "bg-purple-500 text-white"
                       }`}
                     >
@@ -847,12 +847,12 @@ export default function GridCanvas({
                           : stepSim.isBlinkStep
                           ? "bg-purple-500 text-white shadow-[0_0_10px_#A855F7]"
                           : stepSim.shatteredShield
-                          ? "bg-[#00D2FF] text-slate-950"
+                          ? "bg-[#CFEA8F] text-slate-950"
                           : isExitCell
                           ? "bg-purple-500 text-white shadow"
                           : isEnemyNeutralized
                           ? "bg-emerald-300 text-slate-950 font-black shadow-[0_0_10px_rgba(52,211,153,0.85)]"
-                          : "bg-[#0B0C16]/90 border border-[#00D2FF]/40 text-cyan-200"
+                          : "bg-[#0D140F]/90 border border-[#CFEA8F]/40 text-cyan-200"
                       }`}
                     >
                       {crossSim
@@ -1222,7 +1222,7 @@ export default function GridCanvas({
                 >
                   <circle
                     r="11"
-                    fill="#2E1065"
+                    fill="#2E4736"
                     stroke="#C084FC"
                     strokeWidth="2"
                     filter="url(#cyberTrailGlow)"
@@ -1246,7 +1246,7 @@ export default function GridCanvas({
               >
                 <circle
                   r="8"
-                  fill="#0A0B14"
+                  fill="#0C120E"
                   stroke={
                     isSegmentLethal ? "#F43F5E" : activeTrail.primaryStroke
                   }
@@ -1331,7 +1331,7 @@ function StepFloatingBadge({
 
   if (step.shatteredShield) {
     return (
-      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold bg-[#00D2FF] text-slate-950 shadow-[0_0_10px_rgba(0,210,255,0.8)] whitespace-nowrap">
+      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold bg-[#CFEA8F] text-slate-950 shadow-[0_0_10px_rgba(207,234,143,0.8)] whitespace-nowrap">
         {isSanctuary ? <>🧤 0<span className="tile-tag-long"> GLOVES</span></> : "❄️ 0 SHD"}
       </span>
     );
@@ -1375,7 +1375,7 @@ function StepFloatingBadge({
             ? "bg-[#F43F5E] text-white border border-red-300/40 shadow-[0_0_10px_rgba(244,63,94,0.75)]"
             : dmg > 0
             ? "bg-emerald-400 text-slate-950 shadow-[0_0_10px_rgba(16,185,129,0.8)]"
-            : "bg-[#00D2FF] text-slate-950 shadow-[0_0_10px_rgba(0,210,255,0.75)]"
+            : "bg-[#CFEA8F] text-slate-950 shadow-[0_0_10px_rgba(207,234,143,0.75)]"
         }`}
       >
         {dmg < 0 ? `${dmg} HP` : dmg > 0 ? `+${dmg}🩸 HP` : "0 DMG"}
@@ -1491,8 +1491,8 @@ function calmPlateClass(t: {
   if (t.isExit)
     return (
       (t.exitReady
-        ? "bg-emerald-400/[0.16] border-2 border-emerald-300"
-        : "bg-violet-400/[0.12] border border-violet-200/50") + ring
+        ? "bg-lime-300/[0.18] border-2 border-lime-200"
+        : "bg-amber-300/[0.16] border border-amber-200/55") + ring
     );
   if (t.isVisited) return "bg-teal-300/[0.12] border border-teal-200/50" + ring;
   if (t.isGuide) return "bg-white/[0.07] border border-amber-200/40" + ring;
@@ -1558,8 +1558,8 @@ function TileIconWithValue({
         } ${struck ? "line-through opacity-70" : ""}`}
         style={
           harmful
-            ? { backgroundColor: type === "TRAP" ? "#475569" : "#E11D48", borderColor: type === "TRAP" ? "#CBD5E1" : "#FDA4AF", color: "#FFFFFF" }
-            : { backgroundColor: "#0B0F1E", borderColor: badgeColor, color: badgeColor }
+            ? { backgroundColor: type === "TRAP" ? "#4F6155" : "#E11D48", borderColor: type === "TRAP" ? "#CBD5E1" : "#FDA4AF", color: "#FFFFFF" }
+            : { backgroundColor: "#101913", borderColor: badgeColor, color: badgeColor }
         }
       >
         {label}
@@ -1633,7 +1633,7 @@ export function CellGeometricNode({
               cx="50"
               cy="50"
               r="30"
-              fill="rgba(15,23,42,0.65)"
+              fill="rgba(22,35,26,0.65)"
               stroke={isSanctuary ? "#FDE047" : "#22D3EE"}
               strokeWidth="4.5"
             />
@@ -1674,7 +1674,7 @@ export function CellGeometricNode({
     case "EXIT": {
       return (
         <div className="relative w-[80%] h-[80%] flex items-center justify-center">
-          <span className="absolute inset-[12%] rounded-full bg-purple-500/25 blur-md" />
+          <span className="absolute inset-[12%] rounded-full bg-amber-300/25 blur-md" />
           <EntityIcon type="EXIT" size="100%" className="relative" />
         </div>
       );
@@ -1850,8 +1850,8 @@ function InspectorCard({
     <div
       className={`rounded-2xl p-3 border shadow-2xl backdrop-blur-xl flex items-start gap-3 transition-all ${
         isSanctuary
-          ? "bg-[#1E1938]/95 border-amber-300/60 shadow-[0_0_30px_rgba(251,191,36,0.35)] text-amber-50"
-          : "bg-[#101224]/95 border-cyan-400/60 shadow-[0_0_25px_rgba(6,182,212,0.3)] text-cyan-50"
+          ? "bg-[#203126]/95 border-amber-300/60 shadow-[0_0_30px_rgba(251,191,36,0.35)] text-amber-50"
+          : "bg-[#142018]/95 border-cyan-400/60 shadow-[0_0_25px_rgba(6,182,212,0.3)] text-cyan-50"
       }`}
     >
       <div

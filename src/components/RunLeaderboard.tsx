@@ -115,7 +115,7 @@ export default function RunLeaderboardModal({
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="w-full max-w-[440px] sm:max-h-[90dvh] flex flex-col bg-gradient-to-b from-[#1F1A36] via-[#151229] to-[#0C0A18] rounded-2xl border border-amber-300/40 text-white overflow-hidden"
+        className="w-full max-w-[440px] sm:max-h-[90dvh] flex flex-col bg-gradient-to-b from-[#203025] via-[#17241B] to-[#0D1510] rounded-2xl border border-amber-300/40 text-white overflow-hidden"
       >
         {/* Header */}
         <div className="px-3 pt-3 pb-2 border-b border-white/10 space-y-1">

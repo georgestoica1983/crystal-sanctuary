@@ -1010,10 +1010,10 @@ export const HERO_EMBLEMS: HeroEmblemOption[] = [
 export const TRAIL_SKINS: TrailSkinOption[] = [
   {
     id: "CYBER_CYAN",
-    name: "Cyber Cyan",
-    primaryStroke: "#00D2FF",
-    glowClass: "stroke-blue-600/35 stroke-[8px] blur-sm",
-    dashStroke: "#E0F2FE",
+    name: "Moss Glow",
+    primaryStroke: "#CFEA8F",
+    glowClass: "stroke-lime-300/40 stroke-[10px] blur-sm",
+    dashStroke: "#F4FBE3",
     unlockGold: 0,
   },
   {

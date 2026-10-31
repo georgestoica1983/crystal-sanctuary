@@ -2912,7 +2912,7 @@ export default function OneStrokeTacticianPage() {
     return (
       <main
         suppressHydrationWarning
-        className="min-h-dvh w-full bg-[radial-gradient(ellipse_at_top,_#2A1F4A_0%,_#131B2E_55%,_#0B101D_100%)] text-white flex items-center justify-center"
+        className="min-h-dvh w-full bg-[radial-gradient(ellipse_at_top,_#294031_0%,_#19281E_55%,_#101813_100%)] text-white flex items-center justify-center"
       />
     );
   }
@@ -2922,12 +2922,12 @@ export default function OneStrokeTacticianPage() {
     <main
       className={`h-[100dvh] w-full text-white flex flex-col justify-start items-center gap-1.5 sm:gap-2 [@media(max-height:700px)]:gap-1 overflow-x-hidden overflow-y-auto [&>*]:shrink-0 pt-[max(0.5rem,env(safe-area-inset-top))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] transition-colors duration-500 ${
         isSanctuarySkin
-          ? "bg-[radial-gradient(ellipse_at_top,_#2A1F4A_0%,_#131B2E_55%,_#0B101D_100%)]"
-          : "bg-[radial-gradient(ellipse_at_top,_#0E101F_0%,_#0A0B10_55%,_#050508_100%)]"
+          ? "bg-[radial-gradient(ellipse_at_top,_#294031_0%,_#19281E_55%,_#101813_100%)]"
+          : "bg-[radial-gradient(ellipse_at_top,_#121B15_0%,_#0B0F0C_55%,_#060706_100%)]"
       }`}
     >
       {/* Phones held sideways: the game is played upright */}
-      <div className="rotate-hint fixed inset-0 z-[90] bg-[#0B101D] flex-col items-center justify-center gap-3 text-center px-6">
+      <div className="rotate-hint fixed inset-0 z-[90] bg-[#101813] flex-col items-center justify-center gap-3 text-center px-6">
         <div className="text-5xl" aria-hidden="true">📱</div>
         <div className="text-lg font-black text-white">Turn your phone upright</div>
         <p className="text-sm text-indigo-100/80 max-w-xs">
@@ -3085,7 +3085,7 @@ export default function OneStrokeTacticianPage() {
         <>
           {/* First-visit coach on the real Daily */}
           {!isInteractiveTutorial && coachStep !== null && (
-            <div className="w-full max-w-[430px] min-w-0 rounded-xl px-3 py-2 bg-[#231A3E]/95 border border-amber-300/40 flex items-start gap-2.5 shadow-[0_0_20px_rgba(251,191,36,0.15)]">
+            <div className="w-full max-w-[430px] min-w-0 rounded-xl px-3 py-2 bg-[#223629]/95 border border-amber-300/40 flex items-start gap-2.5 shadow-[0_0_20px_rgba(251,191,36,0.15)]">
               <span className="text-lg leading-none mt-0.5">
                 {coachStep === 0 ? "🐱" : coachStep === 1 ? "✨" : "⭐"}
               </span>
@@ -3280,7 +3280,7 @@ export default function OneStrokeTacticianPage() {
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ opacity: 0, y: -8 }}
                     transition={{ duration: 0.25 }}
-                    className="pointer-events-none absolute inset-0 z-30 rounded-xl border border-amber-300/50 bg-[#1C1A2E] px-3 flex items-center justify-between gap-2"
+                    className="pointer-events-none absolute inset-0 z-30 rounded-xl border border-amber-300/50 bg-[#1F2922] px-3 flex items-center justify-between gap-2"
                     role="status"
                   >
                     <span className="text-[22px] font-mono font-black text-amber-200 leading-none">
@@ -3408,7 +3408,7 @@ export default function OneStrokeTacticianPage() {
             {/* Floor Cleared Interstitial Overlay with Earned 3-Star Rating */}
             {phase === "FLOOR_CLEARED" && isInteractiveTutorial && (
               <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
-                <div className="bg-[#0A0A0C]/95 border-2 border-emerald-400 rounded-2xl px-6 py-4 text-center shadow-[0_0_40px_rgba(16,185,129,0.5)] animate-bounce">
+                <div className="bg-[#0A0C0B]/95 border-2 border-emerald-400 rounded-2xl px-6 py-4 text-center shadow-[0_0_40px_rgba(16,185,129,0.5)] animate-bounce">
                   <div className="text-xs font-mono font-bold uppercase text-emerald-400 tracking-widest">
                     {isInteractiveTutorial
                       ? isSanctuary
@@ -3526,7 +3526,7 @@ export default function OneStrokeTacticianPage() {
                 <motion.div
                   initial={{ opacity: 0, scale: 0.92 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className="w-full max-w-[320px] rounded-2xl border border-amber-300/40 bg-[#151B2E] p-4 text-center text-white"
+                  className="w-full max-w-[320px] rounded-2xl border border-amber-300/40 bg-[#1B281F] p-4 text-center text-white"
                 >
                   <div className="text-[12px] font-semibold text-amber-200">How to score big</div>
                   <div className="mt-1 flex items-end justify-center gap-4 font-mono font-black">
@@ -3683,7 +3683,7 @@ export default function OneStrokeTacticianPage() {
       {/* End-visit confirmation for the official Daily */}
       {isFinishConfirmOpen && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-[360px] bg-[#15172B] border border-amber-300/40 rounded-2xl p-4 space-y-3 text-white">
+          <div className="w-full max-w-[360px] bg-[#1A261E] border border-amber-300/40 rounded-2xl p-4 space-y-3 text-white">
             <h2 className="text-base font-sans font-extrabold">End today&apos;s visit?</h2>
             <p className="text-xs font-sans text-indigo-100/85 leading-snug">
               Your official score for today will be the{" "}
