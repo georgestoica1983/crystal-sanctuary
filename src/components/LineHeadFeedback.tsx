@@ -33,15 +33,18 @@ export function describeStepEffect(step: PathStepSimulation): Array<{ text: stri
   const lifeGained = Math.max(0, step.hpAfter - step.hpBefore);
   switch (step.cell.type) {
     case "ENEMY": {
+      // Points first, then what it did to your Life
       const cut = step.weaponBefore > 0;
       const blocked = Math.max(0, step.shieldBefore - step.shieldAfter);
-      if (cut) out.push({ text: "✂️ cut!", tone: "block" });
-      if (blocked > 0) out.push({ text: `🧤 −${blocked}`, tone: "block" });
+      out.push({ text: `+${step.cell.value}`, tone: "neutral" });
       if (lifeLost > 0) out.push({ text: `❤️ −${lifeLost}`, tone: "minus" });
-      else if (!cut && blocked === 0) out.push({ text: "❤️ −0", tone: "block" });
+      else if (cut) out.push({ text: "✂️ cut!", tone: "block" });
+      else if (blocked > 0) out.push({ text: `🧤 −${blocked}`, tone: "block" });
+      else out.push({ text: "❤️ −0", tone: "block" });
       break;
     }
     case "TRAP":
+      out.push({ text: `+${step.cell.value}`, tone: "neutral" });
       if (step.trapDodgedDiagonally) out.push({ text: "↗ dodged", tone: "block" });
       else if (lifeLost > 0) out.push({ text: `❤️ −${lifeLost}`, tone: "minus" });
       else if (step.weaponDelta > 0) out.push({ text: `✂️ +${step.weaponDelta}`, tone: "plus" });

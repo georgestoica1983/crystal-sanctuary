@@ -45,29 +45,27 @@ function Tile({
   label?: string;
   size?: number;
 }) {
-  // Same badges as the board: gold "+N" points, and a red heart for Thorns' and Spikes' Life cost
-  const costsLife = type === "ENEMY" || type === "TRAP";
-  const color = costsLife ? "#F5C072" : ENTITY_COLORS[type] ?? "#fff";
+  // Same badges as the board: one number, coloured by what it does
+  const badge =
+    type === "ENEMY"
+      ? { backgroundColor: "#C0263F", borderColor: "#F7A1B0", color: "#FFFFFF" }
+      : type === "TRAP"
+      ? { backgroundColor: "#4F6155", borderColor: "#CBD5E1", color: "#FFFFFF" }
+      : type === "POTION"
+      ? { backgroundColor: "#0F1812", borderColor: "#34D399", color: "#34D399" }
+      : { backgroundColor: "#0F1812", borderColor: "rgba(237,230,211,0.7)", color: "#EDE6D3" };
   return artify(
     <div
       className="relative shrink-0 rounded-xl bg-[#223328] border border-white/10 flex items-center justify-center"
       style={{ width: size, height: size }}
     >
       <EntityIcon type={type} size={size * 0.62} glow />
-      {value !== undefined && costsLife && (
-        <span
-          className="absolute -bottom-1 -left-1 h-[16px] px-1 rounded-full text-[9px] font-mono font-black flex items-center text-white"
-          style={{ backgroundColor: type === "TRAP" ? "#4F6155" : "#C0263F" }}
-        >
-          ♥{value}
-        </span>
-      )}
       {value !== undefined && (
         <span
-          className="absolute -bottom-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-mono font-black flex items-center justify-center bg-[#0F1812] border"
-          style={{ color, borderColor: color }}
+          className="absolute -bottom-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-mono font-black flex items-center justify-center border"
+          style={badge}
         >
-          +{value}
+          {value}
         </span>
       )}
       {label && (
@@ -217,12 +215,12 @@ function buildPages(): GuidePage[] {
       icon: "🧩",
       body: (
         <div className="space-y-2.5">
-          <TileLine type="ENEMY" value={5} name="Thorn" text="+5 points for your line, but costs ♥5 Life." />
+          <TileLine type="ENEMY" value={5} name="Thorn" text="its red number is points — and costs that much ❤️ Life." />
           <TileLine type="WEAPON" value={5} name="Shears" text="cut the next Thorn completely." />
           <TileLine type="SHIELD" value={5} name="Gloves" text="block Thorn damage, and last." />
-          <TileLine type="POTION" value={5} name="Berries" text="give back ❤️ Life." />
+          <TileLine type="POTION" value={5} name="Berries" text="green number: points, and gives that much ❤️ Life back." />
           <TileLine type="GOLD" value={5} name="Acorn" text="adds points." />
-          <TileLine type="TRAP" value={3} name="Spike" text="+3 points, costs ♥3 Life — unless you step on it diagonally ↗." />
+          <TileLine type="TRAP" value={3} name="Spike" text="its grey number is points and costs that much ❤️ Life — unless you step on it diagonally ↗." />
           <P>Tap any tile on the board to read what it does.</P>
         </div>
       ),

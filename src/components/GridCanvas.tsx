@@ -1566,16 +1566,21 @@ function TileIconWithValue({
     type === "POTION" && isCorrupted
       ? ENTITY_COLORS.POISON_POTION
       : ENTITY_COLORS[type];
-  // Every number is the points the tile adds to the line. Thorns and Spikes
-  // also cost Life: a small red heart shows that cost (struck through once a
-  // Thorn is cut and costs nothing). A bad Berry (Blood Gold) keeps its "−N".
-  const costsLife = type === "ENEMY" || type === "TRAP";
-  const poisoned = type === "POTION" && isCorrupted;
+  // One number per tile, and every number is points for the line. Its colour
+  // says what else it does: red costs that much Life (Thorns, a bad Berry),
+  // grey is a Spike (costs Life unless crossed diagonally), green gives Life
+  // back, plain parchment does nothing else. A cut Thorn (`struck`) still gives
+  // its points but no longer costs Life, so its number turns plain.
+  const costsLife = (type === "ENEMY" && !struck) || (type === "POTION" && isCorrupted);
   const n = typeof value === "number" ? value : Math.abs(Number(value)) || value;
-  const label = poisoned ? `−${n}` : `+${n}`;
-  // Helpful values are never red: Berries show a green "+N"
-  const lifeColor = "#34D399";
-  const badgeColor = type === "POTION" && !isCorrupted ? lifeColor : costsLife ? "#F5C072" : color;
+  const style =
+    costsLife
+      ? { backgroundColor: "#C0263F", borderColor: "#F7A1B0", color: "#FFFFFF" }
+      : type === "TRAP"
+      ? { backgroundColor: "#4F6155", borderColor: "#CBD5E1", color: "#FFFFFF" }
+      : type === "POTION"
+      ? { backgroundColor: "#101913", borderColor: "#34D399", color: "#34D399" }
+      : { backgroundColor: "#101913", borderColor: "rgba(237,230,211,0.7)", color: "#EDE6D3" };
   return (
     <div className="relative w-[72%] h-[72%] flex items-center justify-center">
       <span
@@ -1598,29 +1603,11 @@ function TileIconWithValue({
           ↗
         </span>
       )}
-      {costsLife && (
-        <span
-          className={`absolute -bottom-1.5 -left-2 h-[18px] px-1 flex items-center gap-[1px] rounded-full font-mono font-black text-[10.5px] leading-none select-none pointer-events-none ${
-            struck ? "line-through opacity-60" : ""
-          }`}
-          style={{ backgroundColor: type === "TRAP" ? "#4F6155" : "#C0263F", color: "#FFFFFF" }}
-          aria-label={`costs ${n} Life`}
-        >
-          <span aria-hidden="true">♥</span>
-          {n}
-        </span>
-      )}
       <span
-        className={`absolute -bottom-1.5 -right-2 min-w-[22px] h-[20px] px-1 flex items-center justify-center font-mono font-black text-[12px] leading-none border-[1.5px] select-none pointer-events-none rounded-full ${
-          poisoned ? "!rounded-[4px]" : ""
-        }`}
-        style={
-          poisoned
-            ? { backgroundColor: color, borderColor: "#FDA4AF", color: "#FFFFFF" }
-            : { backgroundColor: "#101913", borderColor: badgeColor, color: badgeColor }
-        }
+        className="absolute -bottom-1.5 -right-2 min-w-[22px] h-[20px] px-1 flex items-center justify-center rounded-full font-mono font-black text-[12px] leading-none border-[1.5px] select-none pointer-events-none"
+        style={style}
       >
-        {label}
+        {n}
       </span>
     </div>
   );
