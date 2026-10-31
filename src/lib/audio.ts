@@ -24,7 +24,8 @@ class SoundAndHapticsEngine {
   private graph: AudioGraph | null = null;
   private noiseBuffer: AudioBuffer | null = null;
   private musicTimer: ReturnType<typeof setInterval> | null = null;
-  private musicChord = 0;
+  /** Generated music state: next bar time, bar count, melody note, section density, seeded random */
+  private music = { nextBar: 0, bar: 0, melody: 9, density: 0.55, rng: (Math.random() * 4294967296) >>> 0 };
   // Off until the player turns them on; a saved choice wins
   public soundEnabled: boolean = false;
   public musicEnabled: boolean = false;
@@ -181,14 +182,43 @@ class SoundAndHapticsEngine {
   }
 
   // ── Music ─────────────────────────────────────────────────────────────────
-  // For now a slow, soft pad that drifts between four garden chords; the full
-  // generated kalimba score replaces it later.
-  private static readonly PAD_CHORDS = [
+  // A generated garden score at 66 BPM: a soft pad drifting through four
+  // chords (two bars each), a low kalimba root on each bar, and a sparse
+  // kalimba melody that wanders the scale with an occasional bell. Phrases
+  // come from a seeded random walk, so a long session never loops audibly,
+  // and every 8 bars the density changes (sometimes just pad and roots, to breathe).
+  private static readonly MUSIC_CHORDS = [
     [0, 2, 4, 6], // D F# B E
     [3, 5, 7, 9], // A D F# B
     [4, 6, 8, 10], // B E A D
     [2, 4, 6, 8], // F# B E A
   ];
+  private static readonly BEAT = 60 / 66;
+  /** Melody rhythms within a bar, in beats */
+  private static readonly RHYTHMS = [
+    [0, 2],
+    [0, 1.5, 3],
+    [0.5, 2, 2.5],
+    [0, 1, 2.5],
+    [1, 3],
+    [0, 3],
+    [0, 0.5, 2],
+  ];
+
+  /** Seeds the music from the Run, so each Run has its own phrases */
+  public setMusicSeed(seed: string): void {
+    let h = 1779033703;
+    for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 3432918353);
+    this.music.rng = h >>> 0;
+  }
+
+  /** mulberry32 */
+  private musicRandom(): number {
+    let t = (this.music.rng += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
 
   private startMusic(): void {
     const audio = this.ensureAudio();
@@ -198,8 +228,10 @@ class SoundAndHapticsEngine {
     graph.music.gain.cancelScheduledValues(now);
     graph.music.gain.setValueAtTime(graph.music.gain.value, now);
     graph.music.gain.linearRampToValueAtTime(MUSIC_LEVEL, now + 3);
-    this.playPadChord();
-    this.musicTimer = setInterval(() => this.playPadChord(), 8000);
+    this.music.nextBar = now + 0.3;
+    this.music.bar = 0;
+    this.musicTimer = setInterval(() => this.scheduleMusic(), 150);
+    this.scheduleMusic();
   }
 
   private stopMusic(): void {
@@ -213,15 +245,84 @@ class SoundAndHapticsEngine {
     g.linearRampToValueAtTime(0, now + 1.2);
   }
 
-  private playPadChord(): void {
-    if (!this.ctx || !this.graph || document.hidden) return;
+  /** Schedules whole bars a little ahead of time (keeps timing steady) */
+  private scheduleMusic(): void {
+    if (!this.ctx || !this.graph || this.ctx.state !== "running") return;
+    const barLen = SoundAndHapticsEngine.BEAT * 4;
+    // After a long pause (app in the background), pick up from now
+    if (this.music.nextBar < this.ctx.currentTime) this.music.nextBar = this.ctx.currentTime + 0.1;
+    while (this.music.nextBar < this.ctx.currentTime + 1.2) {
+      this.playMusicBar(this.music.bar, this.music.nextBar);
+      this.music.bar++;
+      this.music.nextBar += barLen;
+    }
+  }
+
+  private playMusicBar(bar: number, at: number): void {
+    const beat = SoundAndHapticsEngine.BEAT;
+    const chords = SoundAndHapticsEngine.MUSIC_CHORDS;
+    const chord = chords[Math.floor(bar / 2) % chords.length];
+    if (bar % 8 === 0) {
+      // New 8-bar section: how busy the melody is (0 = only pad and roots)
+      const r = this.musicRandom();
+      this.music.density = r < 0.2 ? 0 : r < 0.55 ? 0.55 : 0.85;
+    }
+    // Pad on every chord change, held across both bars with a soft overlap
+    if (bar % 2 === 0) this.musicPad(chord, at, beat * 8 + 1.5);
+    // Low root
+    this.musicPluck(gardenNote(chord[0], 1), at, 0.07, 1.6);
+    if (this.music.density === 0) return;
+    // Melody: a random walk over the scale, drawn toward the chord's notes
+    const rhythm = SoundAndHapticsEngine.RHYTHMS[Math.floor(this.musicRandom() * SoundAndHapticsEngine.RHYTHMS.length)];
+    for (const b of rhythm) {
+      if (this.musicRandom() > this.music.density) continue;
+      let step = this.music.melody + Math.round((this.musicRandom() - 0.5) * 4);
+      step = Math.max(5, Math.min(14, step));
+      if (this.musicRandom() < 0.6) {
+        // Snap to the nearest chord note (in the melody's octave)
+        const options = chord.map((c) => c + 5 * Math.round((step - c) / 5));
+        step = options.reduce((a, c) => (Math.abs(c - step) < Math.abs(a - step) ? c : a), options[0]);
+      }
+      this.music.melody = step;
+      this.musicPluck(gardenNote(step, 1), at + b * beat, 0.06, 1.1);
+    }
+    if (this.musicRandom() < 0.12) this.musicBell(gardenNote(chord[2] + 10, 1), at + beat * 3, 0.03);
+  }
+
+  /** One kalimba note on the music bus at an exact time */
+  private musicPluck(freq: number, at: number, gain: number, decay: number): void {
+    this.musicTone("sine", freq, at, gain, decay, 0.004);
+    this.musicTone("sine", freq * 2, at, gain * 0.25, decay * 0.35, 0.003);
+    this.musicTone("sine", freq * 5.4, at, gain * 0.08, 0.05, 0.002);
+  }
+
+  private musicBell(freq: number, at: number, gain: number): void {
+    this.musicTone("sine", freq, at, gain, 2.2, 0.01);
+    this.musicTone("sine", freq * 2.76, at, gain * 0.3, 0.9, 0.006);
+  }
+
+  private musicTone(type: OscillatorType, freq: number, at: number, gain: number, decay: number, attack: number): void {
+    if (!this.ctx || !this.graph) return;
+    const osc = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, at);
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.linearRampToValueAtTime(gain, at + attack);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + decay);
+    osc.connect(g);
+    g.connect(this.graph.music);
+    osc.start(at);
+    osc.stop(at + decay + 0.02);
+  }
+
+  /** Soft pad chord: slow swell in, held, slow fade out */
+  private musicPad(chord: number[], at: number, hold: number): void {
+    if (!this.ctx || !this.graph) return;
     const ctx = this.ctx;
-    const chord = SoundAndHapticsEngine.PAD_CHORDS[this.musicChord++ % SoundAndHapticsEngine.PAD_CHORDS.length];
-    const now = ctx.currentTime;
-    const hold = 10; // overlaps the next chord by 2 s
     const tone = ctx.createBiquadFilter();
     tone.type = "lowpass";
-    tone.frequency.value = 1100;
+    tone.frequency.value = 1000;
     tone.connect(this.graph.music);
     chord.forEach((step, i) => {
       for (const detune of [-6, 6]) {
@@ -230,15 +331,15 @@ class SoundAndHapticsEngine {
         osc.frequency.value = gardenNote(step, 1);
         osc.detune.value = detune;
         const g = ctx.createGain();
-        const peak = (i === 0 ? 0.09 : 0.05) / 2;
-        g.gain.setValueAtTime(0.0001, now);
-        g.gain.linearRampToValueAtTime(peak, now + 3);
-        g.gain.setValueAtTime(peak, now + hold - 3);
-        g.gain.linearRampToValueAtTime(0.0001, now + hold);
+        const peak = (i === 0 ? 0.07 : 0.035) / 2;
+        g.gain.setValueAtTime(0.0001, at);
+        g.gain.linearRampToValueAtTime(peak, at + 2.5);
+        g.gain.setValueAtTime(peak, at + hold - 2.5);
+        g.gain.linearRampToValueAtTime(0.0001, at + hold);
         osc.connect(g);
         g.connect(tone);
-        osc.start(now);
-        osc.stop(now + hold + 0.05);
+        osc.start(at);
+        osc.stop(at + hold + 0.05);
       }
     });
   }

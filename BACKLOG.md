@@ -32,8 +32,10 @@ Things that are ready in code but wait on a setup step, plus work planned for la
 
 ## Design and sound (now)
 
-- [ ] Art direction: replace emoji (HUD stats, relics, companions, menus) with one illustrated symbol set; redraw the board tiles in the same style.
-- [ ] Music: calmer, warmer loop (soft pads, plucked melody), and more rewarding sounds for scoring, bed clears and relic buys.
+- [x] Art direction: moss look, illustrated tiles, companions, stats, relic themes and all 36 relics.
+- [ ] Leftover emoji: Shop boosts, score tally labels, welcome screen, companion picker.
+- [x] Music and sound: generated kalimba score at 66 BPM (seeded per Run), soft effects in the garden key, earned-reward sounds, separate Music switch, /sound-test page.
+- [x] Drag and tap together to draw a line.
 
 ## Phase 5 — last
 

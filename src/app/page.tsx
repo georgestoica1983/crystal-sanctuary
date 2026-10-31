@@ -1061,6 +1061,8 @@ export default function OneStrokeTacticianPage() {
       const runSeed = practice
         ? PRACTICE_GARDEN_SEED
         : `run-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+      // Each Run gets its own musical phrases
+      soundEngine.setMusicSeed(runSeed);
       // Companions are earned by playing (no free trials): a locked one falls back to the Keeper
       const wanted = overrideClassId ?? runCompanionRef.current;
       const classId: HeroClassId = practice || !isCompanionUnlocked(wanted) ? "KNIGHT" : wanted;
