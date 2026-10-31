@@ -98,7 +98,7 @@ export const RUN_LESSONS: RunLesson[] = [
     title: "Drag to the Exit",
     icon: "✍️",
     learn: "",
-    steps: ["Drag from YOU to the 🌈 EXIT."],
+    steps: ["Drag or tap from YOU to the 🌈 EXIT."],
     goalLabel: "Reach the Exit",
     hero: hero(10),
     grid: board("L1", [

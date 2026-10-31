@@ -150,7 +150,7 @@ export default function LineMeter({
         <div className="text-[12.5px] leading-snug text-white/60 text-center">
           {idleText ?? (
             <>
-              Drag from YOU 🐱 to the 🌈 Exit.{" "}
+              Drag or tap from YOU 🐱 to the 🌈 Exit.{" "}
               <span className="text-amber-200/90">Longer lines score far more.</span>
             </>
           )}

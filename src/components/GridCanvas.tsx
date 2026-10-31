@@ -236,6 +236,110 @@ export default function GridCanvas({
     []
   );
 
+  /**
+   * Adds `coord` to the end of the line when it is a legal next step (also the
+   * Otter's self-cross and the Fox's hop). Shared by dragging and tapping.
+   */
+  const extendTo = useCallback(
+    (coord: GridCoord): boolean => {
+      if (drawnPath.length === 0) return false;
+      if (grid[coord.row]?.[coord.col]?.type === "VOID") return false;
+      const currentHead = drawnPath[drawnPath.length - 1];
+      if (isSameCoord(coord, currentHead)) return false;
+      const blinkAlreadyUsed = countPathBlinks(drawnPath) >= 1;
+      const selfCrossAlreadyUsed = countPathSelfCrosses(drawnPath) >= 1;
+
+      // Check self-intersection (cell already visited earlier in the path)
+      const alreadyVisited = drawnPath.some((pt) => isSameCoord(pt, coord));
+      if (alreadyVisited) {
+        // Rogue Passive ("Shadow Step"): Allowed to cross/re-visit an already visited cell 1x per floor
+        const targetType = grid[coord.row]?.[coord.col]?.type;
+        if (
+          heroClassId === "ROGUE" &&
+          !selfCrossAlreadyUsed &&
+          targetType !== "EXIT" &&
+          isValidStep(currentHead, coord, modifierId, heroClassId, blinkAlreadyUsed)
+        ) {
+          const crossedPath = [...drawnPath, coord];
+          onPathChange(crossedPath);
+          soundEngine.playSwipeTick(crossedPath.length - 1, false);
+          if (onRetractNotice) {
+            onRetractNotice("⚔ Shadow Step: Self-cross used (1/1)");
+          }
+          return true;
+        }
+        return false;
+      }
+
+      // Validate adjacency (or Mage 2-Tile Teleport Jump) and ORTHOGONAL_ONLY modifier
+      if (
+        !isValidStep(
+          currentHead,
+          coord,
+          modifierId,
+          heroClassId,
+          blinkAlreadyUsed
+        )
+      ) {
+        if (
+          modifierId === "ORTHOGONAL_ONLY" &&
+          Math.abs(coord.row - currentHead.row) === 1 &&
+          Math.abs(coord.col - currentHead.col) === 1 &&
+          onRetractNotice
+        ) {
+          onRetractNotice("Rook's Lockdown: Diagonal steps disabled!");
+        } else if (
+          heroClassId === "MAGE" &&
+          blinkAlreadyUsed &&
+          isBlinkJump(currentHead, coord) &&
+          onRetractNotice
+        ) {
+          onRetractNotice("✦ Astral Blink already used on this floor (1/1)!");
+        }
+        return false;
+      }
+
+      const nextPath = [...drawnPath, coord];
+      onPathChange(nextPath);
+
+      if (isBlinkJump(currentHead, coord)) {
+        soundEngine.playHintReveal();
+        if (onRetractNotice) {
+          onRetractNotice("✦ Astral Blink: 2-Tile Warp activated!");
+        }
+        return true;
+      }
+
+      // Check if this new cell forms a consecutive GOLD combo
+      const targetCell = grid[coord.row]?.[coord.col];
+      if (
+        targetCell?.type === "GOLD" &&
+        simulation.firstDeathStepIndex === null
+      ) {
+        let goldStreak = 1;
+        for (let idx = drawnPath.length - 1; idx >= 1; idx--) {
+          const prevPt = drawnPath[idx];
+          if (grid[prevPt.row]?.[prevPt.col]?.type === "GOLD") {
+            goldStreak++;
+          } else {
+            break;
+          }
+        }
+        if (goldStreak >= 2) {
+          soundEngine.playGoldPickup(goldStreak);
+          return true;
+        }
+      }
+
+      soundEngine.playSwipeTick(
+        nextPath.length - 1,
+        simulation.firstDeathStepIndex !== null
+      );
+      return true;
+    },
+    [drawnPath, grid, heroClassId, modifierId, onPathChange, onRetractNotice, simulation.firstDeathStepIndex]
+  );
+
   const handlePointerDown = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
       if (isResolving) {
@@ -260,18 +364,34 @@ export default function GridCanvas({
       setRetractingPath(null);
       setPointerPos({ x: normX, y: normY });
 
-      // Must start on HERO cell (or resume from existing tail if user taps tail)
-      if (isSameCoord(coord, heroStartCoord)) {
+      // Drag and tap work together: start on the Companion (or keep going from
+      // the line's end), tap the next tile to add it, tap the tile before the
+      // end to step back, or tap an earlier tile to cut the line back to it.
+      // Each of these also starts a drag, so a tap can turn into a swipe.
+      const startHere = () => {
         setInspectedCoord(null);
         setIsDragging(true);
+      };
+      const inPath = drawnPath.findIndex((pt) => isSameCoord(pt, coord));
+      if (isSameCoord(coord, heroStartCoord)) {
+        startHere();
         onPathChange([heroStartCoord]);
         soundEngine.playSwipeTick(0, false);
       } else if (
         drawnPath.length > 0 &&
         isSameCoord(coord, drawnPath[drawnPath.length - 1])
       ) {
-        setInspectedCoord(null);
-        setIsDragging(true);
+        startHere();
+      } else if (drawnPath.length >= 2 && isSameCoord(coord, drawnPath[drawnPath.length - 2])) {
+        startHere();
+        onPathChange(drawnPath.slice(0, -1));
+        soundEngine.playUndoTick();
+      } else if (drawnPath.length > 0 && extendTo(coord)) {
+        startHere();
+      } else if (inPath > 0) {
+        startHere();
+        onPathChange(drawnPath.slice(0, inPath + 1));
+        soundEngine.playUndoTick();
       } else if (
         isValidStep(heroStartCoord, coord, modifierId, heroClassId, false) &&
         drawnPath.length === 0
@@ -298,6 +418,7 @@ export default function GridCanvas({
       heroClassId,
       onPathChange,
       onSkipPlayback,
+      extendTo,
     ]
   );
 
@@ -365,95 +486,7 @@ export default function GridCanvas({
         }
       }
 
-      const blinkAlreadyUsed = countPathBlinks(drawnPath) >= 1;
-      const selfCrossAlreadyUsed = countPathSelfCrosses(drawnPath) >= 1;
-
-      // Check self-intersection (cell already visited earlier in the path)
-      const alreadyVisited = drawnPath.some((pt) => isSameCoord(pt, coord));
-      if (alreadyVisited) {
-        // Rogue Passive ("Shadow Step"): Allowed to cross/re-visit an already visited cell 1x per floor
-        const targetType = grid[coord.row]?.[coord.col]?.type;
-        if (
-          heroClassId === "ROGUE" &&
-          !selfCrossAlreadyUsed &&
-          targetType !== "EXIT" &&
-          isValidStep(currentHead, coord, modifierId, heroClassId, blinkAlreadyUsed)
-        ) {
-          const crossedPath = [...drawnPath, coord];
-          onPathChange(crossedPath);
-          soundEngine.playSwipeTick(crossedPath.length - 1, false);
-          if (onRetractNotice) {
-            onRetractNotice("⚔ Shadow Step: Self-cross used (1/1)");
-          }
-          return;
-        }
-        return;
-      }
-
-      // Validate adjacency (or Mage 2-Tile Teleport Jump) and ORTHOGONAL_ONLY modifier
-      if (
-        !isValidStep(
-          currentHead,
-          coord,
-          modifierId,
-          heroClassId,
-          blinkAlreadyUsed
-        )
-      ) {
-        if (
-          modifierId === "ORTHOGONAL_ONLY" &&
-          Math.abs(coord.row - currentHead.row) === 1 &&
-          Math.abs(coord.col - currentHead.col) === 1 &&
-          onRetractNotice
-        ) {
-          onRetractNotice("Rook's Lockdown: Diagonal steps disabled!");
-        } else if (
-          heroClassId === "MAGE" &&
-          blinkAlreadyUsed &&
-          isBlinkJump(currentHead, coord) &&
-          onRetractNotice
-        ) {
-          onRetractNotice("✦ Astral Blink already used on this floor (1/1)!");
-        }
-        return;
-      }
-
-      const nextPath = [...drawnPath, coord];
-      onPathChange(nextPath);
-
-      if (isBlinkJump(currentHead, coord)) {
-        soundEngine.playHintReveal();
-        if (onRetractNotice) {
-          onRetractNotice("✦ Astral Blink: 2-Tile Warp activated!");
-        }
-        return;
-      }
-
-      // Check if this new cell forms a consecutive GOLD combo
-      const targetCell = grid[coord.row]?.[coord.col];
-      if (
-        targetCell?.type === "GOLD" &&
-        simulation.firstDeathStepIndex === null
-      ) {
-        let goldStreak = 1;
-        for (let idx = drawnPath.length - 1; idx >= 1; idx--) {
-          const prevPt = drawnPath[idx];
-          if (grid[prevPt.row]?.[prevPt.col]?.type === "GOLD") {
-            goldStreak++;
-          } else {
-            break;
-          }
-        }
-        if (goldStreak >= 2) {
-          soundEngine.playGoldPickup(goldStreak);
-          return;
-        }
-      }
-
-      soundEngine.playSwipeTick(
-        nextPath.length - 1,
-        simulation.firstDeathStepIndex !== null
-      );
+      extendTo(coord);
     },
     [
       isDragging,
@@ -465,7 +498,7 @@ export default function GridCanvas({
       onPathChange,
       onRetractNotice,
       grid,
-      simulation.firstDeathStepIndex,
+      extendTo,
     ]
   );
 
@@ -486,24 +519,19 @@ export default function GridCanvas({
       return;
     }
 
-    // Otherwise smoothly retract the line so the player can rethink their route
+    // Not at the Exit yet: the line stays, so it can go on by tapping or dragging
+    if (!simulation.endsOnExit) return;
+
+    // At the Exit but it would cost all your Life: retract it so the player can rethink the route
     soundEngine.playRetractPath();
-    if (onRetractNotice) {
-      if (!simulation.survives) {
-        const why = explainWilt(simulation);
-        if (simulation.firstDeathCoord) setLastDeathCoord({ ...simulation.firstDeathCoord });
-        onRetractNotice(
-          isSanctuary
-            ? why?.long ?? "This line would run out of ❤️ Life — try a safer route."
-            : "Lethal route! Projected HP drops to 0"
-        );
-      } else if (!simulation.endsOnExit) {
-        onRetractNotice(
-          isSanctuary
-            ? "End your line on the 🌈 Exit to walk it."
-            : "Stroke must end on the EXIT Portal tile"
-        );
-      }
+    if (onRetractNotice && !simulation.survives) {
+      const why = explainWilt(simulation);
+      if (simulation.firstDeathCoord) setLastDeathCoord({ ...simulation.firstDeathCoord });
+      onRetractNotice(
+        isSanctuary
+          ? why?.long ?? "This line would run out of ❤️ Life — try a safer route."
+          : "Lethal route! Projected HP drops to 0"
+      );
     }
 
     setRetractingPath([...drawnPath]);
