@@ -11,8 +11,8 @@
     "fullscreen"
   ],
   "orientation": "portrait",
-  "background_color": "#131B2E",
-  "theme_color": "#131B2E",
+  "background_color": "#212C24",
+  "theme_color": "#19281E",
   "categories": [
     "games",
     "puzzle"
@@ -35,12 +35,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    },
-    {
-      "src": "/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
     }
   ]
 }
