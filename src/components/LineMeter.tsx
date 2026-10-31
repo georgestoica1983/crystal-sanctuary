@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { getLineTier, getNextLineTier, LINE_TIERS } from "@/lib/lineTiers";
 import { artify } from "@/components/ArtText";
+import { soundEngine } from "@/lib/audio";
 
 const fmt = (n: number) => Math.round(n).toLocaleString();
 
@@ -29,7 +30,10 @@ export default function LineMeter({
   showShortLineTip,
   intro,
   idleText,
+  toGo,
 }: {
+  /** Points the bed still needs (Garden Run only): shows "N to go" / "Clears the bed ✓" */
+  toGo?: number;
   /** Tiles in the line, counting the Companion's home tile and the Exit */
   tiles: number;
   chips: number;
@@ -83,6 +87,14 @@ export default function LineMeter({
   }, [tierUp]);
 
   const magicCost = magicNow - magicAfter;
+  // The line is enough to finish the bed (it still has to end on the gate to count)
+  const enough = toGo !== undefined && toGo > 0 && drawing && !wilts && points >= toGo;
+  const clears = enough && reachesArchway;
+  const wasEnough = useRef(false);
+  useEffect(() => {
+    if (enough && !wasEnough.current) soundEngine.playStarLand(2);
+    wasEnough.current = enough;
+  }, [enough]);
 
   // Bottom line: the one thing worth saying right now
   let bottom: React.ReactNode = null;
@@ -127,7 +139,7 @@ export default function LineMeter({
 
   return artify(
     <div
-      className="relative w-full max-w-[430px] min-w-0 h-[64px] rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-1.5 flex flex-col justify-center"
+      className="relative w-full max-w-[430px] min-w-0 h-[78px] rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-1.5 flex flex-col justify-center"
       aria-live="polite"
     >
       {!drawing && intro ? (
@@ -158,23 +170,34 @@ export default function LineMeter({
         </div>
       ) : (
         <>
-          <div className="flex items-baseline gap-2 min-w-0">
-            <div className="flex items-baseline gap-1 font-mono shrink-0">
-              <span className="text-[17px] font-black text-sky-300 leading-none">{fmt(chips)}</span>
-              <span className="text-[10px] text-white/40">value</span>
-              <span className="text-[13px] text-white/40 mx-0.5">×</span>
-              <span className="text-[17px] font-black text-emerald-300 leading-none">{fmt(mult)}</span>
-              <span className="text-[10px] text-white/40">length</span>
-              {xMult !== 1 && (
-                <span className="text-[11px] font-black text-fuchsia-300">×{Math.round(xMult * 100) / 100}</span>
-              )}
-            </div>
-            <div
-              className={`ml-auto text-[21px] font-display font-semibold tabular-nums leading-none ${
-                wilts ? "text-rose-300/70 line-through" : reachesArchway ? "text-amber-200" : "text-amber-200/50"
+          {/* The harvest: big, growing with every tile */}
+          <div className="flex items-center gap-2 min-w-0">
+            <motion.div
+              key={points}
+              initial={{ scale: 1.12 }}
+              animate={{ scale: 1 }}
+              transition={{ duration: 0.18 }}
+              className={`origin-left text-[30px] font-display font-semibold tabular-nums leading-none ${
+                wilts ? "text-rose-300/70 line-through" : reachesArchway ? "text-amber-200" : "text-amber-200/60"
               }`}
             >
               {fmt(points)}
+            </motion.div>
+            <div className="min-w-0 flex flex-col leading-tight">
+              <span className="font-mono text-[10.5px] text-white/50 whitespace-nowrap">
+                <span className="text-sky-300 font-black">{fmt(chips)}</span> value ×{" "}
+                <span className="text-emerald-300 font-black">{fmt(mult)}</span> length
+                {xMult !== 1 && <span className="text-fuchsia-300 font-black"> ×{Math.round(xMult * 100) / 100}</span>}
+              </span>
+              {toGo !== undefined && toGo > 0 && !wilts && (
+                <span
+                  className={`text-[11.5px] font-bold whitespace-nowrap ${
+                    clears ? "text-amber-200" : enough ? "text-lime-200" : "text-white/55"
+                  }`}
+                >
+                  {clears ? "✓ Clears the bed" : enough ? "Enough — head to the gate!" : `${fmt(toGo - points)} to go`}
+                </span>
+              )}
             </div>
           </div>
 

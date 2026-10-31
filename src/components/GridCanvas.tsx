@@ -44,6 +44,8 @@ interface GridCanvasProps {
   ghostGuidePath?: GridCoord[];
   cosmetics?: CosmeticPreferences;
   onPathChange: (newPath: GridCoord[]) => void;
+  /** The drawn line ends on the gate and is enough to finish the Garden Bed */
+  clearsBed?: boolean;
   onCommitPath: (committedPath: GridCoord[]) => void;
   onRetractNotice?: (reason: string) => void;
   /** First-time players: home and the Exit pulse until the first line */
@@ -67,6 +69,7 @@ export default function GridCanvas({
   cosmetics,
   onPathChange,
   onCommitPath,
+  clearsBed = false,
   onRetractNotice,
   pulseStartExit = false,
   liveScore = null,
@@ -736,7 +739,9 @@ export default function GridCanvas({
                   ? "border-2 border-amber-300/90 bg-gradient-to-b from-amber-500/25 to-[#273B2E] shadow-[0_0_22px_rgba(251,191,36,0.35)]"
                   : "border-2 border-cyan-300/80 bg-gradient-to-b from-cyan-950/60 to-slate-900 shadow-[0_0_20px_rgba(34,211,238,0.25)]";
               } else if (isExitCell) {
-                plateClass = simulation.canCommit
+                plateClass = simulation.canCommit && clearsBed
+                  ? "border-2 border-amber-200 bg-gradient-to-b from-amber-300/70 to-[#4A4122] shadow-[0_0_36px_rgba(251,191,36,0.8),0_0_14px_rgba(255,236,170,0.7)] animate-pulse"
+                  : simulation.canCommit
                   ? "border-2 border-lime-200 bg-gradient-to-b from-amber-400/45 to-[#3A3A22] shadow-[0_0_28px_rgba(207,234,143,0.6),0_0_18px_rgba(251,191,36,0.4)]"
                   : "border-2 border-amber-200/70 bg-gradient-to-b from-amber-400/30 to-[#33321F] shadow-[0_0_20px_rgba(251,191,36,0.28)]";
               } else if (crossSim) {
@@ -846,6 +851,15 @@ export default function GridCanvas({
                     </span>
                   )}
 
+                  {isExitCell && clearsBed && !isResolving && (
+                    <motion.span
+                      initial={{ opacity: 0, x: "-50%", y: 6, scale: 0.8 }}
+                      animate={{ opacity: 1, x: "-50%", y: 0, scale: 1 }}
+                      className="tile-tag absolute bottom-0.5 left-1/2 whitespace-nowrap rounded-full bg-amber-200 px-1.5 py-0.5 text-[9px] font-black text-slate-950 shadow-[0_0_14px_rgba(251,191,36,0.8)] pointer-events-none z-40"
+                    >
+                      ✓ Bloom
+                    </motion.span>
+                  )}
                   {isExitCell && !stepSim && (
                     <span
                       className={`tile-tag absolute top-0.5 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono font-black text-[9px] px-1.5 py-0.5 rounded shadow leading-none pointer-events-none z-20 ${

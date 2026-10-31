@@ -677,6 +677,10 @@ export default function OneStrokeTacticianPage() {
     activeRelicsForBoard,
   ]);
 
+  // Points this Garden Bed still needs (Garden Run only, not lessons)
+  const bedToGo =
+    mode === "RUN" && !lesson && runGarden ? Math.max(0, runGarden.target - runGarden.score) : undefined;
+
   // Live Value × Length meter: this line and the same line one step shorter
   const lineMeter = useMemo(() => {
     const len = drawnPath.length;
@@ -3260,6 +3264,7 @@ export default function OneStrokeTacticianPage() {
                   magicNow={floorStartHero.hp}
                   magicAfter={simulation.survives ? simulation.finalStats.hp : 0}
                   tilesOnBoard={lineMeter.tilesOnBoard}
+                  toGo={bedToGo}
                   idleText={
                     lesson
                       ? "Your points show here as you draw."
@@ -3357,6 +3362,12 @@ export default function OneStrokeTacticianPage() {
           <div className="relative w-full max-w-[430px] min-h-[220px] max-h-[min(calc(100vw-1.5rem),430px)] grow-[1000] basis-0 !shrink flex items-center justify-center [container-type:size]">
           <div className="relative aspect-square w-[min(100cqw,100cqh)]">
             <GridCanvas
+              clearsBed={
+                bedToGo !== undefined &&
+                bedToGo > 0 &&
+                simulation.canCommit &&
+                Math.round(lineMeter.now.chips * lineMeter.now.mult * lineMeter.now.xMult) >= bedToGo
+              }
               grid={activeGrid}
               drawnPath={drawnPath}
               simulation={simulation}

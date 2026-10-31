@@ -90,7 +90,13 @@ export function RunHudStrip({
           </div>
         </div>
         <div className="shrink-0 text-[12px] text-white/55">
-          Target <span className="font-mono font-black text-amber-200">{fmt(garden.target)}</span>
+          {garden.score >= garden.target ? (
+            <span className="font-bold text-amber-200">Bloomed ✓</span>
+          ) : (
+            <>
+              <span className="font-mono font-black text-amber-200">{fmt(garden.target - garden.score)}</span> to go
+            </>
+          )}
         </div>
       </div>
 
