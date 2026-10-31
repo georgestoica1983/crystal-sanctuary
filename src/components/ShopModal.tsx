@@ -25,6 +25,17 @@ import {
 } from "@/lib/engine";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import PruneCard from "@/components/PruneCard";
+import { getRelicTags, RELIC_TAG_INFO, RelicTag, sharedBuildTags, summarizeBuild } from "@/lib/relicTags";
+
+/** Small build-theme chip (🌺 Thorns) */
+function TagChip({ tag }: { tag: RelicTag }) {
+  const info = RELIC_TAG_INFO[tag];
+  return (
+    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 ${info.className}`}>
+      {info.icon} {info.name}
+    </span>
+  );
+}
 
 interface ShopModalProps {
   isOpen: boolean;
@@ -209,6 +220,11 @@ export default function ShopModal({
                 👑 Boss defeated · Legendary relic
               </div>
               <div className="text-sm font-black text-white">{legendary.name}</div>
+              {legendaryAward && (
+                <div className="flex flex-wrap gap-1 my-0.5">
+                  {getRelicTags(legendaryAward).map((t) => <TagChip key={t} tag={t} />)}
+                </div>
+              )}
               <div className="text-[11px] text-amber-50/90 leading-snug">
                 {legendary.description.replace(/^Legendary: /, "")}
               </div>
@@ -258,8 +274,13 @@ export default function ShopModal({
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col items-start gap-0.5">
-                      <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 ${info.kindClass}`}>
-                        {info.kindLabel}
+                      <span className="flex flex-wrap gap-1">
+                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 ${info.kindClass}`}>
+                          {info.kindLabel}
+                        </span>
+                        {offer.kind === "RELIC" &&
+                          offer.relicId &&
+                          getRelicTags(offer.relicId).map((t) => <TagChip key={t} tag={t} />)}
                       </span>
                       <span className="font-black text-sm leading-tight">{info.name}</span>
                     </div>
@@ -269,6 +290,15 @@ export default function ShopModal({
                     >
                       {info.tag}
                     </div>
+                    {offer.kind === "RELIC" && offer.relicId && !sold && (() => {
+                      const shared = sharedBuildTags(offer.relicId, ownedRelics);
+                      return shared.length > 0 ? (
+                        <div className="text-[11px] font-semibold text-lime-200">
+                          ✓ Fits your build ·{" "}
+                          {shared.map((t) => `${RELIC_TAG_INFO[t].icon} ${RELIC_TAG_INFO[t].name}`).join(" · ")}
+                        </div>
+                      ) : null;
+                    })()}
                     {scorePreview && scorePreview[offer.id] !== undefined && !sold && (
                       <div
                         className={`mt-0.5 text-[11px] font-mono font-black ${
@@ -358,8 +388,9 @@ export default function ShopModal({
           {selectedInfo && selectedSlotRelic && (
             <div className="rounded-lg border border-amber-300/40 bg-amber-400/5 px-2 py-1.5 flex items-center gap-2">
               <div className="min-w-0 flex-1">
-                <div className="text-xs font-black text-white">
+                <div className="text-xs font-black text-white flex flex-wrap items-center gap-1">
                   {selectedInfo.icon} {selectedInfo.name}
+                  {getRelicTags(selectedSlotRelic).map((t) => <TagChip key={t} tag={t} />)}
                 </div>
                 <div className="text-[11px] text-zinc-300 leading-snug">
                   {selectedInfo.description}
@@ -381,6 +412,16 @@ export default function ShopModal({
                   <span className="block text-[11px]">+{selectedSellValue} 🌱</span>
                 </button>
               )}
+            </div>
+          )}
+          {summarizeBuild(ownedRelics).length > 0 && (
+            <div className="text-[11px] text-white/60">
+              Your build:{" "}
+              <span className="font-semibold text-white/85">
+                {summarizeBuild(ownedRelics)
+                  .map(({ tag, count }) => `${RELIC_TAG_INFO[tag].icon} ${RELIC_TAG_INFO[tag].name} ×${count}`)
+                  .join(" · ")}
+              </span>
             </div>
           )}
           {!selectedSlotRelic && commonOwned.length > 0 && onSell && (

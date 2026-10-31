@@ -23,7 +23,8 @@ Things that are ready in code but wait on a setup step, plus work planned for la
 - [x] Harder start for veterans: Ascension levels 0–6.
 - [ ] Build depth:
   - [x] ✂️ Pruning Shears in the Shop: remove one tile from the bag (rules v9).
-  - [ ] Relic synergy tags (Score / Multiplier / Seeds / Rule-bender) + "fits your build" mark; optional set bonus.
+  - [x] Relic theme tags (Thorns, Acorns, Berries & Gloves, Shears, Long lines, Careful, Growing, Seeds, Any build) + "Fits your build" mark.
+  - [ ] Optional: set bonus for 3 relics with the same tag (rules change).
   - [ ] Companions with a small rule (reuse the 4 hero classes; decide whether companions stay "looks only").
 - [ ] More unlocks (one every ~10 ⭐, board themes).
 - [ ] Quick mode (a 3-minute run) — only if testers ask.
