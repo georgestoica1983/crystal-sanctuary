@@ -213,6 +213,7 @@ import {
   TUTORIAL_STAGES,
 } from "@/lib/tutorial";
 import { artify } from "@/components/ArtText";
+import SoundPrompt from "@/components/SoundPrompt";
 
 const COACH_STORAGE_KEY = "ost_first_daily_coach_v1";
 /** The game is Run-only: other modes stay in the code but have no way in */
@@ -2841,6 +2842,16 @@ export default function OneStrokeTacticianPage() {
     setSoundEnabled(next);
   }, [soundEnabled]);
 
+  // First-launch question: one tap turns on both sound and music
+  const handleSoundPrompt = useCallback((on: boolean) => {
+    track("sound_prompt", { choice: on ? "on" : "off" });
+    if (!on) return;
+    soundEngine.setSoundEnabled(true);
+    soundEngine.setMusicEnabled(true);
+    setSoundEnabled(true);
+    setMusicEnabled(true);
+  }, []);
+
   const handleToggleMusic = useCallback(() => {
     const next = !musicEnabled;
     soundEngine.setMusicEnabled(next);
@@ -2939,6 +2950,7 @@ export default function OneStrokeTacticianPage() {
           : "bg-[radial-gradient(ellipse_at_top,_#121B15_0%,_#0B0F0C_55%,_#060706_100%)]"
       }`}
     >
+      <SoundPrompt onChoose={handleSoundPrompt} />
       {/* Phones held sideways: the game is played upright */}
       <div className="rotate-hint fixed inset-0 z-[90] bg-[#101813] flex-col items-center justify-center gap-3 text-center px-6">
         <div className="text-5xl" aria-hidden="true">📱</div>

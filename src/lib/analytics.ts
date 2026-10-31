@@ -39,6 +39,7 @@ export type TrackEvent =
   | "demo_done"
   | "demo_replay"
   | "relic_set"
+  | "sound_prompt"
   | "run_over"
   | "feedback_open";
 
