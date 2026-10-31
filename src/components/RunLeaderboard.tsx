@@ -130,8 +130,9 @@ export default function RunLeaderboardModal({
             </button>
           </div>
           <div className="text-[11px] text-indigo-100/80">
-            Every player&apos;s best Run, ranked by points. Scores are sent automatically when a
-            garden is cleared and when a Run ends.
+            {board && !board.configured
+              ? "The online leaderboard opens soon. Until then, this shows your best Run on this phone."
+              : "Every player's best Run, ranked by points. Scores are sent automatically when a garden is cleared and when a Run ends."}
           </div>
           <div className="flex items-center gap-1.5 text-[10px] font-mono text-indigo-200/70">
             {board?.configured ? (
@@ -144,7 +145,7 @@ export default function RunLeaderboardModal({
             ) : board ? (
               <>
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
-                Not connected yet — showing this device only
+                Online board coming soon · this phone only
               </>
             ) : (
               "Loading…"
