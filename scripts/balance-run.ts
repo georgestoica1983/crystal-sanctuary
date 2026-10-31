@@ -3,8 +3,9 @@
 // report how far they get and how close each garden came to its target.
 // Run with: node scripts/run-ts.cjs scripts/balance-run.ts
 // Env: VERSIONS=3,4  SEEDS=16  BUDGET=20000 (strong player) / 600 (casual)
+//      PRUNE=none|spike|thorn (rules v9+: what the bot cuts with Pruning Shears)
 import { findEntityCoord, searchBestFloorLine } from "@/lib/engine";
-import { createRunReplayer, packCoords, runModifierFor } from "@/lib/runReplay";
+import { createRunReplayer, packCoords, RUN_PRUNE_COST, runModifierFor } from "@/lib/runReplay";
 
 const VERSIONS = (process.env.VERSIONS ?? "3,4").split(",").map(Number);
 const SEEDS = Number(process.env.SEEDS ?? 16);
@@ -12,6 +13,7 @@ const BUDGETS = (process.env.BUDGET ?? "20000,600").split(",").map(Number);
 const MAX_GARDENS = Number(process.env.GARDENS ?? 9);
 /** Ascension level to test (rules v8+) */
 const ASC = Number(process.env.ASC ?? 0);
+const PRUNE = process.env.PRUNE ?? "none";
 
 for (const budget of BUDGETS) {
   for (const v of VERSIONS) {
@@ -31,6 +33,18 @@ for (const budget of BUDGETS) {
         const s = run.state;
         if (s.phase === "SHOP") {
           if (s.gardensBloomed >= MAX_GARDENS) break;
+          if (PRUNE !== "none" && !s.shop.pruned && s.shop.stats.gold >= RUN_PRUNE_COST) {
+            // spike: a Spike first, then the weakest Thorn · thorn: the strongest Thorn
+            const order = s.bag
+              .map((t, i) => ({ t, i }))
+              .filter(({ t }) => (PRUNE === "spike" ? t.type === "TRAP" || t.type === "ENEMY" : t.type === "ENEMY"))
+              .sort((a, b) =>
+                PRUNE === "spike"
+                  ? (a.t.type === "TRAP" ? 0 : 1) - (b.t.type === "TRAP" ? 0 : 1) || a.t.value - b.t.value
+                  : b.t.value - a.t.value
+              );
+            if (order.length > 0 && run.apply({ k: "p", i: order[0].i }) === null) continue;
+          }
           const offer = [...s.shop.offers]
             .filter((o) => !s.shop.soldIds.includes(o.id))
             .sort((a, b) => a.cost - b.cost)

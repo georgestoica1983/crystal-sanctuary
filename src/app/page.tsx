@@ -28,6 +28,7 @@ import {
 } from "@/types/game";
 import {
   BOSS_RULE_REGISTRY,
+  RUN_SEED_BAG_SIZE,
   calculateFloorScoreBreakdown,
   calculateRunScore,
   DAILY_COMPANION,
@@ -122,6 +123,7 @@ import {
 } from "@/lib/lineTiers";
 import EntityIcon from "@/components/EntityIcon";
 import {
+  applyRunShopPrune,
   applyRunShopPurchase,
   applyRunShopReroll,
   applyRunShopSell,
@@ -132,7 +134,9 @@ import {
   RunActionLog,
   RunLogAction,
   RUN_LOG_VERSION,
+  RUN_PRUNE_COST,
   runClearLifeFor,
+  runRulesAllowPrune,
   runModifierFor,
   scoreRunStroke,
   startRunGarden,
@@ -226,6 +230,8 @@ export default function OneStrokeTacticianPage() {
   const [shopOffers, setShopOffers] = useState<ShopOffer[]>([]);
   const [shopSoldIds, setShopSoldIds] = useState<string[]>([]);
   const [shopRerolls, setShopRerolls] = useState<number>(0);
+  // Pruning Shears used in this Shop visit (once per visit)
+  const [shopPruned, setShopPruned] = useState(false);
   const [shopPurchases, setShopPurchases] = useState<number>(0);
   const [runUpgrades, setRunUpgrades] = useState<RunUpgrades>(NO_RUN_UPGRADES);
   const [gemsSpent, setGemsSpent] = useState<number>(0);
@@ -806,6 +812,7 @@ export default function OneStrokeTacticianPage() {
       setShopOffers([]);
       setShopSoldIds([]);
       setShopRerolls(0);
+      setShopPruned(false);
       setRunUpgrades(NO_RUN_UPGRADES);
       setGemsSpent(0);
       setLegendaryAward(null);
@@ -1310,6 +1317,31 @@ export default function OneStrokeTacticianPage() {
     soundEngine.playHintReveal();
   }, [mode, pendingPostFloorStats, hero, shopRerolls, rerollCost, dungeon.seedKey, currentFloor, activeRelics]);
 
+  /** Pruning Shears (Run, rules v9+): remove one tile from the bag for the rest of the Run */
+  const canPrune = mode === "RUN" && runRulesAllowPrune(runLogRef.current?.v ?? 0);
+  const handlePruneTile = useCallback(
+    (index: number) => {
+      if (mode !== "RUN" || !runRulesAllowPrune(runLogRef.current?.v ?? 0)) return;
+      const pruned = applyRunShopPrune({
+        stats: pendingPostFloorStats ?? hero,
+        bag: runBag,
+        index,
+        prunedThisShop: shopPruned,
+      });
+      if (!pruned) return;
+      logRunAction({ k: "p", i: index });
+      track("shop_prune", { type: pruned.tile.type, value: pruned.tile.value, bed: currentFloorIndex });
+      setRunBag(pruned.bag);
+      setShopPruned(true);
+      setPendingPostFloorStats(pruned.stats);
+      setHero(pruned.stats);
+      setGemsSpent((prev) => prev + RUN_PRUNE_COST);
+      setShopPurchases((prev) => prev + 1);
+      soundEngine.playGoldPickup(2);
+    },
+    [mode, pendingPostFloorStats, hero, runBag, shopPruned, currentFloorIndex]
+  );
+
   /** Leave the Shop and start the next garden */
   const handleLeaveShop = useCallback(() => {
     const expansionActive = hasExpansionAccess(monetization);
@@ -1394,6 +1426,7 @@ export default function OneStrokeTacticianPage() {
     setShopOffers([]);
     setShopSoldIds([]);
     setShopRerolls(0);
+    setShopPruned(false);
     setShopPurchases(0);
     setLegendaryAward(null);
     setDrawnPath([]);
@@ -1904,6 +1937,7 @@ export default function OneStrokeTacticianPage() {
     );
     setShopSoldIds([]);
     setShopRerolls(0);
+    setShopPruned(false);
     setShopPurchases(0);
     setPhase("SHOP");
   };
@@ -2052,6 +2086,7 @@ export default function OneStrokeTacticianPage() {
         setShopSoldIds(r.shop.soldIds);
         setShopRerolls(r.shop.rerolls);
         setShopPurchases(r.shop.purchases);
+        setShopPruned(r.shop.pruned);
         setPhase("SHOP");
       }
     } else {
@@ -2089,6 +2124,7 @@ export default function OneStrokeTacticianPage() {
     runClear,
     shopSoldIds,
     shopRerolls,
+    shopPruned,
     trialClassFloorActive,
     hintsRemaining,
     heroClassId,
@@ -2500,6 +2536,7 @@ export default function OneStrokeTacticianPage() {
             );
             setShopSoldIds([]);
             setShopRerolls(0);
+            setShopPruned(false);
             setPhase("SHOP");
           };
         }
@@ -3032,6 +3069,7 @@ export default function OneStrokeTacticianPage() {
                 noSafeLine={runNoSafeLine}
                 weedOutActive={weedOutMode}
                 weedOutCount={weedOutSelection.length}
+                prunedCount={runBag.length > 0 ? Math.max(0, RUN_SEED_BAG_SIZE - runBag.length) : 0}
                 disabled={phase !== "PLANNING"}
                 onToggleWeedOut={handleToggleWeedOut}
                 onConfirmWeedOut={handleConfirmWeedOut}
@@ -3489,6 +3527,9 @@ export default function OneStrokeTacticianPage() {
         ownedRelics={activeRelics}
         relicCounters={relicCounters}
         onSell={mode === "RUN" ? handleSellRelic : undefined}
+        bag={canPrune ? runBag : undefined}
+        pruned={shopPruned}
+        onPrune={canPrune ? handlePruneTile : undefined}
         upgrades={runUpgrades}
         rerollCost={rerollCost}
         clearedFloorNumber={currentFloorIndex + 1}

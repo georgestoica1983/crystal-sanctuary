@@ -13,7 +13,10 @@ import {
   searchBestFloorLine,
 } from "@/lib/engine";
 import {
+  applyRunShopPrune,
   createRunReplayer,
+  RUN_BAG_MIN_SIZE,
+  RUN_PRUNE_COST,
   packCoords,
   parseRunLog,
   replayRun,
@@ -54,6 +57,13 @@ function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0
     if (s.phase === "SHOP") {
       if (s.gardensBloomed >= maxGardens) break;
       if (s.shop.rerolls === 0 && s.shop.stats.gold >= 20) act({ k: "r" });
+      // Prune a Spike (or the weakest Thorn) when Seeds are plentiful
+      if (!run.state.shop.pruned && run.state.shop.stats.gold >= 6 && run.state.bag.length > RUN_BAG_MIN_SIZE) {
+        const bag = run.state.bag;
+        let i = bag.findIndex((t) => t.type === "TRAP");
+        if (i < 0) i = bag.findIndex((t) => t.type === "ENEMY");
+        if (i >= 0) act({ k: "p", i });
+      }
       const relicOffer = run.state.shop.offers.find(
         (o) => o.kind === "RELIC" && !run.state.shop.soldIds.includes(o.id)
       );
@@ -289,6 +299,35 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
   );
   check("refused: Ascension on an old rules version", !parseRunLog({ v: 7, seed: "x", hero: "KNIGHT", asc: 2, a: [] }));
   check("refused: Ascension above the top level", !parseRunLog({ v: RUN_LOG_VERSION, seed: "x", hero: "KNIGHT", asc: 9, a: [] }));
+}
+
+// 6. Pruning Shears (rules v9+): once per Shop, never below the bag minimum
+{
+  const bot = playBotRun("run-1700000000010-prune", "KNIGHT", 6);
+  const prunes = bot.log.a.filter((a) => a.k === "p").length;
+  const replay = replayRun(JSON.parse(JSON.stringify(bot.log)));
+  check(
+    `bot Run with ${prunes} prune(s) replays (${bot.state.gardensBloomed} gardens, bag ${bot.state.bag.length})`,
+    prunes > 0 && replay.ok && replay.score === bot.state.score,
+    replay.ok ? `${replay.score} vs ${bot.state.score}` : replay.error
+  );
+  const firstPrune = bot.log.a.findIndex((a) => a.k === "p");
+  if (firstPrune >= 0) {
+    const twice: RunActionLog = JSON.parse(JSON.stringify(bot.log));
+    twice.a.splice(firstPrune + 1, 0, { k: "p", i: 0 });
+    const r = replayRun(twice);
+    check("refused: a second prune in the same Shop", !r.ok, r.ok ? "accepted" : r.error);
+    const old: RunActionLog = { ...JSON.parse(JSON.stringify(bot.log)), v: 8 };
+    check("refused: pruning on rules v8", !replayRun(old).ok);
+  }
+  const midGarden = replayRun({ v: RUN_LOG_VERSION, seed: "x-prune", hero: "KNIGHT", a: [{ k: "p", i: 0 }] });
+  check("refused: pruning outside the Shop", !midGarden.ok);
+  check("refused: malformed prune index", !parseRunLog({ v: RUN_LOG_VERSION, seed: "x", hero: "KNIGHT", a: [{ k: "p", i: -1 }] }));
+  const minBag = Array.from({ length: RUN_BAG_MIN_SIZE }, () => ({ type: "ENEMY" as const, value: 3 }));
+  const stats = { hp: 10, maxHp: 10, shield: 0, weapon: 0, gold: 50 };
+  check("refused: pruning a bag already at the minimum", applyRunShopPrune({ stats, bag: minBag, index: 0, prunedThisShop: false }) === null);
+  const ok = applyRunShopPrune({ stats, bag: [...minBag, { type: "TRAP", value: 2 }], index: RUN_BAG_MIN_SIZE, prunedThisShop: false });
+  check("prune removes that tile and costs its price", !!ok && ok.bag.length === RUN_BAG_MIN_SIZE && ok.stats.gold === 50 - RUN_PRUNE_COST && ok.tile.type === "TRAP");
 }
 
 console.log(failures ? `\n${failures} check(s) failed` : "\nAll replay checks passed");

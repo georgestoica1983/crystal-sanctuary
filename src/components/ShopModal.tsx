@@ -9,6 +9,7 @@ import {
   RelicId,
   RelicRarity,
   RunUpgrades,
+  SeedTile,
   ShopOffer,
 } from "@/types/game";
 import {
@@ -23,6 +24,7 @@ import {
   SHOP_STAT_BOOSTS,
 } from "@/lib/engine";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
+import PruneCard from "@/components/PruneCard";
 
 interface ShopModalProps {
   isOpen: boolean;
@@ -50,6 +52,10 @@ interface ShopModalProps {
   relicCounters?: RelicCounters;
   /** Selling relics (Run); hidden when omitted */
   onSell?: (relicId: RelicId) => void;
+  /** Pruning Shears (Run, rules v9+): the Tile Bag; hidden when omitted */
+  bag?: SeedTile[];
+  pruned?: boolean;
+  onPrune?: (index: number) => void;
   onBuy: (offer: ShopOffer) => void;
   onReroll: () => void;
   onLeave: () => void;
@@ -113,6 +119,9 @@ export default function ShopModal({
   isSanctuary,
   relicCounters,
   onSell,
+  bag,
+  pruned = false,
+  onPrune,
   onBuy,
   onReroll,
   onLeave,
@@ -297,6 +306,8 @@ export default function ShopModal({
             })}
           </AnimatePresence>
         </div>
+
+        {bag && onPrune && <PruneCard bag={bag} gems={gems} pruned={pruned} onPrune={onPrune} />}
 
         {/* Loadout */}
         <div className="rounded-xl border border-white/10 bg-black/30 px-2.5 py-2 space-y-1.5">

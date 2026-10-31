@@ -34,6 +34,7 @@ export function RunHudStrip({
   onToggleSound,
   suggestSwap = false,
   asc = 0,
+  prunedCount = 0,
 }: {
   garden: RunGardenState;
   previewScore: number | null;
@@ -50,6 +51,8 @@ export function RunHudStrip({
   suggestSwap?: boolean;
   /** Ascension level of this Garden Run */
   asc?: number;
+  /** Tiles taken out of the bag with Pruning Shears this Run */
+  prunedCount?: number;
 }) {
   const pct = Math.min(100, (garden.score / garden.target) * 100);
   const previewPct =
@@ -170,7 +173,7 @@ export function RunHudStrip({
       </div>
       )}
 
-      {bagOpen && !weedOutActive && <BagPanel garden={garden} />}
+      {bagOpen && !weedOutActive && <BagPanel garden={garden} prunedCount={prunedCount} />}
 
       {weedOutActive && (
         <div className="flex items-center gap-1.5 h-8">
@@ -281,7 +284,7 @@ export interface RunClearInfo {
 const BAG_ORDER = ["ENEMY", "TRAP", "WEAPON", "SHIELD", "POTION", "GOLD"] as const;
 
 /** What's still in the Tile Bag: the tiles that will refill the board next */
-function BagPanel({ garden }: { garden: RunGardenState }) {
+function BagPanel({ garden, prunedCount = 0 }: { garden: RunGardenState; prunedCount?: number }) {
   const counts = new Map<string, number>();
   for (const t of garden.drawPile) counts.set(t.type, (counts.get(t.type) ?? 0) + 1);
   const shown = BAG_ORDER.filter((t) => (counts.get(t) ?? 0) > 0);
@@ -304,6 +307,7 @@ function BagPanel({ garden }: { garden: RunGardenState }) {
         Next tiles to refill the board.
         {garden.discardPile.length > 0 &&
           ` Then your ${garden.discardPile.length} used tiles get shuffled back in.`}
+        {prunedCount > 0 && ` ✂️ ${prunedCount} tile${prunedCount === 1 ? "" : "s"} pruned this run.`}
       </div>
     </motion.div>
   );

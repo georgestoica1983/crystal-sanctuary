@@ -21,7 +21,10 @@ Things that are ready in code but wait on a setup step, plus work planned for la
 
 - [x] More Boss rules (now 8) and a reward for Endless (after Season 8).
 - [x] Harder start for veterans: Ascension levels 0–6.
-- [ ] Build depth: remove a tile from the bag, relic synergy tags, companions with a small rule of their own.
+- [ ] Build depth:
+  - [x] ✂️ Pruning Shears in the Shop: remove one tile from the bag (rules v9).
+  - [ ] Relic synergy tags (Score / Multiplier / Seeds / Rule-bender) + "fits your build" mark; optional set bonus.
+  - [ ] Companions with a small rule (reuse the 4 hero classes; decide whether companions stay "looks only").
 - [ ] More unlocks (one every ~10 ⭐, board themes).
 - [ ] Quick mode (a 3-minute run) — only if testers ask.
 - [ ] A 10-second "how to score big" demo replacing walkthrough step 2.

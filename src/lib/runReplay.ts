@@ -282,6 +282,35 @@ export function applyRunShopSell(params: {
   };
 }
 
+// ── Pruning Shears (rules v9+): remove one tile from the Tile Bag ──
+
+export const RUN_PRUNE_COST = 4;
+/** Pruning never takes the bag below this many tiles (a bed needs 23) */
+export const RUN_BAG_MIN_SIZE = 30;
+export const runRulesAllowPrune = (logVersion: number) => logVersion >= 9;
+
+/**
+ * Removes the bag tile at `index` for the rest of the Run (once per Shop
+ * visit). null when it's not allowed or the purse can't cover it.
+ */
+export function applyRunShopPrune(params: {
+  stats: HeroStats;
+  bag: SeedTile[];
+  index: number;
+  prunedThisShop: boolean;
+}): { stats: HeroStats; bag: SeedTile[]; tile: SeedTile } | null {
+  const { stats, bag, index } = params;
+  if (params.prunedThisShop || stats.gold < RUN_PRUNE_COST) return null;
+  if (bag.length <= RUN_BAG_MIN_SIZE || !Number.isInteger(index) || index < 0 || index >= bag.length) {
+    return null;
+  }
+  return {
+    stats: { ...stats, gold: stats.gold - RUN_PRUNE_COST },
+    bag: [...bag.slice(0, index), ...bag.slice(index + 1)],
+    tile: bag[index],
+  };
+}
+
 /** Pays for a Shop reroll (cost rises each time); null if the purse can't cover it */
 export function applyRunShopReroll(params: {
   stats: HeroStats;
@@ -382,9 +411,10 @@ export function getRunPathError(
  * v6: the first garden pays a welcome bonus (RUN_WELCOME_BONUS).
  * v7: Boss gardens draw from eight Boss rules instead of four.
  * v8: Ascension levels (the log's `asc`, 0–6).
+ * v9: ✂️ Pruning Shears in the Shop remove a tile from the bag (action "p").
  * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 8;
+export const RUN_LOG_VERSION = 9;
 export const RUN_LOG_MIN_VERSION = 2;
 /** Rule set of new Runs (the current version) */
 export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);
@@ -392,7 +422,8 @@ export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);
 /**
  * One player action, kept small: coords are packed as row * 5 + col.
  * s = stroke path · w = weed-out tiles · b = buy offer · r = reroll ·
- * x = sell relic · l = leave the Shop (h = Companion for the next garden).
+ * x = sell relic · p = prune bag tile i · l = leave the Shop (h = Companion
+ * for the next garden).
  */
 export type RunLogAction =
   | { k: "s"; p: number[] }
@@ -400,6 +431,7 @@ export type RunLogAction =
   | { k: "b"; o: string }
   | { k: "r" }
   | { k: "x"; r: RelicId }
+  | { k: "p"; i: number }
   | { k: "l"; h: HeroClassId };
 
 export interface RunActionLog {
@@ -481,6 +513,9 @@ export function parseRunLog(raw: unknown): RunActionLog | null {
     if (a.k === "b" && typeof a.o === "string" && a.o.length <= 40) continue;
     if (a.k === "r") continue;
     if (a.k === "x" && isRelicId(a.r)) continue;
+    if (a.k === "p" && log.v >= 9 && typeof a.i === "number" && Number.isInteger(a.i) && a.i >= 0 && a.i < 100) {
+      continue;
+    }
     if (a.k === "l" && isHeroClass(a.h)) continue;
     return null;
   }
@@ -496,13 +531,15 @@ export interface RunReplayState {
   floor: DungeonFloor;
   grid: GridCell[][];
   garden: RunGardenState;
+  /** The Tile Bag (smaller after Pruning Shears) */
+  bag: SeedTile[];
   /** Companion at the start of the next stroke */
   startHero: HeroStats;
   relics: RelicId[];
   /** Growth of scaling relics */
   counters: RelicCounters;
   upgrades: RunUpgrades;
-  shop: { stats: HeroStats; offers: ShopOffer[]; soldIds: string[]; rerolls: number };
+  shop: { stats: HeroStats; offers: ShopOffer[]; soldIds: string[]; rerolls: number; pruned: boolean };
   score: number;
   gardensBloomed: number;
   strokes: number;
@@ -521,7 +558,6 @@ export function createRunReplayer(
 ) {
   const first = startRunGarden(runSeed, heroClassId, logVersion, asc);
   const modifier = runModifierFor(logVersion);
-  const bag = first.bag;
   const s: RunReplayState = {
     runSeed,
     classId: heroClassId,
@@ -529,11 +565,12 @@ export function createRunReplayer(
     floor: first.floor,
     grid: first.floor.grid,
     garden: first.state,
+    bag: first.bag,
     startHero: first.hero,
     relics: [],
     counters: {},
     upgrades: NO_RUN_UPGRADES,
-    shop: { stats: first.hero, offers: [], soldIds: [], rerolls: 0 },
+    shop: { stats: first.hero, offers: [], soldIds: [], rerolls: 0, pruned: false },
     score: 0,
     gardensBloomed: 0,
     strokes: 0,
@@ -589,7 +626,7 @@ export function createRunReplayer(
         s.relics = bloom.relicsAfter;
         s.counters = bloom.countersAfter;
         s.garden = scored;
-        s.shop = { stats: bloom.statsWithPayout, offers: bloom.offers, soldIds: [], rerolls: 0 };
+        s.shop = { stats: bloom.statsWithPayout, offers: bloom.offers, soldIds: [], rerolls: 0, pruned: false };
         s.phase = "SHOP";
       } else if (scored.strokesLeft <= 0) {
         s.garden = scored;
@@ -660,7 +697,22 @@ export function createRunReplayer(
         relics: s.relics,
       });
       if (!reroll) return "reroll not affordable";
-      s.shop = { stats: reroll.stats, offers: reroll.offers, soldIds: [], rerolls: reroll.rerolls };
+      s.shop = { ...s.shop, stats: reroll.stats, offers: reroll.offers, soldIds: [], rerolls: reroll.rerolls };
+      return null;
+    }
+
+    if (action.k === "p") {
+      if (s.phase !== "SHOP") return "prune outside the Shop";
+      if (!runRulesAllowPrune(logVersion)) return "no Pruning Shears in these rules";
+      const pruned = applyRunShopPrune({
+        stats: s.shop.stats,
+        bag: s.bag,
+        index: action.i,
+        prunedThisShop: s.shop.pruned,
+      });
+      if (!pruned) return "prune not allowed";
+      s.bag = pruned.bag;
+      s.shop = { ...s.shop, stats: pruned.stats, pruned: true };
       return null;
     }
 
@@ -674,7 +726,7 @@ export function createRunReplayer(
       relics: s.relics,
       upgrades: s.upgrades,
       runSeed,
-      bag,
+      bag: s.bag,
       gardenIndex: s.garden.gardenIndex + 1,
       logVersion,
       asc,

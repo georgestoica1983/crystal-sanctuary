@@ -33,6 +33,7 @@ export type TrackEvent =
   | "line_drawn"
   | "bed_cleared"
   | "shop_buy"
+  | "shop_prune"
   | "run_over"
   | "feedback_open";
 

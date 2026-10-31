@@ -13,7 +13,6 @@ import {
   runModifierFor,
   RunActionLog,
   scoreRunStroke,
-  startRunGarden,
 } from "@/lib/runReplay";
 import type {
   DungeonFloor,
@@ -112,7 +111,14 @@ export interface RestoredRun {
   startHero: HeroStats;
   noSafeLine: boolean;
   bloom: RestoredBloom | null;
-  shop: { stats: HeroStats; offers: ShopOffer[]; soldIds: string[]; rerolls: number; purchases: number };
+  shop: {
+    stats: HeroStats;
+    offers: ShopOffer[];
+    soldIds: string[];
+    rerolls: number;
+    purchases: number;
+    pruned: boolean;
+  };
   overReason: "MISSED_TARGET" | "NO_SAFE_LINE";
 }
 
@@ -129,7 +135,6 @@ export function rebuildRunFromSave(raw: unknown): { ok: true; run: RestoredRun }
     const log = parseRunLog(save.log);
     if (!log) return { ok: false, error: "unreadable save" };
 
-    const bag = startRunGarden(log.seed, log.hero, log.v, log.asc ?? 0).bag;
     const run = createRunReplayer(log.seed, log.hero, log.v, log.asc ?? 0);
     const s = run.state;
     const floors: DungeonFloor[] = [];
@@ -193,7 +198,7 @@ export function rebuildRunFromSave(raw: unknown): { ok: true; run: RestoredRun }
       const error = run.apply(action);
       if (error) return { ok: false, error: `action ${i}: ${error}` };
       if (action.k === "x") shopActionsSinceBloom++;
-      if (action.k === "b" || action.k === "r") {
+      if (action.k === "b" || action.k === "r" || action.k === "p") {
         gemsSpent += goldBefore - s.shop.stats.gold;
         shopActionsSinceBloom++;
         if (action.k === "b") purchases++;
@@ -223,7 +228,7 @@ export function rebuildRunFromSave(raw: unknown): { ok: true; run: RestoredRun }
         classId: s.classId,
         trial: Boolean(save.trial),
         hints: typeof save.hints === "number" ? Math.max(0, Math.min(1, save.hints)) : 1,
-        bag,
+        bag: s.bag,
         floors,
         garden: s.garden,
         label: getRunGardenLabel(s.garden.gardenIndex),
