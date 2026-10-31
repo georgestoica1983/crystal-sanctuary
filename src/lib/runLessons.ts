@@ -138,7 +138,7 @@ export const RUN_LESSONS: RunLesson[] = [
       ok: reached(sim) && b.total >= 200,
       detail: `${b.total.toLocaleString()} points (need 200)`,
     }),
-    success: "The short way scores 6. The long way scores 240. Longer lines multiply your points.",
+    success: "The short way scores 0. The long way scores 240. Longer lines multiply your points.",
     failHint: "Go around every Acorn before the Exit.",
   },
   {

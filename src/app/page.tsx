@@ -32,6 +32,7 @@ import {
   countPathSelfCrosses,
   RUN_SEED_BAG_SIZE,
   calculateFloorScoreBreakdown,
+  findEntityCoord,
   calculateRunScore,
   DAILY_COMPANION,
   DailyShopLoadout,
@@ -160,7 +161,11 @@ import {
   PRACTICE_GARDEN_TARGET,
   RUN_LESSONS,
   RUN_LESSONS_DONE_KEY,
+  RunLesson,
 } from "@/lib/runLessons";
+
+/** The walkthrough lesson that opens with the "how to score big" demo */
+const DEMO_LESSON_ID = "chips-mult";
 import { loadBestStars, saveBestStars, totalBestStars } from "@/lib/runStars";
 import {
   CLASS_COMPANION,
@@ -298,6 +303,9 @@ export default function OneStrokeTacticianPage() {
   const [lessonIndex, setLessonIndex] = useState<number | null>(null);
   const [lessonResult, setLessonResult] = useState<LessonResultInfo | null>(null);
   const [showLessonGhost, setShowLessonGhost] = useState<boolean>(false);
+  // "How to score big" demo on the Longer = more points lesson: short way, long way, then a card
+  const [lessonDemo, setLessonDemo] = useState<"short" | "long" | "card" | null>(null);
+  const demoTimersRef = useRef<number[]>([]);
   const [lessonsProgress, setLessonsProgress] = useState<number>(0);
   /** Set on a first visit: the walkthrough opens once the page is ready */
   const [pendingWalkthrough, setPendingWalkthrough] = useState<boolean>(false);
@@ -1090,9 +1098,48 @@ export default function OneStrokeTacticianPage() {
   };
 
   /** Opens hands-on lesson `index` on a fresh board */
-  const startLesson = (index: number) => {
+  const stopLessonDemo = () => {
+    demoTimersRef.current.forEach((t) => window.clearTimeout(t));
+    demoTimersRef.current = [];
+  };
+
+  /** Plays the ~10-second demo: the short way (one step), then the long way tile by tile */
+  const playLessonDemo = (l: RunLesson) => {
+    stopLessonDemo();
+    setShowLessonGhost(false);
+    setDrawnPath([]);
+    if (reduceMotion) {
+      // No animation: the two results side by side
+      setLessonDemo("card");
+      return;
+    }
+    const at = (ms: number, fn: () => void) => demoTimersRef.current.push(window.setTimeout(fn, ms));
+    const start = l.solution[0];
+    const exit = findEntityCoord(l.grid, "EXIT");
+    setLessonDemo("short");
+    at(400, () => setDrawnPath([start]));
+    if (exit) at(900, () => setDrawnPath([start, exit]));
+    at(2700, () => {
+      setLessonDemo("long");
+      setDrawnPath([start]);
+    });
+    const step = 420;
+    l.solution.slice(1).forEach((_, i) => at(3100 + i * step, () => setDrawnPath(l.solution.slice(0, i + 2))));
+    at(3100 + (l.solution.length - 1) * step + 1000, () => setLessonDemo("card"));
+  };
+
+  const endLessonDemo = (how: "done" | "skip") => {
+    stopLessonDemo();
+    setLessonDemo(null);
+    setDrawnPath([]);
+    track(how === "skip" ? "demo_skip" : "demo_done");
+  };
+
+  const startLesson = (index: number, autoDemo = true) => {
     const next = RUN_LESSONS[index];
     if (!next) return;
+    stopLessonDemo();
+    setLessonDemo(null);
     clearResolutionTimers();
     setLessonIndex(index);
     setLessonResult(null);
@@ -1112,7 +1159,32 @@ export default function OneStrokeTacticianPage() {
     setActiveResolutionStep(null);
     setRetractNotice(null);
     setPhase("PLANNING");
+    if (autoDemo && next.id === DEMO_LESSON_ID) {
+      track("demo_start");
+      playLessonDemo(next);
+    }
   };
+
+  // Leaving the lessons stops a demo that's still playing
+  useEffect(() => {
+    if (lessonIndex === null || RUN_LESSONS[lessonIndex]?.id !== DEMO_LESSON_ID) {
+      demoTimersRef.current.forEach((t) => window.clearTimeout(t));
+      demoTimersRef.current = [];
+      setLessonDemo(null);
+    }
+  }, [lessonIndex]);
+
+  /** Real scores of the demo's two lines (the card quotes them) */
+  const demoScores = useMemo(() => {
+    const l = RUN_LESSONS.find((x) => x.id === DEMO_LESSON_ID);
+    if (!l) return null;
+    const exit = findEntityCoord(l.grid, "EXIT");
+    const score = (path: GridCoord[]) => {
+      const sim = simulatePath(l.grid, path, l.hero, runModifierFor(RUN_LOG_VERSION), "KNIGHT", []);
+      return calculateFloorScoreBreakdown(sim, l.hero, path.length, []).total;
+    };
+    return { short: exit ? score([l.solution[0], exit]) : 0, long: score(l.solution) };
+  }, []);
 
   useEffect(() => {
     if (!pendingWalkthrough) return;
@@ -3075,7 +3147,7 @@ export default function OneStrokeTacticianPage() {
               index={lessonIndex}
               total={RUN_LESSONS.length}
               status={
-                drawnPath.length >= 2
+                drawnPath.length >= 2 && !lessonDemo
                   ? lesson.checkGoal(
                       simulation,
                       calculateFloorScoreBreakdown(simulation, lesson.hero, drawnPath.length, []),
@@ -3430,8 +3502,67 @@ export default function OneStrokeTacticianPage() {
                 </div>
               </div>
             )}
+            {lesson && lessonDemo && (lessonDemo === "card" ? (
+              <div className="absolute inset-0 z-[60] flex items-center justify-center rounded-2xl bg-black/60 p-3">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.92 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="w-full max-w-[320px] rounded-2xl border border-amber-300/40 bg-[#151B2E] p-4 text-center text-white"
+                >
+                  <div className="text-[12px] font-semibold text-amber-200">How to score big</div>
+                  <div className="mt-1 flex items-end justify-center gap-4 font-mono font-black">
+                    <span className="flex flex-col items-center">
+                      <span className="text-[11px] font-sans font-semibold text-white/55">Short way</span>
+                      <span className="text-[22px] text-white/70">{demoScores?.short.toLocaleString()}</span>
+                    </span>
+                    <span className="pb-1 text-[13px] text-white/40">vs</span>
+                    <span className="flex flex-col items-center">
+                      <span className="text-[11px] font-sans font-semibold text-white/55">Long way</span>
+                      <span className="text-[30px] text-amber-200">{demoScores?.long.toLocaleString()}</span>
+                    </span>
+                  </div>
+                  <div className="mt-2 text-[13px] leading-snug text-white/85">
+                    Points = <b>Value × Length</b>. Longer lines through good tiles multiply your points.
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => endLessonDemo("done")}
+                    className="mt-3 w-full rounded-xl bg-teal-300 py-2.5 text-[14px] font-bold text-slate-950 active:scale-95"
+                  >
+                    Your turn →
+                  </button>
+                </motion.div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => endLessonDemo("skip")}
+                aria-label="Skip the demo"
+                className="absolute inset-0 z-[60] flex items-start justify-between rounded-2xl p-2 text-left"
+              >
+                <span className="rounded-full bg-black/60 px-2.5 py-1 text-[11.5px] font-semibold text-amber-100">
+                  ▶ Demo · {lessonDemo === "short" ? "the short way" : "the long way"}
+                </span>
+                <span className="rounded-full bg-black/60 px-2.5 py-1 text-[11.5px] font-semibold text-white/80">
+                  Skip ›
+                </span>
+              </button>
+            ))}
           </div>
           </div>
+
+          {lesson && lesson.id === DEMO_LESSON_ID && !lessonDemo && phase === "PLANNING" && (
+            <button
+              type="button"
+              onClick={() => {
+                track("demo_replay");
+                playLessonDemo(lesson);
+              }}
+              className="text-[12px] font-semibold text-amber-200/90 underline underline-offset-2"
+            >
+              ▶ Watch the 10-second demo again
+            </button>
+          )}
 
           {/* Bottom Legend & Controls */}
           {lesson && lessonIndex !== null ? (
@@ -3446,7 +3577,7 @@ export default function OneStrokeTacticianPage() {
                 setDrawnPath([]);
                 setShowLessonGhost((v) => !v);
               }}
-              onRestart={() => startLesson(lessonIndex)}
+              onRestart={() => startLesson(lessonIndex, false)}
               onLeave={() => {
                 track("walkthrough_skip", { step: (lessonIndex ?? 0) + 1 });
                 try {
@@ -3672,7 +3803,7 @@ export default function OneStrokeTacticianPage() {
 
       <RunLessonResult
         info={lessonResult}
-        onRetry={() => lessonIndex !== null && startLesson(lessonIndex)}
+        onRetry={() => lessonIndex !== null && startLesson(lessonIndex, false)}
         onNext={() => {
           if (lessonIndex === null) return;
           if (lessonIndex >= RUN_LESSONS.length - 1) {

@@ -34,6 +34,10 @@ export type TrackEvent =
   | "bed_cleared"
   | "shop_buy"
   | "shop_prune"
+  | "demo_start"
+  | "demo_skip"
+  | "demo_done"
+  | "demo_replay"
   | "run_over"
   | "feedback_open";
 
