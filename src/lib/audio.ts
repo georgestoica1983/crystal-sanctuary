@@ -339,440 +339,211 @@ class SoundAndHapticsEngine {
     source.stop(now + options.duration + 0.01);
   }
 
-  /**
-   * Triggered when extending the path to a new cell
-   */
+  // ── Voices: every effect is built from these, all in the garden key ───────
+
+  /** Kalimba tine: a warm fundamental, a soft octave and a quick bright "ping" */
+  private pluck(freq: number, opts: { delay?: number; gain?: number; decay?: number } = {}): void {
+    const gain = opts.gain ?? 0.12;
+    const decay = opts.decay ?? 0.7;
+    const delay = opts.delay ?? 0;
+    this.playTone({ type: "sine", freqStart: freq, duration: decay, gainPeak: gain, delay, attack: 0.004 });
+    this.playTone({ type: "sine", freqStart: freq * 2, duration: decay * 0.35, gainPeak: gain * 0.28, delay, attack: 0.003 });
+    this.playTone({ type: "sine", freqStart: freq * 5.4, duration: 0.05, gainPeak: gain * 0.12, delay, attack: 0.002 });
+  }
+
+  /** Soft bell: slow decay with gentle inharmonic shimmer */
+  private bell(freq: number, opts: { delay?: number; gain?: number } = {}): void {
+    const gain = opts.gain ?? 0.08;
+    const delay = opts.delay ?? 0;
+    this.playTone({ type: "sine", freqStart: freq, duration: 1.6, gainPeak: gain, delay, attack: 0.006 });
+    this.playTone({ type: "sine", freqStart: freq * 2.76, duration: 0.7, gainPeak: gain * 0.3, delay, attack: 0.004 });
+    this.playTone({ type: "sine", freqStart: freq * 5.4, duration: 0.3, gainPeak: gain * 0.12, delay, attack: 0.003 });
+  }
+
+  /** Hollow wood-block tap */
+  private wood(freq: number, opts: { delay?: number; gain?: number } = {}): void {
+    const gain = opts.gain ?? 0.12;
+    const delay = opts.delay ?? 0;
+    this.playTone({ type: "sine", freqStart: freq * 1.15, freqEnd: freq, duration: 0.12, gainPeak: gain, delay, attack: 0.002 });
+    this.playNoiseBurst({ duration: 0.025, gainPeak: gain * 0.35, filterFreq: freq * 3, filterType: "bandpass", q: 4, delay });
+  }
+
+  /** Muted low thud (damage): felt, not heard as harsh */
+  private thud(opts: { delay?: number; gain?: number } = {}): void {
+    const gain = opts.gain ?? 0.2;
+    const delay = opts.delay ?? 0;
+    this.playTone({ type: "sine", freqStart: 120, freqEnd: 58, duration: 0.22, gainPeak: gain, delay, attack: 0.004 });
+    this.playNoiseBurst({ duration: 0.12, gainPeak: gain * 0.25, filterFreq: 320, filterType: "lowpass", q: 0.7, delay });
+  }
+
+  /** Leaf rustle */
+  private rustle(opts: { delay?: number; gain?: number; duration?: number } = {}): void {
+    this.playNoiseBurst({
+      duration: opts.duration ?? 0.18,
+      gainPeak: opts.gain ?? 0.05,
+      filterFreq: 3200,
+      filterType: "bandpass",
+      q: 0.9,
+      delay: opts.delay,
+    });
+  }
+
+  /** Small garden-shears "snip" */
+  private snip(opts: { delay?: number; gain?: number } = {}): void {
+    const gain = opts.gain ?? 0.08;
+    const delay = opts.delay ?? 0;
+    this.playNoiseBurst({ duration: 0.03, gainPeak: gain, filterFreq: 6500, filterType: "highpass", q: 0.8, delay });
+    this.playNoiseBurst({ duration: 0.025, gainPeak: gain * 0.8, filterFreq: 5200, filterType: "highpass", q: 0.8, delay: delay + 0.045 });
+  }
+
+  // ── Drawing the line ──────────────────────────────────────────────────────
+
+  /** Each new tile: a kalimba note one step up the scale (longer lines climb higher) */
   public playSwipeTick(stepIndex: number, isLethalPreview: boolean = false): void {
     if (isLethalPreview) {
-      this.vibrate([16, 12, 16]);
-      this.playTone({
-        type: "sawtooth",
-        freqStart: 150,
-        freqEnd: 95,
-        duration: 0.09,
-        gainPeak: 0.14,
-      });
+      this.vibrate([14, 10, 14]);
+      this.thud({ gain: 0.14 });
       return;
     }
-
-    this.vibrate(8);
-    // Pentatonic-inspired ascending pitch ladder
-    const scaleMultipliers = [
-      1, 1.122, 1.26, 1.498, 1.682, 2, 2.245, 2.52, 2.996, 3.364,
-    ];
-    const octaveBoost = Math.floor(stepIndex / scaleMultipliers.length) * 0.35;
-    const mult =
-      scaleMultipliers[stepIndex % scaleMultipliers.length] + octaveBoost;
-    const baseFreq = 260 * mult;
-
-    this.playTone({
-      type: "sine",
-      freqStart: baseFreq,
-      freqEnd: baseFreq * 1.08,
-      duration: 0.055,
-      gainPeak: 0.12,
-    });
-    this.playTone({
-      type: "triangle",
-      freqStart: baseFreq * 2,
-      freqEnd: baseFreq * 1.95,
-      duration: 0.035,
-      gainPeak: 0.04,
-    });
-  }
-
-  /**
-   * Triggered when backtracking one cell to undo the last segment
-   */
-  public playUndoTick(): void {
-    this.vibrate(5);
-    this.playTone({
-      type: "sine",
-      freqStart: 280,
-      freqEnd: 175,
-      duration: 0.05,
-      gainPeak: 0.1,
-    });
-  }
-
-  /**
-   * Triggered when releasing pointer on an invalid cell or with lethal HP
-   */
-  public playRetractPath(): void {
-    this.vibrate([10, 20, 10]);
-    this.playTone({
-      type: "triangle",
-      freqStart: 320,
-      freqEnd: 110,
-      duration: 0.16,
-      gainPeak: 0.12,
-    });
-  }
-
-  /**
-   * Triggered when releasing pointer on EXIT with Projected HP > 0
-   */
-  public playCommitPath(): void {
-    this.vibrate([12, 20, 22]);
-    this.playTone({
-      type: "triangle",
-      freqStart: 440,
-      freqEnd: 440,
-      duration: 0.11,
-      gainPeak: 0.14,
-    });
-    this.playTone({
-      type: "sine",
-      freqStart: 659.25,
-      freqEnd: 880,
-      duration: 0.15,
-      gainPeak: 0.15,
-      delay: 0.05,
-    });
-  }
-
-  /**
-   * Subtle rhythmic step pulse during Auto-Battle Resolution
-   */
-  public playStepPulse(stepIndex: number): void {
     this.vibrate(6);
-    const pitch = 115 + Math.min(stepIndex * 4, 80);
-    this.playTone({
-      type: "sine",
-      freqStart: pitch,
-      freqEnd: 58,
-      duration: 0.07,
-      gainPeak: 0.09,
-    });
+    // Climbs three octaves, then keeps sparkling in the top one
+    const step = stepIndex < 15 ? stepIndex : 10 + ((stepIndex - 15) % 5);
+    this.pluck(gardenNote(step, 2), { gain: 0.1, decay: 0.55 });
+    // Every fifth tile (a new octave) adds a soft harmony a third above
+    if (stepIndex > 0 && stepIndex % 5 === 0) this.pluck(gardenNote(step + 2, 2), { gain: 0.05, decay: 0.5, delay: 0.03 });
   }
 
-  /**
-   * Triggered when resolving combat against an ENEMY
-   */
+  /** Backing up one tile */
+  public playUndoTick(): void {
+    this.vibrate(4);
+    this.wood(gardenNote(0, 3), { gain: 0.06 });
+  }
+
+  /** Clearing the whole line */
+  public playRetractPath(): void {
+    this.vibrate(8);
+    [4, 2, 0].forEach((s, i) => this.pluck(gardenNote(s, 2), { gain: 0.06, decay: 0.35, delay: i * 0.06 }));
+  }
+
+  /** Letting go: the line is planted */
+  public playCommitPath(): void {
+    this.vibrate([10, 20, 12]);
+    this.pluck(gardenNote(5, 2), { gain: 0.11 });
+    this.pluck(gardenNote(8, 2), { gain: 0.09, delay: 0.09 });
+  }
+
+  // ── The line plays out ────────────────────────────────────────────────────
+
+  /** Each tile the line passes as it plays out */
+  public playStepPulse(stepIndex: number): void {
+    this.pluck(gardenNote(Math.min(stepIndex, 14), 2), { gain: 0.045, decay: 0.3 });
+  }
+
+  /** Passing a Thorn: a soft thud and rustle, or a snip and chime when Shears cut it */
   public playSwordHit(usedWeapon: boolean = false): void {
-    this.vibrate(usedWeapon ? [20, 15, 30] : [18, 12]);
-    // Crisp metallic noise impact
-    this.playNoiseBurst({
-      duration: 0.11,
-      gainPeak: 0.22,
-      filterFreq: usedWeapon ? 2400 : 1400,
-      filterType: "bandpass",
-      q: 2.2,
-    });
-    // Low impact punch
-    this.playTone({
-      type: "sawtooth",
-      freqStart: usedWeapon ? 420 : 260,
-      freqEnd: 65,
-      duration: 0.13,
-      gainPeak: 0.18,
-    });
     if (usedWeapon) {
-      this.playTone({
-        type: "triangle",
-        freqStart: 920,
-        freqEnd: 310,
-        duration: 0.1,
-        gainPeak: 0.14,
-        delay: 0.02,
-      });
-    }
-  }
-
-  /**
-   * Triggered when picking up a SHIELD node
-   */
-  public playShieldClink(): void {
-    this.vibrate(14);
-    this.playTone({
-      type: "triangle",
-      freqStart: 783.99, // G5
-      freqEnd: 780,
-      duration: 0.14,
-      gainPeak: 0.14,
-    });
-    this.playTone({
-      type: "sine",
-      freqStart: 1174.66, // D6
-      freqEnd: 1180,
-      duration: 0.18,
-      gainPeak: 0.12,
-      delay: 0.03,
-    });
-  }
-
-  /**
-   * Triggered when GLASS_ARMOR shatters shield on every 3rd step
-   */
-  public playGlassShatter(): void {
-    this.vibrate([12, 10, 12]);
-    this.playNoiseBurst({
-      duration: 0.14,
-      gainPeak: 0.18,
-      filterFreq: 3800,
-      filterType: "highpass",
-      q: 3.0,
-    });
-    this.playTone({
-      type: "sine",
-      freqStart: 1960,
-      freqEnd: 1120,
-      duration: 0.09,
-      gainPeak: 0.1,
-    });
-    this.playTone({
-      type: "triangle",
-      freqStart: 1540,
-      freqEnd: 880,
-      duration: 0.11,
-      gainPeak: 0.09,
-      delay: 0.03,
-    });
-  }
-
-  /**
-   * Triggered when picking up a WEAPON (Sword) node or triggering MOMENTUM
-   */
-  public playWeaponPickup(): void {
-    this.vibrate(15);
-    this.playTone({
-      type: "sawtooth",
-      freqStart: 310,
-      freqEnd: 740,
-      duration: 0.11,
-      gainPeak: 0.11,
-    });
-    this.playNoiseBurst({
-      duration: 0.08,
-      gainPeak: 0.12,
-      filterFreq: 3200,
-      filterType: "highpass",
-      delay: 0.02,
-    });
-  }
-
-  /**
-   * Triggered when picking up a POTION node (or taking poison under BLOOD_GOLD)
-   */
-  public playPotionEffect(isPoisoned: boolean = false): void {
-    if (isPoisoned) {
-      this.vibrate([20, 15, 20]);
-      this.playTone({
-        type: "sawtooth",
-        freqStart: 220,
-        freqEnd: 130,
-        duration: 0.14,
-        gainPeak: 0.14,
-      });
+      this.vibrate([10, 10, 14]);
+      this.snip();
+      this.bell(gardenNote(9, 2), { gain: 0.06, delay: 0.06 });
       return;
     }
-
-    this.vibrate(12);
-    const notes = [523.25, 659.25, 783.99]; // C5, E5, G5
-    notes.forEach((freq, idx) => {
-      this.playTone({
-        type: "sine",
-        freqStart: freq,
-        freqEnd: freq * 1.02,
-        duration: 0.1,
-        gainPeak: 0.12,
-        delay: idx * 0.035,
-      });
-    });
+    this.vibrate([16, 10]);
+    this.thud({ gain: 0.18 });
+    this.rustle({ gain: 0.04, delay: 0.02 });
   }
 
-  /**
-   * Triggered when picking up GOLD (with ascending pitch chime for consecutive GOLD combos)
-   */
+  /** Gloves block: a warm wood tap */
+  public playShieldClink(): void {
+    this.vibrate(10);
+    this.wood(gardenNote(7, 2), { gain: 0.1 });
+  }
+
+  /** Gloves used up: two falling wood taps */
+  public playGlassShatter(): void {
+    this.vibrate([12, 12]);
+    this.wood(gardenNote(7, 2), { gain: 0.08 });
+    this.wood(gardenNote(4, 2), { gain: 0.07, delay: 0.09 });
+    this.rustle({ gain: 0.03, delay: 0.05 });
+  }
+
+  /** Picking up Shears */
+  public playWeaponPickup(): void {
+    this.vibrate(10);
+    this.snip({ gain: 0.06 });
+    this.pluck(gardenNote(8, 2), { gain: 0.08, delay: 0.05 });
+  }
+
+  /** A Berry: a warm rising "bloop" (a bad Berry falls instead) */
+  public playPotionEffect(isPoisoned: boolean = false): void {
+    this.vibrate(isPoisoned ? [12, 14] : 10);
+    const from = isPoisoned ? gardenNote(5, 2) : gardenNote(2, 2);
+    const to = isPoisoned ? gardenNote(0, 2) : gardenNote(7, 2);
+    this.playTone({ type: "sine", freqStart: from, freqEnd: to, duration: 0.16, gainPeak: 0.1, attack: 0.01 });
+    if (!isPoisoned) this.pluck(gardenNote(9, 2), { gain: 0.05, delay: 0.1, decay: 0.4 });
+  }
+
+  /** An Acorn: a wooden tock that steps up with each one in a row */
   public playGoldPickup(comboCount: number = 1): void {
-    this.vibrate(comboCount >= 2 ? [12, 16, 18] : 10);
-    // Ascending pitch multiplier for consecutive gold combos (x1, x2, x3, x4+)
-    const comboStep = Math.max(0, Math.min(comboCount - 1, 5));
-    const semitoneBoost = Math.pow(1.059463, comboStep * 2); // whole-tone steps up per combo
-    const baseA = 987.77 * semitoneBoost; // B5+
-    const baseB = 1318.51 * semitoneBoost; // E6+
-
-    this.playTone({
-      type: "sine",
-      freqStart: baseA,
-      freqEnd: baseA,
-      duration: 0.08,
-      gainPeak: 0.13,
-    });
-    this.playTone({
-      type: "sine",
-      freqStart: baseB,
-      freqEnd: baseB * (comboCount >= 2 ? 1.04 : 1),
-      duration: 0.17,
-      gainPeak: 0.14,
-      delay: 0.045,
-    });
-
-    if (comboCount >= 2) {
-      // Extra sparkling harmonic overtone on combo x2, x3+
-      this.playTone({
-        type: "triangle",
-        freqStart: baseB * 1.25,
-        freqEnd: baseB * 1.5,
-        duration: 0.18,
-        gainPeak: 0.11,
-        delay: 0.085,
-      });
-    }
+    this.vibrate(8);
+    const step = 5 + Math.min(Math.max(1, comboCount) - 1, 9);
+    this.wood(gardenNote(step, 2), { gain: 0.1 });
+    this.pluck(gardenNote(step + 2, 2), { gain: 0.04, delay: 0.03, decay: 0.3 });
   }
 
-  /**
-   * Triggered when illuminating the 4-cell Scout Hint path
-   */
-  public playHintReveal(): void {
-    this.vibrate([10, 20, 14]);
-    const notes = [587.33, 739.99, 880, 1174.66]; // D5, F#5, A5, D6
-    notes.forEach((freq, idx) => {
-      this.playTone({
-        type: "sine",
-        freqStart: freq,
-        freqEnd: freq * 1.01,
-        duration: 0.16,
-        gainPeak: 0.1,
-        delay: idx * 0.045,
-      });
-    });
-  }
-
-  /**
-   * Triggered when reaching the EXIT portal during resolution (Portal Burst)
-   */
-  public playPortalBurst(): void {
-    this.vibrate([15, 20, 30]);
-    const notes = [440, 554.37, 659.25, 880, 1108.73];
-    notes.forEach((freq, idx) => {
-      this.playTone({
-        type: idx % 2 === 0 ? "sine" : "triangle",
-        freqStart: freq,
-        freqEnd: freq * 1.06,
-        duration: 0.22,
-        gainPeak: 0.11,
-        delay: idx * 0.03,
-      });
-    });
-  }
-
-  /**
-   * Triggered when crossing a TRAP cell
-   */
+  /** A Spike: a soft thud when it hurts, a light leaf hop when crossed diagonally */
   public playTrapEffect(dodgedDiagonally: boolean): void {
     if (dodgedDiagonally) {
-      this.vibrate(10);
-      this.playTone({
-        type: "sine",
-        freqStart: 480,
-        freqEnd: 860,
-        duration: 0.09,
-        gainPeak: 0.11,
-      });
+      this.vibrate(6);
+      this.rustle({ gain: 0.04, duration: 0.12 });
+      this.pluck(gardenNote(11, 2), { gain: 0.06, delay: 0.04, decay: 0.35 });
       return;
     }
-
-    this.vibrate([30, 15, 35]);
-    this.playNoiseBurst({
-      duration: 0.12,
-      gainPeak: 0.2,
-      filterFreq: 950,
-      filterType: "bandpass",
-    });
-    this.playTone({
-      type: "sawtooth",
-      freqStart: 195,
-      freqEnd: 62,
-      duration: 0.16,
-      gainPeak: 0.2,
-    });
+    this.vibrate([18, 10]);
+    this.thud({ gain: 0.2 });
   }
 
-  /**
-   * Triggered on clearing Floor 1 or Floor 2
-   */
-  public playFloorClear(): void {
-    this.vibrate([15, 25, 20, 25, 35]);
-    const chord = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
-    chord.forEach((freq, idx) => {
-      this.playTone({
-        type: "triangle",
-        freqStart: freq,
-        freqEnd: freq,
-        duration: 0.26,
-        gainPeak: 0.12,
-        delay: idx * 0.055,
-      });
-    });
+  /** Reaching the Exit gate: a quick climbing run that lands on a bell */
+  public playPortalBurst(): void {
+    this.vibrate([10, 30, 16]);
+    [5, 7, 9, 10].forEach((s, i) => this.pluck(gardenNote(s, 2), { gain: 0.07, decay: 0.35, delay: i * 0.05 }));
+    this.bell(gardenNote(12, 2), { gain: 0.07, delay: 0.22 });
   }
 
-  /**
-   * Triggered on completing Floor 3 (Dungeon Victory)
-   */
-  public playVictoryChord(): void {
-    this.vibrate([20, 30, 20, 30, 50, 40, 80]);
-    const notes = [261.63, 329.63, 392.0, 523.25, 659.25, 783.99, 1046.5];
-    notes.forEach((freq, idx) => {
-      this.playTone({
-        type: idx % 2 === 0 ? "triangle" : "sine",
-        freqStart: freq,
-        freqEnd: freq,
-        duration: 0.48,
-        gainPeak: 0.12,
-        delay: idx * 0.06,
-      });
-    });
+  // ── Rewards ───────────────────────────────────────────────────────────────
+
+  /** A hint appears */
+  public playHintReveal(): void {
+    this.vibrate(8);
+    [7, 9, 12].forEach((s, i) => this.bell(gardenNote(s, 2), { gain: 0.045, delay: i * 0.08 }));
   }
 
-  /**
-   * Soft, soothing harp/marimba arpeggio chime when a Mosaic Gem or Bloomed Briar flies to the Sanctuary Mosaic Bar
-   */
+  /** Points and blooms flying to the score (a fuller chord for longer combos) */
   public playSanctuaryHarpChime(comboStep: number = 1): void {
-    this.vibrate(10);
-    const pentatonicHz = [523.25, 587.33, 659.25, 783.99, 880, 1046.5, 1174.66];
-    const baseIdx = Math.min(Math.max(0, comboStep - 1), pentatonicHz.length - 3);
-    const chord = [
-      pentatonicHz[baseIdx],
-      pentatonicHz[baseIdx + 1],
-      pentatonicHz[baseIdx + 2],
-    ];
-    chord.forEach((freq, idx) => {
-      this.playTone({
-        type: "sine",
-        freqStart: freq,
-        freqEnd: freq * 1.015,
-        duration: 0.22,
-        gainPeak: 0.11,
-        delay: idx * 0.04,
-      });
-      this.playTone({
-        type: "triangle",
-        freqStart: freq * 2,
-        freqEnd: freq * 2,
-        duration: 0.14,
-        gainPeak: 0.04,
-        delay: idx * 0.04 + 0.01,
-      });
+    this.vibrate(8);
+    const base = 5 + Math.min(Math.max(1, comboStep) - 1, 6);
+    [0, 2, 4].forEach((d, i) => this.pluck(gardenNote(base + d, 2), { gain: 0.07, decay: 0.5, delay: i * 0.045 }));
+  }
+
+  /** A Garden Bed cleared: a blooming arpeggio over two octaves, then a bell */
+  public playFloorClear(): void {
+    this.vibrate([14, 40, 20]);
+    [0, 2, 3, 5, 7, 8, 10].forEach((s, i) => this.pluck(gardenNote(s, 2), { gain: 0.08, decay: 0.8, delay: i * 0.07 }));
+    this.bell(gardenNote(12, 2), { gain: 0.08, delay: 0.52 });
+  }
+
+  /** A big win: a wide, resolved garden chord */
+  public playVictoryChord(): void {
+    this.vibrate([16, 50, 24]);
+    [0, 3, 7, 9, 12].forEach((s, i) => {
+      this.pluck(gardenNote(s, 1), { gain: 0.08, decay: 1.4, delay: i * 0.05 });
+      this.bell(gardenNote(s + 5, 1), { gain: 0.035, delay: i * 0.05 + 0.02 });
     });
   }
 
-  /**
-   * Triggered when Hero HP drops to 0 during resolution
-   */
+  /** The Run is over: a gentle falling phrase, never punishing */
   public playDefeatSound(): void {
-    this.vibrate([50, 30, 70, 30, 110]);
-    const notes = [196.0, 174.61, 146.83, 110.0];
-    notes.forEach((freq, idx) => {
-      this.playTone({
-        type: "sawtooth",
-        freqStart: freq,
-        freqEnd: freq * 0.92,
-        duration: 0.24,
-        gainPeak: 0.13,
-        delay: idx * 0.09,
-      });
-    });
+    this.vibrate([20, 40]);
+    [9, 7, 5, 3, 0].forEach((s, i) => this.pluck(gardenNote(s, 1), { gain: 0.08, decay: 0.9, delay: i * 0.16 }));
   }
 }
 
