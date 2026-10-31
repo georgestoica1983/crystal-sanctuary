@@ -12,6 +12,8 @@ export interface RunLeaderboardRow {
   gardenIndex: number;
   /** Ascension level of that best Run (0 when unknown) */
   asc?: number;
+  /** Companion (rules class) of that best Run */
+  hero?: string;
   updatedAt: string;
   isYou: boolean;
 }

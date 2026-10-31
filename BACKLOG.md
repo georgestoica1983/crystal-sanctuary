@@ -13,7 +13,7 @@ Things that are ready in code but wait on a setup step, plus work planned for la
 ## Phase 3 — online and habit (needs a free Supabase account)
 
 - [ ] Online leaderboard with player names, and a share-your-score image.
-  - When setting up Supabase, run **both** migrations in `supabase/migrations/` (the 20261030 one adds the Ascension level column).
+  - When setting up Supabase, run **all** migrations in `supabase/migrations/` in date order (20261030 adds the Ascension level, 20261031 the companion).
 - [ ] Progress tied to an account (stars and unlocks survive a new phone).
 - [ ] Daily board (same seed for everyone) + streak.
 
@@ -25,7 +25,7 @@ Things that are ready in code but wait on a setup step, plus work planned for la
   - [x] ✂️ Pruning Shears in the Shop: remove one tile from the bag (rules v9).
   - [x] Relic theme tags (Thorns, Acorns, Berries & Gloves, Shears, Long lines, Careful, Growing, Seeds, Any build) + "Fits your build" mark.
   - [ ] Optional: set bonus for 3 relics with the same tag (rules change).
-  - [ ] Companions with a small rule (reuse the 4 hero classes; decide whether companions stay "looks only").
+  - [x] Companions with their own rule: pick Keeper / Otter / Sprite / Fox per run, Companions & looks screen, leaderboard emoji.
 - [ ] More unlocks (one every ~10 ⭐, board themes).
 - [ ] Quick mode (a 3-minute run) — only if testers ask.
 - [ ] A 10-second "how to score big" demo replacing walkthrough step 2.

@@ -2,7 +2,8 @@
 
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { getRunGardenLabel } from "@/lib/engine";
+import { getRunGardenLabel, HERO_CLASS_REGISTRY } from "@/lib/engine";
+import type { HeroClassId } from "@/types/game";
 import {
   fetchRunLeaderboard,
   getRunPlayerName,
@@ -31,6 +32,11 @@ function Row({ row }: { row: RunLeaderboardRow }) {
       </span>
       <div className="min-w-0">
         <div className="text-[13px] font-bold text-white truncate">
+          {row.hero && HERO_CLASS_REGISTRY[row.hero as HeroClassId] && (
+            <span className="mr-1" aria-label={HERO_CLASS_REGISTRY[row.hero as HeroClassId].sanctuaryShortName}>
+              {HERO_CLASS_REGISTRY[row.hero as HeroClassId].sanctuaryEmblem ?? HERO_CLASS_REGISTRY[row.hero as HeroClassId].emblem}
+            </span>
+          )}
           {row.name}
           {!!row.asc && (
             <span className="ml-1.5 rounded bg-orange-400/15 px-1 text-[10.5px] font-bold text-orange-200">🔥A{row.asc}</span>
