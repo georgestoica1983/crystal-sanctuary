@@ -1342,6 +1342,8 @@ export default function OneStrokeTacticianPage() {
             : `${relic.name} joins your relics!`
         );
         if (newSets.length > 0) track("relic_set", { tag: newSets.join(","), bed: currentFloorIndex });
+        if (newSets.length > 0) soundEngine.playSetComplete();
+        else soundEngine.playShopBuy();
       } else if (offer.stat === "MAX_MAGIC") {
         handleNotice(`${SHOP_STAT_BOOSTS.MAX_MAGIC.icon} +2 Max Life for this visit!`);
       } else if (offer.stat === "START_DEW") {
@@ -1353,7 +1355,7 @@ export default function OneStrokeTacticianPage() {
       setGemsSpent((prev) => prev + offer.cost);
       setShopSoldIds((prev) => [...prev, offer.id]);
       setShopPurchases((prev) => prev + 1);
-      soundEngine.playGoldPickup(3);
+      if (offer.kind !== "RELIC") soundEngine.playShopBuy();
     },
     [pendingPostFloorStats, hero, shopSoldIds, activeRelics, runUpgrades, mode, handleNotice]
   );

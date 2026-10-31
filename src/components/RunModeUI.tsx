@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import EntityIcon from "@/components/EntityIcon";
 import { GridCell, GridCoord, RelicId, RunGardenState } from "@/types/game";
@@ -18,6 +18,7 @@ import {
   RUN_WEEDOUTS_PER_GARDEN,
 } from "@/lib/engine";
 import RelicIcon from "@/components/RelicIcon";
+import { soundEngine } from "@/lib/audio";
 
 const fmt = (n: number) => Math.round(n).toLocaleString();
 
@@ -387,6 +388,15 @@ export function RunGardenClearModal({
   info: RunClearInfo | null;
   onContinue: () => void;
 }) {
+  // Each earned star lands on a rising bell, in time with its pop-in
+  useEffect(() => {
+    if (!info) return;
+    const earned = getRunBedStars(info.score, info.target, info.strokesLeft);
+    const timers = [1, 2, 3]
+      .filter((n) => n <= earned)
+      .map((n) => window.setTimeout(() => soundEngine.playStarLand(n), (0.2 + n * 0.22) * 1000 + 120));
+    return () => timers.forEach((t) => window.clearTimeout(t));
+  }, [info]);
   if (!info) return null;
   const { kind, season } = getRunGardenPosition(info.gardenIndex);
   const legendary = info.legendary ? RELIC_REGISTRY[info.legendary] : null;

@@ -540,6 +540,61 @@ class SoundAndHapticsEngine {
     });
   }
 
+  /**
+   * A number counting up: `notes` kalimba notes climbing from `fromStep`,
+   * spread over `durationMs` (Value counts low, Length continues higher)
+   */
+  public playCountRun(fromStep: number, notes: number, durationMs: number): void {
+    const gap = durationMs / 1000 / Math.max(1, notes);
+    for (let i = 0; i < notes; i++) {
+      this.pluck(gardenNote(fromStep + i, 2), { gain: 0.055, decay: 0.3, delay: i * gap });
+    }
+    this.vibrate(6);
+  }
+
+  /** A relic multiplier pops in: a sparkle that rises with each one */
+  public playMultiplierSparkle(index: number = 0): void {
+    this.vibrate(10);
+    const step = 10 + Math.min(index, 4) * 2;
+    this.bell(gardenNote(step, 2), { gain: 0.06 });
+    this.pluck(gardenNote(step + 5, 2), { gain: 0.03, decay: 0.2, delay: 0.02 });
+  }
+
+  /**
+   * The line's total lands on a chord. `strength` is the line's share of the
+   * bed's target: a small line gets two notes, a huge one a full chord.
+   */
+  public playTallyTotal(strength: number = 0.3): void {
+    const notes = strength >= 1 ? 6 : strength >= 0.6 ? 5 : strength >= 0.35 ? 4 : strength >= 0.15 ? 3 : 2;
+    this.vibrate(notes >= 5 ? [16, 30, 24] : [12, 20]);
+    [0, 4, 7, 9, 12, 14].slice(0, notes).forEach((s, i) => {
+      this.pluck(gardenNote(s, 1 + (i >= 3 ? 1 : 0)), { gain: 0.08, decay: 1.1, delay: i * 0.03 });
+    });
+    if (notes >= 5) this.bell(gardenNote(14, 2), { gain: 0.06, delay: 0.12 });
+  }
+
+  /** A star lands on the bed-cleared screen (1, 2, 3 climb higher) */
+  public playStarLand(star: number): void {
+    this.vibrate(10 + star * 4);
+    this.bell(gardenNote(5 + star * 2, 2), { gain: 0.07 });
+  }
+
+  /** Buying in the Shop: a soft card swoosh and a chime */
+  public playShopBuy(): void {
+    this.vibrate([8, 16]);
+    this.playNoiseBurst({ duration: 0.16, gainPeak: 0.035, filterFreq: 1400, filterType: "bandpass", q: 0.7 });
+    this.pluck(gardenNote(7, 2), { gain: 0.08, delay: 0.08 });
+    this.pluck(gardenNote(9, 2), { gain: 0.06, delay: 0.14 });
+  }
+
+  /** Three relics with one theme: the "set" motif, a rising three-note call answered by a bell */
+  public playSetComplete(): void {
+    this.vibrate([12, 30, 12, 30, 24]);
+    [5, 7, 9].forEach((s, i) => this.pluck(gardenNote(s, 2), { gain: 0.09, decay: 0.6, delay: i * 0.12 }));
+    this.bell(gardenNote(12, 2), { gain: 0.08, delay: 0.38 });
+    this.bell(gardenNote(9, 2), { gain: 0.04, delay: 0.4 });
+  }
+
   /** The Run is over: a gentle falling phrase, never punishing */
   public playDefeatSound(): void {
     this.vibrate([20, 40]);

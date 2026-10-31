@@ -96,31 +96,34 @@ export default function ScoreTally({
     const pace = quick ? 0.55 : 1;
     const schedule = (ms: number, fn: () => void) =>
       timersRef.current.push(window.setTimeout(fn, ms * pace));
+    // Value counts up low, Length carries on higher, each × multiplier sparkles
+    // as it pops, and the total lands on a chord as full as the line is big
     schedule(350, () => {
       setStage(1);
-      soundEngine.playSanctuaryHarpChime(1);
+      soundEngine.playCountRun(0, 6, 700 * pace);
     });
     schedule(1150, () => {
       setStage(2);
-      soundEngine.playSanctuaryHarpChime(3);
+      soundEngine.playCountRun(5, 5, 600 * pace);
     });
     schedule(hasX ? 1850 : 1850, () => {
       if (hasX) {
         setStage(3);
-        soundEngine.playSanctuaryHarpChime(5);
+        breakdown.xMultSources.forEach((_, i) =>
+          schedule(i * 180, () => soundEngine.playMultiplierSparkle(i))
+        );
       }
     });
     schedule(hasX ? 2500 : 1950, () => {
       setStage(4);
-      soundEngine.playPortalBurst();
-      soundEngine.vibrate([20, 30, 40]);
+      soundEngine.playTallyTotal(targetScore ? breakdown.total / targetScore : 0.3);
     });
     schedule(hasX ? 3300 : 2750, () => setStage(5));
     return () => {
       timersRef.current.forEach((t) => window.clearTimeout(t));
       timersRef.current = [];
     };
-  }, [isOpen, breakdown, quick]);
+  }, [isOpen, breakdown, quick, targetScore]);
 
   const chipsShown = useCountUp(breakdown?.chips ?? 0, stage >= 1, 700);
   const multShown = useCountUp(breakdown?.mult ?? 0, stage >= 2, 600);

@@ -34,6 +34,34 @@ const SOUNDS: Array<{ group: string; name: string; play: () => void }> = [
   { group: "Rewards", name: "Bed cleared", play: () => soundEngine.playFloorClear() },
   { group: "Rewards", name: "Victory chord", play: () => soundEngine.playVictoryChord() },
   { group: "Rewards", name: "Run over", play: () => soundEngine.playDefeatSound() },
+  { group: "Score tally", name: "Value counts up", play: () => soundEngine.playCountRun(0, 6, 700) },
+  { group: "Score tally", name: "Length counts up", play: () => soundEngine.playCountRun(5, 5, 600) },
+  { group: "Score tally", name: "Multiplier 1", play: () => soundEngine.playMultiplierSparkle(0) },
+  { group: "Score tally", name: "Multiplier 3", play: () => soundEngine.playMultiplierSparkle(2) },
+  { group: "Score tally", name: "Small line total", play: () => soundEngine.playTallyTotal(0.1) },
+  { group: "Score tally", name: "Big line total", play: () => soundEngine.playTallyTotal(0.7) },
+  { group: "Score tally", name: "Huge line total", play: () => soundEngine.playTallyTotal(1.2) },
+  {
+    group: "Score tally",
+    name: "Full tally",
+    play: () => {
+      soundEngine.playCountRun(0, 6, 700);
+      window.setTimeout(() => soundEngine.playCountRun(5, 5, 600), 800);
+      window.setTimeout(() => soundEngine.playMultiplierSparkle(0), 1500);
+      window.setTimeout(() => soundEngine.playMultiplierSparkle(1), 1680);
+      window.setTimeout(() => soundEngine.playTallyTotal(0.7), 2150);
+    },
+  },
+  { group: "Bed cleared", name: "Star 1", play: () => soundEngine.playStarLand(1) },
+  { group: "Bed cleared", name: "Star 2", play: () => soundEngine.playStarLand(2) },
+  { group: "Bed cleared", name: "Star 3", play: () => soundEngine.playStarLand(3) },
+  {
+    group: "Bed cleared",
+    name: "Three stars",
+    play: () => [1, 2, 3].forEach((n) => window.setTimeout(() => soundEngine.playStarLand(n), n * 220)),
+  },
+  { group: "Shop", name: "Buy", play: () => soundEngine.playShopBuy() },
+  { group: "Shop", name: "Set complete", play: () => soundEngine.playSetComplete() },
 ];
 
 export default function SoundTestPage() {
