@@ -23,10 +23,13 @@ import {
   RUN_LOG_VERSION,
   RUN_MODIFIER,
   runModifierFor,
+  scoreRunStroke,
   RunActionLog,
   RunLogAction,
 } from "@/lib/runReplay";
 import { verifyRunSubmission } from "@/lib/server/runLeaderboard";
+import { completedRelicSets, RELIC_SET_X } from "@/lib/relicTags";
+import { setChaserShopMove } from "./botSets";
 import { PRACTICE_GARDEN_SEED } from "@/lib/runLessons";
 import type { HeroClassId } from "@/types/game";
 
@@ -41,9 +44,10 @@ function check(label: string, ok: boolean, detail = "") {
  * line each stroke (scored with its relics' growth and stroke number), a
  * Weed-out near the Companion when stuck, buys the cheapest offer it can
  * afford, and with full slots sells its oldest relic for a relic on offer.
+ * With `chaseSets` it first buys a relic that shares a tag with its own.
  * Returns its log and the score it expects from the searched lines' scores.
  */
-function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0) {
+function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0, chaseSets = false) {
   const run = createRunReplayer(seed, hero, RUN_LOG_VERSION, asc);
   const log: RunActionLog = asc ? { v: RUN_LOG_VERSION, seed, hero, asc, a: [] } : { v: RUN_LOG_VERSION, seed, hero, a: [] };
   let expected = 0;
@@ -56,13 +60,20 @@ function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0
     const s = run.state;
     if (s.phase === "SHOP") {
       if (s.gardensBloomed >= maxGardens) break;
-      if (s.shop.rerolls === 0 && s.shop.stats.gold >= 20) act({ k: "r" });
+      if (!chaseSets && s.shop.rerolls === 0 && s.shop.stats.gold >= 20) act({ k: "r" });
       // Prune a Spike (or the weakest Thorn) when Seeds are plentiful
       if (!run.state.shop.pruned && run.state.shop.stats.gold >= 6 && run.state.bag.length > RUN_BAG_MIN_SIZE) {
         const bag = run.state.bag;
         let i = bag.findIndex((t) => t.type === "TRAP");
         if (i < 0) i = bag.findIndex((t) => t.type === "ENEMY");
         if (i >= 0) act({ k: "p", i });
+      }
+      if (chaseSets) {
+        const move = setChaserShopMove(run.state);
+        if (move) {
+          for (const a of move) act(a);
+          continue;
+        }
       }
       const relicOffer = run.state.shop.offers.find(
         (o) => o.kind === "RELIC" && !run.state.shop.soldIds.includes(o.id)
@@ -92,6 +103,7 @@ function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0
     const best = searchBestFloorLine(s.grid, s.startHero, RUN_MODIFIER, s.classId, s.relics, 20000, {
       counters: s.counters,
       strokesLeft: s.garden.strokesLeft,
+      relicSets: true,
     });
     if (best && best.score > 0) {
       expected += best.score;
@@ -328,6 +340,54 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
   check("refused: pruning a bag already at the minimum", applyRunShopPrune({ stats, bag: minBag, index: 0, prunedThisShop: false }) === null);
   const ok = applyRunShopPrune({ stats, bag: [...minBag, { type: "TRAP", value: 2 }], index: RUN_BAG_MIN_SIZE, prunedThisShop: false });
   check("prune removes that tile and costs its price", !!ok && ok.bag.length === RUN_BAG_MIN_SIZE && ok.stats.gold === 50 - RUN_PRUNE_COST && ok.tile.type === "TRAP");
+}
+
+// 7. Relic sets (rules v10+): 3 relics with one theme tag score every line ×1.25
+{
+  check(
+    "sets: 3 Thorns relics make a Thorns set, Any-build relics never do",
+    completedRelicSets(["BRIAR_PRESS", "BRAMBLE_HEART", "MOSSY_STONE"]).length === 0 &&
+      completedRelicSets(["BRIAR_PRESS", "BRAMBLE_HEART", "COMPOST_HEAP"]).join() === "THORNS" &&
+      completedRelicSets(["MOSSY_STONE", "LADYBUG", "DAWN_CHORUS"]).length === 0
+  );
+  check(
+    "sets: Compost Heap counts for two sets",
+    completedRelicSets(["BRIAR_PRESS", "BRAMBLE_HEART", "COMPOST_HEAP", "OAK_SAPLING", "ELDER_TREE"]).sort().join() ===
+      "GROWING,THORNS"
+  );
+  // One real line, scored with and without the set rule
+  const run = createRunReplayer("run-sets-check", "KNIGHT", RUN_LOG_VERSION);
+  const s = run.state;
+  const relics = ["BRIAR_PRESS", "BRAMBLE_HEART", "COMPOST_HEAP"] as const;
+  const best = searchBestFloorLine(s.grid, s.startHero, RUN_MODIFIER, s.classId, [...relics], 20000, {});
+  if (best) {
+    const off = scoreRunStroke(best.sim, s.startHero, best.path, [...relics], {}, 4, false).breakdown;
+    const on = scoreRunStroke(best.sim, s.startHero, best.path, [...relics], {}, 4, true).breakdown;
+    check(
+      `sets: a Thorns set scores the line ×${RELIC_SET_X} (${off.total} → ${on.total})`,
+      off.total > 0 && Math.abs(on.xMult / off.xMult - RELIC_SET_X) < 1e-9 && on.xMultSources.some((x) => x.label.includes("Thorns set"))
+    );
+  } else check("sets: found a line to score", false);
+  // A bot that chases sets: its v10 log replays, and the same moves as v9 score less
+  let found = false;
+  for (let i = 0; i < 12 && !found; i++) {
+    const bot = playBotRun(`run-sets-${i}`, "KNIGHT", 9, 0, true);
+    if (completedRelicSets(bot.state.relics).length === 0) continue;
+    found = true;
+    const v10 = replayRun(JSON.parse(JSON.stringify(bot.log)));
+    check(
+      `set-chasing bot Run replays (${completedRelicSets(bot.state.relics).join(", ")} set, ${bot.state.gardensBloomed} gardens)`,
+      v10.ok && v10.score === bot.state.score && v10.score === bot.expected,
+      v10.ok ? `${v10.score} vs ${bot.state.score}, expected ${bot.expected}` : v10.error
+    );
+    const v9 = replayRun({ ...JSON.parse(JSON.stringify(bot.log)), v: 9 });
+    check(
+      "the same moves under rules v9 get no set bonus",
+      v9.ok && v10.ok && v9.score < v10.score,
+      v9.ok && v10.ok ? `${v9.score} < ${v10.score}` : v9.ok ? "" : v9.error
+    );
+  }
+  check("a set-chasing bot completes a set", found);
 }
 
 console.log(failures ? `\n${failures} check(s) failed` : "\nAll replay checks passed");

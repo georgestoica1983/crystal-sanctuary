@@ -111,6 +111,8 @@ export interface RelicScoreContext {
   counters?: RelicCounters;
   /** Strokes left in the garden before this one (4 = first, 1 = last) */
   strokesLeft?: number;
+  /** Rules v10+: 3 relics with one theme tag score every line ×1.25 */
+  relicSets?: boolean;
 }
 
 export interface RelicDefinition {

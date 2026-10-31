@@ -4,9 +4,12 @@
 // Run with: node scripts/run-ts.cjs scripts/balance-run.ts
 // Env: VERSIONS=3,4  SEEDS=16  BUDGET=20000 (strong player) / 600 (casual)
 //      PRUNE=none|spike|thorn (rules v9+: what the bot cuts with Pruning Shears)
+//      SETS=chase (the bot builds toward relic sets: rules v10+ pays them ×1.25)
 import { findEntityCoord, searchBestFloorLine } from "@/lib/engine";
 import type { HeroClassId } from "@/types/game";
-import { createRunReplayer, packCoords, RUN_PRUNE_COST, runModifierFor } from "@/lib/runReplay";
+import { completedRelicSets } from "@/lib/relicTags";
+import { setChaserShopMove } from "./botSets";
+import { createRunReplayer, packCoords, RUN_PRUNE_COST, runModifierFor, runRulesUseRelicSets } from "@/lib/runReplay";
 
 const VERSIONS = (process.env.VERSIONS ?? "3,4").split(",").map(Number);
 const SEEDS = Number(process.env.SEEDS ?? 16);
@@ -17,6 +20,7 @@ const ASC = Number(process.env.ASC ?? 0);
 const PRUNE = process.env.PRUNE ?? "none";
 /** Companion the bot plays (KNIGHT = Keeper, ROGUE = Otter, MAGE = Fox, VAMPIRE = Sprite) */
 const HERO = (process.env.HERO ?? "KNIGHT") as HeroClassId;
+const CHASE_SETS = process.env.SETS === "chase";
 
 for (const budget of BUDGETS) {
   for (const v of VERSIONS) {
@@ -29,6 +33,7 @@ for (const budget of BUDGETS) {
     const linesUsed: number[][] = Array.from({ length: MAX_GARDENS }, () => []);
     // Why Runs ended before MAX_GARDENS: out of lines (short of target) or no safe line left
     const endings = { shortOfTarget: 0, noSafeLine: 0 };
+    let runsWithSet = 0;
     for (let i = 0; i < SEEDS; i++) {
       const run = createRunReplayer(`bal-run-${i}`, HERO, v, ASC);
       let lastGarden = -1;
@@ -48,6 +53,10 @@ for (const budget of BUDGETS) {
               );
             if (order.length > 0 && run.apply({ k: "p", i: order[0].i }) === null) continue;
           }
+          if (CHASE_SETS) {
+            const move = setChaserShopMove(s);
+            if (move && move.every((a) => run.apply(a) === null)) continue;
+          }
           const offer = [...s.shop.offers]
             .filter((o) => !s.shop.soldIds.includes(o.id))
             .sort((a, b) => a.cost - b.cost)
@@ -64,6 +73,7 @@ for (const budget of BUDGETS) {
         const best = searchBestFloorLine(s.grid, s.startHero, modifier, s.classId, s.relics, budget, {
           counters: s.counters,
           strokesLeft: s.garden.strokesLeft,
+          relicSets: runRulesUseRelicSets(v),
         });
         const before = s.garden;
         const hpBefore = s.startHero.hp;
@@ -89,6 +99,7 @@ for (const budget of BUDGETS) {
         }
       }
       reachedCounts.push(run.state.gardensBloomed);
+      if (completedRelicSets(run.state.relics).length > 0) runsWithSet++;
       if (run.state.phase === "OVER" && run.state.gardensBloomed < MAX_GARDENS) endings.shortOfTarget++;
     }
     const avg = (a: number[]) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : NaN);
@@ -102,6 +113,7 @@ for (const budget of BUDGETS) {
       `gardens cleared: median ${median(reachedCounts)}, avg ${avg(reachedCounts).toFixed(1)}, ` +
         `cleared all ${MAX_GARDENS}: ${reachedCounts.filter((n) => n >= MAX_GARDENS).length}`
     );
+    console.log(`Runs ending with a relic set: ${runsWithSet}/${SEEDS}`);
     console.log(`ended early: ${endings.shortOfTarget} out of lines or Life (Run over), ${endings.noSafeLine} stuck with no scoring line`);
     for (let g = 0; g < MAX_GARDENS; g++) {
       if (!ratios[g].length) continue;

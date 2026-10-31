@@ -36,6 +36,7 @@ import {
   getRelicDisplay,
   SHARE_TILE_EMOJI,
 } from "@/lib/sanctuaryCopy";
+import { completedRelicSets, RELIC_SET_X, RELIC_TAG_INFO } from "@/lib/relicTags";
 
 export const INITIAL_HERO_STATS: HeroStats = {
   hp: 10,
@@ -1880,6 +1881,12 @@ export function calculateFloorScoreBreakdown(
   addX("THORN_CROWN", 1.5);
   addX("RAINBOW_HEART", 2);
   addX("ETERNAL_SPRING", 1.25);
+  if (ctx.relicSets) {
+    for (const tag of completedRelicSets(activeRelics)) {
+      const info = RELIC_TAG_INFO[tag];
+      xMultSources.push({ label: `${info.icon} ${info.name} set`, value: RELIC_SET_X });
+    }
+  }
 
   const chips =
     gemChips + tileChips + chipSources.reduce((sum, c) => sum + c.value, 0);

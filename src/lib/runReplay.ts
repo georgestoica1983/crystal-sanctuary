@@ -174,11 +174,13 @@ export function scoreRunStroke(
   path: GridCoord[],
   relics: RelicId[],
   counters: RelicCounters = {},
-  strokesLeft?: number
+  strokesLeft?: number,
+  relicSets = false
 ): { breakdown: FloorScoreBreakdown; afterStroke: HeroStats; countersAfter: RelicCounters } {
   const breakdown = calculateFloorScoreBreakdown(sim, startHero, path.length, relics, {
     counters,
     strokesLeft,
+    relicSets,
   });
   return {
     breakdown,
@@ -288,6 +290,8 @@ export const RUN_PRUNE_COST = 4;
 /** Pruning never takes the bag below this many tiles (a bed needs 23) */
 export const RUN_BAG_MIN_SIZE = 30;
 export const runRulesAllowPrune = (logVersion: number) => logVersion >= 9;
+/** Rules v10+: 3 relics with one theme tag score every line ×1.25 */
+export const runRulesUseRelicSets = (logVersion: number) => logVersion >= 10;
 
 /**
  * Removes the bag tile at `index` for the rest of the Run (once per Shop
@@ -412,9 +416,10 @@ export function getRunPathError(
  * v7: Boss gardens draw from eight Boss rules instead of four.
  * v8: Ascension levels (the log's `asc`, 0–6).
  * v9: ✂️ Pruning Shears in the Shop remove a tile from the bag (action "p").
+ * v10: relic sets — 3 relics with one theme tag score every line ×1.25.
  * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 9;
+export const RUN_LOG_VERSION = 10;
 export const RUN_LOG_MIN_VERSION = 2;
 /** Rule set of new Runs (the current version) */
 export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);
@@ -601,7 +606,8 @@ export function createRunReplayer(
         path,
         s.relics,
         s.counters,
-        s.garden.strokesLeft
+        s.garden.strokesLeft,
+        runRulesUseRelicSets(logVersion)
       );
       s.counters = countersAfter;
       s.strokes++;

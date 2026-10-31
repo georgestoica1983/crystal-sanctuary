@@ -140,6 +140,7 @@ import {
   RUN_PRUNE_COST,
   runClearLifeFor,
   runRulesAllowPrune,
+  runRulesUseRelicSets,
   runModifierFor,
   scoreRunStroke,
   startRunGarden,
@@ -644,7 +645,11 @@ export default function OneStrokeTacticianPage() {
     () =>
       isInteractiveTutorial || lesson || mode !== "RUN"
         ? {}
-        : { counters: relicCounters, strokesLeft: runGarden?.strokesLeft },
+        : {
+            counters: relicCounters,
+            strokesLeft: runGarden?.strokesLeft,
+            relicSets: runRulesUseRelicSets(runLogRef.current?.v ?? RUN_LOG_VERSION),
+          },
     [isInteractiveTutorial, lesson, mode, relicCounters, runGarden?.strokesLeft]
   );
 
@@ -760,6 +765,7 @@ export default function OneStrokeTacticianPage() {
     const ctx: RelicScoreContext = {
       counters: relicCounters,
       strokesLeft: RUN_STROKES_PER_GARDEN - bestIdx,
+      relicSets: runRulesUseRelicSets(runLogRef.current?.v ?? RUN_LOG_VERSION),
     };
     // Relics that count Seeds held use your purse as it would be after buying
     const purse = (pendingPostFloorStats ?? hero).gold;

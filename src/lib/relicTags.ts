@@ -83,3 +83,14 @@ export function summarizeBuild(owned: RelicId[]): Array<{ tag: RelicTag; count: 
   }
   return [...counts.entries()].map(([tag, count]) => ({ tag, count })).sort((a, b) => b.count - a.count);
 }
+
+/** Relic sets (rules v10+): owning this many relics with one theme tag scores every line ×RELIC_SET_X */
+export const RELIC_SET_SIZE = 3;
+export const RELIC_SET_X = 1.25;
+
+/** Theme tags with a full set among the relics you own (each set counts once) */
+export function completedRelicSets(owned: RelicId[]): RelicTag[] {
+  return summarizeBuild(owned)
+    .filter((b) => b.count >= RELIC_SET_SIZE)
+    .map((b) => b.tag);
+}
