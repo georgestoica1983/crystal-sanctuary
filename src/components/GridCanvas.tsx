@@ -1652,17 +1652,15 @@ export function CellGeometricNode({
             />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            {companionEmoji ? (
+            {isSanctuary ? (
+              <EntityIcon type="HERO" companionId={heroClassId} size="66%" />
+            ) : companionEmoji ? (
               <span className="text-[min(7cqw,28px)] leading-none drop-shadow-[0_0_6px_rgba(253,224,71,0.7)]" aria-hidden="true">
                 {companionEmoji}
               </span>
             ) : (
             <IconComponent
-              className={`w-[44%] h-[44%] ${
-                isSanctuary
-                  ? "text-amber-200 drop-shadow-[0_0_8px_rgba(253,224,71,0.85)]"
-                  : "text-cyan-200 drop-shadow-[0_0_8px_rgba(34,211,238,0.85)]"
-              }`}
+              className="w-[44%] h-[44%] text-cyan-200 drop-shadow-[0_0_8px_rgba(34,211,238,0.85)]"
               strokeWidth={2.5}
             />
             )}

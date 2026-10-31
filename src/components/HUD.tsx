@@ -59,6 +59,7 @@ import { FEEDBACK_URL, track } from "@/lib/analytics";
 import EntityIcon from "@/components/EntityIcon";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import { completedRelicSets, getRelicTags, RELIC_SET_X, RELIC_TAG_INFO } from "@/lib/relicTags";
+import { statArt, StatArtId, themeArt } from "@/lib/art";
 
 export function getLiveStepNarratorText(
   simulation: PathSimulationResult,
@@ -666,11 +667,15 @@ export function TopHUD({
   // Run-only game: one slim row — Companion, the four stats, and a ☰ menu
   if (runOnly && !isInteractiveTutorial) {
     const lowMagic = hero.hp <= Math.max(2, Math.floor(hero.maxHp * 0.3));
+    const statIcon = (id: StatArtId) => (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={statArt(id)} alt="" aria-hidden="true" draggable={false} className="h-4 w-4 object-contain" />
+    );
     const stats = [
       {
         key: "magic",
         label: "Life",
-        icon: <span className="text-[13px] leading-none" aria-hidden="true">❤️</span>,
+        icon: statIcon("life"),
         value: (
           <>
             {hero.hp}
@@ -682,12 +687,12 @@ export function TopHUD({
       {
         key: "dew",
         label: "Gloves",
-        icon: <EntityIcon type="SHIELD" size={13} />,
+        icon: statIcon("gloves"),
         value: heroClassId === "VAMPIRE" ? "—" : hero.shield,
         color: "text-sky-300",
       },
-      { key: "sun", label: "Shears", icon: <EntityIcon type="WEAPON" size={13} />, value: hero.weapon, color: "text-amber-300" },
-      { key: "gems", label: "Seeds", icon: <span className="text-[12px] leading-none" aria-hidden="true">🌱</span>, value: hero.gold, color: "text-yellow-200" },
+      { key: "sun", label: "Shears", icon: statIcon("shears"), value: hero.weapon, color: "text-amber-300" },
+      { key: "gems", label: "Seeds", icon: statIcon("seeds"), value: hero.gold, color: "text-yellow-200" },
     ];
     const menuRow =
       "w-full h-12 px-3 rounded-xl flex items-center gap-3 text-left text-[14px] font-semibold text-white/90 hover:bg-white/[0.06] active:bg-white/[0.1] transition";
@@ -702,7 +707,7 @@ export function TopHUD({
             }${companionMoveUsed === null ? "" : companionMoveUsed ? " Special move used on this line." : " Special move ready."}`}
             className="relative h-11 w-11 shrink-0 rounded-xl bg-white/[0.04] border border-white/[0.07] flex items-center justify-center active:scale-95 transition"
           >
-            <EntityIcon type="HERO" companionId={heroClassId} size={22} />
+            <EntityIcon type="HERO" companionId={heroClassId} size={30} />
             {companionMoveUsed !== null && (
               <span
                 aria-hidden="true"
@@ -717,7 +722,7 @@ export function TopHUD({
               <div key={st.key} className="min-w-0 flex flex-col items-center justify-center" aria-label={`${st.label}`}>
                 <div className="flex items-center gap-1 leading-none">
                   {st.icon}
-                  <span className={`text-[15px] font-mono font-black leading-none ${st.color}`}>{st.value}</span>
+                  <span className={`text-[16px] font-extrabold tabular-nums leading-none ${st.color}`}>{st.value}</span>
                 </div>
                 <div className="mt-1 text-[10px] leading-none text-white/45">{st.label}</div>
               </div>
@@ -772,7 +777,8 @@ export function TopHUD({
                   aria-label={`${RELIC_TAG_INFO[tag].name} set: every line ×${RELIC_SET_X}`}
                   className="shrink-0 h-9 px-2 rounded-lg border border-amber-300/50 bg-amber-400/15 flex items-center gap-1 text-[11px] font-black text-amber-100"
                 >
-                  <span aria-hidden="true">{RELIC_TAG_INFO[tag].icon}</span>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={themeArt(tag)} alt="" aria-hidden="true" draggable={false} className="h-5 w-5 object-contain" />
                   <span aria-hidden="true">set ×{RELIC_SET_X}</span>
                 </span>
               ))}

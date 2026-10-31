@@ -25,6 +25,7 @@ import {
 } from "@/lib/engine";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import PruneCard from "@/components/PruneCard";
+import { themeArt } from "@/lib/art";
 import {
   getRelicTags,
   RELIC_SET_SIZE,
@@ -39,8 +40,10 @@ import {
 function TagChip({ tag }: { tag: RelicTag }) {
   const info = RELIC_TAG_INFO[tag];
   return (
-    <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 ${info.className}`}>
-      {info.icon} {info.name}
+    <span className={`inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 ${info.className}`}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={themeArt(tag)} alt="" aria-hidden="true" draggable={false} className="h-3.5 w-3.5 object-contain" />
+      {info.name}
     </span>
   );
 }

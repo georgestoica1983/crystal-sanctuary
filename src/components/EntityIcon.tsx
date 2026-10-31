@@ -3,6 +3,7 @@
 import React, { useId } from "react";
 import { Cat, Crown, Sparkles, Compass } from "lucide-react";
 import { EntityType, HeroClassId, SanctuaryCompanionId } from "@/types/game";
+import { companionArt, tileArt } from "@/lib/art";
 
 export interface EntityIconProps {
   type: EntityType | "POISON_POTION";
@@ -61,6 +62,26 @@ export default function EntityIcon({
     fill: "none",
     "aria-hidden": true,
   } as const;
+
+  // Illustrated art when there is one; the drawn SVGs below stay as the fallback
+  const art = type === "HERO" ? companionArt(companionId) : corrupted ? null : tileArt(type, { bloomed: isBloomed });
+  if (art) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
+        src={art}
+        alt=""
+        aria-hidden="true"
+        draggable={false}
+        className={`shrink-0 object-contain select-none pointer-events-none ${className}`}
+        style={{
+          width: pixelSize,
+          height: pixelSize,
+          filter: glow ? `drop-shadow(0 0 4px ${color}88)` : undefined,
+        }}
+      />
+    );
+  }
 
   switch (type) {
     case "HERO": {
