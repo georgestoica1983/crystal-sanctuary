@@ -1552,13 +1552,16 @@ function TileIconWithValue({
     type === "POTION" && isCorrupted
       ? ENTITY_COLORS.POISON_POTION
       : ENTITY_COLORS[type];
-  // Signed effect: harmful tiles show a filled "−N", helpful ones an outlined "+N"
-  const harmful = type === "ENEMY" || type === "TRAP" || (type === "POTION" && isCorrupted);
+  // Every number is the points the tile adds to the line. Thorns and Spikes
+  // also cost Life: a small red heart shows that cost (struck through once a
+  // Thorn is cut and costs nothing). A bad Berry (Blood Gold) keeps its "−N".
+  const costsLife = type === "ENEMY" || type === "TRAP";
+  const poisoned = type === "POTION" && isCorrupted;
   const n = typeof value === "number" ? value : Math.abs(Number(value)) || value;
-  const label = harmful ? `−${n}` : `+${n}`;
+  const label = poisoned ? `−${n}` : `+${n}`;
   // Helpful values are never red: Berries show a green "+N"
   const lifeColor = "#34D399";
-  const badgeColor = type === "POTION" && !isCorrupted ? lifeColor : color;
+  const badgeColor = type === "POTION" && !isCorrupted ? lifeColor : costsLife ? "#F5C072" : color;
   return (
     <div className="relative w-[72%] h-[72%] flex items-center justify-center">
       <span
@@ -1581,13 +1584,25 @@ function TileIconWithValue({
           ↗
         </span>
       )}
+      {costsLife && (
+        <span
+          className={`absolute -bottom-1.5 -left-2 h-[18px] px-1 flex items-center gap-[1px] rounded-full font-mono font-black text-[10.5px] leading-none select-none pointer-events-none ${
+            struck ? "line-through opacity-60" : ""
+          }`}
+          style={{ backgroundColor: type === "TRAP" ? "#4F6155" : "#C0263F", color: "#FFFFFF" }}
+          aria-label={`costs ${n} Life`}
+        >
+          <span aria-hidden="true">♥</span>
+          {n}
+        </span>
+      )}
       <span
-        className={`absolute -bottom-1.5 -right-2 min-w-[22px] h-[20px] px-1 flex items-center justify-center font-mono font-black text-[12px] leading-none border-[1.5px] select-none pointer-events-none ${
-          harmful ? "rounded-[4px]" : "rounded-full"
-        } ${struck ? "line-through opacity-70" : ""}`}
+        className={`absolute -bottom-1.5 -right-2 min-w-[22px] h-[20px] px-1 flex items-center justify-center font-mono font-black text-[12px] leading-none border-[1.5px] select-none pointer-events-none rounded-full ${
+          poisoned ? "!rounded-[4px]" : ""
+        }`}
         style={
-          harmful
-            ? { backgroundColor: type === "TRAP" ? "#4F6155" : "#E11D48", borderColor: type === "TRAP" ? "#CBD5E1" : "#FDA4AF", color: "#FFFFFF" }
+          poisoned
+            ? { backgroundColor: color, borderColor: "#FDA4AF", color: "#FFFFFF" }
             : { backgroundColor: "#101913", borderColor: badgeColor, color: badgeColor }
         }
       >

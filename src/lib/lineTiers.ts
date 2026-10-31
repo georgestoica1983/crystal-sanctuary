@@ -34,12 +34,12 @@ export function getNextLineTier(tiles: number): LineTier | null {
 export const TILE_INTRO_ORDER = ["ENEMY", "GOLD", "WEAPON", "POTION", "SHIELD", "TRAP"] as const;
 export type IntroTileType = (typeof TILE_INTRO_ORDER)[number];
 export const TILE_INTROS: Record<IntroTileType, { name: string; text: string }> = {
-  ENEMY: { name: "Thorn", text: "costs that much ❤️ Life — but its number still adds to your points." },
+  ENEMY: { name: "Thorn", text: "the gold number is points for your line, the red ♥ is the ❤️ Life it costs. Often worth it on a long line." },
   GOLD: { name: "Acorn", text: "adds its number to your points." },
   WEAPON: { name: "Shears", text: "cut the next Thorn completely. Like every tile, its number adds points." },
   POTION: { name: "Berries", text: "give back ❤️ Life." },
   SHIELD: { name: "Gloves", text: "block that much Thorn damage, and they last." },
-  TRAP: { name: "Spike", text: "costs ❤️ Life — unless you step on it diagonally ↗." },
+  TRAP: { name: "Spike", text: "adds points but costs ❤️ Life — unless you step on it diagonally ↗." },
 };
 export const SEEN_TILE_INTROS_KEY = "ost_seen_tile_intros_v1";
 /** Until the first line is walked, home and the Exit pulse */

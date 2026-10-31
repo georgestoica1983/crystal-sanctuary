@@ -45,19 +45,29 @@ function Tile({
   label?: string;
   size?: number;
 }) {
-  const color = ENTITY_COLORS[type] ?? "#fff";
+  // Same badges as the board: gold "+N" points, and a red heart for Thorns' and Spikes' Life cost
+  const costsLife = type === "ENEMY" || type === "TRAP";
+  const color = costsLife ? "#F5C072" : ENTITY_COLORS[type] ?? "#fff";
   return artify(
     <div
       className="relative shrink-0 rounded-xl bg-[#223328] border border-white/10 flex items-center justify-center"
       style={{ width: size, height: size }}
     >
       <EntityIcon type={type} size={size * 0.62} glow />
+      {value !== undefined && costsLife && (
+        <span
+          className="absolute -bottom-1 -left-1 h-[16px] px-1 rounded-full text-[9px] font-mono font-black flex items-center text-white"
+          style={{ backgroundColor: type === "TRAP" ? "#4F6155" : "#C0263F" }}
+        >
+          ♥{value}
+        </span>
+      )}
       {value !== undefined && (
         <span
           className="absolute -bottom-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-mono font-black flex items-center justify-center bg-[#0F1812] border"
           style={{ color, borderColor: color }}
         >
-          {value}
+          +{value}
         </span>
       )}
       {label && (
@@ -207,12 +217,12 @@ function buildPages(): GuidePage[] {
       icon: "🧩",
       body: (
         <div className="space-y-2.5">
-          <TileLine type="ENEMY" value={5} name="Thorn" text="costs ❤️ Life." />
+          <TileLine type="ENEMY" value={5} name="Thorn" text="+5 points for your line, but costs ♥5 Life." />
           <TileLine type="WEAPON" value={5} name="Shears" text="cut the next Thorn completely." />
           <TileLine type="SHIELD" value={5} name="Gloves" text="block Thorn damage, and last." />
           <TileLine type="POTION" value={5} name="Berries" text="give back ❤️ Life." />
           <TileLine type="GOLD" value={5} name="Acorn" text="adds points." />
-          <TileLine type="TRAP" value={3} name="Spike" text="costs ❤️ Life — step on it diagonally ↗ to dodge." />
+          <TileLine type="TRAP" value={3} name="Spike" text="+3 points, costs ♥3 Life — unless you step on it diagonally ↗." />
           <P>Tap any tile on the board to read what it does.</P>
         </div>
       ),
