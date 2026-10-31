@@ -9,12 +9,14 @@ const ASKED_KEY = "ost_sound_asked_v1";
 /**
  * Asks once, gently, whether to play with sound and music. Sound starts off
  * (no surprise noise), so without this most players would never hear it.
- * Skipped for anyone who already chose in the menu.
+ * Skipped for anyone who already chose in the menu. Waits for `ready` (after
+ * the first lesson) so it never covers a new player's first steps.
  */
-export default function SoundPrompt({ onChoose }: { onChoose: (on: boolean) => void }) {
+export default function SoundPrompt({ ready, onChoose }: { ready: boolean; onChoose: (on: boolean) => void }) {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
+    if (!ready) return;
     try {
       const ls = window.localStorage;
       const decided =
@@ -27,7 +29,7 @@ export default function SoundPrompt({ onChoose }: { onChoose: (on: boolean) => v
     }
     const t = window.setTimeout(() => setOpen(true), 1200);
     return () => window.clearTimeout(t);
-  }, []);
+  }, [ready]);
 
   const choose = (on: boolean) => {
     try {

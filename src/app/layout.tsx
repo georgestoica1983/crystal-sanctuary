@@ -53,6 +53,22 @@ export const viewport: Viewport = {
   themeColor: "#19281E",
 };
 
+const PRELOAD_ART = [
+  "tile-thorn",
+  "tile-thorn-bloomed",
+  "tile-spike",
+  "tile-shears",
+  "tile-gloves",
+  "tile-berry",
+  "tile-acorn",
+  "tile-exit",
+  "companion-keeper",
+  "stat-life",
+  "stat-gloves",
+  "stat-shears",
+  "stat-seeds",
+].map((name) => `/art/icons/${name}.png`);
+
 const EXTENSION_SHIELD_SCRIPT = `
 (function() {
   try {
@@ -151,10 +167,14 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{ __html: EXTENSION_SHIELD_SCRIPT }}
         />
+        {/* The board's art arrives with the page, so tiles never pop in late */}
+        {PRELOAD_ART.map((src) => (
+          <link key={src} rel="preload" as="image" href={src} />
+        ))}
       </head>
       <body
         suppressHydrationWarning
-        className="min-h-dvh bg-[#101813] font-sans text-white antialiased selection:bg-violet-500 selection:text-white"
+        className="min-h-dvh bg-[#101813] font-sans text-white antialiased selection:bg-lime-300 selection:text-slate-950"
       >
         {children}
       </body>

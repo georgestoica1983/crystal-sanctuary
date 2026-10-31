@@ -2950,7 +2950,7 @@ export default function OneStrokeTacticianPage() {
           : "bg-[radial-gradient(ellipse_at_top,_#121B15_0%,_#0B0F0C_55%,_#060706_100%)]"
       }`}
     >
-      <SoundPrompt onChoose={handleSoundPrompt} />
+      <SoundPrompt ready={lessonIndex === null || lessonIndex >= 1} onChoose={handleSoundPrompt} />
       {/* Phones held sideways: the game is played upright */}
       <div className="rotate-hint fixed inset-0 z-[90] bg-[#101813] flex-col items-center justify-center gap-3 text-center px-6">
         <div className="text-5xl" aria-hidden="true">📱</div>

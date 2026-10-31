@@ -874,7 +874,7 @@ export default function GridCanvas({
                           : crossSim
                           ? "bg-emerald-400 text-slate-950 font-black shadow-[0_0_10px_rgba(16,185,129,0.85)]"
                           : stepSim.isBlinkStep
-                          ? "bg-purple-500 text-white shadow-[0_0_10px_#A855F7]"
+                          ? "bg-purple-500 text-white shadow-[0_0_10px_#EEA94F]"
                           : stepSim.shatteredShield
                           ? "bg-[#CFEA8F] text-slate-950"
                           : isExitCell
@@ -912,8 +912,8 @@ export default function GridCanvas({
                   {/* Portal Burst Particle Effect when reaching EXIT during Resolution */}
                   {isExitCell && isPortalBurstActive && (
                     <div className="absolute inset-0 pointer-events-none z-30 flex items-center justify-center">
-                      <span className="absolute w-14 h-14 rounded-full border-2 border-emerald-300 shadow-[0_0_24px_#10B981] animate-portal-burst" />
-                      <span className="absolute w-10 h-10 rounded-full border-2 border-purple-300 shadow-[0_0_24px_#A855F7] animate-portal-burst" />
+                      <span className="absolute w-14 h-14 rounded-full border-2 border-emerald-300 shadow-[0_0_24px_#A6CF8F] animate-portal-burst" />
+                      <span className="absolute w-10 h-10 rounded-full border-2 border-purple-300 shadow-[0_0_24px_#F5C072] animate-portal-burst" />
                     </div>
                   )}
 
@@ -1175,7 +1175,7 @@ export default function GridCanvas({
                   y1={p1.y}
                   x2={p2.x}
                   y2={p2.y}
-                  stroke="#A855F7"
+                  stroke="#EEA94F"
                   strokeWidth="12"
                   strokeOpacity="0.55"
                   strokeLinecap="round"
@@ -1252,7 +1252,7 @@ export default function GridCanvas({
                   <circle
                     r="11"
                     fill="#2E4736"
-                    stroke="#C084FC"
+                    stroke="#F5C072"
                     strokeWidth="2"
                     filter="url(#cyberTrailGlow)"
                   />
@@ -1479,7 +1479,7 @@ function StepFloatingBadge({
 
   if (step.cell.type === "EXIT") {
     return artify(
-      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-gradient-to-r from-amber-300 via-pink-300 to-violet-300 text-slate-950 border border-white/50 shadow-[0_0_12px_rgba(244,114,182,0.9)] whitespace-nowrap">
+      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-amber-200 text-slate-950 border border-white/50 shadow-[0_0_12px_rgba(244,114,182,0.9)] whitespace-nowrap">
         {isSanctuary ? "🌈 EXIT ✓" : "EXIT ✓"}
       </span>
     );

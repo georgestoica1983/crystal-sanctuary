@@ -26,7 +26,7 @@ export const ENTITY_COLORS: Record<string, string> = {
   GOLD: "#D08B45",
   ENEMY: "#F43F5E",
   TRAP: "#CBD5E1",
-  EXIT: "#A855F7",
+  EXIT: "#F5C072",
   HERO: "#FDE047",
 };
 

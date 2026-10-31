@@ -1,7 +1,8 @@
 import type { Config } from "tailwindcss";
 
 // Moss look: the cool neutrals (slate, zinc, indigo) become moss greens, the
-// cool accents (teal, sky) become sage, and white is a warm parchment.
+// cool accents (teal, sky) become sage, mint (emerald) becomes a soft leaf
+// green, violet/purple multipliers become warm honey, and white is a warm parchment.
 const moss = {
   50: "#F2F4EE",
   100: "#E1E6DA",
@@ -14,6 +15,32 @@ const moss = {
   800: "#2A3127",
   900: "#1D231B",
   950: "#121610",
+};
+const leaf = {
+  50: "#F1F7EC",
+  100: "#DDEDD3",
+  200: "#C2DFB2",
+  300: "#A6CF8F",
+  400: "#89BC70",
+  500: "#6FA257",
+  600: "#578443",
+  700: "#446836",
+  800: "#33502A",
+  900: "#263C20",
+  950: "#162414",
+};
+const honey = {
+  50: "#FFF7EB",
+  100: "#FDEACC",
+  200: "#FAD79F",
+  300: "#F5C072",
+  400: "#EEA94F",
+  500: "#E3913A",
+  600: "#C7742C",
+  700: "#A15A25",
+  800: "#7C4521",
+  900: "#5E361D",
+  950: "#33190B",
 };
 const sage = {
   50: "#F3F8EA",
@@ -44,6 +71,10 @@ const config: Config = {
         indigo: moss,
         teal: sage,
         sky: sage,
+        emerald: leaf,
+        violet: honey,
+        purple: honey,
+        fuchsia: honey,
         obsidian: "#0A0A0C",
         slateCell: "#141418",
         slateBorder: "#26262E",
