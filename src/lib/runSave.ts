@@ -13,6 +13,7 @@ import {
   runModifierFor,
   RunActionLog,
   scoreRunStroke,
+  runRulesUseRelicSets,
 } from "@/lib/runReplay";
 import type {
   DungeonFloor,
@@ -161,7 +162,8 @@ export function rebuildRunFromSave(raw: unknown): { ok: true; run: RestoredRun }
           path,
           relics,
           s.counters,
-          s.garden.strokesLeft
+          s.garden.strokesLeft,
+          runRulesUseRelicSets(log.v)
         );
         const error = run.apply(action);
         if (error) return { ok: false, error: `action ${i}: ${error}` };

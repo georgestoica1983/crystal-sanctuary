@@ -173,9 +173,10 @@ export function scoreRunStroke(
   startHero: HeroStats,
   path: GridCoord[],
   relics: RelicId[],
-  counters: RelicCounters = {},
-  strokesLeft?: number,
-  relicSets = false
+  counters: RelicCounters,
+  strokesLeft: number,
+  /** Rules v10+ relic sets (runRulesUseRelicSets) — required so live play and replays agree */
+  relicSets: boolean
 ): { breakdown: FloorScoreBreakdown; afterStroke: HeroStats; countersAfter: RelicCounters } {
   const breakdown = calculateFloorScoreBreakdown(sim, startHero, path.length, relics, {
     counters,

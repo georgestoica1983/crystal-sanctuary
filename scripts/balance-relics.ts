@@ -84,7 +84,7 @@ for (const set of SETS) {
             strokesLeft: state.strokesLeft,
           });
           if (!best) break;
-          const r = scoreRunStroke(best.sim, hero, best.path, set.relics, c, state.strokesLeft);
+          const r = scoreRunStroke(best.sim, hero, best.path, set.relics, c, state.strokesLeft, false);
           score += r.breakdown.total;
           c = r.countersAfter;
           state = { ...state, strokesLeft: state.strokesLeft - 1 };

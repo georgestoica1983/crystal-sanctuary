@@ -58,6 +58,7 @@ import { loadBestClearedAscension } from "@/lib/ascension";
 import { FEEDBACK_URL, track } from "@/lib/analytics";
 import EntityIcon from "@/components/EntityIcon";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
+import { completedRelicSets, getRelicTags, RELIC_SET_X, RELIC_TAG_INFO } from "@/lib/relicTags";
 
 export function getLiveStepNarratorText(
   simulation: PathSimulationResult,
@@ -489,6 +490,8 @@ interface TopHUDProps {
   onNewRun?: () => void;
   /** Relics that just added to a line's score (they light up briefly) */
   flashRelics?: RelicId[];
+  /** Rules v10+: relic sets (3 with one theme tag) score every line ×1.25 */
+  relicSets?: boolean;
   onEndRun?: () => void;
   /** Hides the one-line goal under the stats (e.g. during a lesson) */
   hideGoalLine?: boolean;
@@ -545,6 +548,7 @@ export function TopHUD({
   onNewRun,
   onEndRun,
   flashRelics = [],
+  relicSets = false,
   isDailyCompanionLocked = false,
   dungeon,
   currentFloorIndex,
@@ -646,6 +650,10 @@ export function TopHUD({
     }
     return Array.from(counts.entries());
   }, [activeRelics]);
+  const relicSetTags = React.useMemo(
+    () => (relicSets ? completedRelicSets(activeRelics) : []),
+    [relicSets, activeRelics]
+  );
 
   const handleToggleVisualTheme = () => {
     const nextTheme: VisualThemeMode = isSanctuarySkin ? "TACTICIAN" : "SANCTUARY";
@@ -757,6 +765,17 @@ export function TopHUD({
                   </motion.button>
                 );
               })}
+              {relicSetTags.map((tag) => (
+                <span
+                  key={tag}
+                  role="img"
+                  aria-label={`${RELIC_TAG_INFO[tag].name} set: every line ×${RELIC_SET_X}`}
+                  className="shrink-0 h-9 px-2 rounded-lg border border-amber-300/50 bg-amber-400/15 flex items-center gap-1 text-[11px] font-black text-amber-100"
+                >
+                  <span aria-hidden="true">{RELIC_TAG_INFO[tag].icon}</span>
+                  <span aria-hidden="true">set ×{RELIC_SET_X}</span>
+                </span>
+              ))}
             </div>
             {openRelic && relicCounts.some(([id]) => id === openRelic) && (
               <div className="absolute left-0 right-0 top-full mt-1 z-40 rounded-xl bg-[#18213A] border border-white/[0.12] shadow-xl p-2.5 flex gap-2.5">
@@ -770,6 +789,13 @@ export function TopHUD({
                   <div className="text-[12px] leading-snug text-white/70">
                     {getRelicDisplay(RELIC_REGISTRY[openRelic], isSanctuary).description}
                   </div>
+                  {getRelicTags(openRelic)
+                    .filter((t) => relicSetTags.includes(t))
+                    .map((t) => (
+                      <div key={t} className="text-[11.5px] font-semibold text-amber-200">
+                        Part of your {RELIC_TAG_INFO[t].icon} {RELIC_TAG_INFO[t].name} set: every line ×{RELIC_SET_X}
+                      </div>
+                    ))}
                 </div>
                 <button
                   type="button"

@@ -24,7 +24,7 @@ Things that are ready in code but wait on a setup step, plus work planned for la
 - [ ] Build depth:
   - [x] ✂️ Pruning Shears in the Shop: remove one tile from the bag (rules v9).
   - [x] Relic theme tags (Thorns, Acorns, Berries & Gloves, Shears, Long lines, Careful, Growing, Seeds, Any build) + "Fits your build" mark.
-  - [ ] Optional: set bonus for 3 relics with the same tag (rules change).
+  - [x] Relic sets: 3 relics with one tag score every line ×1.25 (rules v10), with Shop progress, a HUD set chip and help text.
   - [x] Companions with their own rule: pick Keeper / Otter / Sprite / Fox per run, Companions & looks screen, leaderboard emoji.
 - [x] More unlocks: board themes (Autumn, Night Garden, Winter Frost, Golden Hour, Royal Garden), Blossom / Sunset / Starlight / Ember lines, Star Gardener rank, next-unlock line.
 - [ ] Quick mode (a 3-minute run) — only if testers ask.

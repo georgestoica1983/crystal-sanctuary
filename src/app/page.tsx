@@ -70,6 +70,7 @@ import {
 } from "@/lib/engine";
 import { soundEngine } from "@/lib/audio";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
+import { completedRelicSets, RELIC_SET_X, RELIC_TAG_INFO } from "@/lib/relicTags";
 import {
   requestDailyPar,
   requestFloorPar,
@@ -1328,7 +1329,17 @@ export default function OneStrokeTacticianPage() {
       setRunUpgrades(bought.upgrades);
       if (offer.kind === "RELIC" && offer.relicId) {
         const relic = getRelicDisplay(RELIC_REGISTRY[offer.relicId], true);
-        handleNotice(`${relic.icon} ${relic.name} joins your relics!`);
+        const newSets = runRulesUseRelicSets(runLogRef.current?.v ?? RUN_LOG_VERSION)
+          ? completedRelicSets(bought.relics).filter((t) => !completedRelicSets(activeRelics).includes(t))
+          : [];
+        handleNotice(
+          newSets.length > 0
+            ? `${relic.icon} ${relic.name} joins your relics! ${newSets
+                .map((t) => `${RELIC_TAG_INFO[t].icon} ${RELIC_TAG_INFO[t].name}`)
+                .join(" + ")} set complete: every line ×${RELIC_SET_X}`
+            : `${relic.icon} ${relic.name} joins your relics!`
+        );
+        if (newSets.length > 0) track("relic_set", { tag: newSets.join(","), bed: currentFloorIndex });
       } else if (offer.stat === "MAX_MAGIC") {
         handleNotice(`${SHOP_STAT_BOOSTS.MAX_MAGIC.icon} +2 Max Life for this visit!`);
       } else if (offer.stat === "START_DEW") {
@@ -1682,7 +1693,8 @@ export default function OneStrokeTacticianPage() {
       path,
       activeRelicsForBoard,
       relicCounters,
-      garden.strokesLeft
+      garden.strokesLeft,
+      !!strokeCtx.relicSets
     );
     setRelicCounters(countersAfter);
     logRunAction({ k: "s", p: packCoords(path) });
@@ -3037,6 +3049,7 @@ export default function OneStrokeTacticianPage() {
         }}
         onOpenRunLeaderboard={RUN_ONLY ? () => setIsRunLeaderboardOpen(true) : undefined}
         flashRelics={flashRelics}
+        relicSets={mode === "RUN" && !lesson && runRulesUseRelicSets(runLogRef.current?.v ?? RUN_LOG_VERSION)}
         onNewRun={
           RUN_ONLY
             ? () => {
@@ -3709,6 +3722,7 @@ export default function OneStrokeTacticianPage() {
         offers={shopOffers}
         soldIds={shopSoldIds}
         ownedRelics={activeRelics}
+        relicSets={mode === "RUN" && runRulesUseRelicSets(runLogRef.current?.v ?? RUN_LOG_VERSION)}
         relicCounters={relicCounters}
         onSell={mode === "RUN" ? handleSellRelic : undefined}
         bag={canPrune ? runBag : undefined}

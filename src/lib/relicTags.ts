@@ -94,3 +94,17 @@ export function completedRelicSets(owned: RelicId[]): RelicTag[] {
     .filter((b) => b.count >= RELIC_SET_SIZE)
     .map((b) => b.tag);
 }
+
+/**
+ * Set progress for each theme tag an offered relic shares with your relics:
+ * how many you own with that tag and how many you'd have after buying it.
+ */
+export function setProgressFor(
+  id: RelicId,
+  owned: RelicId[]
+): Array<{ tag: RelicTag; have: number; after: number }> {
+  return sharedBuildTags(id, owned).map((tag) => {
+    const have = owned.filter((o) => o !== id && getRelicTags(o).includes(tag)).length;
+    return { tag, have, after: have + 1 };
+  });
+}

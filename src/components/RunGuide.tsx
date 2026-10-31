@@ -25,6 +25,7 @@ import {
   SHOP_STAT_BOOSTS,
 } from "@/lib/engine";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
+import { RELIC_SET_SIZE, RELIC_SET_X } from "@/lib/relicTags";
 
 export const RUN_GUIDE_STORAGE_KEY = "ost_run_guide_seen_v1";
 
@@ -289,6 +290,10 @@ function buildPages(): GuidePage[] {
       body: (
         <>
           <P>Lasting powers for your Run. Mix them — they multiply each other. 📈 = grows every Garden Bed.</P>
+          <P>
+            Each relic has a theme tag (🌺 Thorns, 🌰 Acorns…). Hold <B>{RELIC_SET_SIZE} relics with one tag</B> for a set:
+            every line scores <B>×{RELIC_SET_X}</B>. ⭐ Any build relics never count.
+          </P>
           {relicGroups.map((g) => (
             <React.Fragment key={g.category}>
               <div className="text-[12px] font-bold text-teal-200 pt-1">{g.title}</div>

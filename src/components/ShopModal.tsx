@@ -25,7 +25,15 @@ import {
 } from "@/lib/engine";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import PruneCard from "@/components/PruneCard";
-import { getRelicTags, RELIC_TAG_INFO, RelicTag, sharedBuildTags, summarizeBuild } from "@/lib/relicTags";
+import {
+  getRelicTags,
+  RELIC_SET_SIZE,
+  RELIC_SET_X,
+  RELIC_TAG_INFO,
+  RelicTag,
+  setProgressFor,
+  summarizeBuild,
+} from "@/lib/relicTags";
 
 /** Small build-theme chip (🌺 Thorns) */
 function TagChip({ tag }: { tag: RelicTag }) {
@@ -39,6 +47,8 @@ function TagChip({ tag }: { tag: RelicTag }) {
 
 interface ShopModalProps {
   isOpen: boolean;
+  /** Rules v10+: 3 relics with one theme tag score every line ×1.25 */
+  relicSets?: boolean;
   /** First Shop visit: a one-line explanation under the header */
   showIntro?: boolean;
   /** Relic offer id → extra points it would have added to your best line */
@@ -112,6 +122,7 @@ function describeOffer(offer: ShopOffer, isSanctuary: boolean) {
  */
 export default function ShopModal({
   isOpen,
+  relicSets = false,
   showIntro = false,
   scorePreview,
   gems,
@@ -291,13 +302,25 @@ export default function ShopModal({
                       {info.tag}
                     </div>
                     {offer.kind === "RELIC" && offer.relicId && !sold && (() => {
-                      const shared = sharedBuildTags(offer.relicId, ownedRelics);
-                      return shared.length > 0 ? (
+                      const progress = setProgressFor(offer.relicId, ownedRelics);
+                      if (progress.length === 0) return null;
+                      const completes = relicSets
+                        ? progress.filter((p) => p.have < RELIC_SET_SIZE && p.after >= RELIC_SET_SIZE)
+                        : [];
+                      return (
                         <div className="text-[11px] font-semibold text-lime-200">
                           ✓ Fits your build ·{" "}
-                          {shared.map((t) => `${RELIC_TAG_INFO[t].icon} ${RELIC_TAG_INFO[t].name}`).join(" · ")}
+                          {progress
+                            .map(({ tag, after }) => {
+                              const label = `${RELIC_TAG_INFO[tag].icon} ${RELIC_TAG_INFO[tag].name}`;
+                              return relicSets ? `${label} ${Math.min(after, RELIC_SET_SIZE)}/${RELIC_SET_SIZE}` : label;
+                            })
+                            .join(" · ")}
+                          {completes.length > 0 && (
+                            <span className="text-amber-200"> · completes a set: every line ×{RELIC_SET_X}</span>
+                          )}
                         </div>
-                      ) : null;
+                      );
                     })()}
                     {scorePreview && scorePreview[offer.id] !== undefined && !sold && (
                       <div
@@ -419,9 +442,18 @@ export default function ShopModal({
               Your build:{" "}
               <span className="font-semibold text-white/85">
                 {summarizeBuild(ownedRelics)
-                  .map(({ tag, count }) => `${RELIC_TAG_INFO[tag].icon} ${RELIC_TAG_INFO[tag].name} ×${count}`)
+                  .map(({ tag, count }) =>
+                    relicSets && count >= RELIC_SET_SIZE
+                      ? `${RELIC_TAG_INFO[tag].icon} ${RELIC_TAG_INFO[tag].name} ${count} · set ×${RELIC_SET_X}`
+                      : `${RELIC_TAG_INFO[tag].icon} ${RELIC_TAG_INFO[tag].name} ×${count}`
+                  )
                   .join(" · ")}
               </span>
+              {relicSets && summarizeBuild(ownedRelics).every((b) => b.count < RELIC_SET_SIZE) && (
+                <span className="block text-white/45">
+                  {RELIC_SET_SIZE} relics with one tag make a set: every line ×{RELIC_SET_X}.
+                </span>
+              )}
             </div>
           )}
           {!selectedSlotRelic && commonOwned.length > 0 && onSell && (
