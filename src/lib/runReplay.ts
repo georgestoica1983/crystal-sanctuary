@@ -157,6 +157,7 @@ export function startRunGarden(
     heroClassId: classId,
     activeRelics: [],
     introTiles: runRulesUseIntroTiles(logVersion),
+    gentleStart: runRulesUseGentleStart(logVersion),
     allBossRules: runRulesUseAllBosses(logVersion),
     ...ascensionGardenParams(rules),
   });
@@ -293,6 +294,8 @@ export const RUN_BAG_MIN_SIZE = 30;
 export const runRulesAllowPrune = (logVersion: number) => logVersion >= 9;
 /** Rules v10+: 3 relics with one theme tag score every line ×1.25 */
 export const runRulesUseRelicSets = (logVersion: number) => logVersion >= 10;
+/** Rules v11+: gentler Season 1 targets (800 / 1,500 / 2,500) */
+export const runRulesUseGentleStart = (logVersion: number) => logVersion >= 11;
 
 /**
  * Removes the bag tile at `index` for the rest of the Run (once per Shop
@@ -368,6 +371,7 @@ export function createNextRunGarden(params: {
     heroClassId: params.classId,
     activeRelics: params.relics,
     introTiles: runRulesUseIntroTiles(v),
+    gentleStart: runRulesUseGentleStart(v),
     allBossRules: runRulesUseAllBosses(v),
     ...ascensionGardenParams(rules),
   });
@@ -418,9 +422,10 @@ export function getRunPathError(
  * v8: Ascension levels (the log's `asc`, 0–6).
  * v9: ✂️ Pruning Shears in the Shop remove a tile from the bag (action "p").
  * v10: relic sets — 3 relics with one theme tag score every line ×1.25.
+ * v11: a gentler first Season (targets 800 / 1,500 / 2,500).
  * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 10;
+export const RUN_LOG_VERSION = 11;
 export const RUN_LOG_MIN_VERSION = 2;
 /** Rule set of new Runs (the current version) */
 export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);

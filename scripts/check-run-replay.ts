@@ -6,6 +6,7 @@ import path from "path";
 import {
   countCommonRelics,
   findEntityCoord,
+  getRunGardenTarget,
   findSurvivableHintPath,
   getRelicSellValue,
   MAX_COMMON_RELICS,
@@ -47,9 +48,9 @@ function check(label: string, ok: boolean, detail = "") {
  * With `chaseSets` it first buys a relic that shares a tag with its own.
  * Returns its log and the score it expects from the searched lines' scores.
  */
-function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0, chaseSets = false) {
-  const run = createRunReplayer(seed, hero, RUN_LOG_VERSION, asc);
-  const log: RunActionLog = asc ? { v: RUN_LOG_VERSION, seed, hero, asc, a: [] } : { v: RUN_LOG_VERSION, seed, hero, a: [] };
+function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0, chaseSets = false, v = RUN_LOG_VERSION) {
+  const run = createRunReplayer(seed, hero, v, asc);
+  const log: RunActionLog = asc ? { v, seed, hero, asc, a: [] } : { v, seed, hero, a: [] };
   let expected = 0;
   const act = (a: RunLogAction) => {
     const err = run.apply(a);
@@ -371,7 +372,7 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
   // A bot that chases sets: its v10 log replays, and the same moves as v9 score less
   let found = false;
   for (let i = 0; i < 12 && !found; i++) {
-    const bot = playBotRun(`run-sets-${i}`, "KNIGHT", 9, 0, true);
+    const bot = playBotRun(`run-sets-${i}`, "KNIGHT", 9, 0, true, 10);
     if (completedRelicSets(bot.state.relics).length === 0) continue;
     found = true;
     const v10 = replayRun(JSON.parse(JSON.stringify(bot.log)));
@@ -388,6 +389,30 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
     );
   }
   check("a set-chasing bot completes a set", found);
+}
+
+// 8. Gentle first Season (rules v11+): Season 1 targets 800 / 1,500 / 2,500; later Seasons unchanged
+{
+  const v11 = createRunReplayer("run-gentle-check", "KNIGHT", 11);
+  const v10 = createRunReplayer("run-gentle-check", "KNIGHT", 10);
+  check(
+    `v11 first bed target is 800 (v10: ${v10.state.garden.target})`,
+    v11.state.garden.target === 800 && v10.state.garden.target === 1500
+  );
+  check(
+    "Season 2 targets don't change",
+    getRunGardenTarget(2, "SMALL", true) === getRunGardenTarget(2, "SMALL", false) &&
+      getRunGardenTarget(2, "BOSS", true) === getRunGardenTarget(2, "BOSS", false)
+  );
+  const asc6 = createRunReplayer("run-gentle-check", "KNIGHT", 11, 6);
+  check(`Ascension still raises the gentle targets (A6 first bed ${asc6.state.garden.target})`, asc6.state.garden.target > 800);
+  const bot = playBotRun("run-1700000000020-gentle", "ROGUE", 6);
+  const replay = replayRun(JSON.parse(JSON.stringify(bot.log)));
+  check(
+    `v11 bot Run replays (${bot.state.gardensBloomed} gardens)`,
+    replay.ok && replay.score === bot.state.score && replay.score === bot.expected,
+    replay.ok ? `${replay.score} vs ${bot.state.score}` : replay.error
+  );
 }
 
 console.log(failures ? `\n${failures} check(s) failed` : "\nAll replay checks passed");

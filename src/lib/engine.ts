@@ -3000,7 +3000,19 @@ export function getRunSeasonBaseTarget(season: number): number {
   );
 }
 
-export function getRunGardenTarget(season: number, kind: RunGardenKind): number {
+/**
+ * Rules v11+: a gentler first Season, so a new player who draws medium-long
+ * lines clears the first bed and grows into the Boss (later Seasons unchanged).
+ */
+export const RUN_GENTLE_SEASON1_TARGETS: Record<RunGardenKind, number> = {
+  SMALL: 800,
+  BIG: 1500,
+  BOSS: 2500,
+};
+
+/** A Garden Bed's target; `gentleStart` (rules v11+, the default) eases Season 1 */
+export function getRunGardenTarget(season: number, kind: RunGardenKind, gentleStart = true): number {
+  if (gentleStart && Math.floor(season) <= 1) return RUN_GENTLE_SEASON1_TARGETS[kind];
   const base = getRunSeasonBaseTarget(season);
   if (kind === "SMALL") return base;
   const raw = base * RUN_GARDEN_TARGET_MULT[kind];
@@ -3228,6 +3240,8 @@ export function createRunGarden(params: {
   introTiles?: boolean;
   /** Rules v7+: Boss gardens pick from all eight Boss rules */
   allBossRules?: boolean;
+  /** Rules v11+: gentler Season 1 targets */
+  gentleStart?: boolean;
   /** Ascension (rules v8+): harder targets, stronger Thorns, fewer Swaps / Boss lines */
   targetMult?: number;
   thornBonus?: number;
@@ -3280,7 +3294,7 @@ export function createRunGarden(params: {
         gardenIndex,
         season,
         kind,
-        target: scaleRunTarget(getRunGardenTarget(season, kind), params.targetMult ?? 1),
+        target: scaleRunTarget(getRunGardenTarget(season, kind, params.gentleStart ?? false), params.targetMult ?? 1),
         score: 0,
         strokesLeft: kind === "BOSS" && params.bossLines ? params.bossLines : RUN_STROKES_PER_GARDEN,
         strokesTotal: kind === "BOSS" && params.bossLines ? params.bossLines : RUN_STROKES_PER_GARDEN,

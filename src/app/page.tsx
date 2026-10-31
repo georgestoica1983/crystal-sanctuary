@@ -142,6 +142,7 @@ import {
   runClearLifeFor,
   runRulesAllowPrune,
   runRulesUseRelicSets,
+  runRulesUseGentleStart,
   runModifierFor,
   scoreRunStroke,
   startRunGarden,
@@ -3778,7 +3779,8 @@ export default function OneStrokeTacticianPage() {
                 const next = getRunGardenPosition(currentFloorIndex + 1);
                 return `${getRunGardenLabel(currentFloorIndex + 1)} · target ${getRunGardenTarget(
                   next.season,
-                  next.kind
+                  next.kind,
+                  runRulesUseGentleStart(runLogRef.current?.v ?? RUN_LOG_VERSION)
                 ).toLocaleString()}`;
               })()
             : dungeon.floors[currentFloorIndex + 1]
