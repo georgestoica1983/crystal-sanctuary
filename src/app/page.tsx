@@ -1728,7 +1728,7 @@ export default function OneStrokeTacticianPage() {
     // Which relics added to this line (shown lighting up after the result)
     const sources = [...breakdown.chipSources, ...breakdown.multSources, ...breakdown.xMultSources];
     pendingFlashRef.current = activeRelicsForBoard.filter((id) =>
-      sources.some((src) => src.label.includes(RELIC_REGISTRY[id].name))
+      sources.some((src) => src.relicId === id)
     );
 
     if (!simResult.survives) {

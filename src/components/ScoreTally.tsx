@@ -2,9 +2,10 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BossRuleId, FloorScoreBreakdown, FloorStarBreakdown, RelicId } from "@/types/game";
+import { BossRuleId, FloorScoreBreakdown, FloorStarBreakdown, RelicId, ScoreSource } from "@/types/game";
 import { BOSS_RULE_REGISTRY, RELIC_REGISTRY } from "@/lib/engine";
 import { soundEngine } from "@/lib/audio";
+import { themeArt, tileArt } from "@/lib/art";
 import RelicIcon from "@/components/RelicIcon";
 
 interface ScoreTallyProps {
@@ -60,6 +61,15 @@ const fmt = (n: number) =>
  * Balatro-style floor tally: Value lines tick in, Length builds up, relic
  * multipliers pop, then the garden score slams down with floating text.
  */
+/** Small icon in front of a score line (relic, set theme or tile art) */
+function SourceArt({ art, size = 13 }: { art?: string; size?: number }) {
+  if (!art) return null;
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={art} alt="" aria-hidden="true" draggable={false} className="shrink-0 object-contain mt-px" style={{ width: size, height: size }} />
+  );
+}
+
 export default function ScoreTally({
   isOpen,
   breakdown,
@@ -142,13 +152,13 @@ export default function ScoreTally({
     onContinue();
   };
 
-  const chipLines = [
-    { label: "🌰 Acorns gathered", value: breakdown.gemChips },
-    { label: "🌿 Tiles on your line", value: breakdown.tileChips },
+  const chipLines: ScoreSource[] = [
+    { label: "Acorns gathered", value: breakdown.gemChips, art: tileArt("GOLD") ?? undefined },
+    { label: "Tiles on your line", value: breakdown.tileChips, art: themeArt("GROWING") },
     ...breakdown.chipSources,
   ].filter((l) => l.value > 0);
-  const multLines = [
-    { label: `📏 Line length`, value: breakdown.pathMult },
+  const multLines: ScoreSource[] = [
+    { label: "Line length", value: breakdown.pathMult, art: themeArt("LONG") },
     ...breakdown.multSources,
   ];
   const boss = defeatedBossRuleId ? BOSS_RULE_REGISTRY[defeatedBossRuleId] : null;
@@ -223,7 +233,10 @@ export default function ScoreTally({
                   animate={stage >= 1 ? { opacity: 1, x: 0, transition: { delay: i * 0.15 } } : {}}
                   className="flex justify-between items-start text-[11px] leading-tight text-sky-100/80 gap-1"
                 >
-                  <span className="min-w-0 break-words">{line.label}</span>
+                  <span className="min-w-0 break-words flex items-start gap-1">
+                    <SourceArt art={line.art} />
+                    {line.label}
+                  </span>
                   <span className="font-bold shrink-0">+{line.value}</span>
                 </motion.div>
               ))}
@@ -251,7 +264,10 @@ export default function ScoreTally({
                   animate={stage >= 2 ? { opacity: 1, x: 0, transition: { delay: i * 0.15 } } : {}}
                   className="flex justify-between items-start text-[11px] leading-tight text-emerald-100/80 gap-1"
                 >
-                  <span className="min-w-0 break-words">{line.label}</span>
+                  <span className="min-w-0 break-words flex items-start gap-1">
+                    <SourceArt art={line.art} />
+                    {line.label}
+                  </span>
                   <span className="font-bold shrink-0">+{line.value}</span>
                 </motion.div>
               ))}
@@ -271,8 +287,9 @@ export default function ScoreTally({
                     ? { scale: [1.6, 1], opacity: 1, transition: { delay: i * 0.18 } }
                     : {}
                 }
-                className="px-2 py-1 rounded-lg border border-violet-300/50 bg-violet-500/15 text-[12px] font-bold text-violet-100"
+                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-violet-300/50 bg-violet-500/15 text-[12px] font-bold text-violet-100"
               >
+                <SourceArt art={x.art} size={16} />
                 {x.label} ×{x.value}
               </motion.span>
             ))}

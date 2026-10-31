@@ -164,15 +164,23 @@ export interface ShopOffer {
 }
 
 /** Chips × Mult breakdown of one garden's score */
+/** One relic (or relic set) adding to a line's score; `art` is its icon */
+export interface ScoreSource {
+  label: string;
+  value: number;
+  relicId?: RelicId;
+  art?: string;
+}
+
 export interface FloorScoreBreakdown {
   gemChips: number;
   tileChips: number;
-  chipSources: Array<{ label: string; value: number }>;
+  chipSources: ScoreSource[];
   chips: number;
   pathMult: number;
-  multSources: Array<{ label: string; value: number }>;
+  multSources: ScoreSource[];
   mult: number;
-  xMultSources: Array<{ label: string; value: number }>;
+  xMultSources: ScoreSource[];
   xMult: number;
   total: number;
 }

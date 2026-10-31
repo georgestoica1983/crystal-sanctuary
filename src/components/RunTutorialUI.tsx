@@ -10,6 +10,7 @@ import {
   RUN_REROLL_BASE_COST,
   MAX_COMMON_RELICS,
 } from "@/lib/engine";
+import { tileArt } from "@/lib/art";
 
 /** Lesson card above the board: what you learn, what to do, live goal check */
 export function RunLessonCoach({
@@ -206,7 +207,7 @@ const PRACTICE_COPY: Record<PracticeStep, { title: string; lines: string[]; butt
     lines: ["Relics are lasting powers. Buy one, or save 🌱 for later."],
   },
   done: {
-    title: "You're ready 🌸",
+    title: "You're ready",
     lines: ["Each Season gets harder. Help is in the ☰ menu."],
     button: "Start my Run",
   },
@@ -333,7 +334,8 @@ export function RunHelpMenu({
         className="w-full max-w-[400px] rounded-2xl p-4 space-y-2.5 text-white border border-emerald-300/40 bg-gradient-to-b from-[#1F3125] to-[#111A14]"
       >
         <div className="text-center space-y-0.5">
-          <div className="text-3xl">🌸</div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={tileArt("ENEMY", { bloomed: true }) ?? ""} alt="" aria-hidden="true" draggable={false} className="mx-auto h-14 w-14 object-contain" />
           <div className="text-[22px] font-display font-semibold">
             {isFirstVisit ? "Welcome to Bloomline" : "Help"}
           </div>

@@ -6,6 +6,7 @@ import {
   EntityType,
   FloorHistoryRecord,
   FloorScoreBreakdown,
+  ScoreSource,
   FloorStarBreakdown,
   FloorTier,
   GridCell,
@@ -37,6 +38,7 @@ import {
   SHARE_TILE_EMOJI,
 } from "@/lib/sanctuaryCopy";
 import { completedRelicSets, RELIC_SET_X, RELIC_TAG_INFO } from "@/lib/relicTags";
+import { relicArt, themeArt } from "@/lib/art";
 
 export const INITIAL_HERO_STATS: HeroStats = {
   hp: 10,
@@ -1831,20 +1833,24 @@ export function calculateFloorScoreBreakdown(
     0
   );
 
-  const chipSources: Array<{ label: string; value: number }> = [];
-  const multSources: Array<{ label: string; value: number }> = [];
-  const xMultSources: Array<{ label: string; value: number }> = [];
+  const chipSources: ScoreSource[] = [];
+  const multSources: ScoreSource[] = [];
+  const xMultSources: ScoreSource[] = [];
   const has = (id: RelicId) => activeRelics.includes(id);
-  const name = (id: RelicId) =>
-    `${RELIC_REGISTRY[id].icon} ${RELIC_REGISTRY[id].name}`;
+  const source = (id: RelicId, value: number): ScoreSource => ({
+    label: RELIC_REGISTRY[id].name,
+    value,
+    relicId: id,
+    art: relicArt(id),
+  });
   const addChips = (id: RelicId, value: number) => {
-    if (has(id) && value > 0) chipSources.push({ label: name(id), value });
+    if (has(id) && value > 0) chipSources.push(source(id, value));
   };
   const addMult = (id: RelicId, value: number) => {
-    if (has(id) && value > 0) multSources.push({ label: name(id), value });
+    if (has(id) && value > 0) multSources.push(source(id, value));
   };
   const addX = (id: RelicId, value: number, when = true) => {
-    if (has(id) && when && value > 1) xMultSources.push({ label: name(id), value: roundX(value) });
+    if (has(id) && when && value > 1) xMultSources.push(source(id, roundX(value)));
   };
   const counter = (id: RelicId) => getRelicCounter(ctx.counters, id);
   const magicLost = Math.max(0, startHero.hp - sim.finalStats.hp);
@@ -1884,7 +1890,7 @@ export function calculateFloorScoreBreakdown(
   if (ctx.relicSets) {
     for (const tag of completedRelicSets(activeRelics)) {
       const info = RELIC_TAG_INFO[tag];
-      xMultSources.push({ label: `${info.icon} ${info.name} set`, value: RELIC_SET_X });
+      xMultSources.push({ label: `${info.name} set`, value: RELIC_SET_X, art: themeArt(tag) });
     }
   }
 

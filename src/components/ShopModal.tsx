@@ -25,7 +25,7 @@ import {
 } from "@/lib/engine";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import PruneCard from "@/components/PruneCard";
-import { themeArt } from "@/lib/art";
+import { statArt, themeArt } from "@/lib/art";
 import {
   getRelicTags,
   RELIC_SET_SIZE,
@@ -285,7 +285,18 @@ export default function ShopModal({
                       borderColor: `${info.accent}66`,
                     }}
                   >
-                    {offer.relicId ? <RelicIcon id={offer.relicId} size={34} /> : info.icon}
+                    {offer.relicId ? (
+                      <RelicIcon id={offer.relicId} size={34} />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={statArt(offer.stat === "START_DEW" ? "gloves" : "life")}
+                        alt=""
+                        aria-hidden="true"
+                        draggable={false}
+                        className="h-8 w-8 object-contain"
+                      />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex flex-col items-start gap-0.5">

@@ -18,6 +18,7 @@ import { loadBestClearedAscension } from "@/lib/ascension";
 import { HERO_CLASS_REGISTRY } from "@/lib/engine";
 import { COMPANION_RULES, companionStartText } from "@/components/AscensionPicker";
 import { getBoardTheme } from "@/lib/boardThemes";
+import EntityIcon from "@/components/EntityIcon";
 
 /** Companions (each plays differently) and line colours (looks only), earned by playing */
 export default function LooksModal({
@@ -101,9 +102,7 @@ export default function LooksModal({
                     unlocked ? "border-white/15 bg-white/[0.04]" : "border-white/[0.06] bg-black/20 opacity-60"
                   }`}
                 >
-                  <span className="text-[26px] leading-none mt-0.5" aria-hidden="true">
-                    {def.sanctuaryEmblem ?? def.emblem}
-                  </span>
+                  <EntityIcon type="HERO" companionId={id} size={34} className="mt-0.5" />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-1.5">
                       <span className="text-[13px] font-bold">{def.sanctuaryShortName ?? def.shortName}</span>

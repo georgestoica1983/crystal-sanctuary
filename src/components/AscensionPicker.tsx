@@ -6,6 +6,7 @@ import { HeroClassId } from "@/types/game";
 import { HERO_CLASS_REGISTRY } from "@/lib/engine";
 import { ASCENSION_LEVELS } from "@/lib/runReplay";
 import { companionUnlockFor, RUN_COMPANION_ORDER } from "@/lib/unlocks";
+import EntityIcon from "@/components/EntityIcon";
 
 /** Each companion's rule in a Garden Run, in plain words */
 export const COMPANION_RULES: Record<HeroClassId, string> = {
@@ -98,7 +99,7 @@ export default function AscensionPicker({
                 }`}
               >
                 <span className="flex items-center gap-1.5">
-                  <span className="text-[22px] leading-none" aria-hidden="true">{def.sanctuaryEmblem ?? def.emblem}</span>
+                  <EntityIcon type="HERO" companionId={id} size={30} />
                   <span className="min-w-0">
                     <span className="block text-[13px] font-bold leading-tight">{def.sanctuaryShortName ?? def.shortName}</span>
                     <span className="block text-[10.5px] text-white/55 font-mono">{companionStartText(id)}</span>
@@ -155,7 +156,7 @@ export default function AscensionPicker({
           onClick={() => onStart(level, companion)}
           className="w-full rounded-xl py-3 font-bold text-[14px] bg-teal-300 text-slate-950 active:scale-95"
         >
-          Start with {pickedDef.sanctuaryEmblem ?? pickedDef.emblem} {pickedDef.sanctuaryShortName ?? pickedDef.shortName}
+          Start with {pickedDef.sanctuaryShortName ?? pickedDef.shortName}
           {level > 0 ? ` · Ascension ${level}` : ""} →
         </button>
       </div>
