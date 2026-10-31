@@ -13,6 +13,7 @@ import {
   Sword,
   Trophy,
   Volume2,
+  Music,
   VolumeX,
   Coins,
   Compass,
@@ -513,6 +514,8 @@ interface TopHUDProps {
   monetization: MonetizationState;
   cosmetics: CosmeticPreferences;
   soundEnabled: boolean;
+  /** Calm background music (separate from sound effects) */
+  musicEnabled?: boolean;
   retractNotice: string | null;
   showTutorial: boolean;
   isInteractiveTutorial?: boolean;
@@ -524,6 +527,7 @@ interface TopHUDProps {
   onSelectTutorialStage?: (stageIdx: number) => void;
   onOpenReferenceManual?: () => void;
   onToggleSound: () => void;
+  onToggleMusic?: () => void;
   /** Settings (Run menu): vibration and reduce motion */
   vibrationOn?: boolean;
   onToggleVibration?: () => void;
@@ -566,6 +570,7 @@ export function TopHUD({
   monetization,
   cosmetics,
   soundEnabled,
+  musicEnabled = false,
   retractNotice,
   showTutorial,
   isInteractiveTutorial = false,
@@ -577,6 +582,7 @@ export function TopHUD({
   onSelectTutorialStage,
   onOpenReferenceManual,
   onToggleSound,
+  onToggleMusic,
   vibrationOn,
   onToggleVibration,
   reduceMotion,
@@ -925,6 +931,13 @@ export function TopHUD({
                   Sound
                   <span className="ml-auto text-[12px] text-white/50">{soundEnabled ? "On" : "Off"}</span>
                 </button>
+                {onToggleMusic && (
+                  <button type="button" className={menuRow} onClick={onToggleMusic} aria-pressed={musicEnabled}>
+                    <Music className={`w-5 h-5 mx-0.5 ${musicEnabled ? "text-white/80" : "text-white/50"}`} />
+                    Music
+                    <span className="ml-auto text-[12px] text-white/50">{musicEnabled ? "On" : "Off"}</span>
+                  </button>
+                )}
                 <button type="button" className={menuRow} onClick={handleToggleVisualTheme}>
                   <span className="w-6 text-center" aria-hidden="true">{isSanctuarySkin ? "🌸" : "🌙"}</span>
                   Board look

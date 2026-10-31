@@ -414,6 +414,7 @@ export default function OneStrokeTacticianPage() {
   );
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [soundEnabled, setSoundEnabled] = useState<boolean>(false);
+  const [musicEnabled, setMusicEnabled] = useState<boolean>(false);
 
   const [isSummaryModalOpen, setIsSummaryModalOpen] = useState<boolean>(false);
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState<boolean>(false);
@@ -481,6 +482,7 @@ export default function OneStrokeTacticianPage() {
     setMonetization(loadMonetizationState());
     setCosmetics(loadCosmeticPreferences());
     setSoundEnabled(soundEngine.soundEnabled);
+    setMusicEnabled(soundEngine.musicEnabled);
 
     // New players start on the real Daily with a short coach (the 7 lessons
     // stay available from the Tutorial tab). Resumes an unfinished official
@@ -2834,6 +2836,12 @@ export default function OneStrokeTacticianPage() {
     setSoundEnabled(next);
   }, [soundEnabled]);
 
+  const handleToggleMusic = useCallback(() => {
+    const next = !musicEnabled;
+    soundEngine.setMusicEnabled(next);
+    setMusicEnabled(next);
+  }, [musicEnabled]);
+
   // Sends the player to Stripe Checkout. The Expansion is only unlocked once
   // the server confirms the payment (see the mount effect above).
   const handleUnlockExpansion = useCallback(async () => {
@@ -2969,6 +2977,7 @@ export default function OneStrokeTacticianPage() {
         monetization={monetization}
         cosmetics={cosmetics}
         soundEnabled={soundEnabled}
+        musicEnabled={musicEnabled}
         retractNotice={retractNotice}
         showTutorial={showTutorial}
         isInteractiveTutorial={isInteractiveTutorial}
@@ -3001,6 +3010,7 @@ export default function OneStrokeTacticianPage() {
           setShowTutorial(true);
         }}
         onToggleSound={handleToggleSound}
+        onToggleMusic={handleToggleMusic}
         onSwitchMode={handleSwitchMode}
         onSelectHeroClass={handleSelectHeroClass}
         onSelectCosmetics={handleSelectCosmetics}

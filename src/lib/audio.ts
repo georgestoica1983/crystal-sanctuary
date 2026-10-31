@@ -1,23 +1,72 @@
 "use client";
 
+/** Garden key: D major pentatonic (D E F# A B), the notes every sound and the music use */
+export const GARDEN_SCALE_HZ = [146.83, 164.81, 185.0, 220.0, 246.94];
+/** Note `step` of the garden scale, climbing octaves past the fifth note */
+export const gardenNote = (step: number, base = 2) =>
+  GARDEN_SCALE_HZ[((step % 5) + 5) % 5] * 2 ** (base + Math.floor(step / 5) - 1);
+
+/**
+ * Sound graph: effects → sfx bus, music → music bus; both feed a soft room
+ * echo and a master chain (warm low-pass → gentle compressor → speakers).
+ * The music dips briefly whenever an effect plays.
+ */
+interface AudioGraph {
+  sfx: GainNode;
+  music: GainNode;
+  master: GainNode;
+}
+
+const MUSIC_LEVEL = 0.32;
+
 class SoundAndHapticsEngine {
   private ctx: AudioContext | null = null;
+  private graph: AudioGraph | null = null;
   private noiseBuffer: AudioBuffer | null = null;
-  // Off until the player turns it on (the 🔊 button next to Swap); a saved choice wins
+  private musicTimer: ReturnType<typeof setInterval> | null = null;
+  private musicChord = 0;
+  // Off until the player turns them on; a saved choice wins
   public soundEnabled: boolean = false;
+  public musicEnabled: boolean = false;
   public hapticsEnabled: boolean = true;
 
   constructor() {
     if (typeof window !== "undefined") {
       try {
         const savedSound = window.localStorage.getItem("ost_sound_enabled");
+        const savedMusic = window.localStorage.getItem("ost_music_enabled");
         const savedHaptics = window.localStorage.getItem("ost_haptics_enabled");
         if (savedSound !== null) this.soundEnabled = savedSound === "true";
+        if (savedMusic !== null) this.musicEnabled = savedMusic === "true";
         if (savedHaptics !== null) this.hapticsEnabled = savedHaptics === "true";
       } catch {
         // Ignore storage errors in restricted environments
       }
+      // Browsers only start audio after a tap; quiet while the app is in the background
+      const wake = () => {
+        if (this.musicEnabled) this.startMusic();
+        else if (this.ctx?.state === "suspended" && this.soundEnabled) this.ctx.resume().catch(() => {});
+      };
+      window.addEventListener("pointerdown", wake, { passive: true });
+      document.addEventListener("visibilitychange", () => {
+        if (!this.ctx) return;
+        if (document.hidden) this.ctx.suspend().catch(() => {});
+        else if (this.soundEnabled || this.musicEnabled) this.ctx.resume().catch(() => {});
+      });
     }
+  }
+
+  public setMusicEnabled(enabled: boolean): void {
+    this.musicEnabled = enabled;
+    if (typeof window !== "undefined") {
+      try {
+        window.localStorage.setItem("ost_music_enabled", String(enabled));
+      } catch {
+        // Ignore
+      }
+    }
+    if (enabled) this.startMusic();
+    else this.stopMusic();
   }
 
   public setSoundEnabled(enabled: boolean): void {
@@ -42,8 +91,9 @@ class SoundAndHapticsEngine {
     }
   }
 
-  private getContext(): AudioContext | null {
-    if (!this.soundEnabled || typeof window === "undefined") return null;
+  /** The audio context and its graph, created on first use */
+  private ensureAudio(): { ctx: AudioContext; graph: AudioGraph } | null {
+    if (typeof window === "undefined") return null;
     if (!this.ctx) {
       const AudioCtx =
         window.AudioContext ||
@@ -51,11 +101,146 @@ class SoundAndHapticsEngine {
           .webkitAudioContext;
       if (!AudioCtx) return null;
       this.ctx = new AudioCtx();
+      this.graph = this.buildGraph(this.ctx);
     }
-    if (this.ctx.state === "suspended") {
+    if (this.ctx.state === "suspended" && !document.hidden) {
       this.ctx.resume().catch(() => {});
     }
-    return this.ctx;
+    return { ctx: this.ctx, graph: this.graph! };
+  }
+
+  /** Context for a sound effect (null when sound is off) */
+  private getContext(): AudioContext | null {
+    if (!this.soundEnabled) return null;
+    const audio = this.ensureAudio();
+    if (!audio) return null;
+    this.duckMusic();
+    return audio.ctx;
+  }
+
+  private buildGraph(ctx: AudioContext): AudioGraph {
+    const warm = ctx.createBiquadFilter();
+    warm.type = "lowpass";
+    warm.frequency.value = 8500;
+    warm.Q.value = 0.5;
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -20;
+    comp.knee.value = 14;
+    comp.ratio.value = 3;
+    comp.attack.value = 0.01;
+    comp.release.value = 0.25;
+    const master = ctx.createGain();
+    master.gain.value = 0.9;
+    warm.connect(comp);
+    comp.connect(master);
+    master.connect(ctx.destination);
+
+    // Soft room echo: a short decaying noise impulse, a little darker than the dry sound
+    const room = ctx.createConvolver();
+    const len = Math.floor(ctx.sampleRate * 1.8);
+    const impulse = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let ch = 0; ch < 2; ch++) {
+      const d = impulse.getChannelData(ch);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+    }
+    room.buffer = impulse;
+    const roomTone = ctx.createBiquadFilter();
+    roomTone.type = "lowpass";
+    roomTone.frequency.value = 3200;
+    room.connect(roomTone);
+    roomTone.connect(warm);
+
+    const sfx = ctx.createGain();
+    sfx.gain.value = 1;
+    sfx.connect(warm);
+    const sfxRoom = ctx.createGain();
+    sfxRoom.gain.value = 0.22;
+    sfx.connect(sfxRoom);
+    sfxRoom.connect(room);
+
+    const music = ctx.createGain();
+    music.gain.value = 0;
+    music.connect(warm);
+    const musicRoom = ctx.createGain();
+    musicRoom.gain.value = 0.45;
+    music.connect(musicRoom);
+    musicRoom.connect(room);
+
+    return { sfx, music, master };
+  }
+
+  /** Effects come through: the music dips for a moment, then swells back */
+  private duckMusic(): void {
+    if (!this.ctx || !this.graph || !this.musicEnabled) return;
+    const g = this.graph.music.gain;
+    const now = this.ctx.currentTime;
+    g.cancelScheduledValues(now);
+    g.setValueAtTime(g.value, now);
+    g.linearRampToValueAtTime(MUSIC_LEVEL * 0.55, now + 0.04);
+    g.linearRampToValueAtTime(MUSIC_LEVEL, now + 0.6);
+  }
+
+  // ── Music ─────────────────────────────────────────────────────────────────
+  // For now a slow, soft pad that drifts between four garden chords; the full
+  // generated kalimba score replaces it later.
+  private static readonly PAD_CHORDS = [
+    [0, 2, 4, 6], // D F# B E
+    [3, 5, 7, 9], // A D F# B
+    [4, 6, 8, 10], // B E A D
+    [2, 4, 6, 8], // F# B E A
+  ];
+
+  private startMusic(): void {
+    const audio = this.ensureAudio();
+    if (!audio || this.musicTimer) return;
+    const { ctx, graph } = audio;
+    const now = ctx.currentTime;
+    graph.music.gain.cancelScheduledValues(now);
+    graph.music.gain.setValueAtTime(graph.music.gain.value, now);
+    graph.music.gain.linearRampToValueAtTime(MUSIC_LEVEL, now + 3);
+    this.playPadChord();
+    this.musicTimer = setInterval(() => this.playPadChord(), 8000);
+  }
+
+  private stopMusic(): void {
+    if (this.musicTimer) clearInterval(this.musicTimer);
+    this.musicTimer = null;
+    if (!this.ctx || !this.graph) return;
+    const g = this.graph.music.gain;
+    const now = this.ctx.currentTime;
+    g.cancelScheduledValues(now);
+    g.setValueAtTime(g.value, now);
+    g.linearRampToValueAtTime(0, now + 1.2);
+  }
+
+  private playPadChord(): void {
+    if (!this.ctx || !this.graph || document.hidden) return;
+    const ctx = this.ctx;
+    const chord = SoundAndHapticsEngine.PAD_CHORDS[this.musicChord++ % SoundAndHapticsEngine.PAD_CHORDS.length];
+    const now = ctx.currentTime;
+    const hold = 10; // overlaps the next chord by 2 s
+    const tone = ctx.createBiquadFilter();
+    tone.type = "lowpass";
+    tone.frequency.value = 1100;
+    tone.connect(this.graph.music);
+    chord.forEach((step, i) => {
+      for (const detune of [-6, 6]) {
+        const osc = ctx.createOscillator();
+        osc.type = i === 0 ? "sine" : "triangle";
+        osc.frequency.value = gardenNote(step, 1);
+        osc.detune.value = detune;
+        const g = ctx.createGain();
+        const peak = (i === 0 ? 0.09 : 0.05) / 2;
+        g.gain.setValueAtTime(0.0001, now);
+        g.gain.linearRampToValueAtTime(peak, now + 3);
+        g.gain.setValueAtTime(peak, now + hold - 3);
+        g.gain.linearRampToValueAtTime(0.0001, now + hold);
+        osc.connect(g);
+        g.connect(tone);
+        osc.start(now);
+        osc.stop(now + hold + 0.05);
+      }
+    });
   }
 
   private getNoiseBuffer(ctx: AudioContext): AudioBuffer {
@@ -115,7 +300,7 @@ class SoundAndHapticsEngine {
     gain.gain.exponentialRampToValueAtTime(0.0001, now + options.duration);
 
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(this.graph!.sfx);
 
     osc.start(now);
     osc.stop(now + options.duration + 0.01);
@@ -148,7 +333,7 @@ class SoundAndHapticsEngine {
 
     source.connect(filter);
     filter.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(this.graph!.sfx);
 
     source.start(now);
     source.stop(now + options.duration + 0.01);
