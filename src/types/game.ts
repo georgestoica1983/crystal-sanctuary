@@ -95,7 +95,16 @@ export type RelicId =
   // Legendary relics (Boss Garden rewards)
   | "THORN_CROWN"
   | "RAINBOW_HEART"
-  | "ETERNAL_SPRING";
+  | "ETERNAL_SPRING"
+  // Rules v16+: score-again and rule-bending relics
+  | "FIRST_BLOOM"
+  | "THORN_CHORUS"
+  | "BELL_TOWER"
+  | "ACORN_GATE"
+  | "LONG_SHADOW"
+  | "BRAMBLE_BERRIES"
+  | "SOFT_MOSS"
+  | "SUNBEAM_LENS";
 
 /** COMMON / UNCOMMON / RARE weight how often a relic shows up in the Shop */
 export type RelicRarity = "COMMON" | "UNCOMMON" | "RARE" | "LEGENDARY";

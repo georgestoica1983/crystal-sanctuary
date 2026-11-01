@@ -14,6 +14,7 @@ import {
   MAX_COMMON_RELICS,
   RELIC_REGISTRY,
   searchBestFloorLine,
+  simulatePath,
 } from "@/lib/engine";
 import {
   applyGardenTool,
@@ -264,7 +265,8 @@ refused("lower score than replay", submit(clone(), base.score - 1));
   // A bot only sells once its 5 slots are full, so look across a few more seeds
   let withSale = botLogs.find((b) => b.log.a.some((a) => a.k === "x"));
   for (let i = 0; !withSale && i < 12; i++) {
-    const extra = playBotRun(`run-1700000000100-${i}`, "KNIGHT", 14);
+    // Pinned to v15: the cheapest-first bot fills its relic slots there (v16 Shops tempt it elsewhere)
+    const extra = playBotRun(`run-1700000000100-${i}`, "KNIGHT", 14, 0, false, 15);
     const replay = replayRun(JSON.parse(JSON.stringify(extra.log)));
     if (extra.log.a.some((a) => a.k === "x") && replay.ok && replay.score === extra.expected) {
       withSale = { log: extra.log, score: extra.expected };
@@ -645,6 +647,57 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
   }
   const v14log = { v: 14, seed: "echo-check", hero: "KNIGHT" as const, a: [] as RunLogAction[] };
   check("v14 logs still replay under the v15 code", replayRun(JSON.parse(JSON.stringify(v14log))).ok);
+}
+
+// 13. Rules v16 relics: only in v16 Shops; each one's effect
+{
+  const NEW = ["FIRST_BLOOM", "THORN_CHORUS", "BELL_TOWER", "ACORN_GATE", "LONG_SHADOW", "BRAMBLE_BERRIES", "SOFT_MOSS", "SUNBEAM_LENS"];
+  let inOld = 0;
+  let inNew = 0;
+  for (let f = 1; f <= 60; f++) {
+    for (const v of [15, 16]) {
+      const offers = generateShopOffers(`relics16-${f}`, 1, 0, [], 6, 0, 8, true, v >= 16);
+      const n = offers.filter((o) => o.relicId && NEW.includes(o.relicId)).length;
+      if (v === 15) inOld += n;
+      else inNew += n;
+    }
+  }
+  check(`new relics only in v16 Shops (v15: ${inOld}, v16: ${inNew} in 60 Shops)`, inOld === 0 && inNew > 0);
+
+  const r = createRunReplayer("relics16-effects", "KNIGHT", 16);
+  const best = searchBestFloorLine(r.state.grid, r.state.startHero, RUN_MODIFIER, "KNIGHT", [], 20000, {});
+  if (best) {
+    const start = r.state.startHero;
+    const len = best.path.length;
+    const base = calculateFloorScoreBreakdown(best.sim, start, len, [], {});
+    const withRelic = (id: string) => calculateFloorScoreBreakdown(best.sim, start, len, [id as never], {});
+    const visited = best.sim.steps.filter((st, i) => i > 0 && !st.isShadowStepCross);
+    const num = (st: (typeof visited)[number]) =>
+      ["ENEMY", "SHIELD", "WEAPON", "POTION", "TRAP", "GOLD"].includes(st.cell.type) ? Math.max(0, st.cell.value) : 0;
+    check("First Bloom: the first tile counts twice", withRelic("FIRST_BLOOM").chips - base.chips === num(visited[0]));
+    const thorns = visited.filter((st) => st.cell.type === "ENEMY").reduce((n, st) => n + num(st), 0);
+    check(`Thorn Chorus: every Thorn counts twice (+${thorns})`, withRelic("THORN_CHORUS").chips - base.chips === thorns);
+    const fifth = visited.filter((_, i) => (i + 1) % 5 === 0).reduce((n, st) => n + num(st), 0);
+    check(`Long Shadow: every 5th tile counts twice (+${fifth})`, withRelic("LONG_SHADOW").chips - base.chips === fifth);
+    check("Acorn Gate: the Exit adds +8 Value", withRelic("ACORN_GATE").chips - base.chips === 8);
+    const bee = calculateFloorScoreBreakdown(best.sim, start, len, ["GOLDEN_BEE"], {});
+    const beeGate = calculateFloorScoreBreakdown(best.sim, start, len, ["GOLDEN_BEE", "ACORN_GATE"], {});
+    check("Acorn Gate: the Exit counts as an Acorn for Golden Bee (+1 Length)", beeGate.mult - bee.mult === 1);
+  }
+  // Soft Moss: a straight step onto a Spike costs no Life
+  {
+    const grid = createRunReplayer("relics16-effects", "KNIGHT", 16).state.grid.map((row) => row.map((c) => ({ ...c })));
+    const hero = grid.flat().find((c) => c.type === "HERO")!;
+    grid[hero.row - 1][hero.col] = { ...grid[hero.row - 1][hero.col], type: "TRAP", value: 3 };
+    const path = [{ row: hero.row, col: hero.col }, { row: hero.row - 1, col: hero.col }];
+    const heroStats = { hp: 10, maxHp: 10, shield: 0, weapon: 0, gold: 0 };
+    const hurt = simulatePath(grid, path, heroStats, RUN_MODIFIER, "KNIGHT", []);
+    const soft = simulatePath(grid, path, heroStats, RUN_MODIFIER, "KNIGHT", ["SOFT_MOSS"]);
+    check(
+      `Soft Moss: a straight step onto a Spike costs no Life (${hurt.finalStats.hp} → ${soft.finalStats.hp})`,
+      hurt.finalStats.hp < 10 && soft.finalStats.hp === 10
+    );
+  }
 }
 
 console.log(failures ? `\n${failures} check(s) failed` : "\nAll replay checks passed");

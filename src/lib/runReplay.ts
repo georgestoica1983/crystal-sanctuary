@@ -245,7 +245,8 @@ export function getRunBloomResult(params: {
       runFertilizerCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
       runToolExtraCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
       runEditionTileCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
-      runRulesUseEcho(params.logVersion ?? RUN_LOG_VERSION)
+      runRulesUseEcho(params.logVersion ?? RUN_LOG_VERSION),
+      runRulesUseV16Relics(params.logVersion ?? RUN_LOG_VERSION)
     ),
   };
 }
@@ -345,6 +346,8 @@ export const runRulesUseTools = (logVersion: number) => logVersion >= 13;
 export const runRulesUseEditions = (logVersion: number) => logVersion >= 14;
 /** Rules v15+: Echo, a tool that makes a tile score twice */
 export const runRulesUseEcho = (logVersion: number) => logVersion >= 15;
+/** Rules v16+: 8 new relics (score-again and rule-benders) join the Shop */
+export const runRulesUseV16Relics = (logVersion: number) => logVersion >= 16;
 /** A special tile's Shop price: 8 Seeds, 10 from Ascension 2 (null = none in these rules) */
 export const runEditionTileCost = (logVersion: number, asc = 0): number | null =>
   runRulesUseEditions(logVersion) ? EDITION_TILE_COST + (runAscensionFor(logVersion, asc) >= 2 ? 2 : 0) : null;
@@ -450,7 +453,8 @@ export function applyRunShopReroll(params: {
       runFertilizerCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
       runToolExtraCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
       runEditionTileCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
-      runRulesUseEcho(params.logVersion ?? RUN_LOG_VERSION)
+      runRulesUseEcho(params.logVersion ?? RUN_LOG_VERSION),
+      runRulesUseV16Relics(params.logVersion ?? RUN_LOG_VERSION)
     ),
     cost,
   };
@@ -543,7 +547,7 @@ export function getRunPathError(
  * v11: a gentler first Season (targets 800 / 1,500 / 2,500).
  * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 15;
+export const RUN_LOG_VERSION = 16;
 export const RUN_LOG_MIN_VERSION = 2;
 /** Rule set of new Runs (the current version) */
 export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);

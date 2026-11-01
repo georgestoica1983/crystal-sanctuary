@@ -65,6 +65,14 @@ export const RELIC_TAGS: Record<RelicId, RelicTag[]> = {
   DAWN_CHORUS: ["ANY"],
   EVENING_LANTERN: ["ANY"],
   RAINBOW_HEART: ["ANY"],
+  FIRST_BLOOM: ["ANY"],
+  THORN_CHORUS: ["THORNS"],
+  BELL_TOWER: ["ANY"],
+  ACORN_GATE: ["ACORNS"],
+  LONG_SHADOW: ["LONG"],
+  BRAMBLE_BERRIES: ["THORNS", "CARE"],
+  SOFT_MOSS: ["CAREFUL"],
+  SUNBEAM_LENS: ["ANY"],
 };
 
 export const getRelicTags = (id: RelicId): RelicTag[] => RELIC_TAGS[id] ?? ["ANY"];

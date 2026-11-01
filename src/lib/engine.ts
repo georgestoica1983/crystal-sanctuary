@@ -41,7 +41,7 @@ import {
   SHARE_TILE_EMOJI,
 } from "@/lib/sanctuaryCopy";
 import { completedRelicSets, RELIC_SET_X, RELIC_TAG_INFO } from "@/lib/relicTags";
-import { relicArt, themeArt, tileArt } from "@/lib/art";
+import { relicArt, relicHasArt, themeArt, tileArt } from "@/lib/art";
 
 export const INITIAL_HERO_STATS: HeroStats = {
   hp: 10,
@@ -633,9 +633,108 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     accentColor: "#34D399",
     rarity: "LEGENDARY",
   },
+  // ── Rules v16+: score-again and rule-bending relics ──
+  FIRST_BLOOM: {
+    id: "FIRST_BLOOM",
+    name: "First Bloom",
+    icon: "🌷",
+    shortTag: "The first tile of every line scores twice",
+    description: "The first tile after your companion counts its number twice on every line.",
+    accentColor: "#F9A8D4",
+    cost: 6,
+    rarity: "UNCOMMON",
+    category: "CHIPS",
+  },
+  THORN_CHORUS: {
+    id: "THORN_CHORUS",
+    name: "Thorn Chorus",
+    icon: "🎶",
+    shortTag: "Every Thorn scores twice",
+    description: "Every Thorn on your line counts its number twice.",
+    accentColor: "#FB7185",
+    cost: 9,
+    rarity: "RARE",
+    category: "CHIPS",
+  },
+  BELL_TOWER: {
+    id: "BELL_TOWER",
+    name: "Bell Tower",
+    icon: "🔔",
+    shortTag: "Echo tiles score 3 times",
+    description: "Every 🔔 Echo tile on your line counts its number a third time.",
+    accentColor: "#FCD34D",
+    cost: 6,
+    rarity: "UNCOMMON",
+    category: "CHIPS",
+  },
+  ACORN_GATE: {
+    id: "ACORN_GATE",
+    name: "Acorn Gate",
+    icon: "🚪",
+    shortTag: "The Exit counts as an Acorn (+8 Value)",
+    description: "The Exit gate adds +8 Value and counts as an 🌰 Acorn for your other relics.",
+    accentColor: "#D97706",
+    cost: 5,
+    category: "CHIPS",
+  },
+  LONG_SHADOW: {
+    id: "LONG_SHADOW",
+    name: "Long Shadow",
+    icon: "🌗",
+    shortTag: "Every 5th tile scores twice",
+    description: "The 5th, 10th, 15th… tile of your line counts its number twice.",
+    accentColor: "#A5B4FC",
+    cost: 7,
+    rarity: "UNCOMMON",
+    category: "CHIPS",
+  },
+  BRAMBLE_BERRIES: {
+    id: "BRAMBLE_BERRIES",
+    name: "Bramble Berries",
+    icon: "🫐",
+    shortTag: "Berries count as Thorns for relics",
+    description: "Berries also count as 🌺 Thorns for your other relics (they still heal and never hurt).",
+    accentColor: "#C084FC",
+    cost: 6,
+    rarity: "UNCOMMON",
+    category: "CHIPS",
+  },
+  SOFT_MOSS: {
+    id: "SOFT_MOSS",
+    name: "Soft Moss",
+    icon: "🪴",
+    shortTag: "Spikes never hurt",
+    description: "Spikes never cost Life, from any direction. They still score.",
+    accentColor: "#86EFAC",
+    cost: 7,
+    rarity: "UNCOMMON",
+    category: "MAGIC",
+  },
+  SUNBEAM_LENS: {
+    id: "SUNBEAM_LENS",
+    name: "Sunbeam Lens",
+    icon: "🔍",
+    shortTag: "Special tiles count twice",
+    description: "Golden, Iridescent and Radiant tiles give their bonus twice.",
+    accentColor: "#FDE68A",
+    cost: 7,
+    rarity: "UNCOMMON",
+    category: "CHIPS",
+  },
 };
 
 export const RELIC_LIST: RelicDefinition[] = Object.values(RELIC_REGISTRY);
+/** Relics that only exist from rules v16 (the Shop leaves them out of older Runs) */
+export const V16_RELICS: RelicId[] = [
+  "FIRST_BLOOM",
+  "THORN_CHORUS",
+  "BELL_TOWER",
+  "ACORN_GATE",
+  "LONG_SHADOW",
+  "BRAMBLE_BERRIES",
+  "SOFT_MOSS",
+  "SUNBEAM_LENS",
+];
 
 /**
  * Deterministically selects 3 distinct Tactical Relics for the between-floor draft modal
@@ -648,7 +747,7 @@ export function getRelicDraftChoices(
   const rng = mulberry32(
     hashStringToSeed(`relic-draft-${seedKey}-f${floorNumber}-${ownedRelics.length}`)
   );
-  const commons = RELIC_LIST.filter((r) => r.rarity !== "LEGENDARY");
+  const commons = RELIC_LIST.filter((r) => r.rarity !== "LEGENDARY" && !V16_RELICS.includes(r.id));
   const unowned = commons.filter((r) => !ownedRelics.includes(r.id));
   const owned = commons.filter((r) => ownedRelics.includes(r.id));
 
@@ -852,7 +951,9 @@ export function generateShopOffers(
   /** Rules v14+: sometimes a special tile is for sale, at this price (null = never) */
   editionCost: number | null = null,
   /** Rules v15+: Echo is one of the tools */
-  echo = false
+  echo = false,
+  /** Rules v16+: the new score-again and rule-bending relics join the pool */
+  v16Relics = false
 ): ShopOffer[] {
   const rng = mulberry32(
     hashStringToSeed(`shop-${seedKey}-f${floorNumber}-r${rerollIndex}`)
@@ -869,7 +970,7 @@ export function generateShopOffers(
   // Rarity-weighted draw without repeats (Efraimidis–Spirakis keys). Relics
   // are offered even with full slots: sell one to make room.
   const relicPool = RELIC_LIST.filter(
-    (r) => r.rarity !== "LEGENDARY" && !ownedRelics.includes(r.id)
+    (r) => r.rarity !== "LEGENDARY" && !ownedRelics.includes(r.id) && (v16Relics || !V16_RELICS.includes(r.id))
   )
     .map((r) => ({
       r,
@@ -1764,6 +1865,9 @@ export function simulatePath(
           if (isDiagonal) {
             trapDodgedDiagonally = true;
             note = "Dodged Diagonally!";
+          } else if (activeRelics.includes("SOFT_MOSS")) {
+            // Relic (rules v16+): Soft Moss — Spikes never cost Life
+            note = "Soft Moss: no harm";
           } else if (spikedBootsTriggered || spikedBootsStacks > 0) {
             // Relic: SPIKED_BOOTS turns orthogonal Trap into 0 Dmg and +3 Weapon
             spikedBootsTriggered = true;
@@ -1917,6 +2021,14 @@ export function calculateFloorScoreBreakdown(
   const visited = visitedSteps(sim);
   const countOf = (...types: EntityType[]) =>
     visited.filter((s) => types.includes(s.cell.type)).length;
+  // What a tile counts as for relics: Acorn Gate makes the Exit an Acorn, Bramble Berries make Berries Thorns
+  const relicCountOf = (...types: EntityType[]) =>
+    visited.filter(
+      (s) =>
+        types.includes(s.cell.type) ||
+        (s.cell.type === "EXIT" && types.includes("GOLD") && activeRelics.includes("ACORN_GATE")) ||
+        (s.cell.type === "POTION" && types.includes("ENEMY") && activeRelics.includes("BRAMBLE_BERRIES"))
+    ).length;
 
   const gemChips = Math.max(0, sim.finalStats.gold - startHero.gold);
   const tileChips = visited.reduce(
@@ -1935,7 +2047,7 @@ export function calculateFloorScoreBreakdown(
     label: RELIC_REGISTRY[id].name,
     value,
     relicId: id,
-    art: relicArt(id),
+    art: relicHasArt(id) ? relicArt(id) : undefined,
   });
   const addChips = (id: RelicId, value: number) => {
     if (has(id) && value > 0) chipSources.push(source(id, value));
@@ -1954,19 +2066,19 @@ export function calculateFloorScoreBreakdown(
   const sunbeamsOnLine = countOf("WEAPON");
 
   // Value
-  addChips("GLASS_WATERING_CAN", countOf("POTION", "SHIELD") * 3);
-  addChips("THORN_CROWN", countOf("ENEMY") * 5);
+  addChips("GLASS_WATERING_CAN", relicCountOf("POTION", "SHIELD") * 3);
+  addChips("THORN_CROWN", relicCountOf("ENEMY") * 5);
   addChips("MOSSY_STONE", 30);
-  addChips("BRIAR_PRESS", countOf("ENEMY") * 6);
+  addChips("BRIAR_PRESS", relicCountOf("ENEMY") * 6);
   addChips("BRAMBLE_HEART", magicLost * 5);
   addChips("MAGPIE_NEST", Math.max(0, startHero.gold) * 3);
   addChips("COMPOST_HEAP", counter("COMPOST_HEAP") * 2);
   // +Length
-  addMult("GOLDEN_BEE", countOf("GOLD"));
+  addMult("GOLDEN_BEE", relicCountOf("GOLD"));
   addMult("LADYBUG", 4);
   addMult("THISTLE_WALTZ", visited.filter((s) => s.trapDodgedDiagonally).length * 3);
   addMult("DEW_LENS", sim.endsOnExit ? Math.max(0, sim.finalStats.shield) * 2 : 0);
-  addMult("BERRY_BASKET", countOf("POTION") * 2);
+  addMult("BERRY_BASKET", relicCountOf("POTION") * 2);
   addMult("ZIGZAG_KITE", diagonalSteps);
   addMult("DAWN_CHORUS", ctx.strokesLeft === RUN_STROKES_PER_GARDEN ? 10 : 0);
   addMult("OAK_SAPLING", counter("OAK_SAPLING") * 3);
@@ -2005,8 +2117,17 @@ export function calculateFloorScoreBreakdown(
     multSources.push({ label: toolLabel("Long Root", toolCount("LONG_ROOT")), value: 2 * toolCount("LONG_ROOT") });
   for (let i = 0; i < toolCount("SUNLIT"); i++) xMultSources.push({ label: "Sunlit tile", value: 1.25 });
   for (let i = 0; i < toolCount("DEW"); i++) xMultSources.push({ label: "Dewy tile", value: 1.5 });
-  // Special tiles on this line (rules v14+)
-  const shimmer = (ed: Edition) => scoringSteps.filter((s) => s.cell.bagTile?.ed === ed).length;
+  // Rules v16 score-again relics: a tile "scoring twice" counts its number again
+  const tileNumber = (s: PathStepSimulation) =>
+    ["ENEMY", "SHIELD", "WEAPON", "POTION", "TRAP", "GOLD"].includes(s.cell.type) ? Math.max(0, s.cell.value) : 0;
+  addChips("FIRST_BLOOM", visited[0] ? tileNumber(visited[0]) : 0);
+  addChips("THORN_CHORUS", visited.filter((s) => s.cell.type === "ENEMY").reduce((n, s) => n + tileNumber(s), 0));
+  addChips("BELL_TOWER", echoValue);
+  addChips("ACORN_GATE", sim.endsOnExit ? 8 : 0);
+  addChips("LONG_SHADOW", visited.filter((_, i) => (i + 1) % 5 === 0).reduce((n, s) => n + tileNumber(s), 0));
+  // Special tiles on this line (rules v14+); Sunbeam Lens counts them twice
+  const lens = has("SUNBEAM_LENS") ? 2 : 1;
+  const shimmer = (ed: Edition) => lens * scoringSteps.filter((s) => s.cell.bagTile?.ed === ed).length;
   const edLabel = (name: string, n: number) => (n === 1 ? `${name} tile` : `${n} ${name} tiles`);
   if (shimmer("GOLDEN") > 0) chipSources.push({ label: edLabel("Golden", shimmer("GOLDEN")), value: 30 * shimmer("GOLDEN") });
   if (shimmer("IRIDESCENT") > 0)

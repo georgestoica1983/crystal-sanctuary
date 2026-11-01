@@ -3,6 +3,7 @@
 // from each cell's edges and faded out softly so glows and outlines survive.
 // Run with: node scripts/cut-icon-sheet.cjs design/gemini-icon-sheet.webp
 //      or:  node scripts/cut-icon-sheet.cjs design/gemini-relic-sheet.webp relics
+//      or:  node scripts/cut-icon-sheet.cjs design/gemini-relic-sheet-2.webp relics2   (4 × 2, rules v16 relics)
 const sharp = require("sharp");
 const path = require("path");
 
@@ -22,22 +23,29 @@ const RELIC_NAMES = [
   "EVENING_LANTERN", "HARVEST_MOON", "ELDER_TREE", "SQUIRREL_STASH", "SEED_PURSE", "SUN_HAT",
   "WISHING_WELL", "DEEP_TAPROOT", "SUNFLOWER", "THORN_CROWN", "RAINBOW_HEART", "ETERNAL_SPRING",
 ].map((id) => `relic-${id.toLowerCase().replace(/_/g, "-")}`);
+// Second relic sheet (rules v16): 4 columns × 2 rows
+const RELIC_NAMES_2 = [
+  "FIRST_BLOOM", "THORN_CHORUS", "BELL_TOWER", "ACORN_GATE",
+  "LONG_SHADOW", "BRAMBLE_BERRIES", "SOFT_MOSS", "SUNBEAM_LENS",
+].map((id) => `relic-${id.toLowerCase().replace(/_/g, "-")}`);
 const SOLID = 14; // closer than this to the background: fully transparent
 const SOFT = 46; // up to this (and reachable from the edge): partly transparent
 const OUT = 256;
 
 (async () => {
   const src = process.argv[2];
-  const NAMES = process.argv[3] === "relics" ? RELIC_NAMES : ICON_NAMES;
-  const GRID = Math.round(Math.sqrt(NAMES.length));
+  const mode = process.argv[3];
+  const NAMES = mode === "relics" ? RELIC_NAMES : mode === "relics2" ? RELIC_NAMES_2 : ICON_NAMES;
+  const COLS = mode === "relics2" ? 4 : Math.round(Math.sqrt(NAMES.length));
+  const ROWS = Math.ceil(NAMES.length / COLS);
   const { data, info } = await sharp(src).raw().toBuffer({ resolveWithObject: true });
-  const { width: W, channels: C } = info;
+  const { width: W, height: H, channels: C } = info;
   const bg = [data[2 * C], data[2 * C + 1], data[2 * C + 2]];
-  const cell = W / GRID;
+  const cellW = W / COLS, cellH = H / ROWS;
   for (let n = 0; n < NAMES.length; n++) {
-    const col = n % GRID, row = Math.floor(n / GRID);
-    const x0 = Math.round(col * cell), y0 = Math.round(row * cell);
-    const w = Math.round((col + 1) * cell) - x0, h = Math.round((row + 1) * cell) - y0;
+    const col = n % COLS, row = Math.floor(n / COLS);
+    const x0 = Math.round(col * cellW), y0 = Math.round(row * cellH);
+    const w = Math.round((col + 1) * cellW) - x0, h = Math.round((row + 1) * cellH) - y0;
     const rgba = Buffer.alloc(w * h * 4);
     const dist = new Float32Array(w * h);
     for (let y = 0; y < h; y++)
