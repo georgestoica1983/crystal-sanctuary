@@ -497,6 +497,10 @@ interface TopHUDProps {
   /** Rules v10+: relic sets (3 with one theme tag) score every line ×1.25 */
   relicSets?: boolean;
   onEndRun?: () => void;
+  /** Garden Run: what's left in the Tile Bag, shown from the menu */
+  bagPanel?: React.ReactNode;
+  /** Tiles left in the Tile Bag (menu label) */
+  bagCount?: number;
   /** Hides the one-line goal under the stats (e.g. during a lesson) */
   hideGoalLine?: boolean;
   /** Daily is always played with the Keeper (fair scores). */
@@ -554,6 +558,8 @@ export function TopHUD({
   onOpenRunLeaderboard,
   onNewRun,
   onEndRun,
+  bagPanel,
+  bagCount,
   flashRelics = [],
   relicSets = false,
   isDailyCompanionLocked = false,
@@ -600,7 +606,8 @@ export function TopHUD({
   const [showCosmeticsDrawer, setShowCosmeticsDrawer] = useState(false);
   const [showCompanionDrawer, setShowCompanionDrawer] = useState(false);
   const [showRunMenu, setShowRunMenu] = useState(false);
-  const [openRelic, setOpenRelic] = useState<RelicId | null>(null);
+  const [showRelics, setShowRelics] = useState(false);
+  const [showBag, setShowBag] = useState(false);
 
   const isAnyTutorialActive = showTutorial || isInteractiveTutorial;
   // Sanctuary is the game's only voice; the theme setting is a visual skin.
@@ -679,6 +686,8 @@ export function TopHUD({
       // eslint-disable-next-line @next/next/no-img-element
       <img src={statArt(id)} alt="" aria-hidden="true" draggable={false} className="h-4 w-4 object-contain" />
     );
+    // Only what matters right now: Life always, Gloves and Shears once you hold
+    // some (Seeds live in the Shop)
     const stats = [
       {
         key: "magic",
@@ -691,31 +700,33 @@ export function TopHUD({
           </>
         ),
         color: lowMagic ? "text-rose-300" : "text-white",
+        show: true,
       },
       {
         key: "dew",
         label: "Gloves",
         icon: statIcon("gloves"),
-        value: heroClassId === "VAMPIRE" ? "—" : hero.shield,
+        value: hero.shield,
         color: "text-sky-300",
+        show: heroClassId !== "VAMPIRE" && hero.shield > 0,
       },
-      { key: "sun", label: "Shears", icon: statIcon("shears"), value: hero.weapon, color: "text-amber-300" },
-      { key: "gems", label: "Seeds", icon: statIcon("seeds"), value: hero.gold, color: "text-yellow-200" },
-    ];
+      { key: "sun", label: "Shears", icon: statIcon("shears"), value: hero.weapon, color: "text-amber-300", show: hero.weapon > 0 },
+    ].filter((st) => st.show);
+    const relicLit = relicCounts.some(([id]) => flashRelics.includes(id));
     const menuRow =
       "w-full h-12 px-3 rounded-xl flex items-center gap-3 text-left text-[14px] font-semibold text-white/90 hover:bg-white/[0.06] active:bg-white/[0.1] transition";
     return artify(
       <div className="w-full max-w-[430px] mx-auto select-none">
-        <div className="flex items-stretch gap-1.5">
+        <div className="relative h-12 flex items-center gap-1 pl-0.5 pr-0.5">
           <button
             type="button"
             onClick={() => (onCompanionTap ? onCompanionTap() : setShowCompanionDrawer(true))}
             aria-label={`Companion: ${activeClassDef.sanctuaryShortName ?? activeClassDef.shortName}. ${
               onCompanionTap ? "Tap to see its rule." : "Tap to change."
             }${companionMoveUsed === null ? "" : companionMoveUsed ? " Special move used on this line." : " Special move ready."}`}
-            className="relative h-11 w-11 shrink-0 rounded-xl bg-white/[0.04] border border-white/[0.07] flex items-center justify-center active:scale-95 transition"
+            className="relative h-11 w-11 shrink-0 rounded-full flex items-center justify-center active:scale-95 transition"
           >
-            <EntityIcon type="HERO" companionId={heroClassId} size={30} />
+            <EntityIcon type="HERO" companionId={heroClassId} size={32} />
             {companionMoveUsed !== null && (
               <span
                 aria-hidden="true"
@@ -725,102 +736,102 @@ export function TopHUD({
               />
             )}
           </button>
-          <div className="flex-1 min-w-0 h-11 grid grid-cols-4 rounded-xl bg-white/[0.04] border border-white/[0.07] divide-x divide-white/[0.06]">
+          <div className="min-w-0 flex items-center gap-3 pl-1">
             {stats.map((st) => (
-              <div key={st.key} className="min-w-0 flex flex-col items-center justify-center" aria-label={`${st.label}`}>
+              <motion.div
+                key={st.key}
+                layout
+                initial={{ opacity: 0, scale: 0.7 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="min-w-0 flex flex-col items-start justify-center"
+                aria-label={st.label}
+              >
                 <div className="flex items-center gap-1 leading-none">
                   {st.icon}
                   <span className={`text-[16px] font-extrabold tabular-nums leading-none ${st.color}`}>{st.value}</span>
                 </div>
                 <div className="mt-1 text-[10px] leading-none text-white/45">{st.label}</div>
-              </div>
+              </motion.div>
             ))}
           </div>
+          <div className="flex-1" />
+          {/* All your relics in one chip: tap for the list */}
+          {relicCounts.length > 0 && (
+            <motion.button
+              type="button"
+              onClick={() => setShowRelics((v) => !v)}
+              animate={relicLit ? { scale: [1, 1.15, 1] } : { scale: 1 }}
+              transition={{ duration: relicLit ? 0.5 : 0.2 }}
+              aria-expanded={showRelics}
+              aria-label={`Your relics: ${activeRelics.length}${relicSetTags.length > 0 ? `, set bonus ×${RELIC_SET_X}` : ""}. Tap for details.`}
+              className={`h-9 pl-1.5 pr-2 rounded-full border flex items-center gap-1 shrink-0 transition-colors ${
+                relicLit
+                  ? "bg-teal-300/25 border-teal-200"
+                  : relicSetTags.length > 0
+                  ? "bg-amber-400/10 border-amber-300/50"
+                  : "bg-white/[0.04] border-white/[0.08]"
+              }`}
+            >
+              <span className="flex items-center -space-x-2.5">
+                {relicCounts.slice(0, 3).map(([relicId]) => (
+                  <RelicIcon key={relicId} id={relicId} size={22} />
+                ))}
+              </span>
+              <span className="text-[12px] font-bold tabular-nums text-white/80">{activeRelics.length}</span>
+              {relicSetTags.length > 0 && <span className="text-[11px] font-black text-amber-200">×{RELIC_SET_X}</span>}
+            </motion.button>
+          )}
           <button
             type="button"
             onClick={() => setShowRunMenu(true)}
             aria-label="Menu"
-            className="relative h-11 w-11 shrink-0 rounded-xl bg-white/[0.04] border border-white/[0.07] flex items-center justify-center text-white/80 text-lg active:scale-95 transition"
+            className="relative h-10 w-10 shrink-0 rounded-full flex items-center justify-center text-white/70 text-lg active:scale-95 transition"
           >
             <span aria-hidden="true">☰</span>
-
           </button>
-        </div>
 
-        {/* Your relics, always in view once you have one: tap for details */}
-        {relicCounts.length > 0 && (
-          <div className="relative mt-1.5">
-            <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-              {relicCounts.map(([relicId, count]) => {
-                const rDef = getRelicDisplay(RELIC_REGISTRY[relicId], isSanctuary);
-                const lit = flashRelics.includes(relicId);
-                const isOpen = openRelic === relicId;
-                return (
-                  <motion.button
-                    key={relicId}
-                    type="button"
-                    initial={{ scale: 0.4, opacity: 0 }}
-                    animate={lit ? { scale: [1, 1.25, 1], opacity: 1 } : { scale: 1, opacity: 1 }}
-                    transition={{ duration: lit ? 0.5 : 0.25 }}
-                    onClick={() => setOpenRelic(isOpen ? null : relicId)}
-                    aria-label={`${rDef.name}: ${rDef.description}`}
-                    aria-expanded={isOpen}
-                    className={`relative shrink-0 h-9 min-w-9 px-1.5 rounded-lg border flex items-center justify-center gap-1 text-[17px] transition-colors ${
-                      lit
-                        ? "bg-teal-300/25 border-teal-200"
-                        : isOpen
-                        ? "bg-white/[0.1] border-white/30"
-                        : "bg-white/[0.04] border-white/[0.08]"
-                    }`}
-                  >
-                    <RelicIcon id={relicId} size={26} />
-                    {count > 1 && <span className="text-[10px] font-black text-teal-200">×{count}</span>}
-                  </motion.button>
-                );
-              })}
-              {relicSetTags.map((tag) => (
-                <span
-                  key={tag}
-                  role="img"
-                  aria-label={`${RELIC_TAG_INFO[tag].name} set: every line ×${RELIC_SET_X}`}
-                  className="shrink-0 h-9 px-2 rounded-lg border border-amber-300/50 bg-amber-400/15 flex items-center gap-1 text-[11px] font-black text-amber-100"
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={themeArt(tag)} alt="" aria-hidden="true" draggable={false} className="h-5 w-5 object-contain" />
-                  <span aria-hidden="true">set ×{RELIC_SET_X}</span>
-                </span>
-              ))}
-            </div>
-            {openRelic && relicCounts.some(([id]) => id === openRelic) && (
-              <div className="absolute left-0 right-0 top-full mt-1 z-40 rounded-xl bg-[#203226] border border-white/[0.12] shadow-xl p-2.5 flex gap-2.5">
-                <RelicIcon id={openRelic} size={36} />
-                <div className="min-w-0 flex-1">
-                  <div className="text-[13px] font-bold text-white">
-                    {getRelicDisplay(RELIC_REGISTRY[openRelic], isSanctuary).name}
-                  </div>
-                  <div className="text-[12px] leading-snug text-white/70">
-                    {getRelicDisplay(RELIC_REGISTRY[openRelic], isSanctuary).description}
-                  </div>
-                  {getRelicTags(openRelic)
-                    .filter((t) => relicSetTags.includes(t))
-                    .map((t) => (
-                      <div key={t} className="text-[11.5px] font-semibold text-amber-200">
-                        Part of your {RELIC_TAG_INFO[t].icon} {RELIC_TAG_INFO[t].name} set: every line ×{RELIC_SET_X}
-                      </div>
-                    ))}
-                </div>
+          {showRelics && relicCounts.length > 0 && (
+            <div className="absolute left-0 right-0 top-full mt-1 z-40 rounded-xl bg-[#203226] border border-white/[0.12] shadow-xl p-2 space-y-1.5 max-h-[60dvh] overflow-y-auto">
+              <div className="flex items-center justify-between px-1">
+                <span className="text-[11px] font-semibold text-white/50">Your relics</span>
                 <button
                   type="button"
-                  onClick={() => setOpenRelic(null)}
+                  onClick={() => setShowRelics(false)}
                   aria-label="Close"
-                  className="h-8 w-8 shrink-0 rounded-lg bg-white/[0.08] flex items-center justify-center"
+                  className="h-7 w-7 rounded-lg bg-white/[0.08] flex items-center justify-center"
                 >
                   <X className="w-4 h-4 text-white/70" />
                 </button>
               </div>
-            )}
-          </div>
-        )}
+              {relicSetTags.map((tag) => (
+                <div
+                  key={tag}
+                  className="mx-1 rounded-lg border border-amber-300/40 bg-amber-400/10 px-2 py-1 flex items-center gap-1.5 text-[12px] font-bold text-amber-100"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={themeArt(tag)} alt="" aria-hidden="true" draggable={false} className="h-5 w-5 object-contain" />
+                  {RELIC_TAG_INFO[tag].name} set: every line ×{RELIC_SET_X}
+                </div>
+              ))}
+              {relicCounts.map(([relicId, count]) => {
+                const rDef = getRelicDisplay(RELIC_REGISTRY[relicId], isSanctuary);
+                const lit = flashRelics.includes(relicId);
+                return (
+                  <div key={relicId} className={`flex gap-2.5 px-1 py-0.5 rounded-lg ${lit ? "bg-teal-300/15" : ""}`}>
+                    <RelicIcon id={relicId} size={30} />
+                    <div className="min-w-0">
+                      <div className="text-[13px] font-bold text-white">
+                        {rDef.name}
+                        {count > 1 && <span className="text-teal-300"> ×{count}</span>}
+                      </div>
+                      <div className="text-[12px] leading-snug text-white/70">{rDef.description}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         {showRunMenu && (
           <div
@@ -873,28 +884,16 @@ export function TopHUD({
                 );
               })()}
 
-              {relicCounts.length > 0 && (
-                <div className="mx-1 mb-2 rounded-xl bg-white/[0.03] border border-white/[0.06] p-2 space-y-1.5">
-                  <div className="text-[11px] font-semibold text-white/50 px-1">Your relics</div>
-                  {relicCounts.map(([relicId, count]) => {
-                    const rDef = getRelicDisplay(RELIC_REGISTRY[relicId], isSanctuary);
-                    return (
-                      <div key={relicId} className="flex gap-2.5 px-1">
-                        <RelicIcon id={relicId} size={26} />
-                        <div className="min-w-0">
-                          <div className="text-[13px] font-bold text-white">
-                            {rDef.name}
-                            {count > 1 && <span className="text-teal-300"> ×{count}</span>}
-                          </div>
-                          <div className="text-[12px] leading-snug text-white/60">{rDef.description}</div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
               <div className="space-y-0.5">
+                {bagPanel && (
+                  <>
+                    <button type="button" className={menuRow} onClick={() => setShowBag((v) => !v)} aria-expanded={showBag}>
+                      <span className="w-6 text-center" aria-hidden="true">🎒</span> Tile bag
+                      <span className="ml-auto text-[12px] text-white/50">{bagCount ?? ""} tiles left</span>
+                    </button>
+                    {showBag && <div className="px-2 pb-1">{bagPanel}</div>}
+                  </>
+                )}
                 {onOpenLooks && (
                   <button type="button" className={menuRow} onClick={() => { setShowRunMenu(false); onOpenLooks(); }}>
                     <span className="w-6 text-center" aria-hidden="true">🎨</span> Companions &amp; looks
@@ -1654,6 +1653,14 @@ interface BottomControlsProps {
   onRestartRun: () => void;
   onNewSandboxDungeon: () => void;
   onForfeitRun: () => void;
+  /** Garden Run: Swap lives here, in thumb reach (glows when the board is weak) */
+  swap?: {
+    left: number;
+    active: boolean;
+    disabled: boolean;
+    urge: "none" | "soft" | "strong";
+    onToggle: () => void;
+  };
 }
 
 export function BottomControls({
@@ -1666,6 +1673,7 @@ export function BottomControls({
   onRestartRun,
   onNewSandboxDungeon,
   onForfeitRun,
+  swap,
 }: BottomControlsProps) {
   void visualTheme;
   const isSanctuary = true;
@@ -1675,7 +1683,7 @@ export function BottomControls({
       <div
         className={
           mode === "RUN"
-            ? "grid grid-cols-2 gap-2 [&>button]:w-full [&>button]:min-w-0 [&>button]:justify-center [&>button]:px-1"
+            ? `grid ${swap ? "grid-cols-3" : "grid-cols-2"} gap-2 [&>button]:w-full [&>button]:min-w-0 [&>button]:justify-center [&>button]:px-1`
             : "flex items-center justify-between gap-1.5"
         }
       >
@@ -1687,6 +1695,26 @@ export function BottomControls({
         >
           {mode === "RUN" ? "Clear line" : "CLEAR LINE"}
         </button>
+
+        {swap && (
+          <button
+            type="button"
+            disabled={swap.disabled || (swap.left <= 0 && !swap.active)}
+            onClick={swap.onToggle}
+            aria-pressed={swap.active}
+            className={`h-11 rounded-xl border text-[13px] font-semibold transition active:scale-95 disabled:opacity-35 ${
+              swap.active
+                ? "bg-lime-300 text-slate-950 border-lime-200"
+                : swap.urge === "strong"
+                ? "bg-lime-400/20 border-lime-300 text-lime-100 animate-pulse"
+                : swap.urge === "soft"
+                ? "bg-lime-400/10 border-lime-300/70 text-lime-100 shadow-[0_0_12px_rgba(190,242,100,0.35)]"
+                : "bg-white/[0.05] border-white/[0.08] text-white/85"
+            }`}
+          >
+            {swap.active ? "Cancel swap" : `🌿 Swap · ${swap.left}`}
+          </button>
+        )}
 
         <button
           type="button"

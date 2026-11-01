@@ -801,7 +801,7 @@ export default function GridCanvas({
                       className="absolute inset-0 rounded-xl pointer-events-none"
                       style={{
                         backgroundImage:
-                          "repeating-linear-gradient(135deg, rgba(255,255,255,0.07) 0 3px, transparent 3px 8px)",
+                          "repeating-linear-gradient(135deg, rgba(255,255,255,0.04) 0 3px, transparent 3px 8px)",
                       }}
                     />
                   )}
@@ -1575,12 +1575,12 @@ function TileIconWithValue({
   const n = typeof value === "number" ? value : Math.abs(Number(value)) || value;
   const style =
     costsLife
-      ? { backgroundColor: "#C0263F", borderColor: "#F7A1B0", color: "#FFFFFF" }
+      ? { backgroundColor: "#B4374A", borderColor: "rgba(247,161,176,0.55)", color: "#FFFFFF" }
       : type === "TRAP"
-      ? { backgroundColor: "#4F6155", borderColor: "#CBD5E1", color: "#FFFFFF" }
+      ? { backgroundColor: "#4F6155", borderColor: "rgba(203,213,225,0.5)", color: "#FFFFFF" }
       : type === "POTION"
-      ? { backgroundColor: "#101913", borderColor: "#34D399", color: "#34D399" }
-      : { backgroundColor: "#101913", borderColor: "rgba(237,230,211,0.7)", color: "#EDE6D3" };
+      ? { backgroundColor: "#101913", borderColor: "rgba(52,211,153,0.6)", color: "#6EE7B7" }
+      : { backgroundColor: "#101913", borderColor: "rgba(237,230,211,0.35)", color: "#EDE6D3" };
   return (
     <div className="relative w-[72%] h-[72%] flex items-center justify-center">
       <span
@@ -1604,7 +1604,7 @@ function TileIconWithValue({
         </span>
       )}
       <span
-        className="absolute -bottom-1.5 -right-2 min-w-[22px] h-[20px] px-1 flex items-center justify-center rounded-full font-mono font-black text-[12px] leading-none border-[1.5px] select-none pointer-events-none"
+        className="absolute -bottom-1 -right-1.5 min-w-[20px] h-[19px] px-1 flex items-center justify-center rounded-full font-mono font-bold text-[11.5px] leading-none border select-none pointer-events-none"
         style={style}
       >
         {n}

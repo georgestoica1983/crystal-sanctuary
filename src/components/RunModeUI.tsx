@@ -34,32 +34,22 @@ export function RunHudStrip({
   noSafeLine,
   weedOutActive,
   weedOutCount = 0,
-  disabled,
   onToggleWeedOut,
   onConfirmWeedOut,
-  soundOn,
-  onToggleSound,
   suggestSwap = false,
   asc = 0,
-  prunedCount = 0,
 }: {
   garden: RunGardenState;
   previewScore: number | null;
   noSafeLine: boolean;
   weedOutActive: boolean;
   weedOutCount?: number;
-  disabled: boolean;
   onToggleWeedOut: () => void;
   onConfirmWeedOut?: () => void;
-  /** Quick mute next to Swap */
-  soundOn?: boolean;
-  onToggleSound?: () => void;
   /** The board looks too weak for the target: Swap glows gently */
   suggestSwap?: boolean;
   /** Ascension level of this Garden Run */
   asc?: number;
-  /** Tiles taken out of the bag with Pruning Shears this Run */
-  prunedCount?: number;
 }) {
   const pct = Math.min(100, (garden.score / garden.target) * 100);
   const previewPct =
@@ -70,7 +60,6 @@ export function RunHudStrip({
   const boss = garden.bossRuleId ? BOSS_RULE_REGISTRY[garden.bossRuleId] : null;
   const strokesTotal = garden.strokesTotal ?? RUN_STROKES_PER_GARDEN;
   const strokesUsed = strokesTotal - garden.strokesLeft;
-  const [bagOpen, setBagOpen] = useState(false);
   return artify(
     <div
       className={`w-full max-w-[430px] min-w-0 rounded-xl px-3 pt-2 pb-1.5 [@media(max-height:640px)]:pt-1.5 [@media(max-height:640px)]:pb-1 border space-y-1.5 [@media(max-height:640px)]:space-y-1 bg-white/[0.04] ${
@@ -145,7 +134,7 @@ export function RunHudStrip({
       </div>
 
       {!weedOutActive && (
-      <div className="flex items-center justify-between gap-2 h-8">
+      <div className="flex items-center justify-between gap-2 h-5">
         <div
           className="flex items-center gap-1.5 text-[12px] text-white/55"
           aria-label={`${garden.strokesLeft} lines left`}
@@ -161,63 +150,20 @@ export function RunHudStrip({
           ))}
           <span className="ml-0.5 font-mono font-black text-white/85">{garden.strokesLeft}</span>
         </div>
-        <div className="flex items-center gap-1.5 shrink-0">
-        <button
-          type="button"
-          onClick={() => setBagOpen((v) => !v)}
-          aria-expanded={bagOpen}
-          aria-label="Tiles left in the bag"
-          className={`h-8 px-2 rounded-lg border text-[12px] font-semibold leading-none active:scale-95 ${
-            bagOpen ? "bg-white/15 border-white/30 text-white" : "border-white/[0.1] bg-white/[0.05] text-white/85"
-          }`}
-        >
-          <span aria-hidden="true">🎒</span> {garden.drawPile.length}
-        </button>
-        {onToggleSound && (
-          <button
-            type="button"
-            onClick={onToggleSound}
-            aria-label={soundOn ? "Mute sound" : "Turn sound on"}
-            aria-pressed={!soundOn}
-            className="h-8 w-9 rounded-lg border border-white/[0.1] bg-white/[0.05] text-[15px] leading-none active:scale-95"
-          >
-            <span aria-hidden="true">{soundOn ? "🔊" : "🔇"}</span>
-          </button>
+        {(noSafeLine || suggestSwap) && garden.weedOutsLeft > 0 && (
+          <span className="text-[11px] font-semibold text-lime-200/90">
+            {noSafeLine ? "No safe line — try Swap below" : "Tough board — Swap can help"}
+          </span>
         )}
-        <button
-          type="button"
-          disabled={disabled || (garden.weedOutsLeft <= 0 && !weedOutActive)}
-          onClick={onToggleWeedOut}
-          className={`h-8 px-3 rounded-lg border text-[12px] font-semibold transition active:scale-95 disabled:opacity-35 ${
-            weedOutActive
-              ? "bg-lime-300 text-slate-950 border-lime-200"
-              : noSafeLine
-              ? "bg-lime-400/20 border-lime-300 text-lime-100 animate-pulse"
-              : suggestSwap
-              ? "bg-lime-400/10 border-lime-300/70 text-lime-100 shadow-[0_0_12px_rgba(190,242,100,0.35)]"
-              : "bg-white/[0.05] border-white/[0.1] text-white/85"
-          }`}
-        >
-          <span aria-hidden="true">🌿</span>{" "}Swap · {garden.weedOutsLeft}
-        </button>
-        </div>
       </div>
       )}
 
-      {bagOpen && !weedOutActive && <BagPanel garden={garden} prunedCount={prunedCount} />}
 
       {weedOutActive && (
         <div className="flex items-center gap-1.5 h-8">
           <div className="flex-1 text-[11px] text-lime-100 leading-tight">
             Tap up to {RUN_WEEDOUT_MAX_TILES} tiles to swap ({weedOutCount}/{RUN_WEEDOUT_MAX_TILES})
           </div>
-          <button
-            type="button"
-            onClick={onToggleWeedOut}
-            className="h-8 px-3 rounded-lg bg-white/10 border border-white/15 text-[12px] font-semibold text-zinc-100"
-          >
-            Cancel
-          </button>
           <button
             type="button"
             disabled={weedOutCount === 0}
@@ -248,7 +194,7 @@ export function RunWeedOutOverlay({
   return artify(
     <div className="absolute inset-0 z-30 flex flex-col">
       <div className="relative flex-1 rounded-2xl p-2.5 bg-lime-950/35 ring-2 ring-lime-300/70">
-        <div className="grid grid-cols-5 grid-rows-5 gap-2 w-full h-full">
+        <div className="grid grid-cols-5 grid-rows-5 board-gap w-full h-full">
           {grid.map((row, r) =>
             row.map((cell, c) => {
               const locked = cell.type === "HERO" || cell.type === "EXIT" || cell.type === "VOID";
@@ -317,7 +263,7 @@ export interface RunClearInfo {
 const BAG_ORDER = ["ENEMY", "TRAP", "WEAPON", "SHIELD", "POTION", "GOLD"] as const;
 
 /** What's still in the Tile Bag: the tiles that will refill the board next */
-function BagPanel({ garden, prunedCount = 0 }: { garden: RunGardenState; prunedCount?: number }) {
+export function BagPanel({ garden, prunedCount = 0 }: { garden: RunGardenState; prunedCount?: number }) {
   const counts = new Map<string, number>();
   for (const t of garden.drawPile) counts.set(t.type, (counts.get(t.type) ?? 0) + 1);
   const shown = BAG_ORDER.filter((t) => (counts.get(t) ?? 0) > 0);

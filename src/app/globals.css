@@ -219,7 +219,7 @@ svg text,
   inset: 10px;
 }
 .board-gap {
-  gap: 8px;
+  gap: 10px;
 }
 @container (max-width: 330px) {
   .board-pad {

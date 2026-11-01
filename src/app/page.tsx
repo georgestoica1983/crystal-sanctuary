@@ -200,6 +200,7 @@ import {
   RunGardenClearModal,
   RunGoalCard,
   RunHudStrip,
+  BagPanel,
   RunOverInfo,
   RunOverModal,
   RunWeedOutOverlay,
@@ -3122,6 +3123,12 @@ export default function OneStrokeTacticianPage() {
         }}
         onOpenRunLeaderboard={RUN_ONLY ? () => setIsRunLeaderboardOpen(true) : undefined}
         flashRelics={flashRelics}
+        bagPanel={
+          mode === "RUN" && !lesson && runGarden ? (
+            <BagPanel garden={runGarden} prunedCount={runBag.length > 0 ? Math.max(0, RUN_SEED_BAG_SIZE - runBag.length) : 0} />
+          ) : undefined
+        }
+        bagCount={runGarden?.drawPile.length}
         relicSets={mode === "RUN" && !lesson && runRulesUseRelicSets(runLogRef.current?.v ?? RUN_LOG_VERSION)}
         onNewRun={
           RUN_ONLY
@@ -3276,12 +3283,8 @@ export default function OneStrokeTacticianPage() {
                 noSafeLine={runNoSafeLine}
                 weedOutActive={weedOutMode}
                 weedOutCount={weedOutSelection.length}
-                prunedCount={runBag.length > 0 ? Math.max(0, RUN_SEED_BAG_SIZE - runBag.length) : 0}
-                disabled={phase !== "PLANNING"}
                 onToggleWeedOut={handleToggleWeedOut}
                 onConfirmWeedOut={handleConfirmWeedOut}
-                soundOn={soundEnabled}
-                onToggleSound={handleToggleSound}
                 suggestSwap={swapSuggested}
                 asc={runLogRef.current?.asc ?? 0}
               />
@@ -3697,6 +3700,17 @@ export default function OneStrokeTacticianPage() {
             }
             hintsRemaining={hintsRemaining}
             onRequestHint={handleRequestHint}
+            swap={
+              mode === "RUN" && !isInteractiveTutorial && !lesson && runGarden && !(phase === "DEFEAT" && runOver === null)
+                ? {
+                    left: runGarden.weedOutsLeft,
+                    active: weedOutMode,
+                    disabled: phase !== "PLANNING",
+                    urge: runNoSafeLine ? "strong" : swapSuggested ? "soft" : "none",
+                    onToggle: handleToggleWeedOut,
+                  }
+                : undefined
+            }
             onResetFloorStroke={() => {
               setDrawnPath([]);
               setRetractNotice(null);
