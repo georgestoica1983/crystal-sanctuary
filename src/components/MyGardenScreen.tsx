@@ -312,11 +312,11 @@ export default function MyGardenScreen({ open, onClose }: { open: boolean; onClo
             className="mx-auto mb-4 w-[calc(100%-2rem)] max-w-[398px] rounded-2xl border border-white/10 bg-[#1A271E]/95 px-4 py-3 text-white shadow-2xl"
             onClick={() => setPicked(null)}
           >
-            <div className="text-[15px] font-bold">
+            <div className="font-display text-[16px] font-bold">
               {picked.golden ? "✨ Golden " : ""}
               {picked.species}
             </div>
-            <div className="text-[12.5px] leading-snug text-white/70">
+            <div className="font-hand text-[13px] leading-snug text-white/70">
               {picked.kind === "SET"
                 ? `Grew from your first relic set · ${plantedAgo(picked.at)}`
                 : picked.kind === "SEASON"

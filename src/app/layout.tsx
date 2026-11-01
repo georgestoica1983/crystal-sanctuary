@@ -1,26 +1,27 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, JetBrains_Mono, Nunito } from "next/font/google";
+import { Alegreya, Alegreya_Sans, Delius } from "next/font/google";
 import "./globals.css";
 
-const nunito = Nunito({
+// Herbarium type: Alegreya Sans for text and numbers, Alegreya for titles,
+// Delius for handwritten notes (Journal, flower stories)
+const alegreyaSans = Alegreya_Sans({
   subsets: ["latin"],
-  weight: ["500", "600", "700", "800", "900"],
+  weight: ["400", "500", "700", "800", "900"],
   variable: "--font-sans",
   display: "swap",
 });
 
-// Soft serif for the title and big score numbers
-const fraunces = Fraunces({
+const alegreya = Alegreya({
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: ["500", "700", "800"],
   variable: "--font-display",
   display: "swap",
 });
 
-const jetBrainsMono = JetBrains_Mono({
+const delius = Delius({
   subsets: ["latin"],
-  weight: ["500", "700", "800"],
-  variable: "--font-mono",
+  weight: "400",
+  variable: "--font-hand",
   display: "swap",
 });
 
@@ -160,7 +161,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${nunito.variable} ${fraunces.variable} ${jetBrainsMono.variable}`}
+      className={`dark ${alegreyaSans.variable} ${alegreya.variable} ${delius.variable}`}
       suppressHydrationWarning
     >
       <head>

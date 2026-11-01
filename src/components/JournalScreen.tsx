@@ -314,8 +314,8 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
             onClick={() => setPicked(null)}
             className="absolute inset-x-0 bottom-4 mx-auto w-[calc(100%-2rem)] max-w-[398px] rounded-2xl border border-white/10 bg-[#1F2E24] px-4 py-3 text-white shadow-2xl"
           >
-            <div className="text-[15px] font-bold">{picked.found ? picked.name : "Not found yet"}</div>
-            <div className="text-[12.5px] leading-snug text-white/75">{picked.found ? picked.text : picked.hint}</div>
+            <div className="font-display text-[16px] font-bold">{picked.found ? picked.name : "Not found yet"}</div>
+            <div className="font-hand text-[13px] leading-snug text-white/75">{picked.found ? picked.text : picked.hint}</div>
             {picked.found && picked.record && <div className="mt-0.5 text-[12px] font-semibold text-amber-200">{picked.record}</div>}
           </motion.div>
         )}

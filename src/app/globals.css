@@ -63,10 +63,22 @@ h6 {
     "Segoe UI", Roboto, sans-serif;
 }
 
+/* Alegreya Sans has small lowercase letters; this sizes every font so its
+   lowercase matches the old text size and nothing reads smaller */
+body {
+  font-size-adjust: 0.5;
+}
+
+/* Numbers (scores, counters) use the text font with even-width figures, so
+   they line up and don't jump while counting, without looking like code */
 svg text,
 .font-mono {
-  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco,
-    Consolas, monospace;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.font-display {
+  font-variant-numeric: lining-nums;
 }
 
 @keyframes dash {
