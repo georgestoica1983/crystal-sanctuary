@@ -290,10 +290,10 @@ export default function ShopModal({
           </motion.div>
         )}
 
-        {/* Offers */}
+        {/* Relics: full cards, the main decision */}
         <div className="space-y-2">
           <AnimatePresence mode="popLayout">
-            {offers.map((offer, idx) => {
+            {offers.filter((o) => o.kind === "RELIC").map((offer, idx) => {
               const info = describeOffer(offer, isSanctuary, relicCounters);
               const sold = soldIds.includes(offer.id);
               const blockedBySlots =
@@ -433,6 +433,93 @@ export default function ShopModal({
             })}
           </AnimatePresence>
         </div>
+
+        {/* Garden supplies: boosts, Fertilizer and tools as small tiles */}
+        {offers.some((o) => o.kind !== "RELIC") && (
+          <div>
+            <div className="text-[11px] font-semibold text-white/45 mb-1.5">Garden supplies</div>
+            <div className="grid grid-cols-2 gap-2">
+              {offers
+                .filter((o) => o.kind !== "RELIC")
+                .map((offer, idx) => {
+                  const info = describeOffer(offer, isSanctuary, relicCounters);
+                  const sold = soldIds.includes(offer.id);
+                  const blocked = offer.kind === "TOOL" && toolsHeld >= MAX_TOOLS;
+                  const affordable = gems >= offer.cost;
+                  const disabled = sold || blocked || !affordable;
+                  const preview = scorePreview?.[offer.id];
+                  return artify(
+                    <motion.button
+                      key={offer.id}
+                      type="button"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0, transition: { delay: 0.15 + idx * 0.06 } }}
+                      whileTap={disabled ? undefined : { scale: 0.96 }}
+                      disabled={disabled}
+                      onClick={() => onBuy(offer)}
+                      title={info.description}
+                      aria-label={`${info.name}: ${info.description} Costs ${offer.cost} Seeds.`}
+                      style={{ borderColor: sold ? "rgba(255,255,255,0.08)" : `${info.accent}55` }}
+                      className={`relative text-left rounded-xl border p-2 flex items-start gap-2 transition min-h-[64px] ${
+                        sold ? "bg-white/[0.02] opacity-45" : disabled ? "bg-white/[0.02] opacity-60" : "bg-white/[0.04] active:bg-white/[0.08]"
+                      }`}
+                    >
+                      <span className="mt-0.5 h-8 w-8 shrink-0 flex items-center justify-center">
+                        {offer.kind === "TOOL" && offer.tool ? (
+                          <span className="text-[22px] leading-none" aria-hidden="true">{GARDEN_TOOLS[offer.tool].icon}</span>
+                        ) : offer.kind === "FERT" && offer.fert ? (
+                          <span className="relative h-7 w-7">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={tileArt(offer.fert) ?? ""} alt="" aria-hidden="true" draggable={false} className="h-7 w-7 object-contain" />
+                            <span className="absolute -bottom-1 -right-1.5 text-[11px]" aria-hidden="true">🌱</span>
+                          </span>
+                        ) : (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={statArt(offer.stat === "START_DEW" ? "gloves" : "life")}
+                            alt=""
+                            aria-hidden="true"
+                            draggable={false}
+                            className="h-7 w-7 object-contain"
+                          />
+                        )}
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block pr-9 text-[12.5px] font-black leading-tight text-white">
+                          {offer.kind === "FERT" && offer.fert ? `Fertilizer` : info.name}
+                        </span>
+                        <span className="block pr-8 text-[11px] font-semibold leading-snug" style={{ color: info.accent }}>
+                          {offer.kind === "FERT" && offer.fert
+                            ? `${FERTILIZER[offer.fert].name} Lv ${getFertLevel(relicCounters, offer.fert) + 2} · +${FERTILIZER[offer.fert].perLevel} each`
+                            : offer.kind === "TOOL" && offer.tool
+                            ? GARDEN_TOOLS[offer.tool].tag
+                            : info.tag}
+                        </span>
+                        {sold ? (
+                          <span className="block text-[10.5px] font-bold text-white/50">Bought</span>
+                        ) : blocked ? (
+                          <span className="block text-[10.5px] text-amber-200/80">Tools full — use one first</span>
+                        ) : preview !== undefined ? (
+                          <span className={`block text-[10.5px] font-semibold ${preview > 0 ? "text-emerald-300" : "text-white/35"}`}>
+                            {preview > 0 ? `≈ +${preview.toLocaleString()} best line` : "not on your best line"}
+                          </span>
+                        ) : offer.kind === "TOOL" ? (
+                          <span className="block text-[10.5px] text-white/45">stays on a tile</span>
+                        ) : null}
+                      </span>
+                      <span
+                        className={`absolute top-1.5 right-1.5 rounded-md border px-1 py-0.5 text-[11px] font-mono font-black ${
+                          affordable && !blocked && !sold ? "border-amber-300/70 text-amber-200" : "border-white/15 text-white/40"
+                        }`}
+                      >
+                        {sold ? "✓" : blocked ? <Lock className="w-3 h-3" /> : `🌱${offer.cost}`}
+                      </span>
+                    </motion.button>
+                  );
+                })}
+            </div>
+          </div>
+        )}
 
         {bag && onPrune && <PruneCard bag={bag} gems={gems} pruned={pruned} onPrune={onPrune} />}
 
