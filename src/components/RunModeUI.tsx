@@ -43,7 +43,10 @@ export function RunHudStrip({
   asc = 0,
   upcomingBoss = null,
   bare = false,
+  onBossPreview,
 }: {
+  /** Tapping the coming Boss on the Season dots shows its card */
+  onBossPreview?: (id: BossRuleId) => void;
   /** Drawn inside the top card (no border or background of its own) */
   bare?: boolean;
   /** The Season's Boss rule, previewed before its bed (from the Run's seed) */
@@ -95,7 +98,7 @@ export function RunHudStrip({
             <SeasonDots
               gardenIndex={garden.gardenIndex}
               boss={upcomingBoss ? BOSS_RULE_REGISTRY[upcomingBoss] : null}
-              onBossTap={() => setBossOpen((v) => !v)}
+              onBossTap={() => (onBossPreview && upcomingBoss ? onBossPreview(upcomingBoss) : setBossOpen((v) => !v))}
             />
             {asc > 0 && (
               <span className="ml-1.5 rounded-md bg-orange-400/15 px-1 py-px text-[10.5px] font-bold text-orange-200" title={`Ascension ${asc}`}>

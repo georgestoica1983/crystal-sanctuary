@@ -1,5 +1,6 @@
 "use client";
 
+import { BossBeaten, BossIntro, BOSS_LOOK } from "@/components/BossMoments";
 import TipCard from "@/components/TipCard";
 import { loadTipsOn, saveTipsOn, takeNextTip, type Tip } from "@/lib/tips";
 import { countRunStarted, runsStarted, TEACHING_RUNS } from "@/lib/playCount";
@@ -521,6 +522,10 @@ export default function OneStrokeTacticianPage() {
   const [tipsOn, setTipsOn] = useState(true);
   const [tip, setTip] = useState<Tip | null>(null);
   const tipBedRef = useRef<string | null>(null);
+  // Boss beds: an arrival intro (or a still preview from the Season dots) and a "beaten" moment
+  const [bossIntro, setBossIntro] = useState<{ id: BossRuleId; preview: boolean } | null>(null);
+  const [bossBeaten, setBossBeaten] = useState<{ id: BossRuleId; legendary: RelicId | null } | null>(null);
+  const bossBedRef = useRef<string | null>(null);
   // The Run whose first bed already had its card (once per Run)
   const goalCardRunRef = useRef<string | null>(null);
   const [activeResolutionStep, setActiveResolutionStep] = useState<
@@ -865,11 +870,26 @@ export default function OneStrokeTacticianPage() {
   useEffect(() => {
     if (!tipsOn || mode !== "RUN" || lesson || practiceStep || !runGarden) return;
     if (runGarden.gardenIndex === 0 || runGarden.score > 0 || phase !== "PLANNING" || runClear || tally) return;
+    if (runGarden.kind === "BOSS") return; // a Boss bed opens with its own intro instead
     const key = `${dungeon.seedKey}-${runGarden.gardenIndex}`;
     if (tipBedRef.current === key) return;
     tipBedRef.current = key;
     setTip(takeNextTip());
   }, [tipsOn, mode, lesson, practiceStep, runGarden, phase, runClear, tally, dungeon.seedKey]);
+
+  // A Boss bed arrives with its intro (once per bed)
+  useEffect(() => {
+    if (mode !== "RUN" || lesson || practiceStep || !runGarden || runGarden.kind !== "BOSS" || !runGarden.bossRuleId) return;
+    if (runGarden.score > 0 || phase !== "PLANNING" || runClear || tally) return;
+    const key = `${dungeon.seedKey}-${runGarden.gardenIndex}`;
+    if (bossBedRef.current === key) return;
+    bossBedRef.current = key;
+    setBossIntro({ id: runGarden.bossRuleId, preview: false });
+  }, [mode, lesson, practiceStep, runGarden, phase, runClear, tally, dungeon.seedKey]);
+  // Boss beds play the sparser, slower melody (night time does too)
+  useEffect(() => {
+    soundEngine.setNightMusic((followTime && dayPhase === "NIGHT") || (mode === "RUN" && runGarden?.kind === "BOSS"));
+  }, [followTime, dayPhase, mode, runGarden?.kind]);
 
   // Points this Garden Bed still needs (Garden Run only, not lessons)
   const bedToGo =
@@ -2296,6 +2316,7 @@ export default function OneStrokeTacticianPage() {
     if (!practiceStep && garden.kind === "BOSS" && garden.bossRuleId && recordBossBeaten(garden.bossRuleId, garden.score)) {
       journalNotice([BOSS_RULE_REGISTRY[garden.bossRuleId].name]);
     }
+    const beatenBoss = !practiceStep && garden.kind === "BOSS" ? garden.bossRuleId ?? null : null;
     const { payout, legendary, relicsAfter, countersAfter, statsWithPayout, offers } =
       getRunBloomResult({
         garden,
@@ -2326,6 +2347,7 @@ export default function OneStrokeTacticianPage() {
     setLegendaryAward(legendary);
     setHero(stats);
     soundEngine.playVictoryChord();
+    if (beatenBoss) setBossBeaten({ id: beatenBoss, legendary });
     // The collection grows quietly (never in practice); a visitor arrives at its milestones
     if (!practiceStep) {
       const before = loadMyGarden().plants.length;
@@ -3604,6 +3626,7 @@ export default function OneStrokeTacticianPage() {
             <div className="relative">
             <RunHudStrip
               bare
+              onBossPreview={(id) => setBossIntro({ id, preview: true })}
               garden={runGarden}
                   previewScore={
                     simulation.canCommit && phase === "PLANNING"
@@ -4010,7 +4033,17 @@ export default function OneStrokeTacticianPage() {
           {/* Interactive 5x5 Path-Drawing Board: a square that fills the space
               left on screen (smaller on short phones, up to 520px) */}
           <div className="relative w-full max-w-game min-h-[220px] max-h-[min(calc((100vw-1rem)*1.2),624px)] grow-[1000] basis-0 !shrink flex items-center justify-center [container-type:size]">
-          <div className="relative w-[min(100cqw,100cqh)] h-[min(100cqh,calc(min(100cqw,100cqh)*1.2))]">
+          <div
+            className="relative w-[min(100cqw,100cqh)] h-[min(100cqh,calc(min(100cqw,100cqh)*1.2))] rounded-2xl"
+            style={
+              mode === "RUN" && runGarden?.kind === "BOSS" && runGarden.bossRuleId
+                ? {
+                    // A Boss bed: the board wears the Boss's colour
+                    boxShadow: `0 0 0 2px ${BOSS_LOOK[runGarden.bossRuleId].color}99, 0 0 28px ${BOSS_LOOK[runGarden.bossRuleId].color}40`,
+                  }
+                : undefined
+            }
+          >
             {/* Time of day: a soft light over the board, and fireflies at night (looks only) */}
             {boardLight && (
               <div
@@ -4641,6 +4674,16 @@ export default function OneStrokeTacticianPage() {
       {/* Run mode: garden-clear payout and the end-of-run summary */}
       <RunGardenClearModal info={runClear} onContinue={handleRunClearContinue} />
       <AnimatePresence>{tip && <TipCard key={tip.text} tip={tip} onDone={() => setTip(null)} />}</AnimatePresence>
+      <AnimatePresence>
+        {bossIntro && (
+          <BossIntro key={`${bossIntro.id}-${bossIntro.preview}`} id={bossIntro.id} preview={bossIntro.preview} onDone={() => setBossIntro(null)} />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {bossBeaten && (
+          <BossBeaten key={bossBeaten.id} id={bossBeaten.id} legendary={bossBeaten.legendary} onDone={() => setBossBeaten(null)} />
+        )}
+      </AnimatePresence>
       {showGoalCard && runGarden && !lesson && (
         <RunGoalCard
           target={runGarden.target}
