@@ -139,6 +139,7 @@ for (const budget of BUDGETS) {
           counters: s.counters,
           strokesLeft: s.garden.strokesLeft,
           relicSets: runRulesUseRelicSets(v),
+          bossRuleId: s.garden.bossRuleId,
         });
         const before = s.garden;
         const hpBefore = s.startHero.hp;

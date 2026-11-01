@@ -10,6 +10,7 @@ import {
   addStartEditions,
   EDITION_TILE_COST,
   createRunGarden,
+  TOLL_SEEDS,
   FERT_TILES,
   hashStringToSeed,
   mulberry32,
@@ -41,6 +42,7 @@ import {
   simulatePath,
 } from "@/lib/engine";
 import type {
+  BossRuleId,
   DungeonFloor,
   FloorScoreBreakdown,
   GridCell,
@@ -81,6 +83,9 @@ export const runWelcomeBonusFor = (logVersion: number, gardenIndex: number, asc 
   logVersion >= 6 && gardenIndex === 0 && ascensionRules(runAscensionFor(logVersion, asc)).welcomeBonus
     ? RUN_WELCOME_BONUS
     : 0;
+
+/** Rules v19+: four more Bosses (Narrow Path, Long Road, Fog, Toll) */
+export const runRulesUseNewBosses = (logVersion: number) => logVersion >= 19;
 
 /** Rules v7+: Boss gardens use all eight Boss rules */
 export const runRulesUseAllBosses = (logVersion: number) => logVersion >= 7;
@@ -171,6 +176,7 @@ export function startRunGarden(
     introTiles: runRulesUseIntroTiles(logVersion),
     gentleStart: runRulesUseGentleStart(logVersion),
     allBossRules: runRulesUseAllBosses(logVersion),
+    newBosses: runRulesUseNewBosses(logVersion),
     ...ascensionGardenParams(rules),
   });
   return { bag, hero, ...first };
@@ -189,16 +195,21 @@ export function scoreRunStroke(
   counters: RelicCounters,
   strokesLeft: number,
   /** Rules v10+ relic sets (runRulesUseRelicSets) — required so live play and replays agree */
-  relicSets: boolean
+  relicSets: boolean,
+  /** The bed's Boss rule (rules v19 Bosses change scoring and cost) */
+  bossRuleId?: BossRuleId
 ): { breakdown: FloorScoreBreakdown; afterStroke: HeroStats; countersAfter: RelicCounters } {
   const breakdown = calculateFloorScoreBreakdown(sim, startHero, path.length, relics, {
     counters,
     strokesLeft,
     relicSets,
+    bossRuleId,
   });
+  // The Toll: every line on its bed costs Seeds
+  const gold = bossRuleId === "TOLL" ? Math.max(0, startHero.gold - TOLL_SEEDS) : startHero.gold;
   return {
     breakdown,
-    afterStroke: { ...sim.finalStats, gold: startHero.gold },
+    afterStroke: { ...sim.finalStats, gold },
     countersAfter: growRelicCountersAfterStroke(counters, relics, sim),
   };
 }
@@ -649,6 +660,7 @@ export function createNextRunGarden(params: {
     introTiles: runRulesUseIntroTiles(v),
     gentleStart: runRulesUseGentleStart(v),
     allBossRules: runRulesUseAllBosses(v),
+    newBosses: runRulesUseNewBosses(v),
     ...ascensionGardenParams(rules),
   });
   return { hero, ...next };
@@ -701,7 +713,7 @@ export function getRunPathError(
  * v11: a gentler first Season (targets 800 / 1,500 / 2,500).
  * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 18;
+export const RUN_LOG_VERSION = 19;
 export const RUN_LOG_MIN_VERSION = 2;
 /** Rule set of new Runs (the current version) */
 export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);
@@ -915,7 +927,8 @@ export function createRunReplayer(
         s.relics,
         s.counters,
         s.garden.strokesLeft,
-        runRulesUseRelicSets(logVersion)
+        runRulesUseRelicSets(logVersion),
+        s.garden.bossRuleId
       );
       s.counters = countersAfter;
       if (runRulesUseTools(logVersion)) {

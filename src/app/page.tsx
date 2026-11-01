@@ -164,6 +164,7 @@ import {
   runRulesUseGentleStart,
   runRulesUseTools,
   runRulesUseAllBosses,
+  runRulesUseNewBosses,
   runModifierFor,
   scoreRunStroke,
   startRunGarden,
@@ -735,8 +736,9 @@ export default function OneStrokeTacticianPage() {
             counters: relicCounters,
             strokesLeft: runGarden?.strokesLeft,
             relicSets: runRulesUseRelicSets(runLogRef.current?.v ?? RUN_LOG_VERSION),
+            bossRuleId: runGarden?.bossRuleId,
           },
-    [isInteractiveTutorial, lesson, mode, relicCounters, runGarden?.strokesLeft]
+    [isInteractiveTutorial, lesson, mode, relicCounters, runGarden?.strokesLeft, runGarden?.bossRuleId]
   );
 
   // Live Ghost Preview deterministic calculation with Hero Class & Active Relics
@@ -1883,10 +1885,14 @@ export default function OneStrokeTacticianPage() {
       activeRelicsForBoard,
       relicCounters,
       garden.strokesLeft,
-      !!strokeCtx.relicSets
+      !!strokeCtx.relicSets,
+      garden.bossRuleId
     );
     setRelicCounters(countersAfter);
     logRunAction({ k: "s", p: packCoords(path) });
+    if (garden.bossRuleId === "TOLL" && floorStartHero.gold > afterStroke.gold) {
+      handleNotice(`🪙 The Toll took ${floorStartHero.gold - afterStroke.gold} Seeds for that line.`);
+    }
     // Rules v13+: each Dewy tile this line passed loses a line of Dew (as the replay does)
     let strokeGrid = currentFloor.grid;
     if (runRulesUseTools(runLogRef.current?.v ?? RUN_LOG_VERSION)) {
@@ -3565,7 +3571,12 @@ export default function OneStrokeTacticianPage() {
                 asc={runLogRef.current?.asc ?? 0}
                 upcomingBoss={
                   runGarden.kind !== "BOSS"
-                    ? previewSeasonBoss(dungeon.seedKey, runGarden.season, runRulesUseAllBosses(runLogRef.current?.v ?? RUN_LOG_VERSION))
+                    ? previewSeasonBoss(
+                      dungeon.seedKey,
+                      runGarden.season,
+                      runRulesUseAllBosses(runLogRef.current?.v ?? RUN_LOG_VERSION),
+                      runRulesUseNewBosses(runLogRef.current?.v ?? RUN_LOG_VERSION)
+                    )
                     : null
                 }
               />
@@ -3750,6 +3761,7 @@ export default function OneStrokeTacticianPage() {
           <div className="relative aspect-square w-[min(100cqw,100cqh)]">
             <GridCanvas
               toolArmed={toolArmed !== null && phase === "PLANNING"}
+              fog={mode === "RUN" && !lesson && runGarden?.bossRuleId === "FOG" && phase === "PLANNING"}
               onToolTarget={handleUseTool}
               tileLevels={
                 mode === "RUN" && !lesson
@@ -4240,7 +4252,12 @@ export default function OneStrokeTacticianPage() {
         nextBossRuleId={
           // The next bed is this Season's Boss: show it ahead (from the Run's seed)
           mode === "RUN" && runGarden && runGarden.kind === "BIG"
-            ? previewSeasonBoss(dungeon.seedKey, runGarden.season, runRulesUseAllBosses(runLogRef.current?.v ?? RUN_LOG_VERSION))
+            ? previewSeasonBoss(
+                      dungeon.seedKey,
+                      runGarden.season,
+                      runRulesUseAllBosses(runLogRef.current?.v ?? RUN_LOG_VERSION),
+                      runRulesUseNewBosses(runLogRef.current?.v ?? RUN_LOG_VERSION)
+                    )
             : dungeon.floors[currentFloorIndex + 1]?.bossRuleId
         }
         legendaryAward={legendaryAward}

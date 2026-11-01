@@ -5,6 +5,7 @@ import { readdirSync, readFileSync } from "fs";
 import path from "path";
 import {
   calculateFloorScoreBreakdown,
+  previewSeasonBoss,
   countCommonRelics,
   findEntityCoord,
   generateShopOffers,
@@ -127,6 +128,7 @@ function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0
       counters: s.counters,
       strokesLeft: s.garden.strokesLeft,
       relicSets: true,
+      bossRuleId: s.garden.bossRuleId,
     });
     if (best && best.score > 0) {
       expected += best.score;
@@ -815,6 +817,38 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
     run.state.gardenUpgrades.length > 0 && replay.ok && replay.score === run.state.score,
     replay.ok ? `${replay.score} vs ${run.state.score}` : replay.error
   );
+}
+
+// 16. New Bosses (rules v19+): only in v19 Runs; Narrow Path, Long Road and Toll
+{
+  let oldHas = 0;
+  let newHas = 0;
+  for (let i = 0; i < 80; i++) {
+    const NEW = ["NARROW_PATH", "LONG_ROAD", "FOG", "TOLL"];
+    if (NEW.includes(previewSeasonBoss(`boss19-${i}`, 1, true, false))) oldHas++;
+    if (NEW.includes(previewSeasonBoss(`boss19-${i}`, 1, true, true))) newHas++;
+  }
+  check(`new Bosses only in v19 Runs (v18: ${oldHas}, v19: ${newHas} of 80 Seasons)`, oldHas === 0 && newHas > 0);
+  const r = createRunReplayer("boss19-effects", "KNIGHT", 19);
+  const best = searchBestFloorLine(r.state.grid, r.state.startHero, RUN_MODIFIER, "KNIGHT", [], 20000, {});
+  if (best) {
+    const start = r.state.startHero;
+    const len = best.path.length;
+    const plain = calculateFloorScoreBreakdown(best.sim, start, len, [], {});
+    const narrow = calculateFloorScoreBreakdown(best.sim, start, len, [], { bossRuleId: "NARROW_PATH" });
+    const diag = best.sim.steps.filter(
+      (st, i) => i > 0 && !st.isShadowStepCross && st.direction && Math.abs(st.direction.dr) === 1 && Math.abs(st.direction.dc) === 1
+    ).length;
+    check(`Narrow Path: diagonal steps add no Length (−${diag})`, plain.mult - narrow.mult === diag);
+    const shortSim = best.path.length < 10;
+    const road = calculateFloorScoreBreakdown(best.sim, start, len, [], { bossRuleId: "LONG_ROAD" });
+    check(
+      `Long Road: a ${len}-tile line ${shortSim ? "scores half" : "scores in full"}`,
+      shortSim ? road.total === Math.round(plain.total * 0.5) || Math.abs(road.total - plain.total / 2) <= 1 : road.total === plain.total
+    );
+    const toll = scoreRunStroke(best.sim, { ...start, gold: 7 }, best.path, [], {}, 4, true, "TOLL");
+    check(`The Toll: a line costs 2 Seeds (7 → ${toll.afterStroke.gold})`, toll.afterStroke.gold === 5);
+  }
 }
 
 console.log(failures ? `\n${failures} check(s) failed` : "\nAll replay checks passed");

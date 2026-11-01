@@ -125,6 +125,8 @@ export interface RelicScoreContext {
   strokesLeft?: number;
   /** Rules v10+: 3 relics with one theme tag score every line ×1.25 */
   relicSets?: boolean;
+  /** Rules v19+: the bed's Boss rule, for the Bosses that change scoring */
+  bossRuleId?: BossRuleId;
 }
 
 export interface RelicDefinition {
@@ -150,7 +152,12 @@ export type BossRuleId =
   | "FROST"
   | "ACORN_THIEF"
   | "SPIKE_BLOOM"
-  | "EVEN_GARDEN";
+  | "EVEN_GARDEN"
+  // Rules v19+: Bosses that change how you draw, what you see, or what a line costs
+  | "NARROW_PATH"
+  | "LONG_ROAD"
+  | "FOG"
+  | "TOLL";
 
 export interface BossRuleDefinition {
   id: BossRuleId;

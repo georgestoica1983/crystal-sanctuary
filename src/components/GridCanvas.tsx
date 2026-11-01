@@ -48,6 +48,8 @@ interface GridCanvasProps {
   clearsBed?: boolean;
   /** Fertilizer levels (rules v12+): fertilized tile types wear a small "Lv" leaf */
   tileLevels?: Partial<Record<string, number>>;
+  /** The Fog Boss (rules v19+): numbers hidden until the line is next to a tile */
+  fog?: boolean;
   /** A garden tool is armed: the next tile tap uses it instead of drawing */
   toolArmed?: boolean;
   onToolTarget?: (coord: GridCoord) => void;
@@ -78,6 +80,7 @@ export default function GridCanvas({
   tileLevels,
   toolArmed = false,
   onToolTarget,
+  fog = false,
   onRetractNotice,
   pulseStartExit = false,
   liveScore = null,
@@ -425,10 +428,14 @@ export default function GridCanvas({
         onPathChange([heroStartCoord, coord]);
         soundEngine.playSwipeTick(1, false);
       } else {
-        // Tap-to-Inspect: Show floating Inspector Card for this tile!
-        setInspectedCoord((prev) =>
-          prev && isSameCoord(prev, coord) ? null : coord
-        );
+        // Tap-to-Inspect: Show floating Inspector Card for this tile (not through the Fog)
+        const fogged =
+          fog && ![...drawnPath, heroStartCoord].some((p) => Math.abs(p.row - coord.row) <= 1 && Math.abs(p.col - coord.col) <= 1);
+        if (!fogged) {
+          setInspectedCoord((prev) =>
+            prev && isSameCoord(prev, coord) ? null : coord
+          );
+        }
         // …and the tile sways with a soft note; sliding on brushes more tiles
         pokeTile(coord, 1, 4 - coord.row + coord.col);
         brushRef.current = { key: `${coord.row},${coord.col}`, x: e.clientX };
@@ -448,6 +455,7 @@ export default function GridCanvas({
       pokeTile,
       toolArmed,
       onToolTarget,
+      fog,
     ]
   );
 
@@ -1063,6 +1071,13 @@ export default function GridCanvas({
                           isResolvedBloomed={isResolvedInPlayback && isSanctuary && !isThornHurt}
                           isThornWilted={isSanctuary && isThornHurt}
                           hideHero={isResolving && cell.type === "HERO"}
+                      hideValue={
+                        fog &&
+                        !isVisited &&
+                        ![...drawnPath, heroStartCoord].some(
+                          (p) => Math.abs(p.row - r) <= 1 && Math.abs(p.col - c) <= 1
+                        )
+                      }
                           isPortalReady={isExitCell && simulation.canCommit}
                         />
                           </motion.span>
@@ -1771,6 +1786,7 @@ export function CellGeometricNode({
   isThornWilted = false,
   companionEmoji,
   hideHero,
+  hideValue = false,
 }: {
   cell: GridCell;
   modifierId: ModifierId;
@@ -1785,8 +1801,11 @@ export function CellGeometricNode({
   /** A chosen companion (Otter, Butterfly, Fox) drawn on the home tile */
   companionEmoji?: string;
   hideHero?: boolean;
+  /** The Fog Boss (rules v19+): the number stays hidden until the line is next to this tile */
+  hideValue?: boolean;
   isPortalReady?: boolean;
 }) {
+  const v = (x: number | string) => (hideValue ? "?" : x);
   switch (cell.type) {
     case "HERO": {
       const isMage = heroClassId === "MAGE";
@@ -1875,7 +1894,7 @@ export function CellGeometricNode({
       return (
         <TileIconWithValue
           type="ENEMY"
-          value={cell.value}
+          value={v(cell.value)}
           isBloomed={bloomed}
           struck={bloomed}
           wilted={isThornWilted}
@@ -1890,28 +1909,28 @@ export function CellGeometricNode({
         : modifierId === "GLASS_ARMOR"
         ? cell.value * 2
         : cell.value;
-      return <TileIconWithValue type="SHIELD" value={displayVal} />;
+      return <TileIconWithValue type="SHIELD" value={v(displayVal)} />;
     }
 
     case "WEAPON":
-      return <TileIconWithValue type="WEAPON" value={cell.value} />;
+      return <TileIconWithValue type="WEAPON" value={v(cell.value)} />;
 
     case "POTION": {
       const isCorrupted = modifierId === "BLOOD_GOLD";
       return (
         <TileIconWithValue
           type="POTION"
-          value={isCorrupted ? "-1" : cell.value}
+          value={v(isCorrupted ? "-1" : cell.value)}
           isCorrupted={isCorrupted}
         />
       );
     }
 
     case "GOLD":
-      return <TileIconWithValue type="GOLD" value={cell.value} />;
+      return <TileIconWithValue type="GOLD" value={v(cell.value)} />;
 
     case "TRAP":
-      return <TileIconWithValue type="TRAP" value={cell.value} />;
+      return <TileIconWithValue type="TRAP" value={v(cell.value)} />;
 
     case "VOID":
       return null;

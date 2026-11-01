@@ -1088,7 +1088,48 @@ export const BOSS_RULE_REGISTRY: Record<BossRuleId, BossRuleDefinition> = {
     icon: "⚖️",
     description: "Every tile is 4 · Thorns and Spikes are 2.",
   },
+  NARROW_PATH: {
+    id: "NARROW_PATH",
+    name: "The Narrow Path",
+    icon: "🚧",
+    description: "Diagonal steps add no Length.",
+  },
+  LONG_ROAD: {
+    id: "LONG_ROAD",
+    name: "The Long Road",
+    icon: "📏",
+    description: "Lines shorter than 10 tiles score half.",
+  },
+  FOG: {
+    id: "FOG",
+    name: "The Fog",
+    icon: "☁️",
+    description: "Tile numbers stay hidden until your line is next to them.",
+  },
+  TOLL: {
+    id: "TOLL",
+    name: "The Toll",
+    icon: "🪙",
+    description: "Every line costs 2 🌱 Seeds.",
+  },
 };
+/** The eight Bosses before rules v19 (their order decides which a Season gets) */
+const EIGHT_BOSS_RULES: BossRuleId[] = [
+  "THISTLE_KING",
+  "BRIAR_QUEEN",
+  "DROUGHT",
+  "ECLIPSE",
+  "FROST",
+  "ACORN_THIEF",
+  "SPIKE_BLOOM",
+  "EVEN_GARDEN",
+];
+/** Rules v19+: the Boss pool also has these four */
+const V19_BOSS_RULES: BossRuleId[] = ["NARROW_PATH", "LONG_ROAD", "FOG", "TOLL"];
+const bossPool = (allBossRules: boolean, newBosses: boolean): BossRuleId[] =>
+  newBosses ? [...EIGHT_BOSS_RULES, ...V19_BOSS_RULES] : allBossRules ? EIGHT_BOSS_RULES : LEGACY_BOSS_RULES;
+/** The Toll: Seeds each line costs on its bed */
+export const TOLL_SEEDS = 2;
 
 /** The Even Garden sets every tile to these numbers (Thorns and Spikes lower) */
 const EVEN_GARDEN_VALUE = 4;
@@ -1097,7 +1138,7 @@ const EVEN_GARDEN_HARM = 2;
 /** The first four Boss rules: Runs before rules v7 (and the Daily) only use these */
 export const LEGACY_BOSS_RULES: BossRuleId[] = ["THISTLE_KING", "BRIAR_QUEEN", "DROUGHT", "ECLIPSE"];
 
-const BOSS_RULE_TARGET: Record<BossRuleId, EntityType | "ALL"> = {
+const BOSS_RULE_TARGET: Record<BossRuleId, EntityType | "ALL" | "NONE"> = {
   THISTLE_KING: "TRAP",
   BRIAR_QUEEN: "ENEMY",
   DROUGHT: "SHIELD",
@@ -1106,11 +1147,16 @@ const BOSS_RULE_TARGET: Record<BossRuleId, EntityType | "ALL"> = {
   ACORN_THIEF: "GOLD",
   SPIKE_BLOOM: "GOLD",
   EVEN_GARDEN: "ALL",
+  NARROW_PATH: "NONE",
+  LONG_ROAD: "NONE",
+  FOG: "NONE",
+  TOLL: "NONE",
 };
 
 /** One tile with a boss twist baked into its value (unchanged if unaffected) */
 export function bakeBossTile(cell: GridCell, rule: BossRuleId): GridCell {
   const target = BOSS_RULE_TARGET[rule];
+  if (target === "NONE") return cell;
   if (target === "ALL") {
     if (cell.type === "HERO" || cell.type === "EXIT" || cell.type === "VOID") return cell;
     const even = cell.type === "ENEMY" || cell.type === "TRAP" ? EVEN_GARDEN_HARM : EVEN_GARDEN_VALUE;
@@ -2150,9 +2196,14 @@ export function calculateFloorScoreBreakdown(
     }
   }
 
+  // Rules v19 Bosses that change scoring
+  if (ctx.bossRuleId === "LONG_ROAD" && pathLength < 10) {
+    xMultSources.push({ label: "The Long Road", value: 0.5 });
+  }
+  const narrowCut = ctx.bossRuleId === "NARROW_PATH" ? diagonalSteps : 0;
   const chips =
     gemChips + tileChips + chipSources.reduce((sum, c) => sum + c.value, 0);
-  const pathMult = Math.max(0, pathLength);
+  const pathMult = Math.max(0, pathLength - narrowCut);
   const mult = pathMult + multSources.reduce((sum, m) => sum + m.value, 0);
   const xMult = xMultSources.reduce((prod, x) => prod * x.value, 1);
   const scores = sim.survives && sim.endsOnExit;
@@ -3491,9 +3542,9 @@ export function getRunNewTileTypes(gardenIndex: number): EntityType[] {
  * The Boss a Season will most likely bring: its first choice for this Run.
  * (The bed itself takes the next one only if that board has no safe line.)
  */
-export function previewSeasonBoss(runSeed: string, season: number, allBossRules = true): BossRuleId {
+export function previewSeasonBoss(runSeed: string, season: number, allBossRules = true, newBosses = false): BossRuleId {
   const rng = mulberry32(hashStringToSeed(`boss-${runSeed}-s${season}`));
-  const pool = allBossRules ? (Object.keys(BOSS_RULE_REGISTRY) as BossRuleId[]) : LEGACY_BOSS_RULES;
+  const pool = bossPool(allBossRules, newBosses);
   return [...pool]
     .map((id) => ({ id, k: rng() }))
     .sort((a, b) => a.k - b.k)[0].id;
@@ -3511,6 +3562,8 @@ export function createRunGarden(params: {
   introTiles?: boolean;
   /** Rules v7+: Boss gardens pick from all eight Boss rules */
   allBossRules?: boolean;
+  /** Rules v19+: plus the four that change drawing, sight or cost */
+  newBosses?: boolean;
   /** Rules v11+: gentler Season 1 targets */
   gentleStart?: boolean;
   /** Ascension (rules v8+): harder targets, stronger Thorns, fewer Swaps / Boss lines */
@@ -3526,9 +3579,7 @@ export function createRunGarden(params: {
     kind === "BOSS"
       ? (() => {
           const rng = mulberry32(hashStringToSeed(`boss-${runSeed}-s${season}`));
-          const pool = params.allBossRules
-            ? (Object.keys(BOSS_RULE_REGISTRY) as BossRuleId[])
-            : LEGACY_BOSS_RULES;
+          const pool = bossPool(Boolean(params.allBossRules), Boolean(params.newBosses));
           return [...pool]
             .map((id) => ({ id, k: rng() }))
             .sort((a, b) => a.k - b.k)
