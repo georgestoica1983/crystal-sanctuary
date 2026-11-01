@@ -44,6 +44,7 @@ import {
   pickLegendaryRelic,
   SHOP_REROLL_COST,
   SHOP_STAT_BOOSTS,
+  previewSeasonBoss,
   GARDEN_TOOLS,
   EDITIONS,
   FERTILIZER,
@@ -162,6 +163,7 @@ import {
   runRulesUseRelicSets,
   runRulesUseGentleStart,
   runRulesUseTools,
+  runRulesUseAllBosses,
   runModifierFor,
   scoreRunStroke,
   startRunGarden,
@@ -3561,6 +3563,11 @@ export default function OneStrokeTacticianPage() {
                 onConfirmWeedOut={handleConfirmWeedOut}
                 suggestSwap={swapSuggested}
                 asc={runLogRef.current?.asc ?? 0}
+                upcomingBoss={
+                  runGarden.kind !== "BOSS"
+                    ? previewSeasonBoss(dungeon.seedKey, runGarden.season, runRulesUseAllBosses(runLogRef.current?.v ?? RUN_LOG_VERSION))
+                    : null
+                }
               />
             )
           )}
@@ -4230,7 +4237,12 @@ export default function OneStrokeTacticianPage() {
               : dungeon.floors[currentFloorIndex + 1].title
             : undefined
         }
-        nextBossRuleId={dungeon.floors[currentFloorIndex + 1]?.bossRuleId}
+        nextBossRuleId={
+          // The next bed is this Season's Boss: show it ahead (from the Run's seed)
+          mode === "RUN" && runGarden && runGarden.kind === "BIG"
+            ? previewSeasonBoss(dungeon.seedKey, runGarden.season, runRulesUseAllBosses(runLogRef.current?.v ?? RUN_LOG_VERSION))
+            : dungeon.floors[currentFloorIndex + 1]?.bossRuleId
+        }
         legendaryAward={legendaryAward}
         hasPurchased={shopPurchases > 0}
         isSanctuary={isSanctuary}

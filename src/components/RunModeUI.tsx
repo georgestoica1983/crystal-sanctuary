@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import EntityIcon from "@/components/EntityIcon";
-import { GridCell, GridCoord, RelicId, RunGardenState } from "@/types/game";
+import { BossRuleId, GridCell, GridCoord, RelicId, RunGardenState } from "@/types/game";
 import {
   BOSS_RULE_REGISTRY,
   getRunGardenKindLabel,
@@ -39,7 +39,10 @@ export function RunHudStrip({
   onConfirmWeedOut,
   suggestSwap = false,
   asc = 0,
+  upcomingBoss = null,
 }: {
+  /** The Season's Boss rule, previewed before its bed (from the Run's seed) */
+  upcomingBoss?: BossRuleId | null;
   garden: RunGardenState;
   previewScore: number | null;
   noSafeLine: boolean;
@@ -61,6 +64,7 @@ export function RunHudStrip({
   const boss = garden.bossRuleId ? BOSS_RULE_REGISTRY[garden.bossRuleId] : null;
   const strokesTotal = garden.strokesTotal ?? RUN_STROKES_PER_GARDEN;
   const strokesUsed = strokesTotal - garden.strokesLeft;
+  const [bossOpen, setBossOpen] = useState(false);
   return artify(
     <div
       className={`w-full max-w-[430px] min-w-0 rounded-xl px-3 pt-2 pb-1.5 [@media(max-height:640px)]:pt-1.5 [@media(max-height:640px)]:pb-1 border space-y-1.5 [@media(max-height:640px)]:space-y-1 bg-white/[0.04] ${
@@ -76,7 +80,11 @@ export function RunHudStrip({
               {boss ? `${boss.icon} ` : ""}
               {getRunGardenKindLabel(garden.kind)}
             </span>
-            <SeasonDots gardenIndex={garden.gardenIndex} />
+            <SeasonDots
+              gardenIndex={garden.gardenIndex}
+              boss={upcomingBoss ? BOSS_RULE_REGISTRY[upcomingBoss] : null}
+              onBossTap={() => setBossOpen((v) => !v)}
+            />
             {asc > 0 && (
               <span className="ml-1.5 rounded-md bg-orange-400/15 px-1 py-px text-[10.5px] font-bold text-orange-200" title={`Ascension ${asc}`}>
                 🔥A{asc}
@@ -94,6 +102,19 @@ export function RunHudStrip({
           )}
         </div>
       </div>
+
+      {bossOpen && upcomingBoss && garden.kind !== "BOSS" && (
+        <button
+          type="button"
+          onClick={() => setBossOpen(false)}
+          className="w-full text-left rounded-lg border border-rose-300/30 bg-rose-500/[0.07] px-2.5 py-1.5 text-[12px] leading-snug text-rose-50"
+        >
+          <span className="font-bold">
+            {BOSS_RULE_REGISTRY[upcomingBoss].icon} Boss ahead: {BOSS_RULE_REGISTRY[upcomingBoss].name}
+          </span>
+          <span className="block text-rose-50/75">{BOSS_RULE_REGISTRY[upcomingBoss].description}</span>
+        </button>
+      )}
 
       {/* Score progress */}
       <div className="relative h-4 rounded-full bg-black/30 overflow-hidden">
@@ -358,18 +379,39 @@ function SeasonMap({
 
 /** Garden-clear screen: the Seed payout, then on to the Shop */
 /** Where you are in the Season: Small → Big → Boss (done, current, still to come) */
-function SeasonDots({ gardenIndex }: { gardenIndex: number }) {
+function SeasonDots({
+  gardenIndex,
+  boss,
+  onBossTap,
+}: {
+  gardenIndex: number;
+  /** The Season's Boss, shown ahead on its dot */
+  boss?: { icon: string; name: string } | null;
+  onBossTap?: () => void;
+}) {
   const at = gardenIndex % 3;
   return (
     <span className="ml-1.5 inline-flex items-center gap-[3px] align-middle" aria-label={`Bed ${at + 1} of 3 this Season`}>
-      {[0, 1, 2].map((i) => (
+      {[0, 1].map((i) => (
         <span
           key={i}
-          className={`rounded-full ${i === 2 ? "h-2 w-2" : "h-1.5 w-1.5"} ${
+          className={`rounded-full h-1.5 w-1.5 ${
             i < at ? "bg-amber-300/80" : i === at ? "bg-amber-200 ring-2 ring-amber-200/30" : "bg-white/20"
           }`}
         />
       ))}
+      {boss && at < 2 ? (
+        <button
+          type="button"
+          onClick={onBossTap}
+          aria-label={`Boss ahead: ${boss.name}. Tap for its rule.`}
+          className="ml-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-400/15 px-0.5 text-[10px] leading-none ring-1 ring-rose-300/40 active:scale-90"
+        >
+          {boss.icon}
+        </button>
+      ) : (
+        <span className={`rounded-full h-2 w-2 ${at === 2 ? "bg-amber-200 ring-2 ring-amber-200/30" : "bg-white/20"}`} />
+      )}
     </span>
   );
 }

@@ -3487,6 +3487,18 @@ export function getRunNewTileTypes(gardenIndex: number): EntityType[] {
   return nowSet.filter((t) => !beforeSet.includes(t));
 }
 
+/**
+ * The Boss a Season will most likely bring: its first choice for this Run.
+ * (The bed itself takes the next one only if that board has no safe line.)
+ */
+export function previewSeasonBoss(runSeed: string, season: number, allBossRules = true): BossRuleId {
+  const rng = mulberry32(hashStringToSeed(`boss-${runSeed}-s${season}`));
+  const pool = allBossRules ? (Object.keys(BOSS_RULE_REGISTRY) as BossRuleId[]) : LEGACY_BOSS_RULES;
+  return [...pool]
+    .map((id) => ({ id, k: rng() }))
+    .sort((a, b) => a.k - b.k)[0].id;
+}
+
 export function createRunGarden(params: {
   runSeed: string;
   bag: SeedTile[];

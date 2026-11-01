@@ -57,7 +57,8 @@ Rule: anything random is visible before you commit — no hidden chances, no pai
 - [x] 11. Skip a bed for a Tag (rules v17): only Small beds, before the first line; Tags: Fertile (free Fertilizer level), Golden (a bag tile turns Golden), Purse (+10 Seeds), Relic (free Rare relic in the next Shop). You lose the bed's Seeds, Shop and Life back, and the Big bed's target grows +50%. Without that last rule skipping was free progress (A6 strong 23 → 36 of 48); with it, 23 → 28.
 - [x] 12. Garden upgrades (rules v18): one per Season for 6 Seeds, two tiers — Root Cellar → Old Oak (interest cap +5 → +15), Market Day → Harvest Fair (Shop −25% → −50%), Almanac → Observatory (Fertilizer −3 Seeds → 2 levels each); listed in the menu. They cost a little over 3 Seasons and pay off over 5 (bots buying them first: 12 → 20 of 32 full 15-bed runs).
 - [x] 13. Rerolls start at 5 Seeds, +1 each in the same Shop — already the Garden Run rule (getRunRerollCost); the flat 10 was the old Daily mode.
-- [ ] 14. Boss check-up across 5 kinds (tile blockers, line rules, hidden tiles, taxes, finishers); show the Season's Boss in advance.
+- [x] 14a. The Season's Boss is shown ahead: its icon sits on the third Season dot (tap for the rule) and the Shop's "Up next" names it (preview matched the real Boss in 54 of 54 Boss beds).
+- [ ] 14b. New Bosses for the missing kinds (rules v19, bots first): The Narrow Path (no diagonals), The Long Road (lines under 10 tiles score half), The Fog (numbers hidden until your line is next to them), The Toll (each line costs 2 Seeds). Today all 8 Bosses only change tile values.
 
 **C — come back (no rules change)**
 - [ ] 15. My Garden: a permanent garden that only grows from cleared beds; nothing dies.
