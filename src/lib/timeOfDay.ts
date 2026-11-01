@@ -65,3 +65,36 @@ export const DAY_PHASE_NAMES: Record<DayPhase, string> = {
   GOLDEN: "Golden hour",
   NIGHT: "Night",
 };
+
+const DEW_DAY_KEY = "ost_dew_day_v1";
+
+/**
+ * Morning dew: the first Run started between 5 and 10 am gets dew on a few
+ * tiles of its first board (once per day; looks and sound only).
+ */
+export function takeMorningDew(date = new Date()): boolean {
+  if (!loadFollowTimeOfDay()) return false;
+  const h = previewParam("hour") ?? date.getHours();
+  if (h < 5 || h >= 10) return false;
+  const today = date.toISOString().slice(0, 10);
+  try {
+    if (window.localStorage.getItem(DEW_DAY_KEY) === today && previewParam("hour") === null) return false;
+    window.localStorage.setItem(DEW_DAY_KEY, today);
+  } catch {
+    return false;
+  }
+  return true;
+}
+
+/** About six dew tiles on a board (never the companion or the gate) */
+export function pickDewTiles(cells: Array<{ id: string; type: string }>, count = 6): string[] {
+  const options = cells.filter((c) => c.type !== "HERO" && c.type !== "EXIT" && c.type !== "VOID");
+  const picked: string[] = [];
+  let k = 7;
+  while (picked.length < Math.min(count, options.length)) {
+    k = (k * 31 + 17) % 9973;
+    const c = options[k % options.length];
+    if (!picked.includes(c.id)) picked.push(c.id);
+  }
+  return picked;
+}

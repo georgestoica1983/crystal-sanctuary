@@ -372,3 +372,17 @@ svg text,
   animation: none;
   opacity: 0;
 }
+
+/* Morning dew: tiny drops that catch the light */
+.dew-drop {
+  background: radial-gradient(circle at 35% 30%, rgba(255, 255, 255, 0.95), rgba(186, 230, 253, 0.55) 45%, rgba(125, 211, 252, 0.15) 75%);
+  box-shadow: 0 0 4px rgba(224, 242, 254, 0.6);
+  animation: dew-glint 3.2s ease-in-out infinite;
+}
+@keyframes dew-glint {
+  0%, 100% { opacity: 0.75; }
+  50% { opacity: 1; }
+}
+.reduce-motion .dew-drop {
+  animation: none;
+}

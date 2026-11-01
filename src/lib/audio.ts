@@ -699,6 +699,13 @@ class SoundAndHapticsEngine {
 
   // ── The line plays out ────────────────────────────────────────────────────
 
+  /** A dew drop popping under the line: a bright drop, climbing with each one */
+  public playDewPop(n: number): void {
+    const f = gardenNote(10 + Math.min(n, 9), 2);
+    this.pluck(f, { gain: 0.045, decay: 0.35 });
+    this.bell(f * 2, { gain: 0.012 });
+  }
+
   /** Touching or brushing an idle tile: a soft high pluck, climbing across the board */
   public playTilePoke(step: number): void {
     this.pluck(gardenNote(5 + Math.max(0, Math.min(step, 9)), 2), { gain: 0.035, decay: 0.28 });

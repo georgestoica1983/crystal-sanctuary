@@ -75,7 +75,7 @@ import {
   explainWilt,
 } from "@/lib/engine";
 import { MUSIC_LAYERS, MusicLayer, soundEngine } from "@/lib/audio";
-import { DAY_LIGHT, DayPhase, getDayPhase, loadFollowTimeOfDay, saveFollowTimeOfDay } from "@/lib/timeOfDay";
+import { DAY_LIGHT, DayPhase, getDayPhase, loadFollowTimeOfDay, pickDewTiles, saveFollowTimeOfDay, takeMorningDew } from "@/lib/timeOfDay";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import { completedRelicSets, RELIC_SET_X, RELIC_TAG_INFO } from "@/lib/relicTags";
 import {
@@ -352,6 +352,8 @@ export default function OneStrokeTacticianPage() {
   const [freeRelicNext, setFreeRelicNext] = useState(false);
   const [skipOpen, setSkipOpen] = useState(false);
   const [gardenOpen, setGardenOpen] = useState(false);
+  /** Morning dew: tile ids still wet (they pop when a line passes them) */
+  const [dewIds, setDewIds] = useState<string[]>([]);
   const [journalOpen, setJournalOpen] = useState(false);
   /** Rules v18+: garden upgrades owned, and the Seasons one was bought in */
   const [gardenUpgrades, setGardenUpgrades] = useState<GardenUpgradeId[]>([]);
@@ -1230,6 +1232,13 @@ export default function OneStrokeTacticianPage() {
       const wanted = overrideClassId ?? runCompanionRef.current;
       const classId: HeroClassId = practice || !isCompanionUnlocked(wanted) ? "KNIGHT" : wanted;
       const { bag, ...first } = startRunGarden(runSeed, classId, RUN_LOG_VERSION, asc);
+      // Morning dew on the first board of the day's first morning Run (looks and sound only)
+      if (!practice && takeMorningDew()) {
+        setDewIds(pickDewTiles(first.floor.grid.flat()));
+        window.setTimeout(() => handleNotice("☀️ Good morning — there's dew on the garden. Draw through it."), 1200);
+      } else {
+        setDewIds([]);
+      }
       const runDungeon: DungeonTheme = {
         seedKey: runSeed,
         dateKey: getTodayDateKey(),
@@ -2816,6 +2825,15 @@ export default function OneStrokeTacticianPage() {
       }
 
 
+      // Morning dew: each wet tile on the line pops with a rising drop as the line reaches it
+      const dewOnLine = simResult.steps
+        .map((st, idx) => ({ id: st.cell.id, idx }))
+        .filter((d) => dewIds.includes(d.id));
+      dewOnLine.forEach((d, n) => {
+        resolutionTimersRef.current.push(window.setTimeout(() => soundEngine.playDewPop(n), d.idx * STEP_MS + 60));
+      });
+      if (dewOnLine.length > 0) setDewIds((prev) => prev.filter((id) => !dewOnLine.some((d) => d.id === id)));
+
       simResult.steps.forEach((step, idx) => {
         if (idx === 0) return;
 
@@ -3132,6 +3150,7 @@ export default function OneStrokeTacticianPage() {
       runGarden,
       scoreSpeed,
       relicScoreCtx,
+      dewIds,
     ]
   );
 
@@ -3902,6 +3921,7 @@ export default function OneStrokeTacticianPage() {
             <GridCanvas
               toolArmed={toolArmed !== null && phase === "PLANNING"}
               fog={mode === "RUN" && !lesson && runGarden?.bossRuleId === "FOG" && phase === "PLANNING"}
+              dewIds={dewIds}
               onToolTarget={handleUseTool}
               tileLevels={
                 mode === "RUN" && !lesson

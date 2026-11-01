@@ -48,6 +48,8 @@ interface GridCanvasProps {
   clearsBed?: boolean;
   /** Fertilizer levels (rules v12+): fertilized tile types wear a small "Lv" leaf */
   tileLevels?: Partial<Record<string, number>>;
+  /** Morning dew: tile ids with dew drops on them (looks only) */
+  dewIds?: string[];
   /** The Fog Boss (rules v19+): numbers hidden until the line is next to a tile */
   fog?: boolean;
   /** A garden tool is armed: the next tile tap uses it instead of drawing */
@@ -81,6 +83,7 @@ export default function GridCanvas({
   toolArmed = false,
   onToolTarget,
   fog = false,
+  dewIds = [],
   onRetractNotice,
   pulseStartExit = false,
   liveScore = null,
@@ -840,6 +843,21 @@ export default function GridCanvas({
                   data-col={c}
                   className={`relative rounded-xl transition-colors duration-150 flex items-center justify-center overflow-visible ${plateClass}`}
                 >
+                  {dewIds.includes(cell.id) && (
+                    <span aria-label="Dew" className="pointer-events-none absolute inset-0 z-[6]">
+                      {[
+                        [18, 22, 5],
+                        [70, 16, 4],
+                        [28, 72, 4],
+                      ].map(([x, y, sz], i) => (
+                        <span
+                          key={i}
+                          className="dew-drop absolute rounded-full"
+                          style={{ left: `${x}%`, top: `${y}%`, width: sz, height: sz * 1.2, animationDelay: `${i * 0.7}s` }}
+                        />
+                      ))}
+                    </span>
+                  )}
                   {cell.bagTile?.ed && (
                     <span
                       aria-label={`${EDITION_LOOK[cell.bagTile.ed].label} tile: ${EDITION_LOOK[cell.bagTile.ed].tag}`}
