@@ -5,6 +5,7 @@
 import type { BossRuleId, RunGardenKind } from "@/types/game";
 import type { RelicTag } from "@/lib/relicTags";
 import { gardenArt } from "@/lib/art";
+import type { MusicLayer } from "@/lib/audio";
 
 const GARDEN_KEY = "ost_garden_v1";
 const GARDEN_INTRO_KEY = "ost_garden_intro_v1";
@@ -202,4 +203,30 @@ export function plantSpot(id: string): { x: number; y: number } {
 export function plantedAgo(at: number, now = Date.now()): string {
   const days = Math.floor((now - at) / (24 * 60 * 60 * 1000));
   return days <= 0 ? "today" : days === 1 ? "yesterday" : `${days} days ago`;
+}
+
+// ── Music that grows: each relic set ever completed adds its layer to the music ──
+
+const MUSIC_LAYERS_KEY = "ost_music_layers_v1";
+
+/** The music layers this device has earned (one per completed set theme) */
+export function earnedMusicLayers(): MusicLayer[] {
+  return loadMyGarden().setsDone.filter((t) => t !== "ANY") as MusicLayer[];
+}
+
+/** The "Music layers" setting (on by default) */
+export function loadMusicLayersOn(): boolean {
+  try {
+    return window.localStorage.getItem(MUSIC_LAYERS_KEY) !== "0";
+  } catch {
+    return true;
+  }
+}
+
+export function saveMusicLayersOn(on: boolean): void {
+  try {
+    window.localStorage.setItem(MUSIC_LAYERS_KEY, on ? "1" : "0");
+  } catch {
+    // Ignore storage errors
+  }
 }

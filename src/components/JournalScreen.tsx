@@ -22,6 +22,7 @@ import { journalFound } from "@/lib/journalProgress";
 import { decorArt, gardenArt, relicArt, relicHasArt, themeArt, tileArt } from "@/lib/art";
 import { formatScore } from "@/lib/formatScore";
 import RelicIcon from "@/components/RelicIcon";
+import { MUSIC_LAYERS, MusicLayer } from "@/lib/audio";
 import EntityIcon from "@/components/EntityIcon";
 import { COMPANION_RULES } from "@/components/AscensionPicker";
 
@@ -79,7 +80,7 @@ function buildPages(): Record<PageId, Entry[]> {
     name: `${RELIC_TAG_INFO[t].name} set`,
     found: found.has(t),
     art: img(themeArt(t), 38),
-    text: `3 ${RELIC_TAG_INFO[t].name} relics at once: every line ×1.25.`,
+    text: `3 ${RELIC_TAG_INFO[t].name} relics at once: every line ×1.25. Its music layer: ${MUSIC_LAYERS[t as MusicLayer]?.icon ?? "🎵"} ${MUSIC_LAYERS[t as MusicLayer]?.name ?? ""}.`,
     hint: `Hold 3 ${RELIC_TAG_INFO[t].name} relics at the same time.`,
   }));
 

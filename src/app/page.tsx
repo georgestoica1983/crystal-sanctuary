@@ -74,7 +74,7 @@ import {
   getRunRerollCost,
   explainWilt,
 } from "@/lib/engine";
-import { soundEngine } from "@/lib/audio";
+import { MUSIC_LAYERS, MusicLayer, soundEngine } from "@/lib/audio";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import { completedRelicSets, RELIC_SET_X, RELIC_TAG_INFO } from "@/lib/relicTags";
 import {
@@ -118,7 +118,7 @@ import MyGardenScreen from "@/components/MyGardenScreen";
 import JournalScreen from "@/components/JournalScreen";
 import { journalNewCount } from "@/lib/journalProgress";
 import { recordBossBeaten, recordCompanionRun, recordRelics, recordSupply } from "@/lib/journal";
-import { loadMyGarden, plantForBed, plantForSet, plantLabel, plantsFromRun, takeGardenIntro } from "@/lib/myGarden";
+import { earnedMusicLayers, loadMusicLayersOn, saveMusicLayersOn, loadMyGarden, plantForBed, plantForSet, plantLabel, plantsFromRun, takeGardenIntro } from "@/lib/myGarden";
 import { formatScore } from "@/lib/formatScore";
 import LineScoreShow, { echoValues, lineShowTimeline, lineStepMs, loadScoreSpeed, saveScoreSpeed, ScoreSpeed, stepValues } from "@/components/LineScoreShow";
 import TutorialView from "@/components/TutorialView";
@@ -453,6 +453,13 @@ export default function OneStrokeTacticianPage() {
   } | null>(null);
   const [scoreSpeed, setScoreSpeed] = useState<ScoreSpeed>(1);
   useEffect(() => setScoreSpeed(loadScoreSpeed()), []);
+  // Music that grows: the layers earned by completed relic sets (unless switched off)
+  const [musicLayersOn, setMusicLayersOn] = useState(true);
+  useEffect(() => {
+    const on = loadMusicLayersOn();
+    setMusicLayersOn(on);
+    soundEngine.setMusicLayers(on ? earnedMusicLayers() : []);
+  }, []);
   const compareTokenRef = useRef(0);
   const [pendingPostFloorStats, setPendingPostFloorStats] =
     useState<HeroStats | null>(null);
@@ -1539,8 +1546,16 @@ export default function OneStrokeTacticianPage() {
             const p = plantForSet(dungeon.seedKey, t, RELIC_TAG_INFO[t].name, runGarden?.season ?? 1);
             // After the set notice has been read
             if (p.length > 0) {
+              // First time ever: a garden flower, and the set's music layer joins the music for good
+              if (musicLayersOn) soundEngine.setMusicLayers(earnedMusicLayers());
+              const layer = MUSIC_LAYERS[t as MusicLayer];
               window.setTimeout(
-                () => handleNotice(`💮 First ${RELIC_TAG_INFO[t].name} set ever: a ${p[0].species} grows in your garden.`),
+                () =>
+                  handleNotice(
+                    `💮 First ${RELIC_TAG_INFO[t].name} set ever: a ${p[0].species} grows in your garden${
+                      layer ? `, and 🎵 ${layer.name} joins your music` : ""
+                    }.`
+                  ),
                 2600
               );
             }
@@ -1570,7 +1585,7 @@ export default function OneStrokeTacticianPage() {
       setShopPurchases((prev) => prev + 1);
       if (offer.kind !== "RELIC") soundEngine.playShopBuy();
     },
-    [pendingPostFloorStats, hero, shopSoldIds, activeRelics, runUpgrades, mode, handleNotice, relicCounters, runTools, runBag, gardenUpgrades, runGarden, currentFloorIndex]
+    [pendingPostFloorStats, hero, shopSoldIds, activeRelics, runUpgrades, mode, handleNotice, relicCounters, runTools, runBag, gardenUpgrades, runGarden, currentFloorIndex, musicLayersOn]
   );
 
   /** Sanctuary Shop (Run): sell a relic for half its price to free its slot */
@@ -3481,6 +3496,13 @@ export default function OneStrokeTacticianPage() {
         onOpenGarden={RUN_ONLY ? () => setGardenOpen(true) : undefined}
         onOpenJournal={RUN_ONLY ? () => setJournalOpen(true) : undefined}
         journalNew={collectionCounts.journalNew}
+        musicLayersOn={musicLayersOn}
+        onToggleMusicLayers={() => {
+          const next = !musicLayersOn;
+          saveMusicLayersOn(next);
+          setMusicLayersOn(next);
+          soundEngine.setMusicLayers(next ? earnedMusicLayers() : []);
+        }}
         gardenCount={collectionCounts.garden}
         onCycleScoreSpeed={() => {
           const next: ScoreSpeed = scoreSpeed === 1 ? 2 : scoreSpeed === 2 ? 4 : 1;

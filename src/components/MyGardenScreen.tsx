@@ -3,8 +3,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
-import { soundEngine } from "@/lib/audio";
+import { MUSIC_LAYERS, soundEngine } from "@/lib/audio";
 import {
+  earnedMusicLayers,
   GARDEN_MILESTONES,
   MyGarden,
   Plant,
@@ -195,6 +196,27 @@ export default function MyGardenScreen({ open, onClose }: { open: boolean; onClo
           </div>
         )}
       </div>
+
+      {/* The garden's music: one layer per relic set ever completed */}
+      {count > 0 && (() => {
+        const layers = earnedMusicLayers();
+        const newest = layers[layers.length - 1];
+        return (
+          <button
+            type="button"
+            onClick={() => newest && soundEngine.previewMusicLayer(newest)}
+            disabled={!newest}
+            className="mx-auto mb-2 w-[calc(100%-2rem)] max-w-[398px] rounded-xl border border-white/10 bg-black/25 px-3 py-2 text-left text-[12.5px] text-white/75"
+          >
+            🎵 Your garden&apos;s music: <b className="text-amber-100">{layers.length} of 8 layers</b>
+            <span className="block text-[11.5px] text-white/50">
+              {newest
+                ? `Newest: ${MUSIC_LAYERS[newest].icon} ${MUSIC_LAYERS[newest].name} — tap to hear it`
+                : "Complete a relic set to add its layer to the music."}
+            </span>
+          </button>
+        );
+      })()}
 
       {/* A flower's story */}
       <AnimatePresence>

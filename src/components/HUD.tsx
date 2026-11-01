@@ -501,6 +501,9 @@ interface TopHUDProps {
   bagPanel?: React.ReactNode;
   /** Tiles left in the Tile Bag (menu label) */
   bagCount?: number;
+  /** Music layers earned by relic sets: on/off */
+  musicLayersOn?: boolean;
+  onToggleMusicLayers?: () => void;
   /** Garden Journal: open it, and how many new entries wait there */
   onOpenJournal?: () => void;
   journalNew?: number;
@@ -578,6 +581,8 @@ export function TopHUD({
   gardenCount = 0,
   onOpenJournal,
   journalNew = 0,
+  musicLayersOn = true,
+  onToggleMusicLayers,
   flashRelics = [],
   relicSets = false,
   isDailyCompanionLocked = false,
@@ -981,6 +986,13 @@ export function TopHUD({
                     <Music className={`w-5 h-5 mx-0.5 ${musicEnabled ? "text-white/80" : "text-white/50"}`} />
                     Music
                     <span className="ml-auto text-[12px] text-white/50">{musicEnabled ? "On" : "Off"}</span>
+                  </button>
+                )}
+                {onToggleMusic && onToggleMusicLayers && (
+                  <button type="button" className={menuRow} onClick={onToggleMusicLayers} aria-pressed={musicLayersOn}>
+                    <span className="w-6 text-center" aria-hidden="true">🎵</span>
+                    Music layers from sets
+                    <span className="ml-auto text-[12px] text-white/50">{musicLayersOn ? "On" : "Off"}</span>
                   </button>
                 )}
                 <button type="button" className={menuRow} onClick={handleToggleVisualTheme}>

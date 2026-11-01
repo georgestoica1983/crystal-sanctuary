@@ -68,7 +68,7 @@ Rule: anything random is visible before you commit — no hidden chances, no pai
 - [x] 16b. NEW dots on fresh entries and a gentle "New in your Journal" notice during Runs.
 - [x] 16c. Journal rewards (cosmetic): Botanist title at 25%, Pressed Petal line at 50%, Herbarium board at 75%, golden cover and line at 100%.
 - [x] 17a. Eight music layers in the garden key (Thorn heartbeat, Acorn marimba, Berry bells, Shears shaker, Long-line drone, Quiet wind, Growing arpeggio, Seed rain), at most 3 per 8-bar section; previews and an "All layers" switch on /sound-test.
-- [ ] 17b. Each completed relic set unlocks its layer for good (fade-in moment, My Garden "music: N of 8 layers", Journal text, a Music layers switch in ☰).
+- [x] 17b. Each completed relic set unlocks its layer for good (fade-in moment, My Garden "music: N of 8 layers", Journal text, a Music layers switch in ☰).
 - [ ] 18. Time of day (dew, Night Garden after dark) and tappable visitors — cosmetic.
 - [ ] 19. Daily board with a days-played count that never breaks (needs Supabase).
 
