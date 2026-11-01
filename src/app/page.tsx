@@ -1,5 +1,6 @@
 "use client";
 
+import IntroSplash from "@/components/IntroSplash";
 import { watchUiScale } from "@/lib/uiScale";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -3414,6 +3415,8 @@ export default function OneStrokeTacticianPage() {
           : "bg-[radial-gradient(ellipse_at_top,_#121B15_0%,_#0B0F0C_55%,_#060706_100%)]"
       }`}
     >
+      {/* Opening card: name and slogan (full once a day, a quick fade otherwise) */}
+      <IntroSplash />
       <SoundPrompt ready={(lessonIndex === null || lessonIndex >= 1) && !showGoalCard} onChoose={handleSoundPrompt} />
       {/* Phones held sideways: the game is played upright */}
       <div className="rotate-hint fixed inset-0 z-[90] bg-[#101813] flex-col items-center justify-center gap-3 text-center px-6">
