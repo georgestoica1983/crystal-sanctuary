@@ -21,7 +21,7 @@ Things that are ready in code but wait on a setup step, plus work planned for la
 
 - [x] More Boss rules (now 8) and a reward for Endless (after Season 8).
 - [x] Harder start for veterans: Ascension levels 0–6.
-- [ ] Build depth:
+- [x] Build depth:
   - [x] ✂️ Pruning Shears in the Shop: remove one tile from the bag (rules v9).
   - [x] Relic theme tags (Thorns, Acorns, Berries & Gloves, Shears, Long lines, Careful, Growing, Seeds, Any build) + "Fits your build" mark.
   - [x] Relic sets: 3 relics with one tag score every line ×1.25 (rules v10), with Shop progress, a HUD set chip and help text.
@@ -34,6 +34,7 @@ Things that are ready in code but wait on a setup step, plus work planned for la
 
 - [x] Art direction: moss look, illustrated tiles, companions, stats, relic themes and all 36 relics.
 - [ ] Leftover emoji: Shop boosts, score tally labels, welcome screen, companion picker.
+- [ ] Art for the 8 rules-v16 relics (prompt: design/gemini-relic-sheet-2-prompt.md); they show emoji until then.
 - [x] Music and sound: generated kalimba score at 66 BPM (seeded per Run), soft effects in the garden key, earned-reward sounds, separate Music switch, /sound-test page.
 - [x] Drag and tap together to draw a line.
 
