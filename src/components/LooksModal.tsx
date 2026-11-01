@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { CosmeticPreferences } from "@/types/game";
 import { TRAIL_SKINS } from "@/lib/engine";
@@ -34,6 +34,7 @@ export default function LooksModal({
 }) {
   // Re-read progress each time the screen opens
   const progress = useMemo(() => (isOpen ? loadUnlockProgress() : null), [isOpen]);
+  const [tab, setTab] = useState<"COMPANIONS" | "LINE" | "BOARD">("COMPANIONS");
   if (!isOpen || !progress) return null;
   const { rank, next } = getGardenerRank(progress);
   const nextRunCompanion = loadChosenCompanion(cosmetics.companionId);
@@ -42,7 +43,7 @@ export default function LooksModal({
   const currentBoard = cosmetics.boardThemeId ?? "SPRING";
 
   const tile = (selected: boolean, unlocked: boolean) =>
-    `relative rounded-xl border-2 p-2 flex flex-col items-center gap-1 text-center min-h-[92px] transition active:scale-95 ${
+    `relative rounded-xl border-2 p-2 flex flex-col items-center gap-1 text-center min-h-[80px] transition active:scale-95 ${
       selected
         ? "border-amber-300 bg-amber-400/15"
         : unlocked
@@ -56,13 +57,13 @@ export default function LooksModal({
         role="dialog"
         aria-label="Companions and looks"
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[430px] max-h-[calc(88dvh/var(--ui-zoom,1))] overflow-y-auto rounded-2xl bg-[#19271E] border border-white/[0.08] p-3 space-y-3 text-white"
+        className="w-full max-w-[430px] max-h-[calc(94dvh/var(--ui-zoom,1))] overflow-y-auto overscroll-contain rounded-2xl bg-[#19271E] border border-white/[0.08] p-3 space-y-2.5 text-white"
       >
         <div className="flex items-center justify-between">
           <div>
             <div className="text-[16px] font-bold">Companions &amp; looks</div>
             <div className="text-[11.5px] text-white/55">
-              Earned by playing. Line colours are just looks. Companions change how you play.
+              Earned by playing.
             </div>
           </div>
           <button
@@ -83,14 +84,42 @@ export default function LooksModal({
           {loadBestClearedAscension() > 0 && (
             <span className="text-orange-200"> · 🔥A{loadBestClearedAscension()}</span>
           )}
-          {next && <div className="text-[11px] text-white/50 mt-0.5">Next: {next.icon} {next.name} · {next.needText}</div>}
+          {next && (
+            <span className="text-white/55">
+              {" "}
+              · next {next.icon} {next.name}: {next.needText}
+            </span>
+          )}
         </div>
 
+        {/* One section at a time, so the sheet fits on a phone */}
+        <div className="flex rounded-xl bg-black/25 p-1" role="tablist" aria-label="Looks sections">
+          {(
+            [
+              ["COMPANIONS", "Companions"],
+              ["LINE", "Line colour"],
+              ["BOARD", "Board"],
+            ] as const
+          ).map(([k, label]) => (
+            <button
+              key={k}
+              type="button"
+              role="tab"
+              aria-selected={tab === k}
+              onClick={() => setTab(k)}
+              className={`flex-1 h-9 rounded-lg text-[13.5px] font-bold transition ${tab === k ? "bg-white/[0.12] text-white" : "text-white/55"}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {tab === "COMPANIONS" && (
         <section>
           <div className="text-[12px] font-semibold text-white/60 mb-1.5">
             Companions · pick one when you start a Garden Run
           </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1">
             {RUN_COMPANION_ORDER.map((id) => {
               const def = HERO_CLASS_REGISTRY[id];
               const unlocked = isCompanionUnlocked(id, progress);
@@ -98,7 +127,7 @@ export default function LooksModal({
               return (
                 <div
                   key={id}
-                  className={`rounded-xl border px-2.5 py-2 flex items-start gap-2.5 ${
+                  className={`rounded-xl border px-2.5 py-1.5 flex items-start gap-2.5 ${
                     unlocked ? "border-white/15 bg-white/[0.04]" : "border-white/[0.06] bg-black/20 opacity-60"
                   }`}
                 >
@@ -123,9 +152,11 @@ export default function LooksModal({
             })}
           </div>
         </section>
+        )}
 
+        {tab === "LINE" && (
         <section>
-          <div className="text-[12px] font-semibold text-white/60 mb-1.5">Line colour</div>
+          <div className="text-[12px] text-white/60 mb-1.5">Just looks: pick the colour of your line.</div>
           <div className="grid grid-cols-4 gap-1.5">
             {trails.map((u) => {
               if (u.kind !== "TRAIL") return null;
@@ -147,16 +178,17 @@ export default function LooksModal({
                     aria-hidden="true"
                   />
                   <span className="text-[10.5px] font-bold leading-tight mt-1">{u.name.replace(" line", "")}</span>
-                  {!unlocked && <span className="text-[9.5px] text-white/60 leading-tight">🔒 {u.needText}</span>}
+                  {!unlocked && <span className="w-full text-[11px] text-white/60 leading-tight line-clamp-2" title={u.needText}>🔒 {u.needText}</span>}
                 </button>
               );
             })}
           </div>
         </section>
+        )}
 
+        {tab === "BOARD" && (
         <section>
-          <div className="text-[12px] font-semibold text-white/60 mb-1.5">Board</div>
-          <div className="grid grid-cols-3 gap-1.5">
+          <div className="grid grid-cols-4 gap-1.5">
             {boards.map((u) => {
               if (u.kind !== "BOARD") return null;
               const unlocked = isUnlocked(u, progress);
@@ -187,12 +219,13 @@ export default function LooksModal({
                   <span className="text-[10.5px] font-bold leading-tight mt-0.5">
                     {u.icon} {u.name.replace(" board", "")}
                   </span>
-                  {!unlocked && <span className="text-[9.5px] text-white/60 leading-tight">🔒 {u.needText}</span>}
+                  {!unlocked && <span className="w-full text-[11px] text-white/60 leading-tight line-clamp-2" title={u.needText}>🔒 {u.needText}</span>}
                 </button>
               );
             })}
           </div>
         </section>
+        )}
       </div>
     </div>
   );

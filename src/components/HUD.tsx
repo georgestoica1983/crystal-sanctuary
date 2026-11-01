@@ -640,6 +640,7 @@ export function TopHUD({
   const [showCosmeticsDrawer, setShowCosmeticsDrawer] = useState(false);
   const [showCompanionDrawer, setShowCompanionDrawer] = useState(false);
   const [showRunMenu, setShowRunMenu] = useState(false);
+  const [menuTab, setMenuTab] = useState<"PLAY" | "SETTINGS">("PLAY");
   const [showRelics, setShowRelics] = useState(false);
   const [showBag, setShowBag] = useState(false);
 
@@ -747,8 +748,11 @@ export function TopHUD({
       { key: "sun", label: "Shears", icon: statIcon("shears"), value: hero.weapon, color: "text-amber-300", show: hero.weapon > 0 },
     ].filter((st) => st.show);
     const relicLit = relicCounts.some(([id]) => flashRelics.includes(id));
-    const menuRow =
-      "w-full h-12 px-3 rounded-xl flex items-center gap-3 text-left text-[14px] font-semibold text-white/90 hover:bg-white/[0.06] active:bg-white/[0.1] transition";
+    // Menu items are tiles in a two-column grid, so the menu fits on one screen
+    const menuTile =
+      "h-[60px] w-full rounded-xl bg-white/[0.05] border border-white/[0.07] px-3 flex flex-col items-start justify-center gap-0.5 text-left text-[14px] font-semibold text-white/90 active:bg-white/[0.1] transition";
+    const menuTileTop = "flex items-center gap-1.5 whitespace-nowrap";
+    const menuTileSub = "text-[12px] font-normal text-white/55";
     return artify(
       <div
         className={`w-full max-w-game mx-auto select-none ${
@@ -884,181 +888,193 @@ export function TopHUD({
               role="dialog"
               aria-label="Menu"
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-[430px] max-h-[calc(85dvh/var(--ui-zoom,1))] overflow-y-auto rounded-2xl bg-[#19271E] border border-white/[0.08] p-2"
+              className="w-full max-w-[430px] max-h-[calc(92dvh/var(--ui-zoom,1))] overflow-y-auto overscroll-contain rounded-t-2xl bg-[#19271E] border border-white/[0.08] p-3 space-y-2.5"
             >
-              <div className="flex items-center justify-between px-2 pt-1 pb-2">
-                <div className="text-[15px] font-bold text-white">Menu</div>
+              {/* Header: Play / Settings, and close */}
+              <div className="flex items-center gap-2">
+                <div className="flex flex-1 rounded-xl bg-black/25 p-1" role="tablist" aria-label="Menu sections">
+                  {(["PLAY", "SETTINGS"] as const).map((t) => (
+                    <button
+                      key={t}
+                      type="button"
+                      role="tab"
+                      aria-selected={menuTab === t}
+                      onClick={() => setMenuTab(t)}
+                      className={`flex-1 h-9 rounded-lg text-[14px] font-bold transition ${
+                        menuTab === t ? "bg-white/[0.12] text-white" : "text-white/55"
+                      }`}
+                    >
+                      {t === "PLAY" ? "Play" : "Settings"}
+                    </button>
+                  ))}
+                </div>
                 <button
                   type="button"
                   onClick={() => setShowRunMenu(false)}
                   aria-label="Close menu"
-                  className="h-9 w-9 rounded-lg bg-white/[0.06] flex items-center justify-center"
+                  className="h-11 w-11 shrink-0 rounded-xl bg-white/[0.06] flex items-center justify-center"
                 >
-                  <X className="w-4 h-4 text-white/80" />
+                  <X className="w-5 h-5 text-white/80" />
                 </button>
               </div>
 
-              {totalStars !== undefined && (() => {
-                const { rank, next } = getGardenerRank();
-                const flame = loadBestClearedAscension();
-                return (
-                  <div className="mx-1 mb-2 rounded-xl bg-amber-400/[0.07] border border-amber-300/20 px-3 py-2">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-[13px] font-bold text-amber-100">
-                        {rank.icon} {rank.name}
-                        {flame > 0 && (
-                          <span
-                            className="ml-1.5 rounded bg-orange-400/15 px-1 text-[11px] text-orange-200"
-                            title={`Season 3 Boss cleared on Ascension ${flame}`}
-                          >
-                            🔥A{flame}
+              {menuTab === "PLAY" ? (
+                <>
+                  {totalStars !== undefined && (() => {
+                    const { rank, next } = getGardenerRank();
+                    const flame = loadBestClearedAscension();
+                    return (
+                      <div className="rounded-xl bg-amber-400/[0.07] border border-amber-300/20 px-3 py-2 flex items-center justify-between gap-2">
+                        <span className="min-w-0">
+                          <span className="block text-[14px] font-bold text-amber-100">
+                            {rank.icon} {rank.name}
+                            {flame > 0 && (
+                              <span className="ml-1.5 rounded bg-orange-400/15 px-1 text-[11px] text-orange-200">🔥A{flame}</span>
+                            )}
                           </span>
-                        )}
-                      </span>
-                      <span className="text-[15px] font-mono font-black text-amber-200">⭐ {totalStars}</span>
-                    </div>
-                    {next && (
-                      <div className="text-[11px] text-white/50 mt-0.5">
-                        Next: {next.icon} {next.name} · {next.needText}
+                          {next && (
+                            <span className="block truncate text-[12px] text-white/55">
+                              Next: {next.icon} {next.name} · {next.needText}
+                            </span>
+                          )}
+                        </span>
+                        <span className="shrink-0 text-[16px] font-mono font-black text-amber-200">⭐ {totalStars}</span>
                       </div>
+                    );
+                  })()}
+
+                  {gardenUpgradeList.length > 0 && (
+                    <div className="rounded-xl bg-emerald-400/[0.06] border border-emerald-300/20 px-3 py-1.5 text-[12.5px] text-white/85">
+                      {gardenUpgradeList.map((u) => (
+                        <div key={u.name} className="truncate">
+                          <span aria-hidden="true">{u.icon}</span> <b>{u.name}:</b> <span className="text-white/60">{u.text}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-2">
+                    {onOpenGarden && (
+                      <button type="button" className={menuTile} onClick={() => { setShowRunMenu(false); onOpenGarden(); }}>
+                        <span className={menuTileTop}><span aria-hidden="true">🌷</span> My Garden</span>
+                        <span className={menuTileSub}>{gardenCount} {gardenCount === 1 ? "plant" : "plants"}</span>
+                      </button>
+                    )}
+                    {onOpenJournal && (
+                      <button type="button" className={menuTile} onClick={() => { setShowRunMenu(false); onOpenJournal(); }}>
+                        <span className={menuTileTop}><span aria-hidden="true">📖</span> Journal</span>
+                        <span className={menuTileSub}>
+                          {journalNew > 0 ? <span className="rounded-full bg-lime-300 px-1.5 font-black text-slate-950">{journalNew} new</span> : "Your collection"}
+                        </span>
+                      </button>
+                    )}
+                    {bagPanel && (
+                      <button type="button" className={menuTile} onClick={() => setShowBag((v) => !v)} aria-expanded={showBag}>
+                        <span className={menuTileTop}><span aria-hidden="true">🎒</span> Tile bag</span>
+                        <span className={menuTileSub}>{bagCount ?? ""} tiles left</span>
+                      </button>
+                    )}
+                    {onOpenLooks && (
+                      <button type="button" className={menuTile} onClick={() => { setShowRunMenu(false); onOpenLooks(); }}>
+                        <span className={menuTileTop}><span aria-hidden="true">🎨</span> Companions</span>
+                        <span className={menuTileSub}>and looks</span>
+                      </button>
+                    )}
+                    {onOpenGuide && (
+                      <button type="button" className={menuTile} onClick={() => { setShowRunMenu(false); onOpenGuide(); }}>
+                        <span className={menuTileTop}><span aria-hidden="true">❓</span> How to play</span>
+                        <span className={menuTileSub}>Rules and practice</span>
+                      </button>
+                    )}
+                    {onOpenRunLeaderboard && (
+                      <button type="button" className={menuTile} onClick={() => { setShowRunMenu(false); onOpenRunLeaderboard(); }}>
+                        <span className={menuTileTop}><Trophy className="w-4 h-4 text-amber-300" /> Leaderboard</span>
+                        <span className={menuTileSub}>Best Runs</span>
+                      </button>
+                    )}
+                    {FEEDBACK_URL && (
+                      <a
+                        href={FEEDBACK_URL}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={menuTile}
+                        onClick={() => {
+                          track("feedback_open");
+                          setShowRunMenu(false);
+                        }}
+                      >
+                        <span className={menuTileTop}><span aria-hidden="true">💬</span> Feedback</span>
+                        <span className={menuTileSub}>2 minutes</span>
+                      </a>
                     )}
                   </div>
-                );
-              })()}
+                  {bagPanel && showBag && <div>{bagPanel}</div>}
 
-              {gardenUpgradeList.length > 0 && (
-                <div className="mx-1 mb-2 rounded-xl bg-emerald-400/[0.06] border border-emerald-300/20 px-3 py-2 space-y-1">
-                  <div className="text-[11px] font-semibold text-emerald-200/70">Garden upgrades</div>
-                  {gardenUpgradeList.map((u) => (
-                    <div key={u.name} className="text-[12.5px] text-white/85">
-                      <span aria-hidden="true">{u.icon}</span> <b>{u.name}:</b> <span className="text-white/60">{u.text}</span>
+                  {(onNewRun || onEndRun) && (
+                    <div className="grid grid-cols-2 gap-2 pt-0.5">
+                      {onNewRun && (
+                        <button type="button" className={`${menuTile} !h-12 !flex-row !items-center !justify-center`} onClick={() => { setShowRunMenu(false); onNewRun(); }}>
+                          <RefreshCw className="w-4 h-4 text-white/80" /> New Run
+                        </button>
+                      )}
+                      {onEndRun && (
+                        <button type="button" className={`${menuTile} !h-12 !flex-row !items-center !justify-center !text-rose-200`} onClick={() => { setShowRunMenu(false); onEndRun(); }}>
+                          <span aria-hidden="true">🌙</span> End this Run
+                        </button>
+                      )}
                     </div>
-                  ))}
+                  )}
+                </>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  <button type="button" className={menuTile} onClick={onToggleSound} aria-pressed={soundEnabled}>
+                    <span className={menuTileTop}>
+                      {soundEnabled ? <Volume2 className="w-4 h-4 text-white/80" /> : <VolumeX className="w-4 h-4 text-white/50" />} Sound
+                    </span>
+                    <span className={menuTileSub}>{soundEnabled ? "On" : "Off"}</span>
+                  </button>
+                  {onToggleMusic && (
+                    <button type="button" className={menuTile} onClick={onToggleMusic} aria-pressed={musicEnabled}>
+                      <span className={menuTileTop}><Music className="w-4 h-4 text-white/80" /> Music</span>
+                      <span className={menuTileSub}>{musicEnabled ? "On" : "Off"}</span>
+                    </button>
+                  )}
+                  {onToggleMusic && onToggleMusicLayers && (
+                    <button type="button" className={menuTile} onClick={onToggleMusicLayers} aria-pressed={musicLayersOn}>
+                      <span className={menuTileTop}><span aria-hidden="true">🎵</span> Set music</span>
+                      <span className={menuTileSub}>{musicLayersOn ? "On" : "Off"}</span>
+                    </button>
+                  )}
+                  {onToggleFollowTime && (
+                    <button type="button" className={menuTile} onClick={onToggleFollowTime} aria-pressed={followTime}>
+                      <span className={menuTileTop}><span aria-hidden="true">🌗</span> Time of day</span>
+                      <span className={menuTileSub}>{followTime ? "Follows your clock" : "Off"}</span>
+                    </button>
+                  )}
+                  <button type="button" className={menuTile} onClick={handleToggleVisualTheme}>
+                    <span className={menuTileTop}><span aria-hidden="true">{isSanctuarySkin ? "🌸" : "🌙"}</span> Board look</span>
+                    <span className={menuTileSub}>{isSanctuarySkin ? "Garden" : "Night"}</span>
+                  </button>
+                  {onCycleScoreSpeed && (
+                    <button type="button" className={menuTile} onClick={onCycleScoreSpeed}>
+                      <span className={menuTileTop}><span aria-hidden="true">⏩</span> Scoring speed</span>
+                      <span className={menuTileSub}>×{scoreSpeed}</span>
+                    </button>
+                  )}
+                  {onToggleVibration && (
+                    <button type="button" className={menuTile} onClick={onToggleVibration} aria-pressed={vibrationOn}>
+                      <span className={menuTileTop}><span aria-hidden="true">📳</span> Vibration</span>
+                      <span className={menuTileSub}>{vibrationOn ? "On" : "Off"}</span>
+                    </button>
+                  )}
+                  {onToggleReduceMotion && (
+                    <button type="button" className={menuTile} onClick={onToggleReduceMotion} aria-pressed={reduceMotion}>
+                      <span className={menuTileTop}><span aria-hidden="true">🍃</span> Reduce motion</span>
+                      <span className={menuTileSub}>{reduceMotion ? "On" : "Off"}</span>
+                    </button>
+                  )}
                 </div>
               )}
-
-              <div className="space-y-0.5">
-                {onOpenGarden && (
-                  <button type="button" className={menuRow} onClick={() => { setShowRunMenu(false); onOpenGarden(); }}>
-                    <span className="w-6 text-center" aria-hidden="true">🌷</span> My Garden
-                    <span className="ml-auto text-[12px] text-white/50">
-                      {gardenCount} {gardenCount === 1 ? "plant" : "plants"}
-                    </span>
-                  </button>
-                )}
-                {onOpenJournal && (
-                  <button type="button" className={menuRow} onClick={() => { setShowRunMenu(false); onOpenJournal(); }}>
-                    <span className="w-6 text-center" aria-hidden="true">📖</span> Garden Journal
-                    {journalNew > 0 && (
-                      <span className="ml-auto rounded-full bg-lime-300 px-1.5 text-[11px] font-black text-slate-950">{journalNew} new</span>
-                    )}
-                  </button>
-                )}
-                {bagPanel && (
-                  <>
-                    <button type="button" className={menuRow} onClick={() => setShowBag((v) => !v)} aria-expanded={showBag}>
-                      <span className="w-6 text-center" aria-hidden="true">🎒</span> Tile bag
-                      <span className="ml-auto text-[12px] text-white/50">{bagCount ?? ""} tiles left</span>
-                    </button>
-                    {showBag && <div className="px-2 pb-1">{bagPanel}</div>}
-                  </>
-                )}
-                {onOpenLooks && (
-                  <button type="button" className={menuRow} onClick={() => { setShowRunMenu(false); onOpenLooks(); }}>
-                    <span className="w-6 text-center" aria-hidden="true">🎨</span> Companions &amp; looks
-                    <span className="ml-auto text-[12px] text-white/50">Rules · line</span>
-                  </button>
-                )}
-                {onOpenGuide && (
-                  <button type="button" className={menuRow} onClick={() => { setShowRunMenu(false); onOpenGuide(); }}>
-                    <span className="w-6 text-center" aria-hidden="true">❓</span> How to play
-                  </button>
-                )}
-                {onOpenRunLeaderboard && (
-                  <button type="button" className={menuRow} onClick={() => { setShowRunMenu(false); onOpenRunLeaderboard(); }}>
-                    <Trophy className="w-5 h-5 mx-0.5 text-amber-300" /> Leaderboard
-                  </button>
-                )}
-                {FEEDBACK_URL && (
-                  <a
-                    href={FEEDBACK_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className={menuRow}
-                    onClick={() => {
-                      track("feedback_open");
-                      setShowRunMenu(false);
-                    }}
-                  >
-                    <span className="w-6 text-center" aria-hidden="true">💬</span> Send feedback
-                    <span className="ml-auto text-[12px] text-white/50">2 min</span>
-                  </a>
-                )}
-                <div className="px-3 pt-2 pb-0.5 text-[11px] font-semibold text-white/40">Settings</div>
-                <button type="button" className={menuRow} onClick={onToggleSound}>
-                  {soundEnabled ? <Volume2 className="w-5 h-5 mx-0.5 text-white/80" /> : <VolumeX className="w-5 h-5 mx-0.5 text-white/50" />}
-                  Sound
-                  <span className="ml-auto text-[12px] text-white/50">{soundEnabled ? "On" : "Off"}</span>
-                </button>
-                {onToggleMusic && (
-                  <button type="button" className={menuRow} onClick={onToggleMusic} aria-pressed={musicEnabled}>
-                    <Music className={`w-5 h-5 mx-0.5 ${musicEnabled ? "text-white/80" : "text-white/50"}`} />
-                    Music
-                    <span className="ml-auto text-[12px] text-white/50">{musicEnabled ? "On" : "Off"}</span>
-                  </button>
-                )}
-                {onToggleMusic && onToggleMusicLayers && (
-                  <button type="button" className={menuRow} onClick={onToggleMusicLayers} aria-pressed={musicLayersOn}>
-                    <span className="w-6 text-center" aria-hidden="true">🎵</span>
-                    Music layers from sets
-                    <span className="ml-auto text-[12px] text-white/50">{musicLayersOn ? "On" : "Off"}</span>
-                  </button>
-                )}
-                {onToggleFollowTime && (
-                  <button type="button" className={menuRow} onClick={onToggleFollowTime} aria-pressed={followTime}>
-                    <span className="w-6 text-center" aria-hidden="true">🌗</span>
-                    Follow time of day
-                    <span className="ml-auto text-[12px] text-white/50">{followTime ? "On" : "Off"}</span>
-                  </button>
-                )}
-                <button type="button" className={menuRow} onClick={handleToggleVisualTheme}>
-                  <span className="w-6 text-center" aria-hidden="true">{isSanctuarySkin ? "🌸" : "🌙"}</span>
-                  Board look
-                  <span className="ml-auto text-[12px] text-white/50">{isSanctuarySkin ? "Garden" : "Night"}</span>
-                </button>
-                {onCycleScoreSpeed && (
-                  <button type="button" className={menuRow} onClick={onCycleScoreSpeed}>
-                    <span className="w-6 text-center" aria-hidden="true">⏩</span>
-                    Scoring speed
-                    <span className="ml-auto text-[12px] text-white/50">×{scoreSpeed}</span>
-                  </button>
-                )}
-                {onToggleVibration && (
-                  <button type="button" className={menuRow} onClick={onToggleVibration} aria-pressed={vibrationOn}>
-                    <span className="w-6 text-center" aria-hidden="true">📳</span>
-                    Vibration
-                    <span className="ml-auto text-[12px] text-white/50">{vibrationOn ? "On" : "Off"}</span>
-                  </button>
-                )}
-                {onToggleReduceMotion && (
-                  <button type="button" className={menuRow} onClick={onToggleReduceMotion} aria-pressed={reduceMotion}>
-                    <span className="w-6 text-center" aria-hidden="true">🍃</span>
-                    Reduce motion
-                    <span className="ml-auto text-[12px] text-white/50">{reduceMotion ? "On" : "Off"}</span>
-                  </button>
-                )}
-                <div className="px-3 pt-2 pb-0.5 text-[11px] font-semibold text-white/40">Garden Run</div>
-                {onNewRun && (
-                  <button type="button" className={menuRow} onClick={() => { setShowRunMenu(false); onNewRun(); }}>
-                    <RefreshCw className="w-5 h-5 mx-0.5 text-white/80" /> New Garden Run
-                  </button>
-                )}
-                {onEndRun && (
-                  <button type="button" className={`${menuRow} !text-rose-200`} onClick={() => { setShowRunMenu(false); onEndRun(); }}>
-                    <span className="w-6 text-center" aria-hidden="true">🌙</span> End this Garden Run
-                  </button>
-                )}
-              </div>
             </div>
           </div>
         )}

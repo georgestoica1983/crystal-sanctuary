@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import type { HeroClassId } from "@/types/game";
 import {
   BOSS_RULE_REGISTRY,
@@ -201,20 +201,47 @@ function buildPages(): Record<PageId, Entry[]> {
 export default function JournalScreen({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [page, setPage] = useState<PageId>("RELICS");
   const [picked, setPicked] = useState<Entry | null>(null);
+  // Long pages are split into screens that fit (no scrolling): how many cells fit, and which screen
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [fit, setFit] = useState({ cols: 4, perScreen: 16 });
+  const [screen, setScreen] = useState(0);
+  const swipeX = useRef<number | null>(null);
+  useEffect(() => {
+    const el = gridRef.current;
+    if (!open || !el) return;
+    const measure = () => {
+      const gap = 8;
+      const cols = el.clientWidth > 460 ? 5 : 4;
+      const cell = (el.clientWidth - gap * (cols - 1)) / cols;
+      const rows = Math.max(1, Math.floor((el.clientHeight + gap) / (cell + gap)));
+      setFit({ cols, perScreen: rows * cols });
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [open]);
   const pages = useMemo(() => (open ? buildPages() : null), [open]);
   // NEW dots: found entries not looked at before this visit (snapshot when the Journal opens)
   const seenAtOpen = useMemo(() => (open ? new Set(loadJournal().seen ?? []) : new Set<string>()), [open]);
   useEffect(() => {
     if (!open || !pages) return;
-    markJournalSeen(pages[page].filter((e) => e.found).map((e) => e.id));
-  }, [open, pages, page]);
+    const shown = pages[page].slice(screen * fit.perScreen, (screen + 1) * fit.perScreen);
+    markJournalSeen(shown.filter((e) => e.found).map((e) => e.id));
+  }, [open, pages, page, screen, fit.perScreen]);
   if (!open || !pages) return null;
   const isNew = (e: Entry) => e.found && !seenAtOpen.has(e.id);
 
   const all = Object.values(pages).flat();
   const total = all.filter((e) => e.found).length;
   const pct = Math.round((total / all.length) * 100);
-  const entries = pages[page];
+  const screens = Math.max(1, Math.ceil(pages[page].length / fit.perScreen));
+  const at = Math.min(screen, screens - 1);
+  const entries = pages[page].slice(at * fit.perScreen, (at + 1) * fit.perScreen);
+  const go = (d: number) => {
+    setScreen(Math.max(0, Math.min(screens - 1, at + d)));
+    setPicked(null);
+  };
 
   return (
     <div
@@ -258,6 +285,7 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
                 type="button"
                 onClick={() => {
                   setPage(p.id);
+                  setScreen(0);
                   setPicked(null);
                 }}
                 aria-pressed={page === p.id}
@@ -273,8 +301,18 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto w-full max-w-[430px] mx-auto px-4 pb-28">
-        <div className="grid grid-cols-4 gap-2 pt-1">
+      <div
+        ref={gridRef}
+        className="min-h-0 flex-1 w-full max-w-[520px] mx-auto px-4 overflow-hidden"
+        onPointerDown={(e) => (swipeX.current = e.clientX)}
+        onPointerUp={(e) => {
+          if (swipeX.current === null) return;
+          const dx = e.clientX - swipeX.current;
+          swipeX.current = null;
+          if (Math.abs(dx) > 50) go(dx < 0 ? 1 : -1);
+        }}
+      >
+        <div className="grid gap-2 pt-1" style={{ gridTemplateColumns: `repeat(${fit.cols}, minmax(0, 1fr))` }}>
           {entries.map((e, i) => (
             <motion.button
               key={e.id}
@@ -303,6 +341,34 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
         </div>
       </div>
 
+      {/* Screens of this page: arrows, dots, or swipe the grid */}
+      <div className={`w-full max-w-[430px] mx-auto h-14 px-4 flex items-center justify-between ${screens > 1 ? "" : "invisible"}`}>
+        <button
+          type="button"
+          onClick={() => go(-1)}
+          disabled={at === 0}
+          aria-label="Previous"
+          className="h-11 w-11 rounded-full bg-white/[0.06] flex items-center justify-center disabled:opacity-25"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+        <div className="flex items-center gap-1.5" aria-label={`Screen ${at + 1} of ${screens}`}>
+          {screens > 1 &&
+            Array.from({ length: screens }, (_, i) => (
+              <span key={i} className={`h-2 rounded-full transition-all ${i === at ? "w-5 bg-amber-300" : "w-2 bg-white/25"}`} />
+            ))}
+        </div>
+        <button
+          type="button"
+          onClick={() => go(1)}
+          disabled={at >= screens - 1}
+          aria-label="Next"
+          className="h-11 w-11 rounded-full bg-white/[0.06] flex items-center justify-center disabled:opacity-25"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      </div>
+
       <AnimatePresence>
         {picked && (
           <motion.div
@@ -311,7 +377,7 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 30, opacity: 0 }}
             onClick={() => setPicked(null)}
-            className="absolute inset-x-0 bottom-4 mx-auto w-[calc(100%-2rem)] max-w-[398px] rounded-2xl border border-white/10 bg-[#1F2E24] px-4 py-3 text-white shadow-2xl"
+            className="absolute inset-x-0 bottom-16 mx-auto w-[calc(100%-2rem)] max-w-[398px] rounded-2xl border border-white/10 bg-[#1F2E24] px-4 py-3 text-white shadow-2xl"
           >
             <div className="font-display text-[16px] font-bold">{picked.found ? picked.name : "Not found yet"}</div>
             <div className="font-hand text-[13px] leading-snug text-white/75">{picked.found ? picked.text : picked.hint}</div>
