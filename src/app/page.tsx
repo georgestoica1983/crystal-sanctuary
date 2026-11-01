@@ -114,6 +114,7 @@ import {
 } from "@/components/Modals";
 import ShopModal from "@/components/ShopModal";
 import ScoreTally from "@/components/ScoreTally";
+import { loadMyGarden, plantForBed, plantForSet, plantLabel, plantsFromRun, takeGardenIntro } from "@/lib/myGarden";
 import { formatScore } from "@/lib/formatScore";
 import LineScoreShow, { echoValues, lineShowTimeline, lineStepMs, loadScoreSpeed, saveScoreSpeed, ScoreSpeed, stepValues } from "@/components/LineScoreShow";
 import TutorialView from "@/components/TutorialView";
@@ -1507,6 +1508,18 @@ export default function OneStrokeTacticianPage() {
             : `${relic.name} joins your relics!`
         );
         if (newSets.length > 0) track("relic_set", { tag: newSets.join(","), bed: currentFloorIndex });
+        if (mode === "RUN" && !practiceStep) {
+          for (const t of newSets) {
+            const p = plantForSet(dungeon.seedKey, t, RELIC_TAG_INFO[t].name, runGarden?.season ?? 1);
+            // After the set notice has been read
+            if (p.length > 0) {
+              window.setTimeout(
+                () => handleNotice(`💮 First ${RELIC_TAG_INFO[t].name} set ever: a ${p[0].species} grows in your garden.`),
+                2600
+              );
+            }
+          }
+        }
         if (newSets.length > 0) soundEngine.playSetComplete();
         else soundEngine.playShopBuy();
       } else if (offer.stat === "MAX_MAGIC") {
@@ -1835,6 +1848,12 @@ export default function OneStrokeTacticianPage() {
       bestLine: bestLineOf(history),
       relics: activeRelics,
       newRelics: practiceStep ? [] : rememberFoundRelics(activeRelics),
+      garden: practiceStep
+        ? undefined
+        : (() => {
+            const planted = plantsFromRun(dungeon.seedKey);
+            return { planted, total: loadMyGarden().plants.length, intro: planted.length > 0 && takeGardenIntro() };
+          })(),
     });
     setRunNoSafeLine(false);
     setWeedOutMode(false);
@@ -2208,6 +2227,18 @@ export default function OneStrokeTacticianPage() {
       lifeBonus: runClearLifeFor(runLogRef.current?.v ?? RUN_LOG_VERSION, runLogRef.current?.asc),
       asc: practiceStep ? 0 : runLogRef.current?.asc ?? 0,
       ...bedStarsInfo(garden, !practiceStep),
+      // My Garden: this bed's flower (and a tree for a full Season); never in practice
+      planted: practiceStep
+        ? []
+        : plantForBed({
+            runSeed: dungeon.seedKey,
+            gardenIndex: garden.gardenIndex,
+            season: garden.season,
+            kind: garden.kind,
+            score: garden.score,
+            stars: getRunBedStars(garden.score, garden.target, garden.strokesLeft),
+            bossRuleId: garden.bossRuleId,
+          }).map(plantLabel),
     });
   };
 

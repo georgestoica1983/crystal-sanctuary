@@ -61,7 +61,9 @@ Rule: anything random is visible before you commit — no hidden chances, no pai
 - [x] 14b. Four new Bosses (rules v19): 🚧 The Narrow Path (diagonal steps add no Length), 📏 The Long Road (lines under 10 tiles score half), ☁️ The Fog (numbers hidden until your line is next to them), 🪙 The Toll (each line costs 2 Seeds). Bots: about as hard as the old 8 (A6 24 → 21 of 48); the Fog is harder for people than for bots.
 
 **C — come back (no rules change)**
-- [ ] 15. My Garden: a permanent garden that only grows from cleared beds; nothing dies.
+- [x] 15a+c. My Garden, earning and planting (src/lib/myGarden.ts): every cleared bed plants a flower (golden with 3 ⭐), a Boss a rare one, a full Season a tree, a first-ever relic set a special flower; saved on the phone, never lost; shown on the bed-cleared screen and flying into "Planted in your garden" on the end screen.
+- [ ] 15b. My Garden screen: calm full-screen garden from the menu and end screen, touch flowers for their story, milestones (bench 10, pond 25, lanterns 50, arch 100), sleepy after 3+ days away.
+- [ ] 15d. Garden art (Gemini sheet): 12 flowers, 4 decorations, ground.
 - [ ] 16. Garden Journal: relics, Fertilizers, tools, Editions, Bosses, sets, companions; empty slots show their unlock goal.
 - [ ] 17. Music grows: each completed set adds a permanent music layer.
 - [ ] 18. Time of day (dew, Night Garden after dark) and tappable visitors — cosmetic.
