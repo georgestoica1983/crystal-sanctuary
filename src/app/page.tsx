@@ -115,6 +115,8 @@ import {
 import ShopModal from "@/components/ShopModal";
 import ScoreTally from "@/components/ScoreTally";
 import MyGardenScreen from "@/components/MyGardenScreen";
+import JournalScreen from "@/components/JournalScreen";
+import { recordBossBeaten, recordCompanionRun, recordRelics, recordSupply } from "@/lib/journal";
 import { loadMyGarden, plantForBed, plantForSet, plantLabel, plantsFromRun, takeGardenIntro } from "@/lib/myGarden";
 import { formatScore } from "@/lib/formatScore";
 import LineScoreShow, { echoValues, lineShowTimeline, lineStepMs, loadScoreSpeed, saveScoreSpeed, ScoreSpeed, stepValues } from "@/components/LineScoreShow";
@@ -348,6 +350,7 @@ export default function OneStrokeTacticianPage() {
   const [freeRelicNext, setFreeRelicNext] = useState(false);
   const [skipOpen, setSkipOpen] = useState(false);
   const [gardenOpen, setGardenOpen] = useState(false);
+  const [journalOpen, setJournalOpen] = useState(false);
   /** Rules v18+: garden upgrades owned, and the Seasons one was bought in */
   const [gardenUpgrades, setGardenUpgrades] = useState<GardenUpgradeId[]>([]);
   const [upgradeSeasons, setUpgradeSeasons] = useState<number[]>([]);
@@ -1460,6 +1463,7 @@ export default function OneStrokeTacticianPage() {
         setUpgradeSeasons((prev) => [...prev, Math.floor(runGarden.gardenIndex / 3)]);
         logRunAction({ k: "b", o: offer.id });
         track("shop_buy", { item: offer.upgrade, kind: offer.kind, cost: offer.cost, bed: currentFloorIndex });
+        recordSupply(`UPG_${offer.upgrade}`);
         handleNotice(`${up.icon} ${up.name}: ${up.text}, for the rest of this Run.`);
         setPendingPostFloorStats(next);
         setHero(next);
@@ -1497,6 +1501,13 @@ export default function OneStrokeTacticianPage() {
       const next = bought.stats;
       setActiveRelics(bought.relics);
       setRunUpgrades(bought.upgrades);
+      if (mode === "RUN" && !practiceStep) {
+        // Garden Journal: what was bought
+        if (offer.relicId) recordRelics([offer.relicId]);
+        if (offer.fert) recordSupply(`FERT_${offer.fert}`);
+        if (offer.tool) recordSupply(`TOOL_${offer.tool}`);
+        if (offer.tile?.ed) recordSupply(`ED_${offer.tile.ed}`);
+      }
       if (offer.kind === "RELIC" && offer.relicId) {
         const relic = getRelicDisplay(RELIC_REGISTRY[offer.relicId], true);
         const newSets = runRulesUseRelicSets(runLogRef.current?.v ?? RUN_LOG_VERSION)
@@ -1818,6 +1829,10 @@ export default function OneStrokeTacticianPage() {
     setFinalScore(runScore);
     if (!practiceStep) {
       track("run_over", { reason, bed: garden.gardenIndex, season: garden.season, run_score: runScore });
+      // Garden Journal: this companion's record, the relics and special tiles of this Run
+      recordCompanionRun(heroClassId, runScore, garden.gardenIndex);
+      recordRelics(activeRelics);
+      recordSupply(...runBag.filter((t) => t.ed).map((t) => `ED_${t.ed}`));
     }
     const { record, isNew } = practiceStep
       ? {
@@ -2187,6 +2202,7 @@ export default function OneStrokeTacticianPage() {
       setPracticeStep("bloom");
       setPracticeCollapsed(false);
     }
+    if (!practiceStep && garden.kind === "BOSS" && garden.bossRuleId) recordBossBeaten(garden.bossRuleId, garden.score);
     const { payout, legendary, relicsAfter, countersAfter, statsWithPayout, offers } =
       getRunBloomResult({
         garden,
@@ -2357,6 +2373,7 @@ export default function OneStrokeTacticianPage() {
     }
     logRunAction({ k: "k" });
     track("bed_skipped", { bed: runGarden.gardenIndex, tag: skip.tag });
+    recordSupply(`TAG_${skip.tag}`);
     setRelicCounters(skip.counters);
     setRunBag(skip.bag);
     if (skip.tag === "RELIC") setFreeRelicNext(true);
@@ -2394,6 +2411,7 @@ export default function OneStrokeTacticianPage() {
     setToolArmed(null);
     soundEngine.playShopBuy();
     track("tool_used", { tool, bed: runGarden.gardenIndex });
+    recordSupply(`TOOL_${tool}`);
     handleNotice(`${GARDEN_TOOLS[tool].icon} ${GARDEN_TOOLS[tool].name} (${GARDEN_TOOLS[tool].tag}) stays on that tile for the whole Run.`);
   };
 
@@ -3440,6 +3458,7 @@ export default function OneStrokeTacticianPage() {
         scoreSpeed={scoreSpeed}
         gardenUpgradeList={gardenUpgrades.map((id) => GARDEN_UPGRADES[id])}
         onOpenGarden={RUN_ONLY ? () => setGardenOpen(true) : undefined}
+        onOpenJournal={RUN_ONLY ? () => setJournalOpen(true) : undefined}
         gardenCount={gardenOpen ? 0 : loadMyGarden().plants.length}
         onCycleScoreSpeed={() => {
           const next: ScoreSpeed = scoreSpeed === 1 ? 2 : scoreSpeed === 2 ? 4 : 1;
@@ -4462,6 +4481,7 @@ export default function OneStrokeTacticianPage() {
       />
 
       <MyGardenScreen open={gardenOpen} onClose={() => setGardenOpen(false)} />
+      <JournalScreen open={journalOpen} onClose={() => setJournalOpen(false)} />
 
       {/* Victory / Defeat Summary + Wordle Share Card Modal */}
       <RunSummaryModal

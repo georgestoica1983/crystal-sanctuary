@@ -30,12 +30,12 @@ export interface MyGarden {
 }
 
 /** Flowers each kind of bed can plant (picked by the bed, so a Run looks varied) */
-const SPECIES: Record<Exclude<PlantKind, "BOSS" | "SET">, string[]> = {
+export const SPECIES: Record<Exclude<PlantKind, "BOSS" | "SET">, string[]> = {
   SMALL: ["Daisy", "Clover", "Buttercup", "Violet"],
   BIG: ["Tulip", "Iris", "Foxglove", "Lily"],
   SEASON: ["Young Oak", "Lilac Bush", "Rowan", "Cherry Tree"],
 };
-const BOSS_SPECIES: Partial<Record<BossRuleId, string>> = {
+export const BOSS_SPECIES: Partial<Record<BossRuleId, string>> = {
   THISTLE_KING: "Silver Thistle",
   BRIAR_QUEEN: "Queen Rose",
   DROUGHT: "Desert Bloom",
