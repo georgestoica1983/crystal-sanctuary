@@ -25,7 +25,6 @@ const BLOOM_ART = tileArt("ENEMY", { bloomed: true }) ?? "";
 import { soundEngine } from "@/lib/audio";
 import { artify } from "@/components/ArtText";
 import { formatScore } from "@/lib/formatScore";
-import { Plant, plantLook } from "@/lib/myGarden";
 
 const fmt = formatScore;
 
@@ -282,8 +281,6 @@ export interface RunClearInfo {
   deepestSeason?: number;
   /** Ascension level of this Garden Run */
   asc?: number;
-  /** My Garden: what this bed planted (e.g. "🌷 Tulip", "🌳 Young Oak") */
-  planted?: string[];
 }
 
 const BAG_ORDER = ["ENEMY", "TRAP", "WEAPON", "SHIELD", "POTION", "GOLD"] as const;
@@ -588,15 +585,6 @@ export function RunGardenClearModal({
           </div>
         </div>
 
-        {info.planted && info.planted.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0, transition: { delay: 0.45 } }}
-            className="text-center text-[12.5px] font-semibold text-emerald-200"
-          >
-            +{info.planted.join(" · ")} for your garden
-          </motion.div>
-        )}
 
         {info.unlocked && info.unlocked.length > 0 && (
           <motion.div
@@ -671,8 +659,6 @@ export interface RunOverInfo {
   /** Relics gathered this Run, and which were found for the first time ever */
   relics?: RelicId[];
   newRelics?: RelicId[];
-  /** My Garden: what this Run planted, the garden's size, and a first-time explanation */
-  garden?: { planted: Plant[]; total: number; intro: boolean };
 }
 
 /** Why the garden rests: said gently, never as a failure */
@@ -691,7 +677,6 @@ export function RunOverModal({
   onOpenLeaderboard,
   onNewRun,
   onClose,
-  onOpenGarden,
 }: {
   info: RunOverInfo | null;
   newRunLabel?: string;
@@ -699,8 +684,6 @@ export function RunOverModal({
   onOpenLeaderboard?: () => void;
   onNewRun: () => void;
   onClose: () => void;
-  /** Opens My Garden */
-  onOpenGarden?: () => void;
 }) {
   if (!info) return null;
   // What the next Run can earn: the nearest star unlock
@@ -801,49 +784,6 @@ export function RunOverModal({
           )}
         </div>
 
-        {info.garden && info.garden.planted.length > 0 && (
-          <div className="rounded-xl border border-emerald-300/25 bg-emerald-400/[0.06] px-3 py-2">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-emerald-200/80">
-              <span>Planted in your garden</span>
-              <span className="text-white/50">
-                {info.garden.total} {info.garden.total === 1 ? "plant" : "plants"} in all
-              </span>
-            </div>
-            <div className="mt-1.5 flex flex-wrap gap-1">
-              {info.garden.planted.map((p, i) => {
-                const look = plantLook(p);
-                return (
-                  <motion.img
-                    key={p.id}
-                    src={look.src}
-                    alt={p.species}
-                    title={p.species}
-                    draggable={false}
-                    initial={{ y: -18, scale: 0.3, opacity: 0 }}
-                    animate={{ y: 0, scale: p.kind === "SEASON" ? 1.25 : 1, opacity: 1 }}
-                    transition={{ type: "spring", stiffness: 260, damping: 13, delay: 0.7 + i * 0.12 }}
-                    className="h-8 w-8 object-contain drop-shadow-[0_2px_3px_rgba(0,0,0,0.5)]"
-                    style={{ filter: look.filter }}
-                  />
-                );
-              })}
-            </div>
-            {onOpenGarden && (
-              <button
-                type="button"
-                onClick={onOpenGarden}
-                className="mt-2 w-full h-9 rounded-lg border border-emerald-300/40 bg-emerald-400/10 text-[13px] font-semibold text-emerald-100 active:scale-[0.98]"
-              >
-                🌷 Visit your garden
-              </button>
-            )}
-            {info.garden.intro && (
-              <div className="mt-1.5 text-[11.5px] leading-snug text-white/65">
-                Your garden keeps everything you grow. Every Run adds to it, and nothing is ever lost.
-              </div>
-            )}
-          </div>
-        )}
 
         <div
           className={`rounded-xl px-3 py-2 text-center text-[12.5px] ${

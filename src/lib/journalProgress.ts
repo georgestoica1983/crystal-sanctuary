@@ -4,7 +4,7 @@ import type { HeroClassId } from "@/types/game";
 import { BOSS_RULE_REGISTRY, EDITIONS, FERT_TILES, HERO_CLASS_REGISTRY, RELIC_LIST, TOOL_IDS_WITH_ECHO } from "@/lib/engine";
 import { GARDEN_UPGRADES, SKIP_TAGS } from "@/lib/runReplay";
 import { RELIC_TAG_INFO, RelicTag } from "@/lib/relicTags";
-import { BOSS_SPECIES, GARDEN_MILESTONES, loadMyGarden, SPECIES } from "@/lib/myGarden";
+import { BOSS_SPECIES, GARDEN_MILESTONES, loadMyGarden, SPECIES, VISITOR_KINDS, VISITOR_MILESTONES } from "@/lib/myGarden";
 import { loadJournal } from "@/lib/journal";
 
 export type JournalPageId = "RELICS" | "SETS" | "GARDEN" | "BOSSES" | "SUPPLIES" | "VISITORS" | "COMPANIONS";
@@ -24,7 +24,7 @@ export function journalEntryIds(): Record<JournalPageId, string[]> {
       ...Object.keys(GARDEN_UPGRADES).map((u) => `UPG_${u}`),
       ...Object.keys(SKIP_TAGS).map((t) => `TAG_${t}`),
     ],
-    VISITORS: ["ladybug", "bee", "butterfly", "snail"].map((k) => `VIS_${k}`),
+    VISITORS: VISITOR_KINDS.map((k) => `VIS_${k}`),
     COMPANIONS: Object.keys(HERO_CLASS_REGISTRY),
   };
 }
@@ -39,6 +39,9 @@ export function journalFound(): Set<string> {
   garden.plants.forEach((p) => found.add(`plant-${p.kind === "SET" ? "Set Bloom" : p.species}`));
   GARDEN_MILESTONES.forEach((m) => {
     if (garden.plants.length >= m.at) found.add(`decor-${m.decor}`);
+  });
+  VISITOR_MILESTONES.forEach((m) => {
+    if (garden.plants.length >= m.at) found.add(`VIS_${m.kind}`);
   });
   Object.keys(j.bosses).forEach((id) => found.add(id));
   j.supplies.forEach((id) => found.add(id));

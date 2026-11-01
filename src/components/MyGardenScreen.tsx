@@ -13,11 +13,12 @@ import {
   plantSpot,
   plantedAgo,
   visitMyGarden,
+  VISITOR_MILESTONES,
+  VISITOR_NAMES,
+  VisitorKind,
 } from "@/lib/myGarden";
 import { formatScore } from "@/lib/formatScore";
-import { decorArt } from "@/lib/art";
-import GardenVisitor, { VISITOR_KINDS, VisitorKind } from "@/components/GardenVisitor";
-import { recordSupply } from "@/lib/journal";
+import { decorArt, visitorArt } from "@/lib/art";
 import { DayPhase, getDayPhase, getYearSeason, loadFollowTimeOfDay, YearSeason } from "@/lib/timeOfDay";
 
 const BED_NAMES = ["Small", "Big", "Boss"];
@@ -31,6 +32,14 @@ const SKY: Record<DayPhase, string> = {
 };
 /** Plants that glow softly after dark */
 const NIGHT_GLOW = new Set(["Moonflower", "Mist Orchid", "Set Bloom"]);
+
+/** Where each visitor rests once it has arrived */
+const VISITOR_SPOTS: Record<VisitorKind, React.CSSProperties> = {
+  ladybug: { left: "60%", bottom: "16%", width: "8%" },
+  bee: { left: "22%", top: "18%", width: "8%" },
+  butterfly: { right: "24%", top: "30%", width: "9%" },
+  snail: { right: "8%", bottom: "6%", width: "9%" },
+};
 
 /** Where each milestone decoration sits (behind the plants, except the front ones) */
 const DECOR_SPOTS: Array<{ key: string; at: number; decor: string; label: string; style: React.CSSProperties; z: number }> = [
@@ -59,20 +68,12 @@ export default function MyGardenScreen({ open, onClose }: { open: boolean; onClo
   const [pokes, setPokes] = useState<Record<string, number>>({});
   const [phase, setPhase] = useState<DayPhase>("DAY");
   const [season, setSeason] = useState<YearSeason>("SPRING");
-  // Two visitors wander the garden at a time; each one that leaves is followed by another
-  const [visitors, setVisitors] = useState<Array<{ key: number; kind: VisitorKind; row: number }>>([]);
-  const newVisitor = (): { key: number; kind: VisitorKind; row: number } => {
-    const kind = VISITOR_KINDS[Math.floor(Math.random() * VISITOR_KINDS.length)];
-    const flier = kind === "bee" || kind === "butterfly";
-    return { key: Date.now() + Math.random(), kind, row: flier ? 0.15 + Math.random() * 0.35 : 0.62 + Math.random() * 0.25 };
-  };
 
   useEffect(() => {
     if (!open) return;
     const follow = loadFollowTimeOfDay();
     setPhase(follow ? getDayPhase() : "DAY");
     setSeason(getYearSeason());
-    setVisitors([newVisitor(), newVisitor()]);
     const visit = visitMyGarden();
     setGarden(visit.garden);
     setPicked(null);
@@ -242,23 +243,18 @@ export default function MyGardenScreen({ open, onClose }: { open: boolean; onClo
           })}
         </div>
 
-        {/* Visitors: tap one to say hello (looks only) */}
-        {count > 0 &&
-          visitors.map((v) => (
-            <GardenVisitor
-              key={v.key}
-              kind={v.kind}
-              row={v.row}
-              size={v.kind === "snail" ? 30 : 34}
-              onMet={(k) => recordSupply(`VIS_${k}`)}
-              onDone={() =>
-                window.setTimeout(
-                  () => setVisitors((prev) => prev.map((x) => (x.key === v.key ? newVisitor() : x))),
-                  2500 + Math.random() * 5000
-                )
-              }
-            />
-          ))}
+        {/* Visitors: collection pieces that settle in the garden at their milestones (still, never wandering) */}
+        {VISITOR_MILESTONES.filter((v) => count >= v.at).map((v) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={v.kind}
+            src={visitorArt(v.kind)}
+            alt={VISITOR_NAMES[v.kind]}
+            draggable={false}
+            className="absolute object-contain drop-shadow-[0_2px_2px_rgba(0,0,0,0.45)]"
+            style={{ ...VISITOR_SPOTS[v.kind], zIndex: 110 }}
+          />
+        ))}
 
         {/* Drifting pollen by day, fireflies by night */}
         {count > 0 &&

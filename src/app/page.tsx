@@ -118,10 +118,9 @@ import ShopModal from "@/components/ShopModal";
 import ScoreTally from "@/components/ScoreTally";
 import MyGardenScreen from "@/components/MyGardenScreen";
 import JournalScreen from "@/components/JournalScreen";
-import GardenVisitor, { VISITOR_KINDS, VISITOR_NAMES, VisitorKind } from "@/components/GardenVisitor";
 import { journalNewCount } from "@/lib/journalProgress";
 import { recordBossBeaten, recordCompanionRun, recordRelics, recordSupply } from "@/lib/journal";
-import { earnedMusicLayers, loadMusicLayersOn, saveMusicLayersOn, loadMyGarden, plantForBed, plantForSet, plantLabel, plantsFromRun, takeGardenIntro } from "@/lib/myGarden";
+import { earnedMusicLayers, loadMusicLayersOn, saveMusicLayersOn, loadMyGarden, plantForBed, plantForSet, VISITOR_NAMES, visitorsArrived } from "@/lib/myGarden";
 import { formatScore } from "@/lib/formatScore";
 import LineScoreShow, { echoValues, lineShowTimeline, lineStepMs, loadScoreSpeed, saveScoreSpeed, ScoreSpeed, stepValues } from "@/components/LineScoreShow";
 import TutorialView from "@/components/TutorialView";
@@ -355,7 +354,6 @@ export default function OneStrokeTacticianPage() {
   const [skipOpen, setSkipOpen] = useState(false);
   const [gardenOpen, setGardenOpen] = useState(false);
   /** A visitor wandering the board now and then (looks only) */
-  const [boardVisitor, setBoardVisitor] = useState<{ kind: VisitorKind; row: number; key: number } | null>(null);
   /** Morning dew: tile ids still wet (they pop when a line passes them) */
   const [dewIds, setDewIds] = useState<string[]>([]);
   const [journalOpen, setJournalOpen] = useState(false);
@@ -780,23 +778,6 @@ export default function OneStrokeTacticianPage() {
     [phase === "PLANNING", journalOpen, gardenOpen, currentFloorIndex]
   );
 
-  // Visitors: about one bed in three, a little creature wanders along a gap between rows
-  useEffect(() => {
-    setBoardVisitor(null);
-    if (mode !== "RUN" || lessonIndex !== null || practiceStep || !runGarden) return;
-    if (Math.random() > 0.33) return;
-    const id = window.setTimeout(() => {
-      const kind = VISITOR_KINDS[Math.floor(Math.random() * VISITOR_KINDS.length)];
-      setBoardVisitor({ kind, row: (1 + Math.floor(Math.random() * 4)) * 0.2 - 0.075, key: Date.now() });
-    }, 4000 + Math.random() * 6000);
-    return () => window.clearTimeout(id);
-    // A new bed (or a new Run) may bring a visitor
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [runGarden?.gardenIndex, dungeon.seedKey, mode, lessonIndex]);
-  // ...who never stays while you draw
-  useEffect(() => {
-    if (drawnPath.length > 1) setBoardVisitor(null);
-  }, [drawnPath.length]);
 
   const relicScoreCtx: RelicScoreContext = useMemo(
     () =>
@@ -1599,18 +1580,15 @@ export default function OneStrokeTacticianPage() {
             const p = plantForSet(dungeon.seedKey, t, RELIC_TAG_INFO[t].name, runGarden?.season ?? 1);
             // After the set notice has been read
             if (p.length > 0) {
-              // First time ever: a garden flower, and the set's music layer joins the music for good
+              // First time ever: the set's flower joins the collection quietly, and its music layer joins the music for good
               if (musicLayersOn) soundEngine.setMusicLayers(earnedMusicLayers());
               const layer = MUSIC_LAYERS[t as MusicLayer];
-              window.setTimeout(
-                () =>
-                  handleNotice(
-                    `💮 First ${RELIC_TAG_INFO[t].name} set ever: a ${p[0].species} grows in your garden${
-                      layer ? `, and 🎵 ${layer.name} joins your music` : ""
-                    }.`
-                  ),
-                2600
-              );
+              if (layer) {
+                window.setTimeout(
+                  () => handleNotice(`🎵 First ${RELIC_TAG_INFO[t].name} set ever: ${layer.name} joins your music.`),
+                  2600
+                );
+              }
             }
           }
         }
@@ -1946,12 +1924,6 @@ export default function OneStrokeTacticianPage() {
       bestLine: bestLineOf(history),
       relics: activeRelics,
       newRelics: practiceStep ? [] : rememberFoundRelics(activeRelics),
-      garden: practiceStep
-        ? undefined
-        : (() => {
-            const planted = plantsFromRun(dungeon.seedKey);
-            return { planted, total: loadMyGarden().plants.length, intro: planted.length > 0 && takeGardenIntro() };
-          })(),
     });
     setRunNoSafeLine(false);
     setWeedOutMode(false);
@@ -2316,6 +2288,21 @@ export default function OneStrokeTacticianPage() {
     setLegendaryAward(legendary);
     setHero(stats);
     soundEngine.playVictoryChord();
+    // The collection grows quietly (never in practice); a visitor arrives at its milestones
+    if (!practiceStep) {
+      const before = loadMyGarden().plants.length;
+      plantForBed({
+        runSeed: dungeon.seedKey,
+        gardenIndex: garden.gardenIndex,
+        season: garden.season,
+        kind: garden.kind,
+        score: garden.score,
+        stars: getRunBedStars(garden.score, garden.target, garden.strokesLeft),
+        bossRuleId: garden.bossRuleId,
+      });
+      const arrived = visitorsArrived(before, loadMyGarden().plants.length);
+      if (arrived.length) journalNotice(arrived.map((k) => VISITOR_NAMES[k]));
+    }
     setRunClear({
       gardenIndex: garden.gardenIndex,
       score: garden.score,
@@ -2328,18 +2315,6 @@ export default function OneStrokeTacticianPage() {
       lifeBonus: runClearLifeFor(runLogRef.current?.v ?? RUN_LOG_VERSION, runLogRef.current?.asc),
       asc: practiceStep ? 0 : runLogRef.current?.asc ?? 0,
       ...bedStarsInfo(garden, !practiceStep),
-      // My Garden: this bed's flower (and a tree for a full Season); never in practice
-      planted: practiceStep
-        ? []
-        : plantForBed({
-            runSeed: dungeon.seedKey,
-            gardenIndex: garden.gardenIndex,
-            season: garden.season,
-            kind: garden.kind,
-            score: garden.score,
-            stars: getRunBedStars(garden.score, garden.target, garden.strokesLeft),
-            bossRuleId: garden.bossRuleId,
-          }).map(plantLabel),
     });
   };
 
@@ -3928,20 +3903,6 @@ export default function OneStrokeTacticianPage() {
               left on screen (smaller on short phones, up to 520px) */}
           <div className="relative w-full max-w-game min-h-[220px] max-h-[min(calc(100vw-1.5rem),520px)] grow-[1000] basis-0 !shrink flex items-center justify-center [container-type:size]">
           <div className="relative aspect-square w-[min(100cqw,100cqh)]">
-            {boardVisitor && phase === "PLANNING" && (
-              <div className="pointer-events-none absolute inset-0 z-[38] overflow-hidden rounded-2xl">
-                <GardenVisitor
-                  key={boardVisitor.key}
-                  kind={boardVisitor.kind}
-                  row={boardVisitor.row}
-                  size={28}
-                  onMet={(k) => {
-                    if (recordSupply(`VIS_${k}`).length) journalNotice([VISITOR_NAMES[k]]);
-                  }}
-                  onDone={() => setBoardVisitor(null)}
-                />
-              </div>
-            )}
             {/* Time of day: a soft light over the board, and fireflies at night (looks only) */}
             {boardLight && (
               <div
@@ -4631,7 +4592,6 @@ export default function OneStrokeTacticianPage() {
           practiceStep ? startRun(undefined, undefined, { practice: true }) : requestNewRun()
         }
         onClose={() => setRunOver(null)}
-        onOpenGarden={practiceStep ? undefined : () => setGardenOpen(true)}
       />
 
       <MyGardenScreen open={gardenOpen} onClose={() => setGardenOpen(false)} />

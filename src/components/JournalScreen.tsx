@@ -16,11 +16,10 @@ import {
 } from "@/lib/engine";
 import { GARDEN_UPGRADES, SKIP_TAGS } from "@/lib/runReplay";
 import { RELIC_TAG_INFO, RelicTag } from "@/lib/relicTags";
-import { BOSS_SPECIES, GARDEN_MILESTONES, SPECIES } from "@/lib/myGarden";
+import { BOSS_SPECIES, GARDEN_MILESTONES, SPECIES, VISITOR_MILESTONES, VISITOR_NAMES } from "@/lib/myGarden";
 import { loadJournal, markJournalSeen } from "@/lib/journal";
 import { journalFound } from "@/lib/journalProgress";
 import { decorArt, gardenArt, relicArt, relicHasArt, themeArt, tileArt, visitorArt } from "@/lib/art";
-import { VISITOR_KINDS, VISITOR_NAMES } from "@/components/GardenVisitor";
 import { formatScore } from "@/lib/formatScore";
 import RelicIcon from "@/components/RelicIcon";
 import { MUSIC_LAYERS, MusicLayer } from "@/lib/audio";
@@ -186,13 +185,13 @@ function buildPages(): Record<PageId, Entry[]> {
     };
   });
 
-  const visitors: Entry[] = VISITOR_KINDS.map((k) => ({
-    id: `VIS_${k}`,
-    name: VISITOR_NAMES[k],
-    found: found.has(`VIS_${k}`),
-    art: img(visitorArt(k), 38),
-    text: "A friendly visitor to your garden.",
-    hint: "Visitors wander the board and My Garden now and then. Tap one to say hello.",
+  const visitors: Entry[] = VISITOR_MILESTONES.map(({ at, kind }) => ({
+    id: `VIS_${kind}`,
+    name: VISITOR_NAMES[kind],
+    found: found.has(`VIS_${kind}`),
+    art: img(visitorArt(kind), 38),
+    text: `Came to stay when your garden reached ${at} plants.`,
+    hint: `Arrives when your garden reaches ${at} plants.`,
   }));
 
   return { RELICS: relics, SETS: sets, GARDEN: [...plants, ...decor], BOSSES: bosses, SUPPLIES: supplies, VISITORS: visitors, COMPANIONS: companions };

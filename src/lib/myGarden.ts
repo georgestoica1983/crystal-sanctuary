@@ -190,6 +190,27 @@ export const GARDEN_MILESTONES: Array<{ at: number; name: string; icon: string; 
   { at: 150, name: "a garden gate", icon: "🚪", decor: "gate" },
 ];
 
+/** Visitors: collection pieces that arrive as the garden grows (never wander the screen) */
+export type VisitorKind = "ladybug" | "bee" | "butterfly" | "snail";
+export const VISITOR_MILESTONES: Array<{ at: number; kind: VisitorKind }> = [
+  { at: 5, kind: "ladybug" },
+  { at: 25, kind: "bee" },
+  { at: 50, kind: "butterfly" },
+  { at: 100, kind: "snail" },
+];
+export const VISITOR_KINDS: VisitorKind[] = VISITOR_MILESTONES.map((m) => m.kind);
+export const VISITOR_NAMES: Record<VisitorKind, string> = {
+  ladybug: "Ladybug",
+  bee: "Bumblebee",
+  butterfly: "Butterfly",
+  snail: "Snail",
+};
+
+/** The visitors a garden reaches between two plant counts (for the arrival notice) */
+export function visitorsArrived(before: number, after: number): VisitorKind[] {
+  return VISITOR_MILESTONES.filter((m) => before < m.at && after >= m.at).map((m) => m.kind);
+}
+
 /** A stable spot for a plant (0–1 across, 0–1 deep), so the garden looks the same every visit */
 export function plantSpot(id: string): { x: number; y: number } {
   let h = 2166136261;
