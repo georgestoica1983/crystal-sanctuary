@@ -651,7 +651,7 @@ export default function GridCanvas({
 
   return (
     <div
-      className="board-cq relative w-full max-w-[430px] aspect-square mx-auto select-none touch-none"
+      className="board-cq relative w-full max-w-game aspect-square mx-auto select-none touch-none"
       style={isSanctuary ? boardThemeStyle(cosmetics?.boardThemeId) : undefined}
     >
       {/* Outer Frame: Crystal Sanctuary Garden OR Swiss Cyberpunk Frame */}

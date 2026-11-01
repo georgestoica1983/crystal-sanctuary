@@ -143,7 +143,7 @@ export default function LineMeter({
 
   return artify(
     <div
-      className={`relative w-full max-w-[430px] min-w-0 h-[78px] rounded-xl border px-3 py-1.5 flex flex-col transition-colors ${
+      className={`relative w-full max-w-game min-w-0 h-[78px] rounded-xl border px-3 py-1.5 flex flex-col transition-colors ${
         drawing || intro ? "justify-center border-white/[0.07] bg-white/[0.04]" : "justify-end border-transparent bg-transparent"
       }`}
       aria-live="polite"

@@ -114,7 +114,7 @@ export default function MyGardenScreen({ open, onClose }: { open: boolean; onClo
   };
 
   return (
-    <div className={`fixed inset-0 z-[70] flex flex-col bg-gradient-to-b ${SKY[phase]} select-none transition-colors duration-1000`}>
+    <div className={`ui-zoom fixed inset-0 z-[70] flex flex-col bg-gradient-to-b ${SKY[phase]} select-none transition-colors duration-1000`}>
       {/* Header */}
       <div className="flex items-start justify-between gap-2 px-4 pt-4 pb-2 max-w-[430px] w-full mx-auto">
         <div>

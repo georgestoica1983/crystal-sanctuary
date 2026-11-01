@@ -26,7 +26,7 @@ export function RunLessonCoach({
   status: LessonGoalStatus | null;
 }) {
   return artify(
-    <div className="w-full max-w-[430px] min-w-0 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 space-y-2">
+    <div className="ui-zoom w-full max-w-game min-w-0 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 space-y-2">
       <div className="flex items-center justify-between gap-2">
         <div className="text-[12px] font-semibold text-white/55 flex items-center gap-1.5">
           <span aria-hidden="true">{lesson.icon}</span>
@@ -79,7 +79,7 @@ export function RunLessonControls({
   const btn =
     "h-11 px-1.5 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[12px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-40 whitespace-nowrap";
   return artify(
-    <div className="w-full max-w-[430px] grid grid-cols-4 gap-1.5">
+    <div className="ui-zoom w-full max-w-game grid grid-cols-4 gap-1.5">
       <button type="button" disabled={disabled} onClick={onClear} className={btn}>
         Clear<span className="hidden min-[360px]:inline"> line</span>
       </button>
@@ -123,7 +123,7 @@ export function RunLessonResult({
 }) {
   if (!info) return null;
   return artify(
-    <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-[2px] flex items-end sm:items-center justify-center p-3">
+    <div className="ui-zoom fixed inset-0 z-50 bg-black/70 backdrop-blur-[2px] flex items-end sm:items-center justify-center p-3">
       <motion.div
         initial={{ y: 30, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -245,7 +245,7 @@ export function PracticeCoach({
     <div
       className={
         isModal
-          ? "fixed inset-0 z-[70] bg-black/75 backdrop-blur-sm flex items-center justify-center p-3"
+          ? "ui-zoom fixed inset-0 z-[70] bg-black/75 backdrop-blur-sm flex items-center justify-center p-3"
           : atTop
           ? "fixed top-2 inset-x-0 z-[70] flex justify-center px-3 pointer-events-none"
           : "w-full max-w-[430px] min-w-0 flex justify-center"
@@ -328,7 +328,7 @@ export function RunHelpMenu({
   const option =
     "w-full text-left rounded-xl border p-3 transition active:scale-[0.98] space-y-0.5";
   return artify(
-    <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-3">
+    <div className="ui-zoom fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-center justify-center p-3">
       <motion.div
         initial={{ scale: 0.92, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}

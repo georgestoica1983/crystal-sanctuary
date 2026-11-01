@@ -362,8 +362,8 @@ export default function RunGuide({
   };
 
   return artify(
-    <div className="fixed inset-0 z-[60] bg-black/85 backdrop-blur-sm flex items-stretch sm:items-center justify-center sm:p-3">
-      <div className="relative w-full max-w-[440px] sm:max-h-[92dvh] flex flex-col bg-gradient-to-b from-[#1F3125] via-[#1A281F] to-[#111A14] rounded-2xl border border-emerald-300/40 shadow-[0_0_40px_rgba(52,211,153,0.25)] text-white overflow-hidden">
+    <div className="ui-zoom fixed inset-0 z-[60] bg-black/85 backdrop-blur-sm flex items-stretch sm:items-center justify-center sm:p-3">
+      <div className="relative w-full max-w-[440px] sm:max-h-[calc(92dvh/var(--ui-zoom,1))] flex flex-col bg-gradient-to-b from-[#1F3125] via-[#1A281F] to-[#111A14] rounded-2xl border border-emerald-300/40 shadow-[0_0_40px_rgba(52,211,153,0.25)] text-white overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between gap-2 px-3 pt-3 pb-2 border-b border-white/10">
           <button
@@ -407,7 +407,7 @@ export default function RunGuide({
 
         {/* Chapter list */}
         {showIndex && (
-          <div className="mx-3 mt-2 rounded-xl border border-white/10 bg-[#111A14] p-1.5 grid grid-cols-1 gap-0.5 max-h-[50dvh] overflow-y-auto">
+          <div className="mx-3 mt-2 rounded-xl border border-white/10 bg-[#111A14] p-1.5 grid grid-cols-1 gap-0.5 max-h-[calc(50dvh/var(--ui-zoom,1))] overflow-y-auto">
             {pages.map((p, i) => (
               <button
                 key={p.title}
@@ -427,7 +427,8 @@ export default function RunGuide({
         )}
 
         {/* Body */}
-        <div className="flex-1 overflow-y-auto px-3 py-3">
+        {/* Short pages sit in the middle of a tall screen; long ones scroll from the top */}
+        <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col">
           <AnimatePresence mode="wait">
             <motion.div
               key={page}
@@ -435,7 +436,7 @@ export default function RunGuide({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -16 }}
               transition={{ duration: 0.18 }}
-              className="space-y-2.5"
+              className="my-auto space-y-3"
             >
               <h2 className="text-lg font-black text-emerald-100 flex items-center gap-2">
                 <span className="text-2xl">{current.icon}</span>

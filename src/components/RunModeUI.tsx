@@ -79,7 +79,7 @@ export function RunHudStrip({
       className={
         bare
           ? "w-full min-w-0 px-1 pb-0.5 space-y-1.5"
-          : `w-full max-w-[430px] min-w-0 rounded-xl px-3 pt-2 pb-1.5 [@media(max-height:640px)]:pt-1.5 [@media(max-height:640px)]:pb-1 border space-y-1.5 [@media(max-height:640px)]:space-y-1 bg-white/[0.04] ${
+          : `w-full max-w-game min-w-0 rounded-xl px-3 pt-2 pb-1.5 [@media(max-height:640px)]:pt-1.5 [@media(max-height:640px)]:pb-1 border space-y-1.5 [@media(max-height:640px)]:space-y-1 bg-white/[0.04] ${
               isBoss ? "border-rose-300/40" : "border-white/[0.07]"
             }`
       }
@@ -431,7 +431,7 @@ export function RunGoalCard({ target, lines, onStart }: { target: number; lines:
     { name: "Boss bed", note: "a twist" },
   ];
   return artify(
-    <div className="fixed inset-0 z-[65] bg-black/70 flex items-end sm:items-center justify-center p-3">
+    <div className="ui-zoom fixed inset-0 z-[65] bg-black/70 flex items-end sm:items-center justify-center p-3">
       <motion.div
         role="dialog"
         aria-label="Your goal"
@@ -509,7 +509,7 @@ export function RunGardenClearModal({
     ...(info.welcomeBonus ? [{ label: "🎁 Welcome bonus", value: info.welcomeBonus }] : []),
   ];
   return artify(
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3">
+    <div className="ui-zoom fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3">
       <motion.div
         initial={{ scale: 0.85, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
@@ -727,7 +727,7 @@ export function RunOverModal({
     { label: "Run score", value: fmt(info.runScore), tone: "text-amber-200" },
   ];
   return artify(
-    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3">
+    <div className="ui-zoom fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3">
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

@@ -256,7 +256,7 @@ export default function ShopModal({
   const legendary = legendaryAward ? RELIC_REGISTRY[legendaryAward] : null;
 
   return artify(
-    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 overflow-y-auto select-none">
+    <div className="ui-zoom fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 overflow-y-auto select-none">
       <motion.div
         initial={{ opacity: 0, y: 24, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -496,11 +496,12 @@ export default function ShopModal({
                       title={info.description}
                       aria-label={`${info.name}: ${info.description} Costs ${offer.cost} Seeds.`}
                       style={{ borderColor: sold ? "rgba(255,255,255,0.08)" : `${info.accent}55` }}
-                      className={`relative text-left rounded-xl border p-2 flex items-start gap-2 transition min-h-[64px] ${
+                      className={`relative text-left rounded-xl border p-2.5 flex flex-col gap-1.5 transition min-h-[64px] ${
                         sold ? "bg-white/[0.02] opacity-45" : disabled ? "bg-white/[0.02] opacity-60" : "bg-white/[0.04] active:bg-white/[0.08]"
                       }`}
                     >
-                      <span className="mt-0.5 h-8 w-8 shrink-0 flex items-center justify-center">
+                      {/* Icon on top (the price sits beside it), then the name across the full card */}
+                      <span className="h-8 w-8 shrink-0 flex items-center justify-center">
                         {offer.kind === "UPGRADE" && offer.upgrade ? (
                           <span className="text-[22px] leading-none" aria-hidden="true">{GARDEN_UPGRADES[offer.upgrade].icon}</span>
                         ) : offer.kind === "TILE" && offer.tile ? (
@@ -528,10 +529,10 @@ export default function ShopModal({
                         )}
                       </span>
                       <span className="min-w-0 flex-1">
-                        <span className="block pr-9 text-[12.5px] font-black leading-tight text-white">
+                        <span className="block text-[13px] font-black leading-tight text-white">
                           {offer.kind === "FERT" && offer.fert ? `Fertilizer` : info.name}
                         </span>
-                        <span className="block pr-8 text-[11px] font-semibold leading-snug" style={{ color: info.accent }}>
+                        <span className="block text-[11.5px] font-semibold leading-snug" style={{ color: info.accent }}>
                           {offer.kind === "FERT" && offer.fert
                             ? `${FERTILIZER[offer.fert].name} Lv ${getFertLevel(relicCounters, offer.fert) + 2} · +${FERTILIZER[offer.fert].perLevel} each`
                             : offer.kind === "TOOL" && offer.tool

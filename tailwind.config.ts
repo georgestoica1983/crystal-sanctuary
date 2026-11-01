@@ -64,6 +64,8 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      // The game column (see GAME_COLUMN_MAX in src/lib/uiScale.ts)
+      maxWidth: { game: "520px" },
       colors: {
         white: "#F3EEE1",
         slate: moss,

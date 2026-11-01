@@ -751,9 +751,9 @@ export function TopHUD({
       "w-full h-12 px-3 rounded-xl flex items-center gap-3 text-left text-[14px] font-semibold text-white/90 hover:bg-white/[0.06] active:bg-white/[0.1] transition";
     return artify(
       <div
-        className={`w-full max-w-[430px] mx-auto select-none ${
+        className={`w-full max-w-game mx-auto select-none ${
           runCard
-            ? `rounded-xl border px-2 pb-2 bg-white/[0.04] ${runCardBoss ? "border-rose-300/40" : "border-white/[0.07]"}`
+            ? `ui-zoom rounded-xl border px-2 pb-2 bg-white/[0.04] ${runCardBoss ? "border-rose-300/40" : "border-white/[0.07]"}`
             : ""
         }`}
       >
@@ -831,7 +831,7 @@ export function TopHUD({
           </button>
 
           {showRelics && relicCounts.length > 0 && (
-            <div className="absolute left-0 right-0 top-full mt-1 z-40 rounded-xl bg-[#203226] border border-white/[0.12] shadow-xl p-2 space-y-1.5 max-h-[60dvh] overflow-y-auto">
+            <div className="absolute left-0 right-0 top-full mt-1 z-40 rounded-xl bg-[#203226] border border-white/[0.12] shadow-xl p-2 space-y-1.5 max-h-[calc(60dvh/var(--ui-zoom,1))] overflow-y-auto">
               <div className="flex items-center justify-between px-1">
                 <span className="text-[11px] font-semibold text-white/50">Your relics</span>
                 <button
@@ -884,7 +884,7 @@ export function TopHUD({
               role="dialog"
               aria-label="Menu"
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-[430px] max-h-[85dvh] overflow-y-auto rounded-2xl bg-[#19271E] border border-white/[0.08] p-2"
+              className="w-full max-w-[430px] max-h-[calc(85dvh/var(--ui-zoom,1))] overflow-y-auto rounded-2xl bg-[#19271E] border border-white/[0.08] p-2"
             >
               <div className="flex items-center justify-between px-2 pt-1 pb-2">
                 <div className="text-[15px] font-bold text-white">Menu</div>
@@ -1775,7 +1775,7 @@ export function BottomControls({
   void visualTheme;
   const isSanctuary = true;
   return (
-    <div className="w-full max-w-[430px] mx-auto flex flex-col gap-1.5 select-none">
+    <div className="ui-zoom w-full max-w-game mx-auto flex flex-col gap-1.5 select-none">
       {/* Clean Tactile Action Row */}
       <div
         className={

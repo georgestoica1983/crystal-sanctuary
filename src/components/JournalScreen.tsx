@@ -219,7 +219,7 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
 
   return (
     <div
-      className={`fixed inset-0 z-[70] flex flex-col bg-[#18231C] select-none ${pct >= 100 ? "ring-4 ring-inset ring-amber-300/60" : ""}`}
+      className={`ui-zoom fixed inset-0 z-[70] flex flex-col bg-[#18231C] select-none ${pct >= 100 ? "ring-4 ring-inset ring-amber-300/60" : ""}`}
     >
       <div className="w-full max-w-[430px] mx-auto px-4 pt-4 pb-2">
         <div className="flex items-start justify-between gap-2">

@@ -1,5 +1,6 @@
 "use client";
 
+import { watchUiScale } from "@/lib/uiScale";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CosmeticPreferences,
@@ -397,6 +398,9 @@ export default function OneStrokeTacticianPage() {
   const runCompanionRef = useRef<HeroClassId>("KNIGHT");
   const [vibrationOn, setVibrationOn] = useState<boolean>(true);
   const [reduceMotion, setReduceMotion] = useState<boolean>(false);
+  // Text and controls grow on bigger screens (the board fills what's left)
+  useEffect(() => watchUiScale(), []);
+
   useEffect(() => {
     setVibrationOn(soundEngine.hapticsEnabled);
     const rm = loadReduceMotion();
@@ -3430,7 +3434,7 @@ export default function OneStrokeTacticianPage() {
 
       {/* Training Complete Toast Banner */}
       {trainingToastBanner && (
-        <div className="w-full max-w-[430px] mx-auto mb-1.5 rounded-xl px-3 py-2 bg-emerald-500/20 border border-emerald-400 text-emerald-100 font-mono text-xs font-extrabold text-center shadow-[0_0_24px_rgba(16,185,129,0.45)] animate-pulse">
+        <div className="w-full max-w-game mx-auto mb-1.5 rounded-xl px-3 py-2 bg-emerald-500/20 border border-emerald-400 text-emerald-100 font-mono text-xs font-extrabold text-center shadow-[0_0_24px_rgba(16,185,129,0.45)] animate-pulse">
           ✨ {trainingToastBanner}
         </div>
       )}
@@ -3631,8 +3635,8 @@ export default function OneStrokeTacticianPage() {
       />
 
       {/* Spacer: on tall screens the leftover height is shared between here
-          and the bottom, so the board sits lower (in thumb reach) and the top
-          card stays at the top (collapses when content overflows) */}
+          and above the buttons, so the top card stays at the top and the
+          buttons at the bottom (collapses when content overflows) */}
       <div aria-hidden="true" className="grow basis-0 !shrink min-h-0" />
 
       {showTutorial ? (
@@ -3650,7 +3654,7 @@ export default function OneStrokeTacticianPage() {
         <>
           {/* First-visit coach on the real Daily */}
           {!isInteractiveTutorial && coachStep !== null && (
-            <div className="w-full max-w-[430px] min-w-0 rounded-xl px-3 py-2 bg-[#223629]/95 border border-amber-300/40 flex items-start gap-2.5 shadow-[0_0_20px_rgba(251,191,36,0.15)]">
+            <div className="w-full max-w-game min-w-0 rounded-xl px-3 py-2 bg-[#223629]/95 border border-amber-300/40 flex items-start gap-2.5 shadow-[0_0_20px_rgba(251,191,36,0.15)]">
               <span className="text-lg leading-none mt-0.5">
                 {coachStep === 0 ? "🐱" : coachStep === 1 ? "✨" : "⭐"}
               </span>
@@ -3681,7 +3685,7 @@ export default function OneStrokeTacticianPage() {
 
           {/* 7-Step Tutorial Coach Card (Only shown during interactive tutorial) */}
           {isInteractiveTutorial && (
-            <div className="w-full max-w-[430px] min-w-0">
+            <div className="w-full max-w-game min-w-0">
               <TutorialCoach
                 currentStage={activeTutorialStage}
                 stageIndex={tutorialStageIndex}
@@ -3707,7 +3711,7 @@ export default function OneStrokeTacticianPage() {
 
           {/* Boss Garden twist (every 3rd garden) */}
           {!isInteractiveTutorial && !lesson && currentFloor.bossRuleId && mode !== "RUN" && (
-            <div className="w-full max-w-[430px] mx-auto rounded-xl px-3 py-1.5 border border-rose-300/30 bg-rose-500/[0.07] text-rose-50 flex items-center gap-2">
+            <div className="w-full max-w-game mx-auto rounded-xl px-3 py-1.5 border border-rose-300/30 bg-rose-500/[0.07] text-rose-50 flex items-center gap-2">
               <span className="text-xl shrink-0">
                 {BOSS_RULE_REGISTRY[currentFloor.bossRuleId].icon}
               </span>
@@ -3747,7 +3751,7 @@ export default function OneStrokeTacticianPage() {
               <button
                 type="button"
                 onClick={() => requestNewRun()}
-                className="w-full max-w-[430px] rounded-xl py-2 bg-emerald-300 text-slate-950 font-mono text-xs font-black"
+                className="w-full max-w-game rounded-xl py-2 bg-emerald-300 text-slate-950 font-mono text-xs font-black"
               >
                 Garden Run over — start a new one
               </button>
@@ -3757,7 +3761,7 @@ export default function OneStrokeTacticianPage() {
           {/* Rules v17+: skip a Small bed for a Tag, before its first line */}
           {canSkipBed && skipTag && drawnPath.length <= 1 && (
             skipOpen ? (
-              <div className="w-full max-w-[430px] rounded-xl border border-amber-300/40 bg-amber-400/[0.07] px-3 py-2 space-y-1.5">
+              <div className="ui-zoom w-full max-w-game rounded-xl border border-amber-300/40 bg-amber-400/[0.07] px-3 py-2 space-y-1.5">
                 <div className="text-[13px] font-bold text-amber-100">Skip this Small bed?</div>
                 <div className="text-[12px] leading-snug text-white/80">
                   You get <b className="text-amber-100">{SKIP_TAGS[skipTag].icon} {SKIP_TAGS[skipTag].name}</b>: {SKIP_TAGS[skipTag].text}.
@@ -3790,7 +3794,7 @@ export default function OneStrokeTacticianPage() {
           {mode === "RUN" &&
             !isInteractiveTutorial &&
             (lesson || (runGarden && !(phase === "DEFEAT" && runOver === null))) && (
-              <div className="relative w-full max-w-[430px] min-w-0">
+              <div className="ui-zoom relative w-full max-w-game min-w-0">
                 <LineMeter
                   tiles={drawnPath.length}
                   chips={lineMeter.now.chips}
@@ -3921,8 +3925,8 @@ export default function OneStrokeTacticianPage() {
             )}
 
           {/* Interactive 5x5 Path-Drawing Board: a square that fills the space
-              left on screen (smaller on short phones, up to 430px) */}
-          <div className="relative w-full max-w-[430px] min-h-[220px] max-h-[min(calc(100vw-1.5rem),430px)] grow-[1000] basis-0 !shrink flex items-center justify-center [container-type:size]">
+              left on screen (smaller on short phones, up to 520px) */}
+          <div className="relative w-full max-w-game min-h-[220px] max-h-[min(calc(100vw-1.5rem),520px)] grow-[1000] basis-0 !shrink flex items-center justify-center [container-type:size]">
           <div className="relative aspect-square w-[min(100cqw,100cqh)]">
             {boardVisitor && phase === "PLANNING" && (
               <div className="pointer-events-none absolute inset-0 z-[38] overflow-hidden rounded-2xl">
@@ -4229,7 +4233,7 @@ export default function OneStrokeTacticianPage() {
 
           {/* Garden tools (rules v13+): tap one, then a tile — the upgrade stays on it */}
           {mode === "RUN" && !lesson && !isInteractiveTutorial && runTools.length > 0 && phase === "PLANNING" && (
-            <div className="w-full max-w-[430px] flex items-center gap-1.5 min-h-[36px]">
+            <div className="w-full max-w-game flex items-center gap-1.5 min-h-[36px]">
               {toolArmed !== null ? (
                 <>
                   <span className="flex-1 text-[12px] font-semibold text-amber-100">
@@ -4265,6 +4269,10 @@ export default function OneStrokeTacticianPage() {
               )}
             </div>
           )}
+
+          {/* Spacer: spare height on tall phones is shared with the one under the
+              top card, so the buttons stay at the bottom in thumb reach */}
+          <div aria-hidden="true" className="grow basis-0 !shrink min-h-0" />
 
           {/* Bottom Legend & Controls */}
           {lesson && lessonIndex !== null ? (
@@ -4363,7 +4371,7 @@ export default function OneStrokeTacticianPage() {
 
           {/* Long-term progress: the Sanctuary mosaic (not in the Run-only game) */}
           {!RUN_ONLY && !isInteractiveTutorial && (
-            <div className="w-full max-w-[430px] min-w-0">
+            <div className="w-full max-w-game min-w-0">
               <SanctuaryProgressBar
                 totalGems={totalSanctuaryGems}
                 companionId={cosmetics.companionId ?? "CAT"}
@@ -4376,8 +4384,6 @@ export default function OneStrokeTacticianPage() {
           )}
         </>
       )}
-
-      <div aria-hidden="true" className="grow basis-0 !shrink min-h-0" />
 
       {/* End-visit confirmation for the official Daily */}
       {isFinishConfirmOpen && (

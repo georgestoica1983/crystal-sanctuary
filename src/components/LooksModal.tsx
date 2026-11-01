@@ -51,12 +51,12 @@ export default function LooksModal({
     }`;
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black/70 flex items-end sm:items-center justify-center" onClick={onClose}>
+    <div className="ui-zoom fixed inset-0 z-[60] bg-black/70 flex items-end sm:items-center justify-center" onClick={onClose}>
       <div
         role="dialog"
         aria-label="Companions and looks"
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[430px] max-h-[88dvh] overflow-y-auto rounded-2xl bg-[#19271E] border border-white/[0.08] p-3 space-y-3 text-white"
+        className="w-full max-w-[430px] max-h-[calc(88dvh/var(--ui-zoom,1))] overflow-y-auto rounded-2xl bg-[#19271E] border border-white/[0.08] p-3 space-y-3 text-white"
       >
         <div className="flex items-center justify-between">
           <div>

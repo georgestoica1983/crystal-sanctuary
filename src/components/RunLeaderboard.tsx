@@ -111,11 +111,11 @@ export default function RunLeaderboardModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-stretch sm:items-center justify-center sm:p-3">
+    <div className="ui-zoom fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex items-stretch sm:items-center justify-center sm:p-3">
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        className="w-full max-w-[440px] sm:max-h-[90dvh] flex flex-col bg-gradient-to-b from-[#203025] via-[#17241B] to-[#0D1510] rounded-2xl border border-amber-300/40 text-white overflow-hidden"
+        className="w-full max-w-[440px] sm:max-h-[calc(90dvh/var(--ui-zoom,1))] flex flex-col bg-gradient-to-b from-[#203025] via-[#17241B] to-[#0D1510] rounded-2xl border border-amber-300/40 text-white overflow-hidden"
       >
         {/* Header */}
         <div className="px-3 pt-3 pb-2 border-b border-white/10 space-y-1">

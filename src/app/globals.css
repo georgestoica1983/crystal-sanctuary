@@ -69,6 +69,12 @@ body {
   font-size-adjust: 0.5;
 }
 
+/* Text and controls grow on bigger screens (scale set by src/lib/uiScale.ts).
+   Heights in dvh inside a .ui-zoom element divide by --ui-zoom to stay on screen */
+.ui-zoom {
+  zoom: var(--ui-zoom, 1);
+}
+
 /* Numbers (scores, counters) use the text font with even-width figures, so
    they line up and don't jump while counting, without looking like code */
 svg text,
