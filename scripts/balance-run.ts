@@ -32,6 +32,8 @@ const EDS_FIRST = process.env.EDS === "first";
 const EDS_NEVER = process.env.EDS === "never";
 /** SKIP=small|all (rules v17+): skip every Small bed, or every Small and Big bed, for its Tag */
 const SKIP = process.env.SKIP ?? "never";
+/** UPG=first (rules v18+): buy the Season's garden upgrade before anything else */
+const UPG_FIRST = process.env.UPG === "first";
 
 for (const budget of BUDGETS) {
   for (const v of VERSIONS) {
@@ -67,6 +69,10 @@ for (const budget of BUDGETS) {
                   : b.t.value - a.t.value
               );
             if (order.length > 0 && run.apply({ k: "p", i: order[0].i }) === null) continue;
+          }
+          if (UPG_FIRST) {
+            const up = s.shop.offers.find((o) => o.kind === "UPGRADE" && !s.shop.soldIds.includes(o.id));
+            if (up && run.apply({ k: "b", o: up.id }) === null) continue;
           }
           if (EDS_FIRST) {
             const tile = s.shop.offers.find((o) => o.kind === "TILE" && !s.shop.soldIds.includes(o.id));

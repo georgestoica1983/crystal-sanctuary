@@ -169,7 +169,9 @@ export type ShopStatId = "MAX_MAGIC" | "START_DEW";
 
 export interface ShopOffer {
   id: string;
-  kind: "RELIC" | "STAT" | "FERT" | "TOOL" | "TILE";
+  kind: "RELIC" | "STAT" | "FERT" | "TOOL" | "TILE" | "UPGRADE";
+  /** Garden upgrade (rules v18+): lasts the whole Run */
+  upgrade?: GardenUpgradeId;
   /** Special tile for sale (rules v14+): added to the Tile Bag */
   tile?: SeedTile;
   /** Garden tool (rules v13+) */
@@ -344,6 +346,9 @@ export interface SeedTile {
   /** Echo (rules v15+): the tile scores twice — its own layer, so it can sit with a tool upgrade */
   echo?: boolean;
 }
+
+/** Garden upgrades (rules v18+), Bloomline's Vouchers: two tiers each */
+export type GardenUpgradeId = "ROOT_CELLAR" | "OLD_OAK" | "MARKET_DAY" | "HARVEST_FAIR" | "ALMANAC" | "OBSERVATORY";
 
 /** Special tiles (rules v14+), Bloomline's Editions */
 export type Edition = "GOLDEN" | "IRIDESCENT" | "RADIANT";

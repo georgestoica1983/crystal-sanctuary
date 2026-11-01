@@ -41,6 +41,7 @@ import {
   summarizeBuild,
 } from "@/lib/relicTags";
 import RelicIcon from "@/components/RelicIcon";
+import { GARDEN_UPGRADES } from "@/lib/runReplay";
 import { artify } from "@/components/ArtText";
 
 /** Small build-theme chip (🌺 Thorns) */
@@ -120,6 +121,18 @@ const TILE_NAMES: Record<string, string> = {
 };
 
 function describeOffer(offer: ShopOffer, isSanctuary: boolean, counters?: RelicCounters) {
+  if (offer.kind === "UPGRADE" && offer.upgrade) {
+    const u = GARDEN_UPGRADES[offer.upgrade];
+    return {
+      icon: u.icon,
+      name: u.name,
+      tag: u.text,
+      description: `Garden upgrade: ${u.text}, for the rest of this Run. One per Season.`,
+      accent: "#A7F3D0",
+      kindLabel: "Upgrade",
+      kindClass: "bg-emerald-400/15 text-emerald-200",
+    };
+  }
   if (offer.kind === "TILE" && offer.tile?.ed) {
     const ed = EDITIONS[offer.tile.ed];
     return {
@@ -488,7 +501,9 @@ export default function ShopModal({
                       }`}
                     >
                       <span className="mt-0.5 h-8 w-8 shrink-0 flex items-center justify-center">
-                        {offer.kind === "TILE" && offer.tile ? (
+                        {offer.kind === "UPGRADE" && offer.upgrade ? (
+                          <span className="text-[22px] leading-none" aria-hidden="true">{GARDEN_UPGRADES[offer.upgrade].icon}</span>
+                        ) : offer.kind === "TILE" && offer.tile ? (
                           <span className={`edition-shimmer edition-${(offer.tile.ed ?? "golden").toLowerCase()} relative h-8 w-8 rounded-lg flex items-center justify-center`}>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
                             <img src={tileArt(offer.tile.type) ?? ""} alt="" aria-hidden="true" draggable={false} className="h-6 w-6 object-contain" />
@@ -537,6 +552,8 @@ export default function ShopModal({
                           <span className="block text-[10.5px] text-white/45">stays on a tile</span>
                         ) : offer.kind === "TILE" ? (
                           <span className="block text-[10.5px] text-white/45">joins your bag</span>
+                        ) : offer.kind === "UPGRADE" ? (
+                          <span className="block text-[10.5px] text-white/45">whole Run · 1 per Season</span>
                         ) : null}
                       </span>
                       <span

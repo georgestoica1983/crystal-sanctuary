@@ -56,6 +56,7 @@ import type {
   SeedTile,
   ShopOffer,
   ToolId,
+  GardenUpgradeId,
 } from "@/types/game";
 
 /**
@@ -213,6 +214,8 @@ export function getRunBloomResult(params: {
   logVersion?: number;
   /** Ascension level of the Run (rules v8+) */
   asc?: number;
+  /** Garden upgrades owned (rules v18+): a higher interest cap */
+  gardenUpgrades?: GardenUpgradeId[];
 }): {
   payout: ReturnType<typeof getRunClearPayout>;
   legendary: RelicId | null;
@@ -229,6 +232,7 @@ export function getRunBloomResult(params: {
     relics,
     welcomeBonus: runWelcomeBonusFor(params.logVersion ?? RUN_LOG_VERSION, garden.gardenIndex, params.asc),
     interestBase: ascensionRules(runAscensionFor(params.logVersion ?? RUN_LOG_VERSION, params.asc)).interestBase,
+    interestBonus: upgradeInterestBonus(params.gardenUpgrades ?? []),
   });
   // Scaling relics owned while the garden bloomed grow
   const countersAfter = growRelicCountersOnBloom(params.counters ?? {}, relics, garden);
@@ -435,6 +439,52 @@ export const runRulesAllowSkip = (logVersion: number) => logVersion >= 17;
 
 /** Skipping a Small bed makes the Big bed after it this much harder */
 export const RUN_SKIP_TARGET_MULT = 1.5;
+
+// ── Garden upgrades (rules v18+): one per Season, two tiers, for the whole Run ──
+
+export const runRulesUseUpgrades = (logVersion: number) => logVersion >= 18;
+export const GARDEN_UPGRADE_COST = 6;
+export const GARDEN_UPGRADES: Record<
+  GardenUpgradeId,
+  { name: string; icon: string; text: string; needs?: GardenUpgradeId }
+> = {
+  ROOT_CELLAR: { name: "Root Cellar", icon: "🏺", text: "Interest can reach +10 🌱 (keep 50)" },
+  OLD_OAK: { name: "Old Oak", icon: "🌳", text: "Interest can reach +20 🌱 (keep 100)", needs: "ROOT_CELLAR" },
+  MARKET_DAY: { name: "Market Day", icon: "🧺", text: "Everything in the Shop costs 25% less" },
+  HARVEST_FAIR: { name: "Harvest Fair", icon: "🎪", text: "Everything in the Shop costs 50% less", needs: "MARKET_DAY" },
+  ALMANAC: { name: "Almanac", icon: "📖", text: "Fertilizer costs 3 less" },
+  OBSERVATORY: { name: "Observatory", icon: "🔭", text: "Each Fertilizer gives 2 levels", needs: "ALMANAC" },
+};
+const UPGRADE_IDS = Object.keys(GARDEN_UPGRADES) as GardenUpgradeId[];
+
+/** Extra interest cap from garden upgrades */
+export const upgradeInterestBonus = (owned: GardenUpgradeId[]) =>
+  owned.includes("OLD_OAK") ? 15 : owned.includes("ROOT_CELLAR") ? 5 : 0;
+
+/**
+ * The Shop after garden upgrades (rules v18+): this Season's upgrade joins
+ * until one is bought this Season, and prices drop with Market Day / Almanac.
+ */
+export function finishShopOffers(
+  offers: ShopOffer[],
+  params: { runSeed: string; gardenIndex: number; owned: GardenUpgradeId[]; boughtThisSeason: boolean }
+): ShopOffer[] {
+  const { owned } = params;
+  const discount = owned.includes("HARVEST_FAIR") ? 0.5 : owned.includes("MARKET_DAY") ? 0.75 : 1;
+  const priced = offers.map((o) => {
+    let cost = o.cost;
+    if (o.kind === "FERT" && owned.includes("ALMANAC")) cost = Math.max(1, cost - 3);
+    if (discount < 1 && cost > 0) cost = Math.max(1, Math.floor(cost * discount));
+    return cost === o.cost ? o : { ...o, cost };
+  });
+  if (params.boughtThisSeason) return priced;
+  const season = Math.floor(params.gardenIndex / 3);
+  const available = UPGRADE_IDS.filter((id) => !owned.includes(id) && (!GARDEN_UPGRADES[id].needs || owned.includes(GARDEN_UPGRADES[id].needs!)));
+  if (available.length === 0) return priced;
+  const rng = mulberry32(hashStringToSeed(`upgrade-${params.runSeed}-s${season}-${owned.length}`));
+  const upgrade = available[Math.floor(rng() * available.length)];
+  return [...priced, { id: `s${season}-upgrade-${upgrade}`, kind: "UPGRADE", upgrade, cost: GARDEN_UPGRADE_COST }];
+}
 
 export type SkipTag = "FERTILE" | "GOLDEN" | "PURSE" | "RELIC";
 export const SKIP_TAGS: Record<SkipTag, { name: string; icon: string; text: string }> = {
@@ -651,7 +701,7 @@ export function getRunPathError(
  * v11: a gentler first Season (targets 800 / 1,500 / 2,500).
  * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 17;
+export const RUN_LOG_VERSION = 18;
 export const RUN_LOG_MIN_VERSION = 2;
 /** Rule set of new Runs (the current version) */
 export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);
@@ -794,6 +844,9 @@ export interface RunReplayState {
   /** Rules v17+: Tags taken by skipping beds, and a free Rare relic waiting for the next Shop */
   tags: SkipTag[];
   freeRelicNext: boolean;
+  /** Rules v18+: garden upgrades owned, and the Seasons one was bought in */
+  gardenUpgrades: GardenUpgradeId[];
+  upgradeSeasons: number[];
   shop: { stats: HeroStats; offers: ShopOffer[]; soldIds: string[]; rerolls: number; pruned: boolean };
   score: number;
   gardensBloomed: number;
@@ -828,6 +881,8 @@ export function createRunReplayer(
     tools: [],
     tags: [],
     freeRelicNext: false,
+    gardenUpgrades: [],
+    upgradeSeasons: [],
     shop: { stats: first.hero, offers: [], soldIds: [], rerolls: 0, pruned: false },
     score: 0,
     gardensBloomed: 0,
@@ -886,12 +941,21 @@ export function createRunReplayer(
           counters: s.counters,
           logVersion,
           asc,
+          gardenUpgrades: s.gardenUpgrades,
         });
         s.relics = bloom.relicsAfter;
         s.counters = bloom.countersAfter;
         s.garden = scored;
-        const offers = s.freeRelicNext ? addTagRelicOffer(bloom.offers, runSeed, scored.gardenIndex, s.relics) : bloom.offers;
+        const tagged = s.freeRelicNext ? addTagRelicOffer(bloom.offers, runSeed, scored.gardenIndex, s.relics) : bloom.offers;
         s.freeRelicNext = false;
+        const offers = runRulesUseUpgrades(logVersion)
+          ? finishShopOffers(tagged, {
+              runSeed,
+              gardenIndex: scored.gardenIndex,
+              owned: s.gardenUpgrades,
+              boughtThisSeason: s.upgradeSeasons.includes(Math.floor(scored.gardenIndex / 3)),
+            })
+          : tagged;
         s.shop = { stats: bloom.statsWithPayout, offers, soldIds: [], rerolls: 0, pruned: false };
         s.phase = "SHOP";
       } else if (scored.strokesLeft <= 0) {
@@ -924,6 +988,13 @@ export function createRunReplayer(
       if (s.phase !== "SHOP") return "purchase outside the Shop";
       const offer = s.shop.offers.find((o) => o.id === action.o);
       if (!offer) return "unknown Shop offer";
+      if (offer.kind === "UPGRADE" && offer.upgrade) {
+        if (s.shop.soldIds.includes(offer.id) || s.shop.stats.gold < offer.cost) return "purchase not allowed";
+        s.gardenUpgrades = [...s.gardenUpgrades, offer.upgrade];
+        s.upgradeSeasons = [...s.upgradeSeasons, Math.floor(s.garden.gardenIndex / 3)];
+        s.shop = { ...s.shop, stats: { ...s.shop.stats, gold: s.shop.stats.gold - offer.cost }, soldIds: [...s.shop.soldIds, offer.id] };
+        return null;
+      }
       const bought = applyRunShopPurchase({
         stats: s.shop.stats,
         offer,
@@ -936,6 +1007,11 @@ export function createRunReplayer(
       });
       if (!bought) return "purchase not allowed";
       if (bought.tools) s.tools = bought.tools;
+      if (offer.kind === "FERT" && offer.fert && s.gardenUpgrades.includes("OBSERVATORY") && bought.counters) {
+        // Observatory: each Fertilizer gives a second level
+        const key = `FERT_${offer.fert}` as const;
+        bought.counters = { ...bought.counters, [key]: (bought.counters[key] ?? 0) + 1 };
+      }
       if (bought.bag) s.bag = bought.bag;
       s.relics = bought.relics;
       if (bought.counters) s.counters = bought.counters;
@@ -971,7 +1047,15 @@ export function createRunReplayer(
         asc,
       });
       if (!reroll) return "reroll not affordable";
-      s.shop = { ...s.shop, stats: reroll.stats, offers: reroll.offers, soldIds: [], rerolls: reroll.rerolls };
+      const rerolled = runRulesUseUpgrades(logVersion)
+        ? finishShopOffers(reroll.offers, {
+            runSeed,
+            gardenIndex: s.garden.gardenIndex,
+            owned: s.gardenUpgrades,
+            boughtThisSeason: s.upgradeSeasons.includes(Math.floor(s.garden.gardenIndex / 3)),
+          })
+        : reroll.offers;
+      s.shop = { ...s.shop, stats: reroll.stats, offers: rerolled, soldIds: [], rerolls: reroll.rerolls };
       return null;
     }
 

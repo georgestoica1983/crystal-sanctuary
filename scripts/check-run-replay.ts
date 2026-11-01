@@ -34,6 +34,8 @@ import {
   getSkipTag,
   addTagRelicOffer,
   RUN_SKIP_TARGET_MULT,
+  finishShopOffers,
+  upgradeInterestBonus,
   runModifierFor,
   scoreRunStroke,
   RunActionLog,
@@ -756,6 +758,63 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
   );
   const replay = replayRun(JSON.parse(JSON.stringify(log)));
   check("a Run with a skip replays", replay.ok && replay.score === rr.state.score, replay.ok ? `${replay.score} vs ${rr.state.score}` : replay.error);
+}
+
+// 15. Garden upgrades (rules v18+): one per Season, two tiers, for the whole Run
+{
+  const base = generateShopOffers("upgrade-check", 1, 0, [], 6, 0, 8, true, true);
+  const first = finishShopOffers(base, { runSeed: "upgrade-check", gardenIndex: 0, owned: [], boughtThisSeason: false });
+  const up = first.find((o) => o.kind === "UPGRADE");
+  check(
+    `a Shop offers this Season's upgrade (${up?.upgrade}), never a second tier first`,
+    Boolean(up) && ["ROOT_CELLAR", "MARKET_DAY", "ALMANAC"].includes(up!.upgrade!)
+  );
+  check(
+    "no upgrade once one was bought this Season",
+    !finishShopOffers(base, { runSeed: "upgrade-check", gardenIndex: 1, owned: ["MARKET_DAY"], boughtThisSeason: true }).some(
+      (o) => o.kind === "UPGRADE"
+    )
+  );
+  const market = finishShopOffers(base, { runSeed: "upgrade-check", gardenIndex: 3, owned: ["MARKET_DAY"], boughtThisSeason: true });
+  check(
+    "Market Day: everything costs 25% less",
+    base.every((o, i) => market[i].cost === (o.cost > 0 ? Math.max(1, Math.floor(o.cost * 0.75)) : 0))
+  );
+  check("Old Oak raises the interest cap by 15", upgradeInterestBonus(["ROOT_CELLAR", "OLD_OAK"]) === 15);
+
+  // A bot that buys every upgrade it sees, recorded and replayed
+  const run = createRunReplayer("up-ui-1", "KNIGHT", 18);
+  const log: RunActionLog = { v: 18, seed: "up-ui-1", hero: "KNIGHT", a: [] };
+  const act = (a: RunLogAction) => {
+    const err = run.apply(a);
+    if (err) throw new Error(`upgrade bot made an illegal move: ${err}`);
+    log.a.push(a);
+  };
+  for (let guard = 0; guard < 400 && run.state.phase !== "OVER" && run.state.gardensBloomed < 7; guard++) {
+    const s = run.state;
+    if (s.phase === "SHOP") {
+      const o = s.shop.offers.find((x) => x.kind === "UPGRADE" && !s.shop.soldIds.includes(x.id) && s.shop.stats.gold >= x.cost);
+      if (o) {
+        act({ k: "b", o: o.id });
+        continue;
+      }
+      act({ k: "l", h: s.classId });
+      continue;
+    }
+    const b = searchBestFloorLine(s.grid, s.startHero, RUN_MODIFIER, s.classId, s.relics, 20000, {
+      counters: s.counters,
+      strokesLeft: s.garden.strokesLeft,
+      relicSets: true,
+    });
+    if (!b) break;
+    act({ k: "s", p: packCoords(b.path) });
+  }
+  const replay = replayRun(JSON.parse(JSON.stringify(log)));
+  check(
+    `v18 Run buying upgrades replays (${run.state.gardenUpgrades.join(", ") || "none"})`,
+    run.state.gardenUpgrades.length > 0 && replay.ok && replay.score === run.state.score,
+    replay.ok ? `${replay.score} vs ${run.state.score}` : replay.error
+  );
 }
 
 console.log(failures ? `\n${failures} check(s) failed` : "\nAll replay checks passed");

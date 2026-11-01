@@ -501,6 +501,8 @@ interface TopHUDProps {
   bagPanel?: React.ReactNode;
   /** Tiles left in the Tile Bag (menu label) */
   bagCount?: number;
+  /** Garden upgrades owned (rules v18+), listed in the menu */
+  gardenUpgradeList?: Array<{ icon: string; name: string; text: string }>;
   /** How fast a line's scoring plays (×1, ×2, ×4) */
   scoreSpeed?: number;
   onCycleScoreSpeed?: () => void;
@@ -565,6 +567,7 @@ export function TopHUD({
   bagCount,
   scoreSpeed = 1,
   onCycleScoreSpeed,
+  gardenUpgradeList = [],
   flashRelics = [],
   relicSets = false,
   isDailyCompanionLocked = false,
@@ -888,6 +891,17 @@ export function TopHUD({
                   </div>
                 );
               })()}
+
+              {gardenUpgradeList.length > 0 && (
+                <div className="mx-1 mb-2 rounded-xl bg-emerald-400/[0.06] border border-emerald-300/20 px-3 py-2 space-y-1">
+                  <div className="text-[11px] font-semibold text-emerald-200/70">Garden upgrades</div>
+                  {gardenUpgradeList.map((u) => (
+                    <div key={u.name} className="text-[12.5px] text-white/85">
+                      <span aria-hidden="true">{u.icon}</span> <b>{u.name}</b> <span className="text-white/60">— {u.text}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <div className="space-y-0.5">
                 {bagPanel && (

@@ -20,6 +20,7 @@ import {
   FloorScoreBreakdown,
   RelicCounters,
   ToolId,
+  GardenUpgradeId,
   RelicId,
   RelicScoreContext,
   RunGardenState,
@@ -141,6 +142,9 @@ import {
   createNextRunGarden,
   addTagRelicOffer,
   applyRunSkip,
+  finishShopOffers,
+  GARDEN_UPGRADES,
+  runRulesUseUpgrades,
   createRunLog,
   dryDewAfterStroke,
   getSkipTag,
@@ -338,6 +342,9 @@ export default function OneStrokeTacticianPage() {
   /** Rules v17+: a Relic Tag's free Rare relic waits for the next Shop */
   const [freeRelicNext, setFreeRelicNext] = useState(false);
   const [skipOpen, setSkipOpen] = useState(false);
+  /** Rules v18+: garden upgrades owned, and the Seasons one was bought in */
+  const [gardenUpgrades, setGardenUpgrades] = useState<GardenUpgradeId[]>([]);
+  const [upgradeSeasons, setUpgradeSeasons] = useState<number[]>([]);
   const [runGarden, setRunGarden] = useState<RunGardenState | null>(null);
   const [runNoSafeLine, setRunNoSafeLine] = useState<boolean>(false);
   const [weedOutMode, setWeedOutMode] = useState<boolean>(false);
@@ -1192,6 +1199,8 @@ export default function OneStrokeTacticianPage() {
       setToolArmed(null);
       setFreeRelicNext(false);
       setSkipOpen(false);
+      setGardenUpgrades([]);
+      setUpgradeSeasons([]);
       runLogRef.current = practice ? null : createRunLog(runSeed, classId, asc);
       runBloomRef.current = null;
       setLessonIndex(null);
@@ -1434,6 +1443,25 @@ export default function OneStrokeTacticianPage() {
   /** Sanctuary Shop: buy one offer with this visit's Gems */
   const handleBuyShopOffer = useCallback(
     (offer: ShopOffer) => {
+      if (offer.kind === "UPGRADE" && offer.upgrade) {
+        // Garden upgrade (rules v18+): lasts the whole Run, one per Season
+        const base = pendingPostFloorStats ?? hero;
+        if (shopSoldIds.includes(offer.id) || base.gold < offer.cost || !runGarden) return;
+        const next = { ...base, gold: base.gold - offer.cost };
+        const up = GARDEN_UPGRADES[offer.upgrade];
+        setGardenUpgrades((prev) => [...prev, offer.upgrade!]);
+        setUpgradeSeasons((prev) => [...prev, Math.floor(runGarden.gardenIndex / 3)]);
+        logRunAction({ k: "b", o: offer.id });
+        track("shop_buy", { item: offer.upgrade, kind: offer.kind, cost: offer.cost, bed: currentFloorIndex });
+        handleNotice(`${up.icon} ${up.name}: ${up.text}, for the rest of this Run.`);
+        setPendingPostFloorStats(next);
+        setHero(next);
+        setGemsSpent((prev) => prev + offer.cost);
+        setShopSoldIds((prev) => [...prev, offer.id]);
+        setShopPurchases((prev) => prev + 1);
+        soundEngine.playSetComplete();
+        return;
+      }
       const bought = applyRunShopPurchase({
         stats: pendingPostFloorStats ?? hero,
         offer,
@@ -1446,6 +1474,11 @@ export default function OneStrokeTacticianPage() {
       });
       if (!bought) return;
       if (bought.bag) setRunBag(bought.bag);
+      if (offer.kind === "FERT" && offer.fert && gardenUpgrades.includes("OBSERVATORY") && bought.counters) {
+        // Observatory (v18+): each Fertilizer gives a second level, as in the replay
+        const key = `FERT_${offer.fert}` as const;
+        bought.counters = { ...bought.counters, [key]: (bought.counters[key] ?? 0) + 1 };
+      }
       if (bought.counters) setRelicCounters(bought.counters);
       if (bought.tools) setRunTools(bought.tools);
       track("shop_buy", {
@@ -1494,7 +1527,7 @@ export default function OneStrokeTacticianPage() {
       setShopPurchases((prev) => prev + 1);
       if (offer.kind !== "RELIC") soundEngine.playShopBuy();
     },
-    [pendingPostFloorStats, hero, shopSoldIds, activeRelics, runUpgrades, mode, handleNotice, relicCounters, runTools, runBag]
+    [pendingPostFloorStats, hero, shopSoldIds, activeRelics, runUpgrades, mode, handleNotice, relicCounters, runTools, runBag, gardenUpgrades, runGarden, currentFloorIndex]
   );
 
   /** Sanctuary Shop (Run): sell a relic for half its price to free its slot */
@@ -1540,7 +1573,15 @@ export default function OneStrokeTacticianPage() {
       });
       if (!reroll) return;
       next = reroll.stats;
-      offers = reroll.offers;
+      offers =
+        runGarden && runRulesUseUpgrades(runLogRef.current?.v ?? RUN_LOG_VERSION)
+          ? finishShopOffers(reroll.offers, {
+              runSeed: dungeon.seedKey,
+              gardenIndex: runGarden.gardenIndex,
+              owned: gardenUpgrades,
+              boughtThisSeason: upgradeSeasons.includes(Math.floor(runGarden.gardenIndex / 3)),
+            })
+          : reroll.offers;
       logRunAction({ k: "r" });
     } else {
       if (base.gold < rerollCost) return;
@@ -1559,7 +1600,7 @@ export default function OneStrokeTacticianPage() {
     setShopSoldIds([]);
     setShopOffers(offers);
     soundEngine.playHintReveal();
-  }, [mode, pendingPostFloorStats, hero, shopRerolls, rerollCost, dungeon.seedKey, currentFloor, activeRelics]);
+  }, [mode, pendingPostFloorStats, hero, shopRerolls, rerollCost, dungeon.seedKey, currentFloor, activeRelics, runGarden, gardenUpgrades, upgradeSeasons]);
 
   /** Pruning Shears (Run, rules v9+): remove one tile from the bag for the rest of the Run */
   const canPrune = mode === "RUN" && runRulesAllowPrune(runLogRef.current?.v ?? 0);
@@ -2126,11 +2167,20 @@ export default function OneStrokeTacticianPage() {
         counters,
         logVersion: runLogRef.current?.v ?? RUN_LOG_VERSION,
         asc: runLogRef.current?.asc,
+        gardenUpgrades,
       });
-    // A Relic Tag from a skipped bed adds a free Rare relic to this Shop
+    // A Relic Tag from a skipped bed adds a free Rare relic to this Shop; then garden upgrades (v18+)
+    const tagged = freeRelicNext ? addTagRelicOffer(offers, dungeon.seedKey, garden.gardenIndex, relicsAfter) : offers;
     runBloomRef.current = {
       statsWithPayout,
-      offers: freeRelicNext ? addTagRelicOffer(offers, dungeon.seedKey, garden.gardenIndex, relicsAfter) : offers,
+      offers: runRulesUseUpgrades(runLogRef.current?.v ?? RUN_LOG_VERSION)
+        ? finishShopOffers(tagged, {
+            runSeed: dungeon.seedKey,
+            gardenIndex: garden.gardenIndex,
+            owned: gardenUpgrades,
+            boughtThisSeason: upgradeSeasons.includes(Math.floor(garden.gardenIndex / 3)),
+          })
+        : tagged,
     };
     if (freeRelicNext) setFreeRelicNext(false);
     setRelicCounters(countersAfter);
@@ -2379,6 +2429,8 @@ export default function OneStrokeTacticianPage() {
     setToolArmed(null);
     setFreeRelicNext(r.freeRelicNext);
     setSkipOpen(false);
+    setGardenUpgrades(r.gardenUpgrades);
+    setUpgradeSeasons(r.upgradeSeasons);
     runLogRef.current = { ...r.log, a: [...r.log.a] };
     runBloomRef.current = null;
     setLessonIndex(null);
@@ -3345,6 +3397,7 @@ export default function OneStrokeTacticianPage() {
         }
         bagCount={runGarden?.drawPile.length}
         scoreSpeed={scoreSpeed}
+        gardenUpgradeList={gardenUpgrades.map((id) => GARDEN_UPGRADES[id])}
         onCycleScoreSpeed={() => {
           const next: ScoreSpeed = scoreSpeed === 1 ? 2 : scoreSpeed === 2 ? 4 : 1;
           saveScoreSpeed(next);

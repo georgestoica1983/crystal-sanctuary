@@ -28,6 +28,7 @@ import type {
   SeedTile,
   ShopOffer,
   ToolId,
+  GardenUpgradeId,
 } from "@/types/game";
 
 const RUN_SAVE_KEY = "ost_run_save_v1";
@@ -108,6 +109,9 @@ export interface RestoredRun {
   tools: ToolId[];
   /** Rules v17+: a Relic Tag's free relic is waiting for the next Shop */
   freeRelicNext: boolean;
+  /** Rules v18+: garden upgrades owned, and the Seasons one was bought in */
+  gardenUpgrades: GardenUpgradeId[];
+  upgradeSeasons: number[];
   history: FloorHistoryRecord[];
   totalCellsVisited: number;
   gemsSpent: number;
@@ -193,6 +197,7 @@ export function rebuildRunFromSave(raw: unknown): { ok: true; run: RestoredRun }
             counters: countersAfter,
             logVersion: log.v,
             asc: log.asc ?? 0,
+            gardenUpgrades: s.gardenUpgrades,
           });
           // The Shop as the replay opened it (a Relic Tag can add a free relic)
           bloom = { garden: s.garden, strokeStartHero: startHero, afterStroke, ...result, offers: s.shop.offers };
@@ -245,6 +250,8 @@ export function rebuildRunFromSave(raw: unknown): { ok: true; run: RestoredRun }
         upgrades: s.upgrades,
         tools: s.tools,
         freeRelicNext: s.freeRelicNext,
+        gardenUpgrades: s.gardenUpgrades,
+        upgradeSeasons: s.upgradeSeasons,
         history,
         totalCellsVisited,
         gemsSpent,

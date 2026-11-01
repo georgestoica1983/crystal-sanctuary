@@ -3351,6 +3351,8 @@ export function getRunClearPayout(params: {
   welcomeBonus?: number;
   /** Ascension: a lower base interest cap (relics still raise it) */
   interestBase?: number;
+  /** Garden upgrades (rules v18+): a higher interest cap */
+  interestBonus?: number;
 }): {
   clearReward: number;
   strokeBonus: number;
@@ -3367,13 +3369,14 @@ export function getRunClearPayout(params: {
     params.interestBase !== undefined
       ? getRunInterestCap(relics) - RUN_INTEREST_MAX + params.interestBase
       : getRunInterestCap(relics);
-  const interest = Math.min(cap, getRunInterest(params.gemsHeld, relics));
+  const capWithBonus = cap + (params.interestBonus ?? 0);
+  const interest = Math.min(capWithBonus, Math.floor(Math.max(0, params.gemsHeld) / RUN_INTEREST_STEP));
   const relicBonus = relics.includes("SEED_PURSE") ? 2 : 0;
   return {
     clearReward,
     strokeBonus,
     interest,
-    interestCap: cap,
+    interestCap: capWithBonus,
     relicBonus,
     welcomeBonus: params.welcomeBonus ?? 0,
     total: clearReward + strokeBonus + interest + relicBonus + (params.welcomeBonus ?? 0),
