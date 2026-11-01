@@ -70,8 +70,8 @@ export function getLiveStepNarratorText(
 ): string {
   if (simulation.steps.length <= 1) {
     return isSanctuary
-      ? "Step 1: 🌸 At Companion's starting tile — drag toward the Exit!"
-      : "Step 1: 🧤 At starting point — drag your path toward the Exit!";
+      ? "Step 1: 🌸 Start on your Companion's tile and drag toward the Exit!"
+      : "Step 1: 🧤 Start here and drag your path toward the Exit!";
   }
 
   const lastStep = simulation.steps[simulation.steps.length - 1];
@@ -271,7 +271,7 @@ export function getThemeAwareModifierInfo(
         shortTag: "NO DIAGONALS",
         description:
           "Tall hedges block diagonal steps. Walk up, down, left and right only.",
-        tacticalHint: "You can't hop Spikes diagonally today — plan around them.",
+        tacticalHint: "You can't hop Spikes diagonally today, so plan around them.",
       };
     case "NONE":
       return {
@@ -919,7 +919,7 @@ export function TopHUD({
                     </div>
                     {next && (
                       <div className="text-[11px] text-white/50 mt-0.5">
-                        Next: {next.icon} {next.name} — {next.needText}
+                        Next: {next.icon} {next.name} · {next.needText}
                       </div>
                     )}
                   </div>
@@ -931,7 +931,7 @@ export function TopHUD({
                   <div className="text-[11px] font-semibold text-emerald-200/70">Garden upgrades</div>
                   {gardenUpgradeList.map((u) => (
                     <div key={u.name} className="text-[12.5px] text-white/85">
-                      <span aria-hidden="true">{u.icon}</span> <b>{u.name}</b> <span className="text-white/60">— {u.text}</span>
+                      <span aria-hidden="true">{u.icon}</span> <b>{u.name}:</b> <span className="text-white/60">{u.text}</span>
                     </div>
                   ))}
                 </div>
@@ -1327,7 +1327,7 @@ export function TopHUD({
                 key: "dew",
                 label: "Gloves",
                 icon: <EntityIcon type="SHIELD" size={14} />,
-                value: heroClassId === "VAMPIRE" ? "—" : hero.shield,
+                value: heroClassId === "VAMPIRE" ? "–" : hero.shield,
                 color: "text-[#38BDF8]",
                 box: "bg-[#1E2E23]/80 border-sky-400/35",
               },
@@ -1496,7 +1496,7 @@ export function TopHUD({
             <span className="text-xs font-mono font-black text-[#38BDF8]">
               {heroClassId === "VAMPIRE"
                 ? isSanctuary
-                  ? "—"
+                  ? "–"
                   : "0🩸"
                 : hero.shield}
             </span>

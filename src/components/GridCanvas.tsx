@@ -581,7 +581,7 @@ export default function GridCanvas({
       if (simulation.firstDeathCoord) setLastDeathCoord({ ...simulation.firstDeathCoord });
       onRetractNotice(
         isSanctuary
-          ? why?.long ?? "This line would run out of ❤️ Life — try a safer route."
+          ? why?.long ?? "This line would run out of ❤️ Life. Try a safer route."
           : "Lethal route! Projected HP drops to 0"
       );
     }
@@ -1998,7 +1998,7 @@ function getTileInspectionData(
         name: isSanctuary ? "Shears" : "Kinetic Blade",
         valueLabel: isSanctuary ? `1 cut · +${cell.value} value` : `+${cell.value} Weapon`,
         explanation: isSanctuary
-          ? `One cut: the next Thorn you walk into is cut completely — no ❤️ lost. Also adds ${cell.value} to your line's value.`
+          ? `One cut: the next Thorn you walk into is cut completely, with no ❤️ lost. It also adds ${cell.value} to your line's value.`
           : `Temporary +${cell.value} attack power for the NEXT Enemy encounter only, then breaks to 0!`,
       };
     case "POTION":
@@ -2007,7 +2007,7 @@ function getTileInspectionData(
         name: isSanctuary ? "Berries" : "Nanite Potion",
         valueLabel: `+${cell.value} Life`,
         explanation: isSanctuary
-          ? `Gives back ${cell.value} ❤️ Life, up to your maximum — save them for when you're hurt.`
+          ? `Gives back ${cell.value} ❤️ Life, up to your maximum. Save them for when you're hurt.`
           : `Restores +${cell.value} HP up to 10 max. Best picked up after taking Enemy or Trap damage.`,
       };
     case "GOLD":

@@ -295,7 +295,7 @@ export default function ShopModal({
             animate={{ opacity: 1, y: 0 }}
             className="rounded-xl border border-teal-300/40 bg-teal-400/10 px-3 py-2 text-[12.5px] leading-snug text-teal-50"
           >
-            <b className="text-white">Spend 🌱 Seeds on relics</b> — lasting powers for this Garden Run. Or save them:
+            <b className="text-white">Spend 🌱 Seeds on relics</b>: lasting powers for this Garden Run. Or save them:
             every {RUN_INTEREST_STEP} you keep earns +1 more after each Garden Bed (up to +{RUN_INTEREST_MAX}).
             <span className="block mt-1 text-teal-100/80">Tip: score relics plus ~10 🌱 kept for interest works best.</span>
           </motion.div>
@@ -442,13 +442,13 @@ export default function ShopModal({
                       {info.description}
                       {blockedBySlots && !sold && offer.kind === "TOOL" && (
                         <span className="block text-amber-200/90 font-semibold">
-                          You already hold {MAX_TOOLS} tools — use one on a tile first.
+                          You already hold {MAX_TOOLS} tools. Use one on a tile first.
                         </span>
                       )}
                       {blockedBySlots && !sold && offer.kind === "RELIC" && (
                         <span className="block text-rose-200/90 font-semibold">
-                          Slots full ({MAX_COMMON_RELICS}/{MAX_COMMON_RELICS}) —{" "}
-                          {onSell ? "sell a relic below to make room." : "no room."}
+                          Slots full ({MAX_COMMON_RELICS}/{MAX_COMMON_RELICS}).{" "}
+                          {onSell ? "Sell a relic below to make room." : "No room."}
                         </span>
                       )}
                     </div>
@@ -544,7 +544,7 @@ export default function ShopModal({
                         {sold ? (
                           <span className="block text-[10.5px] font-bold text-white/50">Bought</span>
                         ) : blocked ? (
-                          <span className="block text-[10.5px] text-amber-200/80">Tools full — use one first</span>
+                          <span className="block text-[10.5px] text-amber-200/80">Tools full. Use one first</span>
                         ) : preview !== undefined ? (
                           <span className={`block text-[10.5px] font-semibold ${preview > 0 ? "text-emerald-300" : "text-white/35"}`}>
                             {preview > 0 ? `≈ +${preview.toLocaleString()} best line` : "not on your best line"}
@@ -597,7 +597,7 @@ export default function ShopModal({
                   type="button"
                   disabled={!relic}
                   onClick={() => id && setSelectedRelic(selected ? null : id)}
-                  aria-label={relic ? `${relic.name} — tap for details` : "Empty relic slot"}
+                  aria-label={relic ? `${relic.name}. Tap for details` : "Empty relic slot"}
                   aria-pressed={selected}
                   className={`h-12 rounded-lg border flex flex-col items-center justify-center gap-0.5 px-0.5 transition ${
                     relic
@@ -697,7 +697,7 @@ export default function ShopModal({
             {nextBoss ? (
               <>
                 <span className="font-black">
-                  {nextBoss.icon} Boss Garden — {nextBoss.name}
+                  {nextBoss.icon} Boss Garden: {nextBoss.name}
                 </span>
                 <div className="text-[11px] mt-0.5">{nextBoss.description}</div>
               </>

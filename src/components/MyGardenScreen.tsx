@@ -275,7 +275,7 @@ export default function MyGardenScreen({ open, onClose }: { open: boolean; onClo
           <div className="absolute inset-x-8 top-1/3 text-center text-[14px] leading-relaxed text-white/70">
             Your garden is waiting.
             <br />
-            Clear a Garden Bed and your first flower grows here — and stays forever.
+            Clear a Garden Bed and your first flower grows here, and it stays forever.
           </div>
         )}
       </div>
@@ -294,7 +294,7 @@ export default function MyGardenScreen({ open, onClose }: { open: boolean; onClo
             🎵 Your garden&apos;s music: <b className="text-amber-100">{layers.length} of 8 layers</b>
             <span className="block text-[11.5px] text-white/50">
               {newest
-                ? `Newest: ${MUSIC_LAYERS[newest].icon} ${MUSIC_LAYERS[newest].name} — tap to hear it`
+                ? `Newest: ${MUSIC_LAYERS[newest].icon} ${MUSIC_LAYERS[newest].name}. Tap to hear it`
                 : "Complete a relic set to add its layer to the music."}
             </span>
           </button>

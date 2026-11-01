@@ -123,7 +123,7 @@ function buildPages(): Record<PageId, Entry[]> {
       found: found.has(id),
       art: emoji(BOSS_RULE_REGISTRY[id].icon),
       text: BOSS_RULE_REGISTRY[id].description,
-      hint: "Meet it on a Season's Boss bed — and beat it.",
+      hint: "Meet it on a Season's Boss bed and beat it.",
       record: rec ? `Beaten ${rec.beaten} ${rec.beaten === 1 ? "time" : "times"} · best ${formatScore(rec.best)}` : undefined,
     };
   });
@@ -192,7 +192,7 @@ function buildPages(): Record<PageId, Entry[]> {
     found: found.has(`VIS_${k}`),
     art: img(visitorArt(k), 38),
     text: "A friendly visitor to your garden.",
-    hint: "Visitors wander the board and My Garden now and then — tap one to say hello.",
+    hint: "Visitors wander the board and My Garden now and then. Tap one to say hello.",
   }));
 
   return { RELICS: relics, SETS: sets, GARDEN: [...plants, ...decor], BOSSES: bosses, SUPPLIES: supplies, VISITORS: visitors, COMPANIONS: companions };

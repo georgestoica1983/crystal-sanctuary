@@ -26,7 +26,7 @@ const delius = Delius({
 });
 
 export const metadata: Metadata = {
-  title: "Bloomline — a one-line garden roguelike",
+  title: "Bloomline: a one-line garden roguelike",
   description:
     "Draw one unbroken line to the Exit, clear Garden Bed after Garden Bed, and see how far your Garden Run can go. Longer lines score far more.",
   manifest: "/manifest.json",

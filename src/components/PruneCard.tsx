@@ -108,7 +108,7 @@ export default function PruneCard({
       {open && !blocked && (
         <div className="px-2.5 pb-2.5 space-y-2">
           <div className="text-[11px] text-white/55 leading-snug">
-            Tap a tile to remove. Numbers are base values — Thorns and Spikes grow each Season.
+            Tap a tile to remove. Numbers are base values. Thorns and Spikes grow each Season.
           </div>
           <div className="space-y-1.5">
             {groups.map((row) => (

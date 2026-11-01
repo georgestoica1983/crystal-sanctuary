@@ -562,7 +562,7 @@ export function RunGardenClearModal({
           <SeasonMap season={season} clearedKind={kind} bestStars={info.seasonBestStars} />
           {season > RUN_FINAL_SEASON && (
             <div className="mt-2 rounded-lg border border-violet-300/40 bg-violet-500/10 px-2.5 py-1 text-[12px] text-violet-100">
-              🌌 Endless · your deepest: <b>Season {Math.max(season, info.deepestSeason ?? season)}</b> — go further!
+              🌌 Endless · your deepest: <b>Season {Math.max(season, info.deepestSeason ?? season)}</b>. Go further!
             </div>
           )}
         </div>
@@ -678,7 +678,7 @@ export interface RunOverInfo {
 /** Why the garden rests: said gently, never as a failure */
 const REST_COPY: Record<RunEndReason, string> = {
   MISSED_TARGET: "This bed wanted a few more points.",
-  NO_SAFE_LINE: "No path was left through this bed — it will grow back next time.",
+  NO_SAFE_LINE: "No path was left through this bed. It will grow back next time.",
   WILTED: "Your companion gave everything on that line and is resting now.",
   ENDED: "You let the garden rest for now.",
 };
@@ -713,7 +713,7 @@ export function RunOverModal({
   const why =
     info.reason === "MISSED_TARGET"
       ? shortBy <= info.target * 0.35
-        ? `So close — this bed wanted just ${fmt(shortBy)} more.`
+        ? `So close! This bed wanted just ${fmt(shortBy)} more.`
         : `This bed wanted ${fmt(shortBy)} more. Longer lines and score relics grow fast.`
       : REST_COPY[info.reason];
   const relicCounts = new Map<RelicId, number>();
@@ -839,7 +839,7 @@ export function RunOverModal({
             )}
             {info.garden.intro && (
               <div className="mt-1.5 text-[11.5px] leading-snug text-white/65">
-                Your garden keeps everything you grow — every Run adds to it, and nothing is ever lost.
+                Your garden keeps everything you grow. Every Run adds to it, and nothing is ever lost.
               </div>
             )}
           </div>

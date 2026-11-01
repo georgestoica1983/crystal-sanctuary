@@ -288,7 +288,7 @@ const THORN_TIP = "🌺 Thorns cost ❤️ Life. Grab ✂️ Shears first to cut
 const RUN_LESSONS_PROGRESS_KEY = "ost_run_lessons_progress_v1";
 /** The one-time "Your goal" card before a new player's first Garden Bed */
 const GOAL_CARD_SEEN_KEY = "ost_goal_card_seen_v1";
-const RUN_ONLY_NOTICE = "The Sanctuary is in Run mode for now — Gauntlet, past Dailies and the Crafter are resting.";
+const RUN_ONLY_NOTICE = "The Sanctuary is in Run mode for now. Gauntlet, past Dailies and the Crafter are resting.";
 
 export default function OneStrokeTacticianPage() {
   // Initial deterministic daily dungeon so page loads instantaneously without layout shift
@@ -701,12 +701,12 @@ export default function OneStrokeTacticianPage() {
           setStoreMessage(
             result?.expansion
               ? "Thank you! The Expansion is yours. 🌸"
-              : "Payment received — your unlock may take a minute. Reopen this screen shortly."
+              : "Payment received. Your unlock may take a minute, so reopen this screen shortly."
           );
           if (result?.expansion) soundEngine.playVictoryChord();
           setIsPassModalOpen(true);
         } else if (purchaseParam === "cancelled") {
-          setStoreMessage("Checkout cancelled — you haven't been charged.");
+          setStoreMessage("Checkout cancelled. You haven't been charged.");
           setIsPassModalOpen(true);
         }
       });
@@ -1235,7 +1235,7 @@ export default function OneStrokeTacticianPage() {
     setHero(replay.nextFloorHero);
     setFloorStartHero(replay.nextFloorHero);
     handleNotice(
-      `Welcome back — continuing today's visit at Garden ${progress.paths.length + 1}.`
+      `Welcome back! Continuing today's visit at Garden ${progress.paths.length + 1}.`
     );
   }, [resetRunWithDungeon, finishRun, handleNotice]);
 
@@ -1261,7 +1261,7 @@ export default function OneStrokeTacticianPage() {
       // Morning dew on the first board of the day's first morning Run (looks and sound only)
       if (!practice && takeMorningDew()) {
         setDewIds(pickDewTiles(first.floor.grid.flat()));
-        window.setTimeout(() => handleNotice("☀️ Good morning — there's dew on the garden. Draw through it."), 1200);
+        window.setTimeout(() => handleNotice("☀️ Good morning. There's dew on the garden, so draw through it."), 1200);
       } else {
         setDewIds([]);
       }
@@ -1433,7 +1433,7 @@ export default function OneStrokeTacticianPage() {
       if (mode === "RUN" && !isInteractiveTutorial) {
         // A Run keeps its Companion; picking another one starts a new Run
         if (floorHistory.length > 0 && phase !== "DEFEAT") {
-          handleNotice("Your Companion is set for this run — end it to pick another.");
+          handleNotice("Your Companion is set for this run. End it to pick another.");
           return;
         }
         startRun(nextClassId, isFreeTrial);
@@ -1458,7 +1458,7 @@ export default function OneStrokeTacticianPage() {
         );
         resetRunWithDungeon(sandboxDungeon, "SANDBOX", nextClassId, isFreeTrial);
         handleNotice(
-          `Today's Daily is played with the Keeper so everyone's on equal terms — ${clsDef.emblem} ${
+          `Today's Daily is played with the Keeper so everyone's on equal terms: ${clsDef.emblem} ${
             clsDef.sanctuaryShortName ?? clsDef.shortName
           } is with you in Free Play.`
         );
@@ -1621,9 +1621,9 @@ export default function OneStrokeTacticianPage() {
       } else if (offer.stat === "START_DEW") {
         handleNotice(`${SHOP_STAT_BOOSTS.START_DEW.icon} +1 Gloves at the start of every garden!`);
       } else if (offer.kind === "TILE" && offer.tile?.ed) {
-        handleNotice(`✨ A ${EDITIONS[offer.tile.ed].name} tile (${EDITIONS[offer.tile.ed].tag}) joins your bag — it shimmers when it's on the board.`);
+        handleNotice(`✨ A ${EDITIONS[offer.tile.ed].name} tile (${EDITIONS[offer.tile.ed].tag}) joins your bag. It shimmers when it's on the board.`);
       } else if (offer.kind === "TOOL" && offer.tool) {
-        handleNotice(`${GARDEN_TOOLS[offer.tool].icon} ${GARDEN_TOOLS[offer.tool].name} is in your tools — tap it under the board, then a tile.`);
+        handleNotice(`${GARDEN_TOOLS[offer.tool].icon} ${GARDEN_TOOLS[offer.tool].name} is in your tools. Tap it under the board, then a tile.`);
       } else if (offer.kind === "FERT" && offer.fert) {
         const level = getFertLevel(bought.counters, offer.fert);
         handleNotice(
@@ -1752,7 +1752,7 @@ export default function OneStrokeTacticianPage() {
         `Your free garden with ${
           HERO_CLASS_REGISTRY[heroClassId].sanctuaryShortName ??
           HERO_CLASS_REGISTRY[heroClassId].shortName
-        } is over — unlock the Expansion ($3.99) to keep them.`
+        } is over. Unlock the Expansion ($3.99) to keep them.`
       );
     }
 
@@ -1978,7 +1978,7 @@ export default function OneStrokeTacticianPage() {
     }
     if (garden.weedOutsLeft > 0) {
       setRunNoSafeLine(true);
-      handleNotice("No safe line on this board — use a 🌿 Swap to swap tiles.");
+      handleNotice("No safe line on this board. Use a 🌿 Swap to change some tiles.");
       return false;
     }
     endRunMode("NO_SAFE_LINE", garden, history, stats);
@@ -2065,7 +2065,7 @@ export default function OneStrokeTacticianPage() {
       const halfPoints = Math.round(hb.chips * hb.mult * hb.xMult);
       if (halfPoints > 0 && breakdown.total > halfPoints) {
         const ratio = Math.round((breakdown.total / halfPoints) * 10) / 10;
-        halfLineNote = `Half this line (${half.length} tiles) would score about ${halfPoints.toLocaleString()} — the full ${path.length} tiles scored ${breakdown.total.toLocaleString()}, ${ratio}× as much.`;
+        halfLineNote = `Half this line (${half.length} tiles) would score about ${halfPoints.toLocaleString()}. The full ${path.length} tiles scored ${breakdown.total.toLocaleString()}, ${ratio}× as much.`;
       }
     }
     // First-time players (and the Practice Garden): compare with a long line
@@ -2490,7 +2490,7 @@ export default function OneStrokeTacticianPage() {
     if (!tool) return;
     const used = applyGardenTool({ grid: currentFloor.grid, bag: runBag, coord, tool });
     if (!used) {
-      handleNotice("That tile can't take a tool — pick a tile that isn't upgraded yet (not your companion or the gate).");
+      handleNotice("That tile can't take a tool. Pick one that isn't upgraded yet (not your companion or the gate).");
       return;
     }
     logRunAction({ k: "u", i: toolArmed, c: coord.row * 5 + coord.col });
@@ -2556,7 +2556,7 @@ export default function OneStrokeTacticianPage() {
     if (!rebuilt.ok) {
       startRun();
       showLongNotice(
-        "Your last Garden Run couldn't be picked up after a game update — a fresh one is ready. 🌱"
+        "Your last Garden Run couldn't be picked up after a game update, so a fresh one is ready. 🌱"
       );
       return;
     }
@@ -2639,7 +2639,7 @@ export default function OneStrokeTacticianPage() {
       setFloorStartHero(r.startHero);
       setRunNoSafeLine(r.noSafeLine);
     }
-    showLongNotice(`✓ Your Garden Run was saved. Welcome back — ${r.label}.`);
+    showLongNotice(`✓ Your Garden Run was saved. Welcome back to ${r.label}.`);
   };
 
   // Keep the Run in progress saved on this device after every committed
@@ -2719,7 +2719,7 @@ export default function OneStrokeTacticianPage() {
             );
       if (!route || route.length < 2) {
         handleNotice(
-          "No safe line from here — try gathering Gloves or Shears tiles first."
+          "No safe line from here. Try picking up Gloves or Shears tiles first."
         );
         return;
       }
@@ -2728,7 +2728,7 @@ export default function OneStrokeTacticianPage() {
       setDrawnPath([]);
       setHintLine(route);
       soundEngine.playHintReveal();
-      handleNotice("Here's a great line — trace it, or use it as a guide for your own.");
+      handleNotice("Here's a great line. Trace it, or use it as a guide for your own.");
     };
 
     requestParLine({
@@ -2960,8 +2960,8 @@ export default function OneStrokeTacticianPage() {
               startDaily();
               setTrainingToastBanner(
                 true
-                  ? "GARDEN ONBOARDING COMPLETE (+50 🌰 GEMS) — ENTERING DAILY SANCTUARY"
-                  : "TACTICAL TRAINING COMPLETE (+50 🪙) — ENTERING DAILY DUNGEON"
+                  ? "GARDEN ONBOARDING COMPLETE (+50 🌰 GEMS) · ENTERING DAILY SANCTUARY"
+                  : "TACTICAL TRAINING COMPLETE (+50 🪙) · ENTERING DAILY DUNGEON"
               );
               const clearToastId = window.setTimeout(() => {
                 setTrainingToastBanner(null);
@@ -3292,7 +3292,7 @@ export default function OneStrokeTacticianPage() {
           }
         } else if (res.status === 429) {
           setStoreMessage(
-            "You've crafted 3 gardens today — the Crafter refills tomorrow."
+            "You've crafted 3 gardens today. The Crafter refills tomorrow."
           );
         } else if (res.status === 402) {
           setStoreMessage("The Garden Crafter is part of the Expansion.");
@@ -3300,7 +3300,7 @@ export default function OneStrokeTacticianPage() {
           setStoreMessage("The Crafter couldn't grow that garden. Please try again.");
         }
       } catch {
-        setStoreMessage("You seem to be offline — the Crafter needs a connection.");
+        setStoreMessage("You seem to be offline, and the Crafter needs a connection.");
       } finally {
         setIsGeneratingAi(false);
       }
@@ -3343,7 +3343,7 @@ export default function OneStrokeTacticianPage() {
     setIsCheckoutPending(false);
     setStoreMessage(
       result.reason === "not_configured"
-        ? "Purchases aren't open yet — check back soon!"
+        ? "Purchases aren't open yet. Check back soon!"
         : "Couldn't reach checkout. Please try again in a moment."
     );
   }, []);
@@ -3753,7 +3753,7 @@ export default function OneStrokeTacticianPage() {
                 onClick={() => requestNewRun()}
                 className="w-full max-w-game rounded-xl py-2 bg-emerald-300 text-slate-950 font-mono text-xs font-black"
               >
-                Garden Run over — start a new one
+                Garden Run over. Start a new one
               </button>
             ) : null
           )}
@@ -3815,7 +3815,7 @@ export default function OneStrokeTacticianPage() {
                       : runNoSafeLine
                       ? "No safe line on this board. 🌿 Swap can change up to 3 tiles."
                       : swapSuggested
-                      ? "Tough board — even the best line falls short. Try 🌿 Swap to change up to 3 tiles."
+                      ? "Tough board. Even the best line falls short, so try 🌿 Swap to change up to 3 tiles."
                       : undefined
                   }
                   intro={
@@ -4165,7 +4165,7 @@ export default function OneStrokeTacticianPage() {
                       : "bg-[#2A1018]/95 border-rose-300/60 text-rose-50"
                   }`}
                 >
-                  {artify(retractNotice ?? "🪨 No safe line on this board — tap 🌿 Swap to swap some tiles.")}
+                  {artify(retractNotice ?? "🪨 No safe line on this board. Tap 🌿 Swap to change some tiles.")}
                 </div>
               </div>
             )}
@@ -4336,7 +4336,7 @@ export default function OneStrokeTacticianPage() {
                 loadTutorialStage(tutorialStageIndex);
               } else if (isOfficialDailyRun && floorHistory.length > 0) {
                 handleNotice(
-                  "Today's official visit can't be restarted — finish it, then replay as practice as often as you like."
+                  "Today's official visit can't be restarted. Finish it, then replay it as practice as often as you like."
                 );
               } else {
                 resetRunWithDungeon(dungeon, mode);

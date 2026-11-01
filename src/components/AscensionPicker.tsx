@@ -67,7 +67,7 @@ export default function AscensionPicker({
         <div className="flex items-center justify-between">
           <div>
             <div className="text-[16px] font-bold">New Garden Run</div>
-            <div className="text-[11.5px] text-white/55">Pick a companion — each one plays differently.</div>
+            <div className="text-[11.5px] text-white/55">Pick a companion. Each one plays differently.</div>
           </div>
           <button
             type="button"

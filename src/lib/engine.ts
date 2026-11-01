@@ -150,7 +150,7 @@ export const HERO_CLASS_REGISTRY: Record<HeroClassId, HeroClassDefinition> = {
     sanctuaryEmblem: "🦋",
     sanctuaryPassiveName: "Acorn Harmony",
     sanctuaryPassiveSummary:
-      "Every 🌰 Acorn restores +1 Life and clearing a Thorn restores +2. Can't hold Gloves — Gloves tiles give ✂️ Shears instead.",
+      "Every 🌰 Acorn restores +1 Life and clearing a Thorn restores +2. Can't hold Gloves, so Gloves tiles give ✂️ Shears instead.",
   },
 };
 
@@ -258,7 +258,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     icon: "🗡️",
     shortTag: "KEEP 50% WPN",
     description:
-      "WEAPON pickups no longer break completely after 1 hit—they retain 50% (rounded down) of their power.",
+      "WEAPON pickups no longer break completely after 1 hit. They keep 50% (rounded down) of their power.",
     accentColor: "#F59E0B",
     cost: 8,
     category: "MAGIC",
@@ -854,7 +854,7 @@ export const SHOP_STAT_BOOSTS: Record<
     name: "Deep Roots",
     icon: "❤️",
     shortTag: "+2 Max Life",
-    description: "+2 Max Life for the rest of this Garden Run — and +2 Life right now.",
+    description: "+2 Max Life for the rest of this Garden Run, and +2 Life right now.",
     cost: 5,
     accentColor: "#34D399",
   },
@@ -1044,7 +1044,7 @@ export const BOSS_RULE_REGISTRY: Record<BossRuleId, BossRuleDefinition> = {
     id: "THISTLE_KING",
     name: "The Spike King",
     icon: "⚙️",
-    description: "Spikes hit 2× — step on them diagonally ↗.",
+    description: "Spikes hit 2×. Step on them diagonally ↗.",
   },
   BRIAR_QUEEN: {
     id: "BRIAR_QUEEN",
@@ -1080,7 +1080,7 @@ export const BOSS_RULE_REGISTRY: Record<BossRuleId, BossRuleDefinition> = {
     id: "SPIKE_BLOOM",
     name: "Spike Bloom",
     icon: "🌵",
-    description: "🌰 Acorns worth 5+ turned into Spikes — step on them diagonally ↗.",
+    description: "🌰 Acorns worth 5+ turned into Spikes. Step on them diagonally ↗.",
   },
   EVEN_GARDEN: {
     id: "EVEN_GARDEN",
@@ -1386,7 +1386,7 @@ export const MODIFIER_REGISTRY: Record<ModifierId, ModifierDefinition> = {
     shortTag: "NO DIAGONALS",
     description:
       "Diagonal movement is disabled for this dungeon. Only orthogonal (N/S/E/W) lines are permitted.",
-    tacticalHint: "Beware of Traps—you cannot dodge them diagonally here.",
+    tacticalHint: "Beware of Traps. You can't dodge them diagonally here.",
     accentColor: "#8B5CF6",
   },
   SHEARS: {

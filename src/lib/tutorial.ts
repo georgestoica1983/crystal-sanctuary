@@ -188,8 +188,8 @@ export const TUTORIAL_STAGES: TutorialStageConfig[] = [
   },
   {
     stageNumber: 3,
-    title: "Dewdrop Shields — Lasting Protection",
-    sanctuaryTitle: "Dewdrop Shields — Lasting Protection",
+    title: "Dewdrop Shields: Lasting Protection",
+    sanctuaryTitle: "Dewdrop Shields: Lasting Protection",
     subtitle: "Lesson 3 of 7 · Order Matters",
     coachBanner:
       "Blue Shields absorb Enemy damage before HP is touched! Always grab the Shield BEFORE stepping on an Enemy.",
@@ -212,8 +212,8 @@ export const TUTORIAL_STAGES: TutorialStageConfig[] = [
   },
   {
     stageNumber: 4,
-    title: "Golden Sunbeams — 1-Hit Power Burst",
-    sanctuaryTitle: "Golden Sunbeams — 1-Hit Power Burst",
+    title: "Golden Sunbeams: 1-Hit Power Burst",
+    sanctuaryTitle: "Golden Sunbeams: 1-Hit Power Burst",
     subtitle: "Lesson 4 of 7 · Temporary Burst Power",
     coachBanner:
       "Weapons boost power against the NEXT Enemy encounter only, then break to 0! Grab weapons right before heavy foes.",
@@ -237,8 +237,8 @@ export const TUTORIAL_STAGES: TutorialStageConfig[] = [
   },
   {
     stageNumber: 5,
-    title: "Sweet Berries — Smart Healing Order",
-    sanctuaryTitle: "Sweet Berries — Smart Healing Order",
+    title: "Sweet Berries: Smart Healing Order",
+    sanctuaryTitle: "Sweet Berries: Smart Healing Order",
     subtitle: "Lesson 5 of 7 · Avoid Wasted Healing",
     coachBanner:
       "Green Potions heal HP up to 10 max. Grabbing healing at 10/10 wastes it! Hit an Enemy first, then grab the Potion to heal back up.",
@@ -262,8 +262,8 @@ export const TUTORIAL_STAGES: TutorialStageConfig[] = [
   },
   {
     stageNumber: 6,
-    title: "Prickly Thistles — The Diagonal Hop Trick",
-    sanctuaryTitle: "Prickly Thistles — The Diagonal Hop Trick",
+    title: "Prickly Thistles: The Diagonal Hop Trick",
+    sanctuaryTitle: "Prickly Thistles: The Diagonal Hop Trick",
     subtitle: "Lesson 6 of 7 · Diagonal Evasion",
     coachBanner:
       "Traps ignore Shields if entered straight. SECRET TRICK: Cut DIAGONALLY through a Trap to hop right over it for 0 damage!",

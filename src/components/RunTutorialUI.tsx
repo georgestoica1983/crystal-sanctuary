@@ -377,7 +377,7 @@ export function RunHelpMenu({
         </button>
         <button type="button" onClick={onClose} className={`${option} border-white/10 bg-transparent`}>
           <div className="text-sm font-black">
-            {isFirstVisit ? "⏭ Skip — start a Run" : "← Back to my Run"}
+            {isFirstVisit ? "⏭ Skip and start a Run" : "← Back to my Run"}
           </div>
         </button>
       </motion.div>

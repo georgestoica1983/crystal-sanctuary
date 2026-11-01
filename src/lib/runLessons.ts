@@ -161,7 +161,7 @@ export const RUN_LESSONS: RunLesson[] = [
       const total = reached(sim) ? breakdown.total : 0;
       return { ok: total >= 100, detail: `${total} / 100` };
     },
-    success: "The Thorn cost 8 ❤️ Life but its +8 more than doubled your points. On a long line a Thorn is often worth it — just keep some Life for the next lines.",
+    success: "The Thorn cost 8 ❤️ Life but its +8 more than doubled your points. On a long line a Thorn is often worth it. Just keep some Life for the next lines.",
     failHint: "Take the Thorn (+8) on a long line.",
   },
 ];

@@ -113,7 +113,7 @@ export default function LineMeter({
       </span>
     );
   } else if (drawing && showShortLineTip) {
-    bottom = <span className="text-amber-200 font-semibold">💡 Short line — each extra tile is worth more</span>;
+    bottom = <span className="text-amber-200 font-semibold">💡 Short line. Each extra tile is worth more</span>;
   } else if (drawing && tier.level > 0) {
     bottom = (
       <span className="flex items-center gap-1.5 w-full">
@@ -202,7 +202,7 @@ export default function LineMeter({
                     clears ? "text-amber-200" : enough ? "text-lime-200" : "text-white/55"
                   }`}
                 >
-                  {fire >= 2 ? (fire === 3 ? "✓ Wild bloom — 5× what's needed" : "✓ Double bloom — 2× what's needed") : clears ? "✓ Clears the bed" : enough ? "Enough — head to the gate!" : `${fmt(toGo - points)} to go`}
+                  {fire >= 2 ? (fire === 3 ? "✓ Wild bloom: 5× what's needed" : "✓ Double bloom: 2× what's needed") : clears ? "✓ Clears the bed" : enough ? "Enough! Head to the gate" : `${fmt(toGo - points)} to go`}
                 </span>
               )}
             </div>

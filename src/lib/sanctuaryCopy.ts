@@ -27,7 +27,7 @@ const SANCTUARY_RELIC_COPY: Partial<Record<
     icon: "✂️",
     shortTag: "Every 2nd ✂️ cut is free",
     description:
-      "Every second Thorn you cut with ✂️ Shears is free — you keep that cut.",
+      "Every second Thorn you cut with ✂️ Shears is free. You keep that cut.",
   },
   ALCHEMIST_FLASK: {
     name: "Honey Jar",
@@ -40,7 +40,7 @@ const SANCTUARY_RELIC_COPY: Partial<Record<
     icon: "🥾",
     shortTag: "Straight Spikes give ✂️",
     description:
-      "Stepping straight onto a Spike doesn't hurt — it gives you +1 ✂️ Shears instead.",
+      "Stepping straight onto a Spike doesn't hurt. It gives you +1 ✂️ Shears instead.",
   },
   LONG_STRIDE: {
     name: "Long Meander",
@@ -69,7 +69,7 @@ const SANCTUARY_GARDEN_COPY: Record<ModifierId, { title: string; lore: string }>
   {
     GLASS_ARMOR: {
       title: "The Frosted Greenhouse",
-      lore: "Morning frost makes every dewdrop sparkle twice as bright — but it melts away every third step.",
+      lore: "Morning frost makes every dewdrop sparkle twice as bright, but it melts away every third step.",
     },
     MIRROR_VERTICAL: {
       title: "The Mirror Pond",
@@ -81,7 +81,7 @@ const SANCTUARY_GARDEN_COPY: Record<ModifierId, { title: string; lore: string }>
     },
     MOMENTUM: {
       title: "The Sunlit Lanes",
-      lore: "Long straight paths soak up the sunshine — walk three tiles in a row to gather it.",
+      lore: "Long straight paths soak up the sunshine. Walk three tiles in a row to gather it.",
     },
     SHEARS: {
       title: "The Quiet Garden",

@@ -489,7 +489,7 @@ export function RunSummaryModal({
         {/* Daily: official vs practice */}
         {isDaily && !isOfficial && officialToday && (
           <div className="rounded-xl px-3 py-2 bg-indigo-500/10 border border-indigo-400/30 text-indigo-100 text-xs font-sans">
-            Practice visit — today&apos;s official score was{" "}
+            Practice visit. Today&apos;s official score was{" "}
             <span className="font-bold text-white">
               {officialToday.score.toLocaleString()}
             </span>{" "}
@@ -732,8 +732,8 @@ export function LeaderboardModal({
             {entries.length === 0 && (
               <div className="px-3.5 py-6 text-center font-mono text-xs text-zinc-500">
                 {isSanctuary
-                  ? "No one has shared a score for today's garden yet — be the first."
-                  : "No scores posted for this seed yet — be the first."}
+                  ? "No one has shared a score for today's garden yet. Be the first!"
+                  : "No scores posted for this seed yet. Be the first!"}
               </div>
             )}
             {entries.map((entry, idx) => (
@@ -831,10 +831,10 @@ const SANCTUARY_STORE_COPY = {
   trailHeading: "The Ten-Garden Trail",
   trailBody: "Ten gardens in a row, with a new Blessing to choose after each one.",
   trailBtn: "WALK IT",
-  buyBtn: "UNLOCK EVERYTHING — $3.99",
+  buyBtn: "UNLOCK EVERYTHING · $3.99",
   ownedBtn: "EXPANSION UNLOCKED ✓",
   pendingBtn: "OPENING CHECKOUT…",
-  finePrint: "Secure checkout by Stripe. A single $3.99 charge — no subscription.",
+  finePrint: "Secure checkout by Stripe. A single $3.99 charge, no subscription.",
   archiveHeading: "Past Dailies",
   archiveBody:
     "Missed a day? Replay any past Daily garden and earn its stars. Replays don't count toward your streak or today's board.",
@@ -881,10 +881,10 @@ const TACTICIAN_STORE_COPY: typeof SANCTUARY_STORE_COPY = {
   trailHeading: "10-Floor Relic Gauntlet",
   trailBody: "Draft 1 of 3 stackable Relics after every floor and build synergies.",
   trailBtn: "PLAY 10F",
-  buyBtn: "UNLOCK FULL EXPANSION — $3.99",
+  buyBtn: "UNLOCK FULL EXPANSION · $3.99",
   ownedBtn: "FULL EXPANSION UNLOCKED ✓",
   pendingBtn: "OPENING CHECKOUT…",
-  finePrint: "Secure checkout by Stripe. One-time $3.99 charge — no subscription.",
+  finePrint: "Secure checkout by Stripe. One-time $3.99 charge, no subscription.",
   archiveHeading: "Daily Archive",
   archiveBody:
     "Replay any past Daily seed to earn missed 3-star mastery. Archive runs don't count toward your streak or the daily leaderboard.",

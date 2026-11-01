@@ -8,7 +8,7 @@ Everything below this section is parked until this is done.
 
 - [x] Run screen: remove the empty space at the top and cut the five bands of info down to three (top bar, board, bottom bar).
 - [x] Fonts: replace the Fraunces + JetBrains Mono + Nunito set with fonts that feel hand-picked, and use tabular figures instead of a mono font for numbers.
-- [ ] Wording: no em dashes in anything a player reads; rewrite each sentence by hand so it sounds like a person wrote it.
+- [x] Wording: no em dashes in anything a player reads; rewrite each sentence by hand so it sounds like a person wrote it.
 
 ## Waiting on setup (your part, parked)
 

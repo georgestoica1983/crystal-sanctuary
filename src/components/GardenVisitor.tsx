@@ -58,7 +58,7 @@ export default function GardenVisitor({
   return (
     <motion.button
       type="button"
-      aria-label={`A ${VISITOR_NAMES[kind].toLowerCase()} is visiting — tap to say hello`}
+      aria-label={`A ${VISITOR_NAMES[kind].toLowerCase()} is visiting. Tap to say hello`}
       onClick={tap}
       initial={{ left: start, opacity: 0 }}
       animate={

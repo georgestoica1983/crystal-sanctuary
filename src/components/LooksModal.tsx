@@ -62,7 +62,7 @@ export default function LooksModal({
           <div>
             <div className="text-[16px] font-bold">Companions &amp; looks</div>
             <div className="text-[11.5px] text-white/55">
-              Earned by playing. Line colours are looks only — companions change how you play.
+              Earned by playing. Line colours are just looks. Companions change how you play.
             </div>
           </div>
           <button
@@ -83,7 +83,7 @@ export default function LooksModal({
           {loadBestClearedAscension() > 0 && (
             <span className="text-orange-200"> · 🔥A{loadBestClearedAscension()}</span>
           )}
-          {next && <div className="text-[11px] text-white/50 mt-0.5">Next: {next.icon} {next.name} — {next.needText}</div>}
+          {next && <div className="text-[11px] text-white/50 mt-0.5">Next: {next.icon} {next.name} · {next.needText}</div>}
         </div>
 
         <section>

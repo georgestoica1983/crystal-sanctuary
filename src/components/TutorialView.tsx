@@ -462,7 +462,7 @@ export default function TutorialView({
                 Score = <strong className="text-sky-300">Chips</strong> ×{" "}
                 <strong className="text-rose-300">Mult</strong>. Chips are the
                 Gems you gather plus the numbers on every tile your line
-                touches. Mult is how many tiles long your line is — so a 16-tile
+                touches. Mult is how many tiles long your line is, so a 16-tile
                 line multiplies your Chips by 16. Relics add more Chips, Mult or
                 ×Mult on top.
               </p>
@@ -476,7 +476,7 @@ export default function TutorialView({
                 After each garden you get a Gem payout (3 + 1 per star) and
                 visit the Shop: spend Gems on relics (up to 3) or boosts like
                 +2 Max Magic, reroll for 10 Gems, or skip. Every 3rd garden is
-                a Boss Garden with a twist — clear it to earn a Legendary relic.
+                a Boss Garden with a twist. Clear it to earn a Legendary relic.
               </p>
             </div>
 

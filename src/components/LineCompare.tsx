@@ -121,7 +121,7 @@ export default function LineCompare({
           <span className="font-black text-amber-200">
             {ratio ? `${ratio}×` : "more"}
           </span>{" "}
-          as much. Longer lines grow Value and Length together — but watch the ❤️ Life they cost.
+          as much. Longer lines grow Value and Length together, but watch the ❤️ Life they cost.
         </div>
       )}
     </div>

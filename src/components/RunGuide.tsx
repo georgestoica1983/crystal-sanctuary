@@ -215,12 +215,12 @@ function buildPages(): GuidePage[] {
       icon: "🧩",
       body: (
         <div className="space-y-2.5">
-          <TileLine type="ENEMY" value={5} name="Thorn" text="its red number is points — and costs that much ❤️ Life." />
+          <TileLine type="ENEMY" value={5} name="Thorn" text="its red number is points, and it costs that much ❤️ Life." />
           <TileLine type="WEAPON" value={5} name="Shears" text="cut the next Thorn completely." />
           <TileLine type="SHIELD" value={5} name="Gloves" text="block Thorn damage, and last." />
           <TileLine type="POTION" value={5} name="Berries" text="green number: points, and gives that much ❤️ Life back." />
           <TileLine type="GOLD" value={5} name="Acorn" text="adds points." />
-          <TileLine type="TRAP" value={3} name="Spike" text="its grey number is points and costs that much ❤️ Life — unless you step on it diagonally ↗." />
+          <TileLine type="TRAP" value={3} name="Spike" text="its grey number is points and costs that much ❤️ Life, unless you step on it diagonally ↗." />
           <P>Tap any tile on the board to read what it does.</P>
         </div>
       ),
@@ -235,9 +235,9 @@ function buildPages(): GuidePage[] {
           </div>
           <Bullets
             items={[
-              <><B>Value</B> = the numbers on the tiles your line passes — every tile counts, even 🌺 Thorns. Risk = reward.</>,
+              <><B>Value</B> = the numbers on the tiles your line passes. Every tile counts, even 🌺 Thorns.</>,
               <><B>Length</B> = how many tiles the line has.</>,
-              <>Both grow with every tile — so a line twice as long scores about <B>4×</B>.</>,
+              <>Both grow with every tile, so a line twice as long scores about <B>4×</B>.</>,
               <>The meter above the board shows the score live while you draw.</>,
             ]}
           />
@@ -269,7 +269,7 @@ function buildPages(): GuidePage[] {
             items={[
               <>Each Season: <B>Small</B>, <B>Big</B> and <B>Boss</B> garden.</>,
               <>Targets rise every Season, and Thorns get stronger.</>,
-              <>Boss gardens have a twist — beat one for a Legendary relic. Its icon shows on the Season dots ahead of time (tap it).</>,
+              <>Boss gardens have a twist. Beat one for a Legendary relic. Its icon shows on the Season dots ahead of time (tap it).</>,
               <>Clearing a Garden Bed pays 🌱 Seeds: {RUN_CLEAR_REWARD.SMALL}/{RUN_CLEAR_REWARD.BIG}/{RUN_CLEAR_REWARD.BOSS}, +1 per unused line, +1 per {RUN_INTEREST_STEP} 🌱 you&apos;ve saved (max +{RUN_INTEREST_MAX}).</>,
               <>In the Shop: buy relics and boosts, or reroll ({RUN_REROLL_BASE_COST} 🌱). You can hold {MAX_COMMON_RELICS} relics.</>,
               <>🌱 Fertilizer levels up one tile type for the whole Run: every one of those tiles on a line adds more Value. It stacks.</>,
@@ -304,7 +304,7 @@ function buildPages(): GuidePage[] {
       icon: "🧿",
       body: (
         <>
-          <P>Lasting powers for your Run. Mix them — they multiply each other. 📈 = grows every Garden Bed.</P>
+          <P>Lasting powers for your Run. Mix them and they multiply each other. 📈 = grows every Garden Bed.</P>
           <P>
             Each relic has a theme tag (🌺 Thorns, 🌰 Acorns…). Hold <B>{RELIC_SET_SIZE} relics with one tag</B> for a set:
             every line scores <B>×{RELIC_SET_X}</B>. ⭐ Any build relics never count.
