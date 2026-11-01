@@ -2,7 +2,15 @@
 
 Things that are ready in code but wait on a setup step, plus work planned for later.
 
-## Waiting on setup (your part)
+## Now: calmer screen and a more human voice (2026-11-01)
+
+Everything below this section is parked until this is done.
+
+- [ ] Run screen: remove the empty space at the top and cut the five bands of info down to three (top bar, board, bottom bar).
+- [ ] Fonts: replace the Fraunces + JetBrains Mono + Nunito set with fonts that feel hand-picked, and use tabular figures instead of a mono font for numbers.
+- [ ] Wording: no em dashes in anything a player reads; rewrite each sentence by hand so it sounds like a person wrote it.
+
+## Waiting on setup (your part, parked)
 
 - [ ] **Feedback form** — create a Google Form ("Bloomline feedback": how do you score points · what do Shears, Gloves and Acorns do · when were you confused · what felt satisfying · play again tomorrow? · how far did you get · phone model), copy its forms.gle link.
 - [ ] **PostHog** — free account (EU region), project "Bloomline", copy the `phc_…` Project API key.
