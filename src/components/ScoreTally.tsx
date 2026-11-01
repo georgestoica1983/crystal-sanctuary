@@ -177,164 +177,92 @@ export default function ScoreTally({
     ? [stars.star1Survivor, stars.star2Greed, stars.star3Flawless]
     : [];
 
+  // One clear sum: Value × Length × every multiplier combined
+  const xAll = breakdown.xMultSources.reduce((m, x) => m * x.value, 1);
+  const xShown = Math.round(xAll * 100) / 100;
+  const bedTotal = runTotalBefore + breakdown.total;
+  const bedDone = targetScore != null && bedTotal >= targetScore;
+  // The details, folded: the biggest few of each, the rest summed
+  const top = (lines: ScoreSource[]) => {
+    const sorted = [...lines].sort((a, b) => b.value - a.value);
+    const shown = sorted.slice(0, 3);
+    const rest = sorted.slice(3);
+    return { shown, more: rest.length, moreValue: rest.reduce((t, l) => t + l.value, 0) };
+  };
+  const valueTop = top(chipLines);
+  const lengthTop = top(multLines);
+  const detailRow = (line: ScoreSource, tone: string) => (
+    <div key={line.label} className={`flex items-center justify-between gap-2 text-[15px] leading-snug ${tone}`}>
+      <span className="min-w-0 flex items-center gap-1.5">
+        <SourceArt art={line.art} size={18} />
+        <span className="truncate">{line.label}</span>
+      </span>
+      <span className="shrink-0 font-bold tabular-nums">+{line.value}</span>
+    </div>
+  );
+
   return artify(
     <div
-      className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-start justify-center overflow-y-auto p-3 select-none"
+      className="ui-zoom fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 select-none"
       onClick={skip}
       role="dialog"
-      aria-label="Garden score"
+      aria-label="Line score"
     >
       <motion.div
-        initial={{ scale: 0.85, opacity: 0 }}
+        initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 300, damping: 20 }}
-        className="relative my-auto w-full max-w-[400px] rounded-2xl p-3 min-[360px]:p-4 space-y-3 text-white border border-white/[0.08] bg-[#1B281F] shadow-2xl shadow-black/50 overflow-hidden"
+        transition={{ type: "spring", stiffness: 300, damping: 22 }}
+        onClick={(e) => e.stopPropagation()}
+        className="fit-card relative w-full max-w-[400px] rounded-2xl p-4 space-y-3 text-white border border-white/[0.08] bg-[#1B281F] shadow-2xl shadow-black/50"
       >
-        {/* Header */}
+        {/* Where we are, and the Boss if it fell */}
         <div className="text-center">
-          <div className="text-[12px] font-semibold leading-snug text-emerald-300/90">
-            {floorLabel}
-          </div>
+          <div className="text-[13px] font-semibold text-emerald-300/90">{floorLabel}</div>
           {boss && (
             <motion.div
-              initial={{ scale: 1.6, opacity: 0 }}
+              initial={{ scale: 1.4, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="mt-1 text-sm font-black text-rose-200"
+              className="mt-1 font-display text-[20px] font-bold text-rose-200"
             >
-              {boss.icon} {boss.name} defeated!
+              {boss.icon} {boss.name} beaten!
             </motion.div>
           )}
-          <div className="flex items-center justify-center gap-1.5 mt-1 text-xl">
-            {starFlags.map((earned, i) => (
-              <motion.span
-                key={i}
-                initial={{ scale: 0, rotate: -40 }}
-                animate={{ scale: 1, rotate: 0, transition: { delay: 0.1 + i * 0.12 } }}
-                className={
-                  earned
-                    ? "text-amber-300"
-                    : "text-white/15"
-                }
-              >
-                ★
-              </motion.span>
-            ))}
-          </div>
-        </div>
-
-        {/* Value × Length boxes */}
-        <div className="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-1.5 min-[360px]:gap-2">
-          <div className="rounded-xl border border-sky-300/40 bg-sky-500/10 p-2">
-            <div className="text-[11px] font-semibold text-sky-200 text-center">
-              Value
-            </div>
-            <motion.div
-              key={`c-${stage >= 1}`}
-              animate={stage >= 1 ? { scale: [1.25, 1] } : {}}
-              className="text-3xl font-display font-semibold tabular-nums text-center text-sky-100 leading-tight"
-            >
-              {fmt(Math.round(chipsShown))}
-            </motion.div>
-            <div className="space-y-0.5 mt-1">
-              {chipLines.map((line, i) => (
-                <motion.div
-                  key={line.label}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={stage >= 1 ? { opacity: 1, x: 0, transition: { delay: i * 0.15 } } : {}}
-                  className="flex justify-between items-start text-[11px] leading-tight text-sky-100/80 gap-1"
-                >
-                  <span className="min-w-0 break-words flex items-start gap-1">
-                    <SourceArt art={line.art} />
-                    {line.label}
-                  </span>
-                  <span className="font-bold shrink-0">+{line.value}</span>
-                </motion.div>
+          {starFlags.length > 0 && (
+            <div className="flex items-center justify-center gap-1.5 mt-1 text-[22px]">
+              {starFlags.map((earned, i) => (
+                <span key={i} className={earned ? "text-amber-300" : "text-white/15"}>
+                  ★
+                </span>
               ))}
             </div>
-          </div>
-
-          <div className="flex items-center text-2xl font-black text-white/40">×</div>
-
-          <div className="rounded-xl border border-emerald-300/40 bg-emerald-500/10 p-2">
-            <div className="text-[11px] font-semibold text-emerald-200 text-center">
-              Length
-            </div>
-            <motion.div
-              key={`m-${stage >= 2}`}
-              animate={stage >= 2 ? { scale: [1.25, 1] } : {}}
-              className="text-3xl font-display font-semibold tabular-nums text-center text-emerald-100 leading-tight"
-            >
-              {fmt(Math.round(multShown))}
-            </motion.div>
-            <div className="space-y-0.5 mt-1">
-              {multLines.map((line, i) => (
-                <motion.div
-                  key={line.label}
-                  initial={{ opacity: 0, x: 10 }}
-                  animate={stage >= 2 ? { opacity: 1, x: 0, transition: { delay: i * 0.15 } } : {}}
-                  className="flex justify-between items-start text-[11px] leading-tight text-emerald-100/80 gap-1"
-                >
-                  <span className="min-w-0 break-words flex items-start gap-1">
-                    <SourceArt art={line.art} />
-                    {line.label}
-                  </span>
-                  <span className="font-bold shrink-0">+{line.value}</span>
-                </motion.div>
-              ))}
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* Relic ×Length pops */}
-        {breakdown.xMultSources.length > 0 && (
-          <div className="flex flex-wrap justify-center gap-1.5 min-h-[28px]">
-            {breakdown.xMultSources.map((x, i) => (
-              <motion.span
-                key={x.label}
-                initial={{ scale: 0, opacity: 0 }}
-                animate={
-                  stage >= 3
-                    ? { scale: [1.6, 1], opacity: 1, transition: { delay: i * 0.18 } }
-                    : {}
-                }
-                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg border border-violet-300/50 bg-violet-500/15 text-[12px] font-bold text-violet-100"
-              >
-                <SourceArt art={x.art} size={16} />
-                {x.label} ×{x.value}
-              </motion.span>
-            ))}
-          </div>
-        )}
-
-        {/* Total */}
-        <div className="relative rounded-xl border border-amber-300/50 bg-amber-400/10 py-2 text-center">
-          <div className="text-[11px] font-semibold text-amber-200">
-            {scoreLabel}
-          </div>
+        {/* 1. The line's score, big */}
+        <div className="relative text-center">
+          <div className="text-[14px] font-semibold text-amber-200/90">{scoreLabel}</div>
           <motion.div
-            animate={stage >= 4 ? { scale: [1.8, 0.9, 1] } : { scale: 1 }}
-            transition={{ duration: 0.5 }}
-            className="text-4xl font-display font-semibold tabular-nums text-amber-200"
+            animate={stage >= 4 ? { scale: [1.5, 0.95, 1] } : { scale: 1 }}
+            transition={{ duration: 0.45 }}
+            className="font-display text-[46px] font-bold leading-none tabular-nums text-amber-200"
           >
             {stage >= 4 ? fmt(Math.round(totalShown)) : "?"}
           </motion.div>
-          <div className="text-[11px] font-mono text-amber-100/80">
-            {runningTotalLabel}: {stage >= 4 ? fmt(Math.round(runShown)) : fmt(runTotalBefore)}
-            {targetScore != null && <span className="text-amber-100/60"> / {fmt(targetScore)}</span>}
-            {parPercent != null && stage >= 4 && (
-              <span className="ml-1.5 text-teal-200">· {parPercent}% of par</span>
-            )}
+          <div className="mt-1.5 text-[15px] text-white/80">
+            {runningTotalLabel}{" "}
+            <b className="tabular-nums text-white">{fmt(stage >= 4 ? Math.round(runShown) : runTotalBefore)}</b>
+            {targetScore != null && <span className="text-white/60"> of {fmt(targetScore)}</span>}
+            {bedDone && stage >= 4 && <span className="font-bold text-lime-200"> · Bed cleared</span>}
+            {parPercent != null && stage >= 4 && <span className="text-teal-200"> · {parPercent}% of par</span>}
           </div>
-
-          {/* Floating text */}
           <AnimatePresence>
-            {stage >= 4 && (
+            {stage >= 4 && !instant && (
               <motion.div
                 key="float"
                 initial={{ y: 0, opacity: 1, scale: 0.8 }}
-                animate={{ y: -70, opacity: 0, scale: 1.4 }}
-                transition={{ duration: 1.3, ease: "easeOut" }}
-                className="pointer-events-none absolute inset-x-0 top-0 text-2xl font-black text-amber-100"
+                animate={{ y: -60, opacity: 0, scale: 1.3 }}
+                transition={{ duration: 1.2, ease: "easeOut" }}
+                className="pointer-events-none absolute inset-x-0 top-0 text-[24px] font-black text-amber-100"
               >
                 +{formatScore(breakdown.total)}
               </motion.div>
@@ -342,60 +270,90 @@ export default function ScoreTally({
           </AnimatePresence>
         </div>
 
-        {halfLineNote && stage >= 4 && (
-          <motion.div
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center text-[11px] leading-snug text-emerald-100"
-          >
-            📏 {halfLineNote}
-          </motion.div>
-        )}
+        {/* 2. One equation */}
+        <div className="text-center text-[18px] font-semibold tabular-nums">
+          <span className="text-sky-200">{fmt(Math.round(chipsShown))}</span>
+          <span className="text-white/55 text-[15px] font-normal"> value </span>
+          <span className="text-white/45">×</span>{" "}
+          <span className="text-emerald-200">{fmt(Math.round(multShown))}</span>
+          <span className="text-white/55 text-[15px] font-normal"> length</span>
+          {xShown !== 1 && (
+            <>
+              {" "}
+              <span className="text-white/45">×</span> <span className="text-fuchsia-200">{xShown}</span>
+            </>
+          )}
+        </div>
 
-        {extra && stage >= 4 && (
-          <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}>
-            {extra}
-          </motion.div>
-        )}
+        {/* 3. How it added up, folded */}
+        <details className="group rounded-xl border border-white/10 bg-white/[0.03] px-3 py-1.5">
+          <summary className="flex h-10 cursor-pointer list-none items-center justify-between text-[15px] font-semibold text-white/80">
+            See how
+            <span className="text-white/45 transition group-open:rotate-180" aria-hidden="true">▾</span>
+          </summary>
+          <div className="space-y-2.5 pb-2 pt-1">
+            <div className="space-y-1">
+              <div className="text-[13px] font-semibold text-sky-300/90">Value {fmt(breakdown.chips)}</div>
+              {valueTop.shown.map((l) => detailRow(l, "text-sky-50/90"))}
+              {valueTop.more > 0 && (
+                <div className="text-[14px] text-white/55">
+                  + {valueTop.more} more (+{valueTop.moreValue})
+                </div>
+              )}
+            </div>
+            <div className="space-y-1">
+              <div className="text-[13px] font-semibold text-emerald-300/90">Length {fmt(breakdown.mult)}</div>
+              {lengthTop.shown.map((l) => detailRow(l, "text-emerald-50/90"))}
+              {lengthTop.more > 0 && (
+                <div className="text-[14px] text-white/55">
+                  + {lengthTop.more} more (+{lengthTop.moreValue})
+                </div>
+              )}
+            </div>
+            {breakdown.xMultSources.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {breakdown.xMultSources.map((x) => (
+                  <span
+                    key={x.label}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-violet-300/40 bg-violet-500/10 px-2 py-1 text-[14px] font-semibold text-violet-100"
+                  >
+                    <SourceArt art={x.art} size={18} />
+                    {x.label} ×{x.value}
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        </details>
+
+        {halfLineNote && stage >= 4 && <div className="text-center text-[14px] leading-snug text-emerald-100/90">📏 {halfLineNote}</div>}
+
+        {extra && stage >= 4 && <div>{extra}</div>}
 
         {clearReward > 0 && stage >= 4 && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="text-center text-[12px] font-semibold text-amber-200"
-          >
-            Garden payout: +{clearReward} 🌱 Seeds to spend in the Shop
-          </motion.div>
+          <div className="text-center text-[14px] font-semibold text-amber-200">+{clearReward} 🌱 Seeds to spend in the Shop</div>
         )}
 
         {legendary && stage >= 4 && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-center text-xs font-bold text-amber-100"
-          >
-            <span className="inline-flex items-center gap-1.5">
-              <RelicIcon id={legendary.id} size={24} /> Legendary relic earned: {legendary.name}
-            </span>
-          </motion.div>
+          <div className="flex items-center justify-center gap-2 text-center text-[14px] font-bold text-amber-100">
+            <RelicIcon id={legendary.id} size={28} /> Legendary relic: {legendary.name}
+          </div>
         )}
 
-        <button
-          type="button"
-          onClick={(e) => {
-            e.stopPropagation();
-            skip();
-          }}
-          className={`w-full rounded-xl py-3 font-bold text-[14px] transition active:scale-95 ${
-            stage >= 5
-              ? "bg-teal-300 text-slate-950"
-              : "border border-white/15 bg-white/[0.05] text-white/60"
-          }`}
-        >
-          {stage < 5
-            ? "Tap to skip"
-            : continueLabel ?? (isFinalFloor ? "See results →" : "Enter the Shop →")}
-        </button>
+        <div className="card-footer bg-[#1B281F]">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              skip();
+            }}
+            className={`w-full h-12 rounded-xl font-bold text-[16px] transition active:scale-95 ${
+              stage >= 5 ? "bg-teal-300 text-slate-950" : "border border-white/15 bg-white/[0.05] text-white/70"
+            }`}
+          >
+            {stage < 5 ? "Tap to skip" : continueLabel ?? (isFinalFloor ? "See results →" : "Enter the Shop →")}
+          </button>
+        </div>
       </motion.div>
     </div>
   );

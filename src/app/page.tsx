@@ -1,5 +1,6 @@
 "use client";
 
+import { countRunStarted, runsStarted, TEACHING_RUNS } from "@/lib/playCount";
 import IntroSplash from "@/components/IntroSplash";
 import { watchUiScale } from "@/lib/uiScale";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -1282,6 +1283,7 @@ export default function OneStrokeTacticianPage() {
       setGardenUpgrades([]);
       setUpgradeSeasons([]);
       runLogRef.current = practice ? null : createRunLog(runSeed, classId, asc);
+      if (!practice) countRunStarted();
       runBloomRef.current = null;
       setLessonIndex(null);
       setLessonResult(null);
@@ -2041,7 +2043,8 @@ export default function OneStrokeTacticianPage() {
 
     // Teaching: what half of this line would have scored
     let halfLineNote: string | null = null;
-    if (path.length >= 6 && breakdown.total > 0) {
+    // (only in a player's first Runs: after that it is noise)
+    if (path.length >= 6 && breakdown.total > 0 && runsStarted() <= TEACHING_RUNS) {
       const half = path.slice(0, Math.ceil(path.length / 2));
       const halfSim = simulatePath(
         currentFloor.grid,
@@ -4524,7 +4527,7 @@ export default function OneStrokeTacticianPage() {
         quick={Boolean(tally?.runStroke)}
         instant={Boolean(tally?.runStroke)}
         scoreLabel={tally?.runStroke ? "Line score" : undefined}
-        runningTotalLabel={tally?.runStroke ? "Garden" : undefined}
+        runningTotalLabel={tally?.runStroke ? "This bed" : undefined}
         targetScore={tally?.runStroke?.target}
         continueLabel={tally?.runStroke?.continueLabel}
         halfLineNote={tally?.runStroke?.halfLineNote ?? null}
