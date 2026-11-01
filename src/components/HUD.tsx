@@ -790,7 +790,7 @@ export function TopHUD({
                   {st.icon}
                   <span className={`text-[16px] font-extrabold tabular-nums leading-none ${st.color}`}>{st.value}</span>
                 </div>
-                <div className="mt-1 text-[10px] leading-none text-white/45">{st.label}</div>
+                <div className="mt-1 text-[11px] leading-none text-white/60">{st.label}</div>
               </motion.div>
             ))}
           </div>

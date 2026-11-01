@@ -151,7 +151,7 @@ export default function LineMeter({
       {!drawing && intro ? (
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 shrink-0 flex items-center justify-center">{intro.icon}</div>
-          <div className="min-w-0 flex-1 text-[12.5px] leading-snug text-white/85">
+          <div className="min-w-0 flex-1 text-[13px] leading-snug text-white/85">
             <span className="text-[10px] font-semibold uppercase tracking-wide text-teal-200/80 block">
               {intro.label ?? "New tile"}{intro.total > 1 ? ` · ${intro.total - 1} more` : ""}
             </span>
@@ -166,7 +166,7 @@ export default function LineMeter({
           </button>
         </div>
       ) : !drawing ? (
-        <div className="text-[12.5px] leading-snug text-white/60 text-center">
+        <div className="text-[14px] leading-snug text-white/70 text-center">
           {idleText ?? (
             <>
               Draw from your companion to the gate.
@@ -191,14 +191,14 @@ export default function LineMeter({
               {fmt(points)}
             </motion.div>
             <div className="min-w-0 flex flex-col leading-tight">
-              <span className="font-mono text-[10.5px] text-white/50 whitespace-nowrap">
+              <span className="font-mono text-[12px] text-white/65 whitespace-nowrap">
                 <span className="text-sky-300 font-black">{fmt(chips)}</span> value ×{" "}
                 <span className="text-emerald-300 font-black">{fmt(mult)}</span> length
                 {xMult !== 1 && <span className="text-fuchsia-300 font-black"> ×{Math.round(xMult * 100) / 100}</span>}
               </span>
               {toGo !== undefined && toGo > 0 && !wilts && (
                 <span
-                  className={`text-[11.5px] font-bold whitespace-nowrap ${
+                  className={`text-[12.5px] font-bold whitespace-nowrap ${
                     clears ? "text-amber-200" : enough ? "text-lime-200" : "text-white/55"
                   }`}
                 >
@@ -208,7 +208,7 @@ export default function LineMeter({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 mt-1 text-[11px] font-mono leading-none">
+          <div className="flex items-center gap-2 mt-1 text-[12px] font-mono leading-none">
             <AnimatePresence mode="popLayout">
               <motion.span
                 key={tiles}
@@ -229,7 +229,7 @@ export default function LineMeter({
             </span>
           </div>
 
-          <div className="mt-1 h-[14px] text-[11px] leading-[14px] whitespace-nowrap overflow-hidden flex items-center">
+          <div className="mt-1 h-[15px] text-[12px] leading-[15px] whitespace-nowrap overflow-hidden flex items-center">
             {bottom}
           </div>
         </>

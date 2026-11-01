@@ -16,7 +16,7 @@ export const GAME_COLUMN_MAX = 520;
 const NARROWEST_COLUMN = 290;
 
 /** Height of the run screen's top card, hint and buttons at scale 1 (they zoom) */
-const RUN_CHROME_HEIGHT = 226;
+const RUN_CHROME_HEIGHT = 233;
 
 /** Page padding and the gaps between them (these don't zoom) */
 const RUN_FIXED_HEIGHT = 46;
@@ -25,7 +25,7 @@ const RUN_FIXED_HEIGHT = 46;
 const BOARD_GIVE = 0.95;
 
 export function computeUiScale(width: number, height: number): number {
-  const column = Math.min(width - 24, GAME_COLUMN_MAX);
+  const column = Math.min(width - 16, GAME_COLUMN_MAX);
   // Room across: text grows until the top card and buttons would run out of width
   const byWidth = column / NARROWEST_COLUMN;
   // Room down: the top card, hint and buttons must leave the board almost full size

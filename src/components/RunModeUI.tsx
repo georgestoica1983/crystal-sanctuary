@@ -85,7 +85,7 @@ export function RunHudStrip({
     >
       <div className="flex items-center justify-between gap-2 min-w-0">
         <div className="min-w-0">
-          <div className="text-[12px] font-semibold text-white/70 whitespace-nowrap">
+          <div className="text-[13px] font-semibold text-white/75 whitespace-nowrap">
             Season {garden.season}
             {garden.season > RUN_FINAL_SEASON ? " · Endless" : ""} ·{" "}
             <span className={isBoss ? "text-rose-200" : "text-white/90"}>
@@ -115,7 +115,7 @@ export function RunHudStrip({
               className={`w-2.5 h-2.5 rounded-full ${i < strokesUsed ? "bg-white/15" : "bg-teal-300"}`}
             />
           ))}
-          <span className="ml-0.5 text-[12px] text-white/60">
+          <span className="ml-0.5 text-[13px] text-white/70">
             <span className="font-mono font-black text-white/85">{garden.strokesLeft}</span>{" "}
             {garden.strokesLeft === 1 ? "line" : "lines"}
           </span>
@@ -123,7 +123,7 @@ export function RunHudStrip({
       </div>
 
       {boss && (
-        <div className="text-[12px] leading-snug text-rose-100">
+        <div className="text-[13px] leading-snug text-rose-100">
           {boss.icon} <b>{boss.name}:</b> {boss.description}{" "}
           <span className="text-rose-50/60">👑 Legendary relic if cleared</span>
         </div>
@@ -143,7 +143,7 @@ export function RunHudStrip({
       )}
 
       {/* Score progress */}
-      <div className="relative h-4 rounded-full bg-black/30 overflow-hidden">
+      <div className="relative h-5 rounded-full bg-black/30 overflow-hidden">
         <motion.div
           className="absolute inset-y-0 left-0 bg-amber-300/80"
           initial={false}
@@ -156,7 +156,7 @@ export function RunHudStrip({
             style={{ left: `${pct}%`, width: `${previewPct}%` }}
           />
         )}
-        <div className="absolute inset-0 flex items-center justify-start pl-2.5 text-[11px] font-mono font-black text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">
+        <div className="absolute inset-0 flex items-center justify-start pl-2.5 text-[13px] font-mono font-black text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">
           {fmt(garden.score)} / {fmt(garden.target)}
           {garden.score >= garden.target && " · Bloomed ✓"}
         </div>
@@ -175,8 +175,8 @@ export function RunHudStrip({
               initial={false}
               animate={open ? { scale: [1.5, 1], opacity: 1, filter: "grayscale(0)" } : { scale: soon ? 0.85 : 0.6, opacity: soon ? 0.9 : 0.45, filter: "grayscale(1)" }}
               transition={{ type: "spring", stiffness: 260, damping: 14 }}
-              className="absolute -top-[23px] h-[20px] w-[20px] object-contain pointer-events-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]"
-              style={{ left: `calc(${mark}% - ${mark === 100 ? 21 : 10}px)` }}
+              className="absolute -top-[26px] h-[22px] w-[22px] object-contain pointer-events-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]"
+              style={{ left: `calc(${mark}% - ${mark === 100 ? 23 : 11}px)` }}
             />
           );
         })}
@@ -184,7 +184,7 @@ export function RunHudStrip({
 
       {weedOutActive && (
         <div className="flex items-center gap-1.5 h-8">
-          <div className="flex-1 text-[11px] text-lime-100 leading-tight">
+          <div className="flex-1 text-[12.5px] text-lime-100 leading-tight">
             Tap up to {RUN_WEEDOUT_MAX_TILES} tiles to swap ({weedOutCount}/{RUN_WEEDOUT_MAX_TILES})
           </div>
           <button

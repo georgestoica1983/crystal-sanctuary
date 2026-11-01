@@ -1784,7 +1784,7 @@ function TileIconWithValue({
         </span>
       )}
       <span
-        className="absolute -bottom-1 -right-1.5 min-w-[20px] h-[19px] px-1 flex items-center justify-center rounded-full font-mono font-bold text-[11.5px] leading-none border select-none pointer-events-none"
+        className="absolute -bottom-1 -right-1.5 min-w-[clamp(22px,6.4cqw,32px)] h-[clamp(21px,6.2cqw,31px)] px-1 flex items-center justify-center rounded-full font-mono font-extrabold text-[clamp(13px,4cqw,19px)] leading-none border select-none pointer-events-none"
         style={style}
       >
         {n}

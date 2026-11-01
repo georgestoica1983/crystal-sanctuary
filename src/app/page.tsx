@@ -3391,7 +3391,7 @@ export default function OneStrokeTacticianPage() {
   return (
     <MotionConfig reducedMotion={reduceMotion ? "always" : "user"}>
     <main
-      className={`h-[100dvh] w-full text-white flex flex-col justify-start items-center gap-1.5 sm:gap-2 [@media(max-height:700px)]:gap-1 overflow-x-hidden overflow-y-auto [&>*]:shrink-0 pt-[max(0.5rem,env(safe-area-inset-top))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(0.75rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] transition-colors duration-500 ${
+      className={`h-[100dvh] w-full text-white flex flex-col justify-start items-center gap-1.5 sm:gap-2 [@media(max-height:700px)]:gap-1 overflow-x-hidden overflow-y-auto [&>*]:shrink-0 pt-[max(0.5rem,env(safe-area-inset-top))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))] transition-colors duration-500 ${
         isSanctuarySkin
           ? "bg-[radial-gradient(ellipse_at_top,_#294031_0%,_#19281E_55%,_#101813_100%)]"
           : "bg-[radial-gradient(ellipse_at_top,_#121B15_0%,_#0B0F0C_55%,_#060706_100%)]"
@@ -3901,7 +3901,7 @@ export default function OneStrokeTacticianPage() {
 
           {/* Interactive 5x5 Path-Drawing Board: a square that fills the space
               left on screen (smaller on short phones, up to 520px) */}
-          <div className="relative w-full max-w-game min-h-[220px] max-h-[min(calc(100vw-1.5rem),520px)] grow-[1000] basis-0 !shrink flex items-center justify-center [container-type:size]">
+          <div className="relative w-full max-w-game min-h-[220px] max-h-[min(calc(100vw-1rem),520px)] grow-[1000] basis-0 !shrink flex items-center justify-center [container-type:size]">
           <div className="relative aspect-square w-[min(100cqw,100cqh)]">
             {/* Time of day: a soft light over the board, and fireflies at night (looks only) */}
             {boardLight && (

@@ -231,13 +231,13 @@ svg text,
 /* Board frame padding and tile gaps: tighter on narrow boards so tiles stay big.
    The line overlay and pops use the same inset so they stay on the tiles. */
 .board-pad {
-  padding: 10px;
+  padding: 8px;
 }
 .board-inset {
-  inset: 10px;
+  inset: 8px;
 }
 .board-gap {
-  gap: 10px;
+  gap: 8px;
 }
 @container (max-width: 330px) {
   .board-pad {
