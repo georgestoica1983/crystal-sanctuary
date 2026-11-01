@@ -74,6 +74,11 @@ body {
 .ui-zoom {
   zoom: var(--ui-zoom, 1);
 }
+/* Tall cards that must fit in one screen (the Shop): the same scale, lowered
+   on short screens so the whole card fits (never below 1) */
+.ui-zoom-card {
+  zoom: var(--card-zoom, var(--ui-zoom, 1));
+}
 
 /* Pop-up cards: never taller than the screen; their content scrolls inside
    if it must, and the main button (.card-footer) stays pinned at the bottom */

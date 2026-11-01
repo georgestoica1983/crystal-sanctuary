@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { RefreshCw, ArrowRight, Lock } from "lucide-react";
 import {
   BossRuleId,
@@ -38,10 +38,9 @@ import {
   RELIC_TAG_INFO,
   RelicTag,
   setProgressFor,
-  summarizeBuild,
 } from "@/lib/relicTags";
 import RelicIcon from "@/components/RelicIcon";
-import { GARDEN_UPGRADES } from "@/lib/runReplay";
+import { GARDEN_UPGRADES, RUN_PRUNE_COST } from "@/lib/runReplay";
 import { artify } from "@/components/ArtText";
 
 /** Small build-theme chip (🌺 Thorns) */
@@ -231,478 +230,313 @@ export default function ShopModal({
   onReroll,
   onLeave,
 }: ShopModalProps) {
-  // The owned relic tapped in the loadout (shows its details and Sell)
-  const [selectedRelic, setSelectedRelic] = useState<RelicId | null>(null);
+  // What the detail panel shows: an offer, an owned relic (to sell), or pruning
+  const [picked, setPicked] = useState<{ kind: "OFFER"; id: string } | { kind: "OWNED"; id: RelicId } | { kind: "PRUNE" } | null>(null);
   if (!isOpen) return null;
 
-  const commonOwned = ownedRelics.filter(
-    (id) => RELIC_REGISTRY[id]?.rarity !== "LEGENDARY"
-  );
-  const legendaryOwned = ownedRelics.filter(
-    (id) => RELIC_REGISTRY[id]?.rarity === "LEGENDARY"
-  );
+  const commonOwned = ownedRelics.filter((id) => RELIC_REGISTRY[id]?.rarity !== "LEGENDARY");
+  const legendaryOwned = ownedRelics.filter((id) => RELIC_REGISTRY[id]?.rarity === "LEGENDARY");
   const slotsFull = countCommonRelics(ownedRelics) >= MAX_COMMON_RELICS;
-  const selectedSlotRelic =
-    selectedRelic && commonOwned.includes(selectedRelic) ? selectedRelic : null;
-  const selectedInfo = selectedSlotRelic
-    ? getRelicDisplay(RELIC_REGISTRY[selectedSlotRelic], isSanctuary)
-    : null;
-  const selectedGrowth = selectedSlotRelic
-    ? describeRelicGrowth(selectedSlotRelic, relicCounters)
-    : null;
-  const selectedSellValue = selectedSlotRelic ? getRelicSellValue(selectedSlotRelic) : null;
   const boughtAnything = hasPurchased || soldIds.length > 0;
   const nextBoss = nextBossRuleId ? BOSS_RULE_REGISTRY[nextBossRuleId] : null;
   const legendary = legendaryAward ? RELIC_REGISTRY[legendaryAward] : null;
+  const canPrune = Boolean(bag && onPrune);
+
+  // Relics first (the main decision), then garden supplies
+  const ordered = [...offers.filter((o) => o.kind === "RELIC"), ...offers.filter((o) => o.kind !== "RELIC")];
+  // Until the player taps something: the first unsold relic (or the first-visit tips)
+  const fallback = ordered.find((o) => !soldIds.includes(o.id));
+  // (a tapped offer that a reroll replaced falls back too)
+  const pickedValid = picked && !(picked.kind === "OFFER" && !offers.some((o) => o.id === picked.id)) ? picked : null;
+  const current =
+    pickedValid ?? (showIntro || legendary ? null : fallback ? { kind: "OFFER" as const, id: fallback.id } : null);
+
+  const blockedOf = (o: ShopOffer) => (o.kind === "RELIC" && slotsFull) || (o.kind === "TOOL" && toolsHeld >= MAX_TOOLS);
+
+  const offerIcon = (offer: ShopOffer, size: number) =>
+    offer.relicId ? (
+      <RelicIcon id={offer.relicId} size={size} />
+    ) : offer.kind === "UPGRADE" && offer.upgrade ? (
+      <span style={{ fontSize: size * 0.7 }} className="leading-none" aria-hidden="true">{GARDEN_UPGRADES[offer.upgrade].icon}</span>
+    ) : offer.kind === "TOOL" && offer.tool ? (
+      <span style={{ fontSize: size * 0.7 }} className="leading-none" aria-hidden="true">{GARDEN_TOOLS[offer.tool].icon}</span>
+    ) : offer.kind === "TILE" && offer.tile ? (
+      <span
+        className={`edition-shimmer edition-${(offer.tile.ed ?? "golden").toLowerCase()} relative rounded-lg flex items-center justify-center`}
+        style={{ width: size, height: size }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={tileArt(offer.tile.type) ?? ""} alt="" aria-hidden="true" draggable={false} style={{ width: size * 0.75, height: size * 0.75 }} className="object-contain" />
+      </span>
+    ) : offer.kind === "FERT" && offer.fert ? (
+      <span className="relative" style={{ width: size, height: size }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={tileArt(offer.fert) ?? ""} alt="" aria-hidden="true" draggable={false} className="h-full w-full object-contain" />
+        <span className="absolute -bottom-1 -right-1.5 text-[12px]" aria-hidden="true">🌱</span>
+      </span>
+    ) : (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={statArt(offer.stat === "START_DEW" ? "gloves" : "life")} alt="" aria-hidden="true" draggable={false} style={{ width: size, height: size }} className="object-contain" />
+    );
+
+  /** The detail panel: everything needed to decide, and the one button that acts
+   *  (kept outside the panel's scroll, so it is always on screen) */
+  let action: React.ReactNode = null;
+  const detail = (() => {
+    if (current?.kind === "PRUNE" && bag && onPrune) {
+      return <PruneCard bag={bag} gems={gems} pruned={pruned} onPrune={onPrune} />;
+    }
+    if (current?.kind === "OWNED") {
+      const id = current.id;
+      const info = getRelicDisplay(RELIC_REGISTRY[id], isSanctuary);
+      const growth = describeRelicGrowth(id, relicCounters);
+      const sellValue = getRelicSellValue(id);
+      if (onSell && sellValue !== null) {
+        action = (
+          <button
+            type="button"
+            onClick={() => {
+              onSell(id);
+              setPicked(null);
+            }}
+            className="h-11 w-full rounded-xl border border-amber-300/60 bg-amber-400/15 text-amber-100 font-bold text-[14px] active:scale-95"
+          >
+            Sell for {sellValue} 🌱
+          </button>
+        );
+      }
+      return (
+        <div className="flex gap-3">
+          <RelicIcon id={id} size={44} />
+          <div className="min-w-0 flex-1">
+            <div className="text-[15px] font-black leading-tight flex flex-wrap items-center gap-1">
+              {info.name}
+              {getRelicTags(id).map((t) => <TagChip key={t} tag={t} />)}
+            </div>
+            <div className="mt-1 text-[13px] leading-snug text-white/80">
+              {info.description}
+              {growth && <span className="text-emerald-300 font-semibold"> ({growth})</span>}
+            </div>
+          </div>
+        </div>
+      );
+    }
+    const offer = current?.kind === "OFFER" ? offers.find((o) => o.id === current.id) : undefined;
+    if (!offer) {
+      if (legendary && legendaryAward) {
+        return (
+          <div className="flex gap-3">
+            <RelicIcon id={legendary.id} size={44} />
+            <div className="min-w-0">
+              <div className="text-[12px] font-semibold text-amber-200">👑 Boss beaten · Legendary relic</div>
+              <div className="text-[15px] font-black">{legendary.name}</div>
+              <div className="text-[13px] leading-snug text-amber-50/90">{legendary.description.replace(/^Legendary: /, "")}</div>
+            </div>
+          </div>
+        );
+      }
+      return (
+        <div className="text-[13.5px] leading-snug text-teal-50">
+          <b className="text-white">Spend 🌱 Seeds on relics</b>: lasting powers for this Garden Run. Or save them:
+          every {RUN_INTEREST_STEP} you keep earns +1 more after each bed (up to +{RUN_INTEREST_MAX}).
+          <span className="block mt-1 text-white/60">Tap an offer to see what it does.</span>
+        </div>
+      );
+    }
+    const info = describeOffer(offer, isSanctuary, relicCounters);
+    const sold = soldIds.includes(offer.id);
+    const blocked = blockedOf(offer);
+    const affordable = gems >= offer.cost;
+    const preview = scorePreview?.[offer.id];
+    const progress = offer.kind === "RELIC" && offer.relicId ? setProgressFor(offer.relicId, ownedRelics) : [];
+    action = (
+      <button
+        type="button"
+        disabled={sold || blocked || !affordable}
+        onClick={() => onBuy(offer)}
+        className="h-11 w-full rounded-xl bg-amber-300 text-slate-950 font-bold text-[15px] active:scale-95 transition disabled:bg-white/10 disabled:text-white/45"
+      >
+        {sold ? "Bought" : blocked ? "No room" : affordable ? `Buy for ${offer.cost} 🌱` : `Needs ${offer.cost} 🌱`}
+      </button>
+    );
+    const completes = relicSets ? progress.filter((p) => p.have < RELIC_SET_SIZE && p.after >= RELIC_SET_SIZE) : [];
+    return (
+      <div className="flex gap-3">
+        <div
+          className="h-12 w-12 shrink-0 rounded-xl border flex items-center justify-center"
+          style={{ backgroundColor: `${info.accent}22`, borderColor: `${info.accent}66` }}
+        >
+          {offerIcon(offer, 38)}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-1">
+            <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded ${info.kindClass}`}>{info.kindLabel}</span>
+            {offer.relicId && getRelicTags(offer.relicId).map((t) => <TagChip key={t} tag={t} />)}
+          </div>
+          <div className="mt-0.5 text-[15px] font-black leading-tight">{info.name}</div>
+          <div className="text-[13px] font-semibold" style={{ color: info.accent }}>
+            {info.tag}
+          </div>
+          <div className="text-[13px] leading-snug text-white/80">{info.description}</div>
+          {progress.length > 0 && !sold && (
+            <div className="text-[12.5px] font-semibold text-lime-200">
+              ✓ Fits your build ·{" "}
+              {progress
+                .map(({ tag, after }) => {
+                  const label = `${RELIC_TAG_INFO[tag].icon} ${RELIC_TAG_INFO[tag].name}`;
+                  return relicSets ? `${label} ${Math.min(after, RELIC_SET_SIZE)}/${RELIC_SET_SIZE}` : label;
+                })
+                .join(" · ")}
+              {completes.length > 0 && <span className="text-amber-200"> · completes a set: every line ×{RELIC_SET_X}</span>}
+            </div>
+          )}
+          {preview !== undefined && !sold && (
+            <div className={`text-[12.5px] font-mono font-black ${preview > 0 ? "text-emerald-300" : "text-white/45"}`}>
+              {preview > 0 ? `≈ +${preview.toLocaleString()} on your best line` : "No boost on your best line"}
+            </div>
+          )}
+          {blocked && !sold && (
+            <div className="text-[12.5px] font-semibold text-amber-200">
+              {offer.kind === "TOOL"
+                ? `You already hold ${MAX_TOOLS} tools. Use one on a tile first.`
+                : `Slots full (${MAX_COMMON_RELICS}/${MAX_COMMON_RELICS}). ${onSell ? "Tap one of your relics below to sell it." : "No room."}`}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  })();
 
   return artify(
-    <div className="ui-zoom fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 overflow-y-auto select-none">
+    <div className="ui-zoom-card fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 select-none">
       <motion.div
         initial={{ opacity: 0, y: 24, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 22 }}
-        className="w-full max-w-[430px] my-auto rounded-2xl p-4 space-y-3 text-white border border-white/[0.08] bg-[#1B281F] shadow-2xl shadow-black/50"
+        className="w-full max-w-[430px] max-h-full flex flex-col gap-2.5 rounded-2xl p-3.5 text-white border border-white/[0.08] bg-[#1B281F] shadow-2xl shadow-black/50"
       >
-        {/* Header */}
-        <div className="flex items-start justify-between gap-2">
+        {/* Header: one row */}
+        <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
-            <div className="text-[12px] font-semibold text-emerald-300/90">
-              {headerLabel ??
-                `${isSanctuary ? "Garden" : "Floor"} ${clearedFloorNumber}/${totalFloors} cleared`}
+            <div className="text-[12px] font-semibold text-emerald-300/90 truncate">
+              {headerLabel ?? `${isSanctuary ? "Garden" : "Floor"} ${clearedFloorNumber}/${totalFloors} cleared`}
             </div>
-            <h2 className="text-[24px] font-display font-semibold leading-tight text-white">
-              {isSanctuary ? "Garden Shop" : "Sanctuary Shop"}
-            </h2>
+            <h2 className="text-[22px] font-display font-semibold leading-tight">{isSanctuary ? "Garden Shop" : "Sanctuary Shop"}</h2>
           </div>
-          <div className="shrink-0 rounded-xl px-3 py-1.5 border border-amber-300/40 bg-amber-400/10 text-right">
-            <div className="text-[11px] font-semibold text-amber-200/80">
-              Your Seeds
-            </div>
-            <motion.div
-              key={gems}
-              initial={{ scale: 1.35, color: "#FFFFFF" }}
-              animate={{ scale: 1, color: "#FDE047" }}
-              className="text-lg font-mono font-black leading-none"
-            >
-              🌱 {gems}
-            </motion.div>
-          </div>
+          <motion.div
+            key={gems}
+            initial={{ scale: 1.2 }}
+            animate={{ scale: 1 }}
+            className="shrink-0 rounded-xl px-3 py-1.5 border border-amber-300/40 bg-amber-400/10 text-[18px] font-mono font-black text-amber-200"
+            aria-label={`Your Seeds: ${gems}`}
+          >
+            🌱 {gems}
+          </motion.div>
         </div>
 
-        {showIntro && (
-          <motion.div
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="rounded-xl border border-teal-300/40 bg-teal-400/10 px-3 py-2 text-[12.5px] leading-snug text-teal-50"
-          >
-            <b className="text-white">Spend 🌱 Seeds on relics</b>: lasting powers for this Garden Run. Or save them:
-            every {RUN_INTEREST_STEP} you keep earns +1 more after each Garden Bed (up to +{RUN_INTEREST_MAX}).
-            <span className="block mt-1 text-teal-100/80">Tip: score relics plus ~10 🌱 kept for interest works best.</span>
-          </motion.div>
-        )}
-
-        {/* Boss reward */}
-        {legendary && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="rounded-xl px-3 py-2 border border-amber-300/60 bg-amber-400/10 flex items-center gap-2.5"
-          >
-            <RelicIcon id={legendary.id} size={36} />
-            <div className="min-w-0">
-              <div className="text-[11px] font-semibold text-amber-200">
-                👑 Boss defeated · Legendary relic
-              </div>
-              <div className="text-sm font-black text-white">{legendary.name}</div>
-              {legendaryAward && (
-                <div className="flex flex-wrap gap-1 my-0.5">
-                  {getRelicTags(legendaryAward).map((t) => <TagChip key={t} tag={t} />)}
-                </div>
-              )}
-              <div className="text-[11px] text-amber-50/90 leading-snug">
-                {legendary.description.replace(/^Legendary: /, "")}
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {/* Relics: full cards, the main decision */}
-        <div className="space-y-2">
-          <AnimatePresence mode="popLayout">
-            {offers.filter((o) => o.kind === "RELIC").map((offer, idx) => {
-              const info = describeOffer(offer, isSanctuary, relicCounters);
-              const sold = soldIds.includes(offer.id);
-              const blockedBySlots =
-                (offer.kind === "RELIC" && slotsFull) || (offer.kind === "TOOL" && toolsHeld >= MAX_TOOLS);
-              const affordable = gems >= offer.cost;
-              const disabled = sold || blockedBySlots || !affordable;
-              return artify(
-                <motion.button
-                  key={offer.id}
-                  type="button"
-                  layout
-                  initial={{ opacity: 0, x: -18 }}
-                  animate={{ opacity: 1, x: 0, transition: { delay: idx * 0.07 } }}
-                  exit={{ opacity: 0, x: 18 }}
-                  whileTap={disabled ? undefined : { scale: 0.97 }}
-                  disabled={disabled}
-                  onClick={() => onBuy(offer)}
-                  style={{
-                    borderColor: sold ? "rgba(255,255,255,0.08)" : `${info.accent}66`,
-                  }}
-                  className={`w-full text-left rounded-xl border p-2.5 flex items-center gap-3 transition ${
-                    sold
-                      ? "bg-white/[0.03] opacity-50"
-                      : disabled
-                      ? "bg-white/[0.02] opacity-60"
-                      : "bg-white/[0.04] active:bg-white/[0.08]"
+        {/* Every offer as a tile: tap to see it below */}
+        <div className="grid grid-cols-4 gap-1.5">
+          {ordered.map((offer) => {
+            const info = describeOffer(offer, isSanctuary, relicCounters);
+            const sold = soldIds.includes(offer.id);
+            const blocked = blockedOf(offer);
+            const affordable = gems >= offer.cost;
+            const on = current?.kind === "OFFER" && current.id === offer.id;
+            const name = offer.kind === "FERT" && offer.fert ? "Fertilizer" : info.name;
+            return (
+              <button
+                key={offer.id}
+                type="button"
+                onClick={() => setPicked({ kind: "OFFER", id: offer.id })}
+                aria-pressed={on}
+                aria-label={`${info.name}, ${offer.cost} Seeds${sold ? ", bought" : ""}`}
+                style={{ borderColor: on ? "#FCD34D" : sold ? "rgba(255,255,255,0.08)" : `${info.accent}55` }}
+                className={`relative h-[78px] rounded-xl border flex flex-col items-center justify-start gap-1 px-1 pt-1.5 transition active:scale-95 ${
+                  on ? "bg-amber-300/15" : offer.kind === "RELIC" ? "bg-white/[0.07]" : "bg-white/[0.035]"
+                } ${sold ? "opacity-45" : ""}`}
+              >
+                {offerIcon(offer, 30)}
+                <span className="w-full text-center text-[11px] font-bold leading-tight line-clamp-2">{name}</span>
+                <span
+                  className={`absolute top-1 right-1 rounded-md px-1 text-[10.5px] font-mono font-black ${
+                    sold ? "text-white/50" : affordable && !blocked ? "bg-amber-400/20 text-amber-200" : "text-white/40"
                   }`}
                 >
-                  <div
-                    className="w-11 h-11 rounded-xl flex items-center justify-center text-2xl shrink-0 border"
-                    style={{
-                      backgroundColor: `${info.accent}22`,
-                      borderColor: `${info.accent}66`,
-                    }}
-                  >
-                    {offer.relicId ? (
-                      <RelicIcon id={offer.relicId} size={34} />
-                    ) : offer.kind === "TOOL" && offer.tool ? (
-                      <span className="text-[26px] leading-none" aria-hidden="true">
-                        {GARDEN_TOOLS[offer.tool].icon}
-                      </span>
-                    ) : offer.kind === "FERT" && offer.fert ? (
-                      <span className="relative h-8 w-8">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={tileArt(offer.fert) ?? ""} alt="" aria-hidden="true" draggable={false} className="h-8 w-8 object-contain" />
-                        <span className="absolute -bottom-1 -right-1.5 text-[13px]" aria-hidden="true">🌱</span>
-                      </span>
-                    ) : (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={statArt(offer.stat === "START_DEW" ? "gloves" : "life")}
-                        alt=""
-                        aria-hidden="true"
-                        draggable={false}
-                        className="h-8 w-8 object-contain"
-                      />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex flex-col items-start gap-0.5">
-                      <span className="flex flex-wrap gap-1">
-                        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 ${info.kindClass}`}>
-                          {info.kindLabel}
-                        </span>
-                        {offer.kind === "RELIC" &&
-                          offer.relicId &&
-                          getRelicTags(offer.relicId).map((t) => <TagChip key={t} tag={t} />)}
-                      </span>
-                      <span className="font-black text-sm leading-tight">{info.name}</span>
-                    </div>
-                    <div
-                      className="text-[11.5px] font-semibold mt-0.5"
-                      style={{ color: info.accent }}
-                    >
-                      {info.tag}
-                    </div>
-                    {offer.kind === "RELIC" && offer.relicId && !sold && (() => {
-                      const progress = setProgressFor(offer.relicId, ownedRelics);
-                      if (progress.length === 0) return null;
-                      const completes = relicSets
-                        ? progress.filter((p) => p.have < RELIC_SET_SIZE && p.after >= RELIC_SET_SIZE)
-                        : [];
-                      return artify(
-                        <div className="text-[11px] font-semibold text-lime-200">
-                          ✓ Fits your build ·{" "}
-                          {progress
-                            .map(({ tag, after }) => {
-                              const label = `${RELIC_TAG_INFO[tag].icon} ${RELIC_TAG_INFO[tag].name}`;
-                              return relicSets ? `${label} ${Math.min(after, RELIC_SET_SIZE)}/${RELIC_SET_SIZE}` : label;
-                            })
-                            .join(" · ")}
-                          {completes.length > 0 && (
-                            <span className="text-amber-200"> · completes a set: every line ×{RELIC_SET_X}</span>
-                          )}
-                        </div>
-                      );
-                    })()}
-                    {scorePreview && scorePreview[offer.id] !== undefined && !sold && (
-                      <div
-                        className={`mt-0.5 text-[11px] font-mono font-black ${
-                          scorePreview[offer.id] > 0 ? "text-emerald-300" : "text-white/40"
-                        }`}
-                      >
-                        {scorePreview[offer.id] > 0
-                          ? `≈ +${scorePreview[offer.id].toLocaleString()} on your best line`
-                          : "No boost on your best line"}
-                      </div>
-                    )}
-                    <div className="text-[11px] text-zinc-300 leading-snug">
-                      {info.description}
-                      {blockedBySlots && !sold && offer.kind === "TOOL" && (
-                        <span className="block text-amber-200/90 font-semibold">
-                          You already hold {MAX_TOOLS} tools. Use one on a tile first.
-                        </span>
-                      )}
-                      {blockedBySlots && !sold && offer.kind === "RELIC" && (
-                        <span className="block text-rose-200/90 font-semibold">
-                          Slots full ({MAX_COMMON_RELICS}/{MAX_COMMON_RELICS}).{" "}
-                          {onSell ? "Sell a relic below to make room." : "No room."}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <div
-                    className={`shrink-0 rounded-lg px-2 py-1 font-mono font-black text-xs border ${
-                      sold
-                        ? "border-white/15 text-zinc-400"
-                        : affordable && !blockedBySlots
-                        ? "border-amber-300 text-amber-200 bg-amber-400/15"
-                        : "border-white/15 text-white/40"
-                    }`}
-                  >
-                    {sold ? "SOLD" : blockedBySlots ? <Lock className="w-3.5 h-3.5" /> : `🌱${offer.cost}`}
-                  </div>
-                </motion.button>
-              );
-            })}
-          </AnimatePresence>
+                  {sold ? "✓" : blocked ? <Lock className="w-3 h-3" /> : offer.cost}
+                </span>
+              </button>
+            );
+          })}
+          {canPrune && (
+            <button
+              type="button"
+              onClick={() => setPicked({ kind: "PRUNE" })}
+              aria-pressed={current?.kind === "PRUNE"}
+              className={`relative h-[78px] rounded-xl border flex flex-col items-center justify-start gap-1 px-1 pt-1.5 active:scale-95 ${
+                current?.kind === "PRUNE" ? "border-amber-300 bg-amber-300/15" : "border-white/15 bg-white/[0.035]"
+              } ${pruned ? "opacity-45" : ""}`}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={tileArt("WEAPON") ?? ""} alt="" aria-hidden="true" draggable={false} className="h-[30px] w-[30px] object-contain" />
+              <span className="text-[11px] font-bold leading-tight">Prune a tile</span>
+              <span className="absolute top-1 right-1 rounded-md px-1 text-[10.5px] font-mono font-black text-amber-200">
+                {pruned ? "✓" : RUN_PRUNE_COST}
+              </span>
+            </button>
+          )}
         </div>
 
-        {/* Garden supplies: boosts, Fertilizer and tools as small tiles */}
-        {offers.some((o) => o.kind !== "RELIC") && (
-          <div>
-            <div className="text-[11px] font-semibold text-white/45 mb-1.5">Garden supplies</div>
-            <div className="grid grid-cols-2 gap-2">
-              {offers
-                .filter((o) => o.kind !== "RELIC")
-                .map((offer, idx) => {
-                  const info = describeOffer(offer, isSanctuary, relicCounters);
-                  const sold = soldIds.includes(offer.id);
-                  const blocked = offer.kind === "TOOL" && toolsHeld >= MAX_TOOLS;
-                  const affordable = gems >= offer.cost;
-                  const disabled = sold || blocked || !affordable;
-                  const preview = scorePreview?.[offer.id];
-                  return artify(
-                    <motion.button
-                      key={offer.id}
-                      type="button"
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0, transition: { delay: 0.15 + idx * 0.06 } }}
-                      whileTap={disabled ? undefined : { scale: 0.96 }}
-                      disabled={disabled}
-                      onClick={() => onBuy(offer)}
-                      title={info.description}
-                      aria-label={`${info.name}: ${info.description} Costs ${offer.cost} Seeds.`}
-                      style={{ borderColor: sold ? "rgba(255,255,255,0.08)" : `${info.accent}55` }}
-                      className={`relative text-left rounded-xl border p-2.5 flex flex-col gap-1.5 transition min-h-[64px] ${
-                        sold ? "bg-white/[0.02] opacity-45" : disabled ? "bg-white/[0.02] opacity-60" : "bg-white/[0.04] active:bg-white/[0.08]"
-                      }`}
-                    >
-                      {/* Icon on top (the price sits beside it), then the name across the full card */}
-                      <span className="h-8 w-8 shrink-0 flex items-center justify-center">
-                        {offer.kind === "UPGRADE" && offer.upgrade ? (
-                          <span className="text-[22px] leading-none" aria-hidden="true">{GARDEN_UPGRADES[offer.upgrade].icon}</span>
-                        ) : offer.kind === "TILE" && offer.tile ? (
-                          <span className={`edition-shimmer edition-${(offer.tile.ed ?? "golden").toLowerCase()} relative h-8 w-8 rounded-lg flex items-center justify-center`}>
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={tileArt(offer.tile.type) ?? ""} alt="" aria-hidden="true" draggable={false} className="h-6 w-6 object-contain" />
-                          </span>
-                        ) : offer.kind === "TOOL" && offer.tool ? (
-                          <span className="text-[22px] leading-none" aria-hidden="true">{GARDEN_TOOLS[offer.tool].icon}</span>
-                        ) : offer.kind === "FERT" && offer.fert ? (
-                          <span className="relative h-7 w-7">
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={tileArt(offer.fert) ?? ""} alt="" aria-hidden="true" draggable={false} className="h-7 w-7 object-contain" />
-                            <span className="absolute -bottom-1 -right-1.5 text-[11px]" aria-hidden="true">🌱</span>
-                          </span>
-                        ) : (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={statArt(offer.stat === "START_DEW" ? "gloves" : "life")}
-                            alt=""
-                            aria-hidden="true"
-                            draggable={false}
-                            className="h-7 w-7 object-contain"
-                          />
-                        )}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block text-[13px] font-black leading-tight text-white">
-                          {offer.kind === "FERT" && offer.fert ? `Fertilizer` : info.name}
-                        </span>
-                        <span className="block text-[11.5px] font-semibold leading-snug" style={{ color: info.accent }}>
-                          {offer.kind === "FERT" && offer.fert
-                            ? `${FERTILIZER[offer.fert].name} Lv ${getFertLevel(relicCounters, offer.fert) + 2} · +${FERTILIZER[offer.fert].perLevel} each`
-                            : offer.kind === "TOOL" && offer.tool
-                            ? GARDEN_TOOLS[offer.tool].tag
-                            : offer.kind === "TILE" && offer.tile?.ed
-                            ? EDITIONS[offer.tile.ed].tag
-                            : info.tag}
-                        </span>
-                        {sold ? (
-                          <span className="block text-[10.5px] font-bold text-white/50">Bought</span>
-                        ) : blocked ? (
-                          <span className="block text-[10.5px] text-amber-200/80">Tools full. Use one first</span>
-                        ) : preview !== undefined ? (
-                          <span className={`block text-[10.5px] font-semibold ${preview > 0 ? "text-emerald-300" : "text-white/35"}`}>
-                            {preview > 0 ? `≈ +${preview.toLocaleString()} best line` : "not on your best line"}
-                          </span>
-                        ) : offer.kind === "TOOL" ? (
-                          <span className="block text-[10.5px] text-white/45">stays on a tile</span>
-                        ) : offer.kind === "TILE" ? (
-                          <span className="block text-[10.5px] text-white/45">joins your bag</span>
-                        ) : offer.kind === "UPGRADE" ? (
-                          <span className="block text-[10.5px] text-white/45">whole Run · 1 per Season</span>
-                        ) : null}
-                      </span>
-                      <span
-                        className={`absolute top-1.5 right-1.5 rounded-md border px-1 py-0.5 text-[11px] font-mono font-black ${
-                          affordable && !blocked && !sold ? "border-amber-300/70 text-amber-200" : "border-white/15 text-white/40"
-                        }`}
-                      >
-                        {sold ? "✓" : blocked ? <Lock className="w-3 h-3" /> : `🌱${offer.cost}`}
-                      </span>
-                    </motion.button>
-                  );
-                })}
-            </div>
-          </div>
-        )}
+        {/* The tapped offer, in full */}
+        <div className="min-h-[120px] flex-1 flex flex-col gap-2 rounded-xl border border-white/10 bg-black/20 p-3">
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{detail}</div>
+          {action}
+        </div>
 
-        {bag && onPrune && <PruneCard bag={bag} gems={gems} pruned={pruned} onPrune={onPrune} />}
-
-        {/* Loadout */}
-        <div className="rounded-xl border border-white/10 bg-black/30 px-2.5 py-2 space-y-1.5">
-          <div className="flex items-center justify-between text-[11px] font-semibold text-white/50">
-            <span>
-              Relics {commonOwned.length}/{MAX_COMMON_RELICS}
-            </span>
-            {(upgrades.bonusMaxMagic > 0 || upgrades.bonusStartDew > 0) && (
-              <span className="text-emerald-300 normal-case">
-                {upgrades.bonusMaxMagic > 0 && `❤️ +${upgrades.bonusMaxMagic} Max Life `}
-                {upgrades.bonusStartDew > 0 && `🧤 +${upgrades.bonusStartDew} Gloves`}
-              </span>
-            )}
-          </div>
-          <div className="grid grid-cols-5 gap-1.5">
+        {/* Your relics: tap one to see it or sell it */}
+        <div className="flex items-center gap-1.5">
+          <span className="shrink-0 text-[11px] font-semibold leading-tight text-white/55">
+            Relics
+            <br />
+            {commonOwned.length}/{MAX_COMMON_RELICS}
+          </span>
+          <div className="grid flex-1 grid-cols-5 gap-1.5">
             {Array.from({ length: MAX_COMMON_RELICS }, (_, i) => {
               const id = commonOwned[i];
-              const relic = id ? getRelicDisplay(RELIC_REGISTRY[id], isSanctuary) : null;
-              const selected = Boolean(id) && id === selectedSlotRelic;
-              return artify(
+              const on = Boolean(id) && current?.kind === "OWNED" && current.id === id;
+              return (
                 <button
                   key={i}
                   type="button"
-                  disabled={!relic}
-                  onClick={() => id && setSelectedRelic(selected ? null : id)}
-                  aria-label={relic ? `${relic.name}. Tap for details` : "Empty relic slot"}
-                  aria-pressed={selected}
-                  className={`h-12 rounded-lg border flex flex-col items-center justify-center gap-0.5 px-0.5 transition ${
-                    relic
-                      ? selected
-                        ? "border-amber-300 bg-amber-400/20"
-                        : "border-white/15 bg-white/[0.06] active:scale-95"
-                      : "border-dashed border-white/15"
+                  disabled={!id}
+                  onClick={() => id && setPicked(on ? null : { kind: "OWNED", id })}
+                  aria-label={id ? `${RELIC_REGISTRY[id].name}. Tap to see or sell` : "Empty relic slot"}
+                  aria-pressed={on}
+                  className={`h-11 rounded-lg border flex items-center justify-center ${
+                    id ? (on ? "border-amber-300 bg-amber-400/20" : "border-white/15 bg-white/[0.06]") : "border-dashed border-white/15"
                   }`}
                 >
-                  {relic ? (
-                    <>
-                      <RelicIcon id={id} size={30} />
-                      <span className="sr-only">{relic.name}</span>
-                    </>
-                  ) : (
-                    <span className="text-[10px] text-white/25">empty</span>
-                  )}
+                  {id && <RelicIcon id={id} size={28} />}
                 </button>
               );
             })}
           </div>
-          {selectedInfo && selectedSlotRelic && (
-            <div className="rounded-lg border border-amber-300/40 bg-amber-400/5 px-2 py-1.5 flex items-center gap-2">
-              <div className="min-w-0 flex-1">
-                <div className="text-xs font-black text-white flex flex-wrap items-center gap-1">
-                  <RelicIcon id={selectedSlotRelic} size={18} /> {selectedInfo.name}
-                  {getRelicTags(selectedSlotRelic).map((t) => <TagChip key={t} tag={t} />)}
-                </div>
-                <div className="text-[11px] text-zinc-300 leading-snug">
-                  {selectedInfo.description}
-                  {selectedGrowth && (
-                    <span className="text-emerald-300 font-semibold"> ({selectedGrowth})</span>
-                  )}
-                </div>
-              </div>
-              {onSell && selectedSellValue !== null && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    onSell(selectedSlotRelic);
-                    setSelectedRelic(null);
-                  }}
-                  className="shrink-0 rounded-lg px-2.5 py-1.5 border border-amber-300/60 bg-amber-400/15 text-amber-100 font-bold text-[12px] leading-tight active:scale-95"
-                >
-                  Sell
-                  <span className="block text-[11px]">+{selectedSellValue} 🌱</span>
-                </button>
-              )}
-            </div>
-          )}
-          {summarizeBuild(ownedRelics).length > 0 && (
-            <div className="text-[11px] text-white/60">
-              Your build:{" "}
-              <span className="font-semibold text-white/85">
-                {summarizeBuild(ownedRelics)
-                  .map(({ tag, count }) =>
-                    relicSets && count >= RELIC_SET_SIZE
-                      ? `${RELIC_TAG_INFO[tag].icon} ${RELIC_TAG_INFO[tag].name} ${count} · set ×${RELIC_SET_X}`
-                      : `${RELIC_TAG_INFO[tag].icon} ${RELIC_TAG_INFO[tag].name} ×${count}`
-                  )
-                  .join(" · ")}
-              </span>
-              {relicSets && summarizeBuild(ownedRelics).every((b) => b.count < RELIC_SET_SIZE) && (
-                <span className="block text-white/45">
-                  {RELIC_SET_SIZE} relics with one tag make a set: every line ×{RELIC_SET_X}.
-                </span>
-              )}
-            </div>
-          )}
-          {!selectedSlotRelic && commonOwned.length > 0 && onSell && (
-            <div className="text-[11px] text-white/45">
-              Tap a relic to see it or sell it for half its price.
-            </div>
-          )}
-          {legendaryOwned.length > 0 && (
-            <div className="text-[11px] text-amber-200">
-              Legendary:{" "}
-              {legendaryOwned
-                .map((id) => RELIC_REGISTRY[id].name)
-                .join(" · ")}
-            </div>
-          )}
         </div>
+        {legendaryOwned.length > 0 && (
+          <div className="-mt-1 text-[12px] text-amber-200 truncate">
+            👑 {legendaryOwned.map((id) => RELIC_REGISTRY[id].name).join(" · ")}
+          </div>
+        )}
 
-        {/* Up next */}
+        {/* Up next, in one line */}
         {nextFloorTitle && (
-          <div
-            className={`rounded-xl px-3 py-2 text-xs border ${
-              nextBoss
-                ? "border-rose-300/40 bg-rose-500/[0.08] text-rose-50"
-                : "border-white/10 bg-white/[0.04] text-white/75"
-            }`}
-          >
-            <span className="font-semibold text-[11px] opacity-70">
-              Up next:{" "}
-            </span>
-            {nextBoss ? (
-              <>
-                <span className="font-black">
-                  {nextBoss.icon} Boss Garden: {nextBoss.name}
-                </span>
-                <div className="text-[11px] mt-0.5">{nextBoss.description}</div>
-              </>
-            ) : (
-              <span className="font-bold">{nextFloorTitle}</span>
+          <div className={`text-[12.5px] truncate ${nextBoss ? "text-rose-100" : "text-white/65"}`}>
+            Up next:{" "}
+            <b>{nextBoss ? `${nextBoss.icon} Boss Garden: ${nextBoss.name}` : nextFloorTitle}</b>
+            {(upgrades.bonusMaxMagic > 0 || upgrades.bonusStartDew > 0) && (
+              <span className="text-emerald-300">
+                {upgrades.bonusMaxMagic > 0 && ` · ❤️ +${upgrades.bonusMaxMagic} Max Life`}
+                {upgrades.bonusStartDew > 0 && ` · 🧤 +${upgrades.bonusStartDew} Gloves`}
+              </span>
             )}
           </div>
         )}
@@ -713,23 +547,18 @@ export default function ShopModal({
             type="button"
             onClick={onReroll}
             disabled={gems < rerollCost}
-            className="rounded-xl py-2.5 px-2 border border-white/15 bg-white/[0.06] text-white/90 font-semibold text-[13px] flex items-center justify-center gap-1.5 active:scale-95 transition disabled:opacity-40"
+            className="h-12 rounded-xl px-2 border border-white/15 bg-white/[0.06] text-white/90 font-semibold text-[14px] flex items-center justify-center gap-1.5 active:scale-95 transition disabled:opacity-40"
           >
-            <RefreshCw className="w-3.5 h-3.5 shrink-0" />
-            <span className="flex flex-col leading-tight">
-              <span>Reroll</span>
-              <span className="text-[10.5px] text-white/55 font-normal">
-                Cost: {rerollCost} 🌱
-              </span>
-            </span>
+            <RefreshCw className="w-4 h-4 shrink-0" />
+            Reroll · {rerollCost} 🌱
           </button>
           <button
             type="button"
             onClick={onLeave}
-            className="rounded-xl py-2.5 px-2 bg-teal-300 text-slate-950 font-bold text-[14px] flex items-center justify-center gap-1.5 active:scale-95 transition"
+            className="h-12 rounded-xl px-2 bg-teal-300 text-slate-950 font-bold text-[15px] flex items-center justify-center gap-1.5 active:scale-95 transition"
           >
             {boughtAnything ? "Continue" : "Skip the Shop"}
-            <ArrowRight className="w-3.5 h-3.5" />
+            <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       </motion.div>

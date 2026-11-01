@@ -34,11 +34,18 @@ export function computeUiScale(width: number, height: number): number {
   return Math.round(Math.max(1, Math.min(MAX_SCALE, scale)) * 100) / 100;
 }
 
+/** Height of the Shop card at scale 1 (header, offers, details, relics, buttons) */
+const SHOP_HEIGHT = 600;
+
 /** Keep --ui-zoom up to date with the window size; returns a cleanup */
 export function watchUiScale(): () => void {
   const apply = () => {
     // The layout size (not the pinch-zoomed or keyboard-shrunk visual size)
-    document.documentElement.style.setProperty("--ui-zoom", String(computeUiScale(window.innerWidth, window.innerHeight)));
+    const ui = computeUiScale(window.innerWidth, window.innerHeight);
+    document.documentElement.style.setProperty("--ui-zoom", String(ui));
+    // The Shop is about SHOP_HEIGHT tall at scale 1: keep it inside the screen
+    const fit = Math.floor(((window.innerHeight - 32) / SHOP_HEIGHT) * 100) / 100;
+    document.documentElement.style.setProperty("--card-zoom", String(Math.max(1, Math.min(ui, fit))));
   };
   apply();
   window.addEventListener("resize", apply);
