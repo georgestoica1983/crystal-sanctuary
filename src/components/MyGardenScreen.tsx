@@ -14,8 +14,22 @@ import {
   visitMyGarden,
 } from "@/lib/myGarden";
 import { formatScore } from "@/lib/formatScore";
+import { decorArt } from "@/lib/art";
 
 const BED_NAMES = ["Small", "Big", "Boss"];
+
+/** Where each milestone decoration sits (behind the plants, except the front ones) */
+const DECOR_SPOTS: Array<{ key: string; at: number; decor: string; label: string; style: React.CSSProperties; z: number }> = [
+  { key: "stones", at: 5, decor: "stepping-stones", label: "Stepping stones", style: { left: "38%", bottom: "2%", width: "22%" }, z: 120 },
+  { key: "bench", at: 10, decor: "bench", label: "Bench", style: { right: "4%", top: "24%", width: "21%" }, z: 30 },
+  { key: "pond", at: 25, decor: "pond", label: "Pond", style: { left: "4%", top: "42%", width: "38%" }, z: 5 },
+  { key: "birdbath", at: 40, decor: "bird-bath", label: "Bird bath", style: { left: "68%", top: "50%", width: "13%" }, z: 60 },
+  { key: "lantern1", at: 50, decor: "lantern", label: "Lantern", style: { left: "2%", top: "12%", width: "11%" }, z: 20 },
+  { key: "lantern2", at: 50, decor: "lantern", label: "Lantern", style: { right: "3%", top: "58%", width: "11%" }, z: 70 },
+  { key: "chime", at: 75, decor: "wind-chime", label: "Wind chime", style: { right: "14%", top: "3%", width: "9%" }, z: 10 },
+  { key: "arch", at: 100, decor: "arch", label: "Flower arch", style: { left: "33%", top: "-1%", width: "34%" }, z: 8 },
+  { key: "gate", at: 150, decor: "gate", label: "Garden gate", style: { left: "6%", bottom: "1%", width: "26%" }, z: 125 },
+];
 /** Past this many plants, new ones make older spots bloom fuller instead of crowding */
 const MAX_SPOTS = 60;
 
@@ -106,33 +120,24 @@ export default function MyGardenScreen({ open, onClose }: { open: boolean; onClo
         <div className="absolute inset-x-0 bottom-0 top-[6%] rounded-t-[48%] bg-gradient-to-b from-[#3A5230]/70 to-[#2A3D22]" />
         <div className="absolute -top-10 left-1/2 h-48 w-72 -translate-x-1/2 rounded-full bg-amber-200/[0.06] blur-3xl" />
 
-        {/* Milestone decorations */}
-        {has(25) && (
-          <div className="absolute left-[8%] top-[44%] h-[12%] w-[38%] rounded-[50%] bg-gradient-to-b from-sky-300/55 to-sky-600/45 ring-1 ring-sky-200/30" aria-label="Pond" />
-        )}
-        {has(10) && (
-          <div className="absolute right-[8%] top-[30%] text-[28px]" aria-label="Bench">
-            🪑
-          </div>
-        )}
-        {has(50) && (
-          <>
-            <div className="absolute left-[4%] top-[18%] text-[20px] living-lantern" aria-label="Lantern">🏮</div>
-            <div className="absolute right-[5%] top-[62%] text-[20px] living-lantern" aria-label="Lantern">🏮</div>
-          </>
-        )}
-        {has(100) && (
-          <div
-            className="absolute left-1/2 top-[2%] h-[22%] w-[46%] -translate-x-1/2 rounded-t-full border-[6px] border-b-0 border-pink-300/50"
-            aria-label="Flower arch"
+        {/* Milestone decorations, each in its own spot */}
+        {DECOR_SPOTS.filter((d) => has(d.at)).map((d) => (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            key={d.key}
+            src={decorArt(d.decor)}
+            alt={d.label}
+            draggable={false}
+            className={`absolute object-contain drop-shadow-[0_3px_3px_rgba(0,0,0,0.4)] ${d.decor === "lantern" ? "living-lantern" : ""}`}
+            style={{ ...d.style, zIndex: d.z }}
           />
-        )}
+        ))}
 
         {/* Plants: back rows smaller, front rows larger */}
         <div className="absolute inset-0" style={{ filter: sleepy ? "saturate(0.45) brightness(0.8)" : undefined, transition: "filter 1.2s ease" }}>
           {spots.map(({ plant, spot, fullness }, i) => {
             const look = plantLook(plant);
-            const base = (plant.kind === "SEASON" ? 54 : plant.kind === "BOSS" ? 40 : 32) * (0.7 + spot.y * 0.5);
+            const base = (plant.kind === "SEASON" ? 62 : plant.kind === "BOSS" ? 46 : 40) * (0.7 + spot.y * 0.5);
             const size = Math.round(base * Math.min(1.6, 1 + (fullness - 1) * 0.15));
             return (
               <motion.button

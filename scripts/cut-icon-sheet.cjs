@@ -42,6 +42,7 @@ const GARDEN_NAMES = [
 const DECOR_NAMES = [
   "bench", "pond", "lantern", "arch", "stepping-stones", "bird-bath", "wind-chime", "gate",
 ].map((n) => `decor-${n}`);
+const FADE_EDGES = new Set(["garden-mist-orchid", "garden-moonflower", "garden-set-bloom"]);
 const SOLID = 14; // closer than this to the background: fully transparent
 const SOFT = 46; // up to this (and reachable from the edge): partly transparent
 const OUT = 256;
@@ -63,8 +64,10 @@ const OUT = 256;
   const cellW = W / COLS, cellH = H / ROWS;
   for (let n = 0; n < NAMES.length; n++) {
     const col = n % COLS, row = Math.floor(n / COLS);
-    const x0 = Math.round(col * cellW), y0 = Math.round(row * cellH);
-    const w = Math.round((col + 1) * cellW) - x0, h = Math.round((row + 1) * cellH) - y0;
+    // The garden sheet has faint grid lines: step a few pixels inside each cell
+    const inset = mode === "garden" ? 6 : 0;
+    const x0 = Math.round(col * cellW) + inset, y0 = Math.round(row * cellH) + inset;
+    const w = Math.round((col + 1) * cellW) - inset - x0, h = Math.round((row + 1) * cellH) - inset - y0;
     const rgba = Buffer.alloc(w * h * 4);
     const dist = new Float32Array(w * h);
     for (let y = 0; y < h; y++)
@@ -94,6 +97,17 @@ const OUT = 256;
       if (x < w - 1) stack.push(j + 1);
       if (y > 0) stack.push(j - w);
       if (y < h - 1) stack.push(j + w);
+    }
+    // Mist and glows were painted as a square: fade them out softly towards the edges
+    if (FADE_EDGES.has(NAMES[n])) {
+      for (let y = 0; y < h; y++)
+        for (let x = 0; x < w; x++) {
+          const dx = (x - w / 2) / (w / 2), dy = (y - h / 2) / (h / 2);
+          const d = Math.hypot(dx, dy);
+          const f = d <= 0.62 ? 1 : d >= 0.95 ? 0 : 1 - (d - 0.62) / 0.33;
+          const j = y * w + x;
+          rgba[j * 4 + 3] = Math.round(rgba[j * 4 + 3] * f);
+        }
     }
     // Crop to the icon, square it up with a little room, scale to OUT
     let minX = w, minY = h, maxX = 0, maxY = 0;

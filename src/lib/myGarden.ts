@@ -4,7 +4,7 @@
 // few days away it only looks sleepy. Cosmetic: it never changes scoring.
 import type { BossRuleId, RunGardenKind } from "@/types/game";
 import type { RelicTag } from "@/lib/relicTags";
-import { tileArt } from "@/lib/art";
+import { gardenArt } from "@/lib/art";
 
 const GARDEN_KEY = "ost_garden_v1";
 const GARDEN_INTRO_KEY = "ost_garden_intro_v1";
@@ -50,19 +50,21 @@ const BOSS_SPECIES: Partial<Record<BossRuleId, string>> = {
   TOLL: "Coin Marigold",
 };
 
-/** A soft colour shift per species, until each has its own illustration */
-const SPECIES_HUE: Record<string, number> = {
-  Daisy: 40, Clover: 120, Buttercup: 55, Violet: 270,
-  Tulip: 0, Iris: 240, Foxglove: 300, Lily: 20,
-  "Young Oak": 100, "Lilac Bush": 280, Rowan: 10, "Cherry Tree": 330,
+/** Relic-set flowers share one white bloom, tinted to their theme */
+const SET_HUE: Record<string, number> = {
+  Thorns: 330, Acorns: 30, "Berries & Gloves": 280, Shears: 200, "Long lines": 240,
+  Careful: 160, Growing: 100, Seeds: 70, "Any build": 50,
 };
 
-/** How a plant is drawn for now: the bloom illustration, tinted */
+/** How a plant is drawn: its own illustration (a golden one glows) */
 export function plantLook(p: Plant): { src: string; filter: string } {
-  const src = tileArt("ENEMY", { bloomed: true }) ?? "";
-  if (p.golden) return { src, filter: "sepia(1) saturate(3) hue-rotate(5deg) brightness(1.15)" };
-  const hue = SPECIES_HUE[p.species] ?? (p.kind === "BOSS" ? 200 : p.kind === "SET" ? 160 : 0);
-  return { src, filter: `hue-rotate(${hue}deg)${p.kind === "BOSS" ? " saturate(1.4)" : ""}` };
+  if (p.kind === "SET") {
+    const theme = p.species.replace(/ Bloom$/, "");
+    const hue = SET_HUE[theme] ?? 0;
+    return { src: gardenArt("Set Bloom"), filter: `sepia(0.6) saturate(2.2) hue-rotate(${hue}deg)` };
+  }
+  const glow = p.golden ? "drop-shadow(0 0 5px rgba(252,211,77,0.95)) saturate(1.15)" : "";
+  return { src: gardenArt(p.species), filter: glow || "none" };
 }
 
 export function loadMyGarden(): MyGarden {
@@ -176,11 +178,15 @@ export function visitMyGarden(now = Date.now()): { garden: MyGarden; wasSleepy: 
 }
 
 /** Decorations that appear as the garden grows */
-export const GARDEN_MILESTONES: Array<{ at: number; name: string; icon: string }> = [
-  { at: 10, name: "a bench", icon: "🪑" },
-  { at: 25, name: "a pond", icon: "💧" },
-  { at: 50, name: "lanterns", icon: "🏮" },
-  { at: 100, name: "a flower arch", icon: "🌸" },
+export const GARDEN_MILESTONES: Array<{ at: number; name: string; icon: string; decor: string }> = [
+  { at: 5, name: "stepping stones", icon: "🪨", decor: "stepping-stones" },
+  { at: 10, name: "a bench", icon: "🪑", decor: "bench" },
+  { at: 25, name: "a pond", icon: "💧", decor: "pond" },
+  { at: 40, name: "a bird bath", icon: "🐦", decor: "bird-bath" },
+  { at: 50, name: "lanterns", icon: "🏮", decor: "lantern" },
+  { at: 75, name: "a wind chime", icon: "🎐", decor: "wind-chime" },
+  { at: 100, name: "a flower arch", icon: "🌸", decor: "arch" },
+  { at: 150, name: "a garden gate", icon: "🚪", decor: "gate" },
 ];
 
 /** A stable spot for a plant (0–1 across, 0–1 deep), so the garden looks the same every visit */

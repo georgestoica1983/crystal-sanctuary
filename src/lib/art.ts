@@ -68,3 +68,9 @@ const RELICS_PENDING_ART: RelicId[] = [
 ];
 export const relicHasArt = (id: RelicId) => !RELICS_PENDING_ART.includes(id);
 export const relicArt = (id: RelicId) => icon(`relic-${id.toLowerCase().replace(/_/g, "-")}`);
+
+/** My Garden plant art, by species name (public/art/icons/garden-*.png) */
+export const gardenArt = (species: string) =>
+  icon(`garden-${species.toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "")}`);
+/** My Garden decorations (public/art/icons/decor-*.png) */
+export const decorArt = (name: string) => icon(`decor-${name}`);
