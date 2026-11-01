@@ -7,7 +7,7 @@ import { RELIC_TAG_INFO, RelicTag } from "@/lib/relicTags";
 import { BOSS_SPECIES, GARDEN_MILESTONES, loadMyGarden, SPECIES } from "@/lib/myGarden";
 import { loadJournal } from "@/lib/journal";
 
-export type JournalPageId = "RELICS" | "SETS" | "GARDEN" | "BOSSES" | "SUPPLIES" | "COMPANIONS";
+export type JournalPageId = "RELICS" | "SETS" | "GARDEN" | "BOSSES" | "SUPPLIES" | "VISITORS" | "COMPANIONS";
 
 /** Every entry id per page, in display order */
 export function journalEntryIds(): Record<JournalPageId, string[]> {
@@ -24,6 +24,7 @@ export function journalEntryIds(): Record<JournalPageId, string[]> {
       ...Object.keys(GARDEN_UPGRADES).map((u) => `UPG_${u}`),
       ...Object.keys(SKIP_TAGS).map((t) => `TAG_${t}`),
     ],
+    VISITORS: ["ladybug", "bee", "butterfly", "snail"].map((k) => `VIS_${k}`),
     COMPANIONS: Object.keys(HERO_CLASS_REGISTRY),
   };
 }

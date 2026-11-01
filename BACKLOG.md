@@ -71,7 +71,7 @@ Rule: anything random is visible before you commit — no hidden chances, no pai
 - [x] 17b. Each completed relic set unlocks its layer for good (fade-in moment, My Garden "music: N of 8 layers", Journal text, a Music layers switch in ☰).
 - [x] 18a. Time of day (looks only): dawn / day / golden hour / night light over the board, fireflies at night, sparser night music; My Garden sky, moon, night-glowing flowers, and the real season on the ground (winter frost, autumn leaves). "Follow time of day" switch in ☰; preview with ?hour=22&month=11.
 - [x] 18b. Morning dew: the first Run started 5–10 am has dew on ~6 tiles that pop as a rising arpeggio when the line passes (no score effect).
-- [ ] 18c. Visitors (ladybug, bee, butterfly, snail) on the board and in My Garden, tap for a chime, a Journal page; Gemini art sheet.
+- [x] 18c. Visitors (ladybug, bumblebee, butterfly, snail; Gemini art): about one bed in three a visitor wanders along a gap on the board (gone as soon as you draw), two wander My Garden; tap for a chime and it flies away; Journal Visitors page. Looks only.
 - [ ] 19. Daily board with a days-played count that never breaks (needs Supabase).
 
 Left out on purpose: random breaking / Lucky chances, paid random packs, manual relic ordering, CRT filter.

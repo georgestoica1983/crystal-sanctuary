@@ -16,6 +16,8 @@ import {
 } from "@/lib/myGarden";
 import { formatScore } from "@/lib/formatScore";
 import { decorArt } from "@/lib/art";
+import GardenVisitor, { VISITOR_KINDS, VisitorKind } from "@/components/GardenVisitor";
+import { recordSupply } from "@/lib/journal";
 import { DayPhase, getDayPhase, getYearSeason, loadFollowTimeOfDay, YearSeason } from "@/lib/timeOfDay";
 
 const BED_NAMES = ["Small", "Big", "Boss"];
@@ -57,12 +59,20 @@ export default function MyGardenScreen({ open, onClose }: { open: boolean; onClo
   const [pokes, setPokes] = useState<Record<string, number>>({});
   const [phase, setPhase] = useState<DayPhase>("DAY");
   const [season, setSeason] = useState<YearSeason>("SPRING");
+  // Two visitors wander the garden at a time; each one that leaves is followed by another
+  const [visitors, setVisitors] = useState<Array<{ key: number; kind: VisitorKind; row: number }>>([]);
+  const newVisitor = (): { key: number; kind: VisitorKind; row: number } => {
+    const kind = VISITOR_KINDS[Math.floor(Math.random() * VISITOR_KINDS.length)];
+    const flier = kind === "bee" || kind === "butterfly";
+    return { key: Date.now() + Math.random(), kind, row: flier ? 0.15 + Math.random() * 0.35 : 0.62 + Math.random() * 0.25 };
+  };
 
   useEffect(() => {
     if (!open) return;
     const follow = loadFollowTimeOfDay();
     setPhase(follow ? getDayPhase() : "DAY");
     setSeason(getYearSeason());
+    setVisitors([newVisitor(), newVisitor()]);
     const visit = visitMyGarden();
     setGarden(visit.garden);
     setPicked(null);
@@ -231,6 +241,24 @@ export default function MyGardenScreen({ open, onClose }: { open: boolean; onClo
             );
           })}
         </div>
+
+        {/* Visitors: tap one to say hello (looks only) */}
+        {count > 0 &&
+          visitors.map((v) => (
+            <GardenVisitor
+              key={v.key}
+              kind={v.kind}
+              row={v.row}
+              size={v.kind === "snail" ? 30 : 34}
+              onMet={(k) => recordSupply(`VIS_${k}`)}
+              onDone={() =>
+                window.setTimeout(
+                  () => setVisitors((prev) => prev.map((x) => (x.key === v.key ? newVisitor() : x))),
+                  2500 + Math.random() * 5000
+                )
+              }
+            />
+          ))}
 
         {/* Drifting pollen by day, fireflies by night */}
         {count > 0 &&

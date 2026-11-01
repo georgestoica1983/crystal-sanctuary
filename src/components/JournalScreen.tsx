@@ -19,7 +19,8 @@ import { RELIC_TAG_INFO, RelicTag } from "@/lib/relicTags";
 import { BOSS_SPECIES, GARDEN_MILESTONES, SPECIES } from "@/lib/myGarden";
 import { loadJournal, markJournalSeen } from "@/lib/journal";
 import { journalFound } from "@/lib/journalProgress";
-import { decorArt, gardenArt, relicArt, relicHasArt, themeArt, tileArt } from "@/lib/art";
+import { decorArt, gardenArt, relicArt, relicHasArt, themeArt, tileArt, visitorArt } from "@/lib/art";
+import { VISITOR_KINDS, VISITOR_NAMES } from "@/components/GardenVisitor";
 import { formatScore } from "@/lib/formatScore";
 import RelicIcon from "@/components/RelicIcon";
 import { MUSIC_LAYERS, MusicLayer } from "@/lib/audio";
@@ -39,13 +40,14 @@ interface Entry {
   record?: string;
 }
 
-type PageId = "RELICS" | "SETS" | "GARDEN" | "BOSSES" | "SUPPLIES" | "COMPANIONS";
+type PageId = "RELICS" | "SETS" | "GARDEN" | "BOSSES" | "SUPPLIES" | "VISITORS" | "COMPANIONS";
 const PAGES: Array<{ id: PageId; label: string }> = [
   { id: "RELICS", label: "Relics" },
   { id: "SETS", label: "Sets" },
   { id: "GARDEN", label: "Garden" },
   { id: "BOSSES", label: "Bosses" },
   { id: "SUPPLIES", label: "Supplies" },
+  { id: "VISITORS", label: "Visitors" },
   { id: "COMPANIONS", label: "Companions" },
 ];
 
@@ -184,7 +186,16 @@ function buildPages(): Record<PageId, Entry[]> {
     };
   });
 
-  return { RELICS: relics, SETS: sets, GARDEN: [...plants, ...decor], BOSSES: bosses, SUPPLIES: supplies, COMPANIONS: companions };
+  const visitors: Entry[] = VISITOR_KINDS.map((k) => ({
+    id: `VIS_${k}`,
+    name: VISITOR_NAMES[k],
+    found: found.has(`VIS_${k}`),
+    art: img(visitorArt(k), 38),
+    text: "A friendly visitor to your garden.",
+    hint: "Visitors wander the board and My Garden now and then — tap one to say hello.",
+  }));
+
+  return { RELICS: relics, SETS: sets, GARDEN: [...plants, ...decor], BOSSES: bosses, SUPPLIES: supplies, VISITORS: visitors, COMPANIONS: companions };
 }
 
 /** The Garden Journal: a collection book, with hints for what's still missing */

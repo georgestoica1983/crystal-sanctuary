@@ -386,3 +386,15 @@ svg text,
 .reduce-motion .dew-drop {
   animation: none;
 }
+
+/* Visitors: fliers' wings flutter a little */
+.visitor-flutter {
+  animation: visitor-flutter 0.35s ease-in-out infinite;
+}
+@keyframes visitor-flutter {
+  0%, 100% { scale: 1 1; }
+  50% { scale: 1 0.88; }
+}
+.reduce-motion .visitor-flutter {
+  animation: none;
+}
