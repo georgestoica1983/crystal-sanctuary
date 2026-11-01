@@ -43,6 +43,8 @@ import {
   pickLegendaryRelic,
   SHOP_REROLL_COST,
   SHOP_STAT_BOOSTS,
+  FERTILIZER,
+  getFertLevel,
   isPerfectFloor,
   replayDailyProgress,
   findSurvivableHintPath,
@@ -854,13 +856,21 @@ export default function OneStrokeTacticianPage() {
     };
     // Relics that count Seeds held use your purse as it would be after buying
     const purse = (pendingPostFloorStats ?? hero).gold;
-    const scoreWith = (relics: RelicId[], gold: number) => {
+    const scoreWith = (relics: RelicId[], gold: number, counters = relicCounters) => {
       const from = { ...start, gold };
       const sim = simulatePath(best.gridSnapshot, best.path, from, dungeon.modifierId, heroClassId, relics);
-      return calculateFloorScoreBreakdown(sim, from, best.path.length, relics, ctx).total;
+      return calculateFloorScoreBreakdown(sim, from, best.path.length, relics, { ...ctx, counters }).total;
     };
     const out: Record<string, number> = {};
     for (const offer of shopOffers) {
+      if (offer.kind === "FERT" && offer.fert) {
+        // Fertilizer: the same line with that tile type one level higher
+        const key = `FERT_${offer.fert}` as const;
+        const gold = Math.max(0, purse - offer.cost);
+        const fed = { ...relicCounters, [key]: (relicCounters[key] ?? 0) + 1 };
+        out[offer.id] = Math.max(0, scoreWith(activeRelics, gold, fed) - scoreWith(activeRelics, gold));
+        continue;
+      }
       if (offer.kind !== "RELIC" || !offer.relicId) continue;
       const cat = RELIC_REGISTRY[offer.relicId]?.category;
       if (cat !== "CHIPS" && cat !== "MULT" && cat !== "XMULT") continue;
@@ -1408,10 +1418,12 @@ export default function OneStrokeTacticianPage() {
         relics: activeRelics,
         upgrades: runUpgrades,
         soldIds: shopSoldIds,
+        counters: relicCounters,
       });
       if (!bought) return;
+      if (bought.counters) setRelicCounters(bought.counters);
       track("shop_buy", {
-        item: offer.relicId ?? offer.stat ?? offer.id,
+        item: offer.relicId ?? offer.stat ?? (offer.fert ? `FERT_${offer.fert}` : offer.id),
         kind: offer.kind,
         cost: offer.cost,
         bed: currentFloorIndex,
@@ -1438,6 +1450,11 @@ export default function OneStrokeTacticianPage() {
         handleNotice(`${SHOP_STAT_BOOSTS.MAX_MAGIC.icon} +2 Max Life for this visit!`);
       } else if (offer.stat === "START_DEW") {
         handleNotice(`${SHOP_STAT_BOOSTS.START_DEW.icon} +1 Gloves at the start of every garden!`);
+      } else if (offer.kind === "FERT" && offer.fert) {
+        const level = getFertLevel(bought.counters, offer.fert);
+        handleNotice(
+          `🌱 ${FERTILIZER[offer.fert].name} are now Lv ${level + 1}: each one on a line adds +${FERTILIZER[offer.fert].perLevel * level} Value.`
+        );
       }
       if (mode === "RUN") logRunAction({ k: "b", o: offer.id });
       setPendingPostFloorStats(next);
@@ -1447,7 +1464,7 @@ export default function OneStrokeTacticianPage() {
       setShopPurchases((prev) => prev + 1);
       if (offer.kind !== "RELIC") soundEngine.playShopBuy();
     },
-    [pendingPostFloorStats, hero, shopSoldIds, activeRelics, runUpgrades, mode, handleNotice]
+    [pendingPostFloorStats, hero, shopSoldIds, activeRelics, runUpgrades, mode, handleNotice, relicCounters]
   );
 
   /** Sanctuary Shop (Run): sell a relic for half its price to free its slot */
@@ -1488,6 +1505,8 @@ export default function OneStrokeTacticianPage() {
         runSeed: dungeon.seedKey,
         floorNumber: currentFloor.floorNumber,
         relics: activeRelics,
+        logVersion: runLogRef.current?.v ?? RUN_LOG_VERSION,
+        asc: runLogRef.current?.asc,
       });
       if (!reroll) return;
       next = reroll.stats;
@@ -3507,6 +3526,15 @@ export default function OneStrokeTacticianPage() {
           <div className="relative w-full max-w-[430px] min-h-[220px] max-h-[min(calc(100vw-1.5rem),430px)] grow-[1000] basis-0 !shrink flex items-center justify-center [container-type:size]">
           <div className="relative aspect-square w-[min(100cqw,100cqh)]">
             <GridCanvas
+              tileLevels={
+                mode === "RUN" && !lesson
+                  ? Object.fromEntries(
+                      Object.entries(relicCounters)
+                        .filter(([k]) => k.startsWith("FERT_"))
+                        .map(([k, n]) => [k.slice(5), n ?? 0])
+                    )
+                  : undefined
+              }
               clearsBed={
                 bedToGo !== undefined &&
                 bedToGo > 0 &&

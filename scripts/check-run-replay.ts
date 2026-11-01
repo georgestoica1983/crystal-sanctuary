@@ -4,8 +4,10 @@
 import { readdirSync, readFileSync } from "fs";
 import path from "path";
 import {
+  calculateFloorScoreBreakdown,
   countCommonRelics,
   findEntityCoord,
+  generateShopOffers,
   getRunGardenTarget,
   findSurvivableHintPath,
   getRelicSellValue,
@@ -23,6 +25,7 @@ import {
   replayRun,
   RUN_LOG_VERSION,
   RUN_MODIFIER,
+  runFertilizerCost,
   runModifierFor,
   scoreRunStroke,
   RunActionLog,
@@ -48,7 +51,7 @@ function check(label: string, ok: boolean, detail = "") {
  * With `chaseSets` it first buys a relic that shares a tag with its own.
  * Returns its log and the score it expects from the searched lines' scores.
  */
-function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0, chaseSets = false, v = RUN_LOG_VERSION) {
+function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0, chaseSets = false, v = RUN_LOG_VERSION, fertFirst = false) {
   const run = createRunReplayer(seed, hero, v, asc);
   const log: RunActionLog = asc ? { v, seed, hero, asc, a: [] } : { v, seed, hero, a: [] };
   let expected = 0;
@@ -68,6 +71,15 @@ function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0
         let i = bag.findIndex((t) => t.type === "TRAP");
         if (i < 0) i = bag.findIndex((t) => t.type === "ENEMY");
         if (i >= 0) act({ k: "p", i });
+      }
+      if (fertFirst) {
+        const fert = run.state.shop.offers.find(
+          (o) => o.kind === "FERT" && !run.state.shop.soldIds.includes(o.id) && run.state.shop.stats.gold >= o.cost
+        );
+        if (fert) {
+          act({ k: "b", o: fert.id });
+          continue;
+        }
       }
       if (chaseSets) {
         const move = setChaserShopMove(run.state);
@@ -406,13 +418,53 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
   );
   const asc6 = createRunReplayer("run-gentle-check", "KNIGHT", 11, 6);
   check(`Ascension still raises the gentle targets (A6 first bed ${asc6.state.garden.target})`, asc6.state.garden.target > 800);
-  const bot = playBotRun("run-1700000000020-gentle", "ROGUE", 6);
+  const bot = playBotRun("run-1700000000020-gentle", "ROGUE", 6, 0, false, 11);
   const replay = replayRun(JSON.parse(JSON.stringify(bot.log)));
   check(
     `v11 bot Run replays (${bot.state.gardensBloomed} gardens)`,
     replay.ok && replay.score === bot.state.score && replay.score === bot.expected,
     replay.ok ? `${replay.score} vs ${bot.state.score}` : replay.error
   );
+}
+
+// 9. Fertilizer (rules v12+): a 4th Shop offer that levels a tile type for the Run
+{
+  const offersV11 = generateShopOffers("fert-check", 1, 0, [], runFertilizerCost(11));
+  const offersV12 = generateShopOffers("fert-check", 1, 0, [], runFertilizerCost(12));
+  check(
+    "v11 Shop has no Fertilizer; v12 adds one as a 4th offer",
+    !offersV11.some((o) => o.kind === "FERT") &&
+      offersV12.filter((o) => o.kind === "FERT").length === 1 &&
+      offersV12.length === offersV11.length + 1
+  );
+  const sameThree = offersV11.every((o) => offersV12.some((p) => p.id === o.id && p.cost === o.cost));
+  check("v12 keeps the same three usual offers", sameThree);
+  check(
+    `Fertilizer costs ${runFertilizerCost(12)}, and ${runFertilizerCost(12, 2)} from Ascension 2`,
+    runFertilizerCost(12) === 6 && runFertilizerCost(12, 1) === 6 && runFertilizerCost(12, 2) === 8 && runFertilizerCost(12, 6) === 8
+  );
+  const bot = playBotRun("run-1700000000030-fert", "KNIGHT", 6, 0, false, 12, true);
+  const levels = Object.entries(bot.state.counters).filter(([k]) => k.startsWith("FERT_"));
+  const replay = replayRun(JSON.parse(JSON.stringify(bot.log)));
+  check(
+    `v12 bot buying Fertilizer replays (${levels.map(([k, n]) => `${k.slice(5)} ${n}`).join(", ") || "none"})`,
+    levels.length > 0 && replay.ok && replay.score === bot.state.score && replay.score === bot.expected,
+    replay.ok ? `${replay.score} vs ${bot.state.score} vs ${bot.expected}` : replay.error
+  );
+  // Fertilized tiles add Value: same line, with and without a Thorn level
+  const run = createRunReplayer("run-1700000000030-fert", "KNIGHT", 12);
+  const best = searchBestFloorLine(run.state.grid, run.state.startHero, RUN_MODIFIER, "KNIGHT", [], 20000, {});
+  if (best) {
+    const plain = calculateFloorScoreBreakdown(best.sim, run.state.startHero, best.path.length, [], {});
+    const fed = calculateFloorScoreBreakdown(best.sim, run.state.startHero, best.path.length, [], {
+      counters: { FERT_ENEMY: 2 },
+    });
+    const thorns = best.sim.steps.filter((st, i) => i > 0 && !st.isShadowStepCross && st.cell.type === "ENEMY").length;
+    check(
+      `Thorns Lv 3 add +6 Value per Thorn (${thorns} on the line: ${plain.chips} → ${fed.chips})`,
+      fed.chips - plain.chips === thorns * 6
+    );
+  }
 }
 
 console.log(failures ? `\n${failures} check(s) failed` : "\nAll replay checks passed");

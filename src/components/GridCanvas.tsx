@@ -46,6 +46,8 @@ interface GridCanvasProps {
   onPathChange: (newPath: GridCoord[]) => void;
   /** The drawn line ends on the gate and is enough to finish the Garden Bed */
   clearsBed?: boolean;
+  /** Fertilizer levels (rules v12+): fertilized tile types wear a small "Lv" leaf */
+  tileLevels?: Partial<Record<string, number>>;
   onCommitPath: (committedPath: GridCoord[]) => void;
   onRetractNotice?: (reason: string) => void;
   /** First-time players: home and the Exit pulse until the first line */
@@ -70,6 +72,7 @@ export default function GridCanvas({
   onPathChange,
   onCommitPath,
   clearsBed = false,
+  tileLevels,
   onRetractNotice,
   pulseStartExit = false,
   liveScore = null,
@@ -816,6 +819,14 @@ export default function GridCanvas({
                   data-col={c}
                   className={`relative rounded-xl transition-colors duration-150 flex items-center justify-center overflow-visible ${plateClass}`}
                 >
+                  {(tileLevels?.[cell.type] ?? 0) > 0 && (
+                    <span
+                      aria-label={`Fertilized: level ${(tileLevels?.[cell.type] ?? 0) + 1}`}
+                      className="tile-tag absolute top-0.5 right-0.5 z-20 rounded-full bg-lime-300/90 px-1 text-[9px] font-black leading-[13px] text-slate-950 pointer-events-none select-none"
+                    >
+                      🌱{(tileLevels?.[cell.type] ?? 0) + 1}
+                    </span>
+                  )}
                   {/* Harmful tiles (Thorn, Spike) carry faint diagonal stripes, so they
                       differ by pattern as well as colour (colour-blind friendly) */}
                   {isSanctuary && !stepSim && (cell.type === "ENEMY" || cell.type === "TRAP") && (

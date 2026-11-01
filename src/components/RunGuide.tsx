@@ -272,6 +272,7 @@ function buildPages(): GuidePage[] {
               <>Boss gardens have a twist — beat one for a Legendary relic.</>,
               <>Clearing a Garden Bed pays 🌱 Seeds: {RUN_CLEAR_REWARD.SMALL}/{RUN_CLEAR_REWARD.BIG}/{RUN_CLEAR_REWARD.BOSS}, +1 per unused line, +1 per {RUN_INTEREST_STEP} 🌱 you&apos;ve saved (max +{RUN_INTEREST_MAX}).</>,
               <>In the Shop: buy relics and boosts, or reroll ({RUN_REROLL_BASE_COST} 🌱). You can hold {MAX_COMMON_RELICS} relics.</>,
+              <>🌱 Fertilizer levels up one tile type for the whole Run: every one of those tiles on a line adds more Value. It stacks.</>,
             ]}
           />
           <div className="rounded-xl border border-white/10 overflow-hidden text-[12px] font-mono">

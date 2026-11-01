@@ -16,6 +16,8 @@ import {
   BOSS_RULE_REGISTRY,
   countCommonRelics,
   describeRelicGrowth,
+  FERTILIZER,
+  getFertLevel,
   getRelicSellValue,
   MAX_COMMON_RELICS,
   RELIC_REGISTRY,
@@ -25,7 +27,7 @@ import {
 } from "@/lib/engine";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import PruneCard from "@/components/PruneCard";
-import { statArt, themeArt } from "@/lib/art";
+import { statArt, themeArt, tileArt } from "@/lib/art";
 import {
   getRelicTags,
   RELIC_SET_SIZE,
@@ -95,7 +97,23 @@ const RARITY_LABEL: Record<RelicRarity, { label: string; className: string }> = 
 };
 
 /** Display data for one shop offer (relic or stat boost) */
-function describeOffer(offer: ShopOffer, isSanctuary: boolean) {
+function describeOffer(offer: ShopOffer, isSanctuary: boolean, counters?: RelicCounters) {
+  if (offer.kind === "FERT" && offer.fert) {
+    const f = FERTILIZER[offer.fert];
+    const level = getFertLevel(counters, offer.fert);
+    return {
+      icon: "🌱",
+      name: `Fertilizer · ${f.name}`,
+      tag:
+        level > 0
+          ? `${f.name} Lv ${level + 1} → Lv ${level + 2}: +${f.perLevel * (level + 1)} Value each`
+          : `${f.name} → Lv 2: +${f.perLevel} Value each`,
+      description: `Every ${f.name.replace(/s$/, "")} on a line adds +${f.perLevel} more Value for the rest of this Garden Run. Stacks.`,
+      accent: "#A3E635",
+      kindLabel: "Fertilizer",
+      kindClass: "bg-lime-400/15 text-lime-200",
+    };
+  }
   if (offer.kind === "RELIC" && offer.relicId) {
     const relic = getRelicDisplay(RELIC_REGISTRY[offer.relicId], isSanctuary);
     const rarity = RARITY_LABEL[relic.rarity ?? "COMMON"];
@@ -252,7 +270,7 @@ export default function ShopModal({
         <div className="space-y-2">
           <AnimatePresence mode="popLayout">
             {offers.map((offer, idx) => {
-              const info = describeOffer(offer, isSanctuary);
+              const info = describeOffer(offer, isSanctuary, relicCounters);
               const sold = soldIds.includes(offer.id);
               const blockedBySlots = offer.kind === "RELIC" && slotsFull;
               const affordable = gems >= offer.cost;
@@ -288,6 +306,12 @@ export default function ShopModal({
                   >
                     {offer.relicId ? (
                       <RelicIcon id={offer.relicId} size={34} />
+                    ) : offer.kind === "FERT" && offer.fert ? (
+                      <span className="relative h-8 w-8">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={tileArt(offer.fert) ?? ""} alt="" aria-hidden="true" draggable={false} className="h-8 w-8 object-contain" />
+                        <span className="absolute -bottom-1 -right-1.5 text-[13px]" aria-hidden="true">🌱</span>
+                      </span>
                     ) : (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img

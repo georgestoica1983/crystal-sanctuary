@@ -104,7 +104,10 @@ export type RelicRarity = "COMMON" | "UNCOMMON" | "RARE" | "LEGENDARY";
 export type RelicCategory = "CHIPS" | "MULT" | "XMULT" | "ECONOMY" | "MAGIC";
 
 /** Growth kept in the Run for scaling relics (e.g. blooms while owned) */
-export type RelicCounters = Partial<Record<RelicId, number>>;
+/** Tile types Fertilizer can level up (rules v12+) */
+export type FertTile = "ENEMY" | "TRAP" | "GOLD" | "POTION" | "SHIELD" | "WEAPON";
+/** Run counters: scaling relics' growth, plus Fertilizer levels as `FERT_<tile>` (rules v12+) */
+export type RelicCounters = Partial<Record<RelicId | `FERT_${FertTile}`, number>>;
 
 /** Run facts some relics score on, beyond the line itself */
 export interface RelicScoreContext {
@@ -157,9 +160,11 @@ export type ShopStatId = "MAX_MAGIC" | "START_DEW";
 
 export interface ShopOffer {
   id: string;
-  kind: "RELIC" | "STAT";
+  kind: "RELIC" | "STAT" | "FERT";
   relicId?: RelicId;
   stat?: ShopStatId;
+  /** Fertilizer: the tile type it levels up for the rest of the Run */
+  fert?: FertTile;
   cost: number;
 }
 

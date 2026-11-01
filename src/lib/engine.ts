@@ -4,6 +4,7 @@ import {
   DungeonFloor,
   DungeonTheme,
   EntityType,
+  FertTile,
   FloorHistoryRecord,
   FloorScoreBreakdown,
   ScoreSource,
@@ -38,7 +39,7 @@ import {
   SHARE_TILE_EMOJI,
 } from "@/lib/sanctuaryCopy";
 import { completedRelicSets, RELIC_SET_X, RELIC_TAG_INFO } from "@/lib/relicTags";
-import { relicArt, themeArt } from "@/lib/art";
+import { relicArt, themeArt, tileArt } from "@/lib/art";
 
 export const INITIAL_HERO_STATS: HeroStats = {
   hp: 10,
@@ -775,6 +776,25 @@ export function getGardenClearReward(totalStars: number, wasBoss: boolean): numb
 }
 
 /**
+ * Fertilizer (rules v12+): each level adds Value per tile of that type on a
+ * line, for the rest of the Run — Bloomline's Planet cards.
+ */
+export const FERTILIZER: Record<FertTile, { name: string; perLevel: number }> = {
+  ENEMY: { name: "Thorns", perLevel: 3 },
+  TRAP: { name: "Spikes", perLevel: 2 },
+  GOLD: { name: "Acorns", perLevel: 2 },
+  POTION: { name: "Berries", perLevel: 2 },
+  SHIELD: { name: "Gloves", perLevel: 2 },
+  WEAPON: { name: "Shears", perLevel: 2 },
+};
+export const FERT_TILES = Object.keys(FERTILIZER) as FertTile[];
+export const FERTILIZER_COST = 6;
+
+export function getFertLevel(counters: RelicCounters | undefined, tile: FertTile): number {
+  return Math.max(0, counters?.[`FERT_${tile}`] ?? 0);
+}
+
+/**
  * Seeded Sanctuary Shop: 3 offers (1–2 relics, weighted by rarity, the rest
  * stat boosts). Same seed + garden + reroll count → same offers for
  * every player, so the Daily stays fair.
@@ -783,7 +803,9 @@ export function generateShopOffers(
   seedKey: string,
   floorNumber: number,
   rerollIndex: number,
-  ownedRelics: RelicId[]
+  ownedRelics: RelicId[],
+  /** Rules v12+: one slot is a Fertilizer at this price (0 = none) */
+  fertilizerCost = 0
 ): ShopOffer[] {
   const rng = mulberry32(
     hashStringToSeed(`shop-${seedKey}-f${floorNumber}-r${rerollIndex}`)
@@ -826,6 +848,13 @@ export function generateShopOffers(
       stat,
       cost: SHOP_STAT_BOOSTS[stat].cost,
     });
+  }
+  // Rules v12+: Fertilizer is a 4th offer, so the usual three stay as they were
+  if (fertilizerCost > 0) {
+    // Its own random stream, so relic offers match the rules before v12
+    const frng = mulberry32(hashStringToSeed(`fert-${seedKey}-f${floorNumber}-r${rerollIndex}`));
+    const fert = FERT_TILES[Math.floor(frng() * FERT_TILES.length)];
+    offers.push({ id: `f${floorNumber}-r${rerollIndex}-fert`, kind: "FERT", fert, cost: fertilizerCost });
   }
   return shuffle(offers);
 }
@@ -1877,6 +1906,18 @@ export function calculateFloorScoreBreakdown(
   addMult("DAWN_CHORUS", ctx.strokesLeft === RUN_STROKES_PER_GARDEN ? 10 : 0);
   addMult("OAK_SAPLING", counter("OAK_SAPLING") * 3);
   addMult("RAIN_BARREL", counter("RAIN_BARREL"));
+  // Fertilizer levels (rules v12+; the counters only hold them in v12 Runs)
+  for (const tile of FERT_TILES) {
+    const level = getFertLevel(ctx.counters, tile);
+    const n = countOf(tile);
+    if (level > 0 && n > 0) {
+      chipSources.push({
+        label: `Fertilized ${FERTILIZER[tile].name} Lv ${level + 1}`,
+        value: n * FERTILIZER[tile].perLevel * level,
+        art: tileArt(tile) ?? undefined,
+      });
+    }
+  }
   // ×Length
   addX("STARLIGHT_COMPASS", 1.5, pathLength >= 12);
   addX("SUN_PRISM", 2, sim.boardSunbeams >= 2 && sunbeamsOnLine >= sim.boardSunbeams);

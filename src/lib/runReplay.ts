@@ -8,6 +8,7 @@ import {
   countPathBlinks,
   countPathSelfCrosses,
   createRunGarden,
+  FERTILIZER_COST,
   calculateFloorScoreBreakdown,
   findEntityCoord,
   generateRunSeedBag,
@@ -230,7 +231,13 @@ export function getRunBloomResult(params: {
     relicsAfter,
     countersAfter,
     statsWithPayout: { ...stats, gold: stats.gold + payout.total },
-    offers: generateShopOffers(runSeed, garden.gardenIndex + 1, 0, relicsAfter),
+    offers: generateShopOffers(
+      runSeed,
+      garden.gardenIndex + 1,
+      0,
+      relicsAfter,
+      runFertilizerCost(params.logVersion ?? RUN_LOG_VERSION, params.asc)
+    ),
   };
 }
 
@@ -241,7 +248,9 @@ export function applyRunShopPurchase(params: {
   relics: RelicId[];
   upgrades: RunUpgrades;
   soldIds: string[];
-}): { stats: HeroStats; relics: RelicId[]; upgrades: RunUpgrades } | null {
+  /** Run counters (Fertilizer levels live here) */
+  counters?: RelicCounters;
+}): { stats: HeroStats; relics: RelicId[]; upgrades: RunUpgrades; counters?: RelicCounters } | null {
   const { stats, offer, relics, upgrades, soldIds } = params;
   if (soldIds.includes(offer.id) || stats.gold < offer.cost) return null;
   if (offer.kind === "RELIC" && (!offer.relicId || countCommonRelics(relics) >= MAX_COMMON_RELICS)) {
@@ -250,6 +259,10 @@ export function applyRunShopPurchase(params: {
   const next: HeroStats = { ...stats, gold: stats.gold - offer.cost };
   if (offer.kind === "RELIC" && offer.relicId) {
     return { stats: next, relics: [...relics, offer.relicId], upgrades };
+  }
+  if (offer.kind === "FERT" && offer.fert) {
+    const key = `FERT_${offer.fert}` as const;
+    return { stats: next, relics, upgrades, counters: { ...params.counters, [key]: (params.counters?.[key] ?? 0) + 1 } };
   }
   if (offer.stat === "MAX_MAGIC") {
     next.maxHp += 2;
@@ -296,6 +309,11 @@ export const runRulesAllowPrune = (logVersion: number) => logVersion >= 9;
 export const runRulesUseRelicSets = (logVersion: number) => logVersion >= 10;
 /** Rules v11+: gentler Season 1 targets (800 / 1,500 / 2,500) */
 export const runRulesUseGentleStart = (logVersion: number) => logVersion >= 11;
+/** Rules v12+: the Shop sells Fertilizer, levelling a tile type for the Run */
+export const runRulesUseFertilizer = (logVersion: number) => logVersion >= 12;
+/** Fertilizer's Shop price (0 before v12); from Ascension 2 it costs 2 more */
+export const runFertilizerCost = (logVersion: number, asc = 0) =>
+  runRulesUseFertilizer(logVersion) ? FERTILIZER_COST + (runAscensionFor(logVersion, asc) >= 2 ? 2 : 0) : 0;
 
 /**
  * Removes the bag tile at `index` for the rest of the Run (once per Shop
@@ -326,6 +344,8 @@ export function applyRunShopReroll(params: {
   runSeed: string;
   floorNumber: number;
   relics: RelicId[];
+  logVersion?: number;
+  asc?: number;
 }): { stats: HeroStats; rerolls: number; offers: ShopOffer[]; cost: number } | null {
   const cost = getRunRerollCost(params.rerolls, params.relics);
   if (params.stats.gold < cost) return null;
@@ -333,7 +353,13 @@ export function applyRunShopReroll(params: {
   return {
     stats: { ...params.stats, gold: params.stats.gold - cost },
     rerolls,
-    offers: generateShopOffers(params.runSeed, params.floorNumber, rerolls, params.relics),
+    offers: generateShopOffers(
+      params.runSeed,
+      params.floorNumber,
+      rerolls,
+      params.relics,
+      runFertilizerCost(params.logVersion ?? RUN_LOG_VERSION, params.asc)
+    ),
     cost,
   };
 }
@@ -425,7 +451,7 @@ export function getRunPathError(
  * v11: a gentler first Season (targets 800 / 1,500 / 2,500).
  * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 11;
+export const RUN_LOG_VERSION = 12;
 export const RUN_LOG_MIN_VERSION = 2;
 /** Rule set of new Runs (the current version) */
 export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);
@@ -676,9 +702,11 @@ export function createRunReplayer(
         relics: s.relics,
         upgrades: s.upgrades,
         soldIds: s.shop.soldIds,
+        counters: s.counters,
       });
       if (!bought) return "purchase not allowed";
       s.relics = bought.relics;
+      if (bought.counters) s.counters = bought.counters;
       s.upgrades = bought.upgrades;
       s.shop = { ...s.shop, stats: bought.stats, soldIds: [...s.shop.soldIds, offer.id] };
       return null;
@@ -707,6 +735,8 @@ export function createRunReplayer(
         runSeed,
         floorNumber: s.garden.gardenIndex + 1,
         relics: s.relics,
+        logVersion,
+        asc,
       });
       if (!reroll) return "reroll not affordable";
       s.shop = { ...s.shop, stats: reroll.stats, offers: reroll.offers, soldIds: [], rerolls: reroll.rerolls };

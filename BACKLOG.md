@@ -49,7 +49,7 @@ Rule: anything random is visible before you commit — no hidden chances, no pai
 - [x] 5. "The garden rests" end screen: harvest summary, no failure wording.
 
 **B — Run depth (one rules version each, bots first)**
-- [ ] 6. Fertilizer (Planet cards): level a tile type for the Run (Thorn +4 Value, Acorn +3 Value & +1 Seed, Berry +2 Value & +1 Life, Spike +3 Value / +1 Length dodged, Shears +5 per cut, Gloves +3), "Lv" leaf on tiles.
+- [x] 6. Fertilizer (rules v12): a 4th Shop offer that levels one tile type for the Run — Thorns +3 Value per level, other tiles +2; costs 6 Seeds (8 from Ascension 2); "🌱Lv" leaf on tiles, best-line preview in the Shop. Bots: balance unchanged vs v11; buying only Fertilizer is slightly weaker than relics.
 - [ ] 7. Garden tools (Tarot): 2 one-use slots — Rich Soil +20 Value, Long Root +2 Length, Sunlit ×1.5, Dew ×2 that dries after 3 uses, Stone +40 Value.
 - [ ] 8. Special tiles (Editions): Golden +50 Value, Iridescent +3 Length, Radiant ×1.5, visible shimmer.
 - [ ] 9. Echo (Red Seal): the tile scores twice.

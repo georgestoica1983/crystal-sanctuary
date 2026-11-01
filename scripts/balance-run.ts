@@ -5,6 +5,7 @@
 // Env: VERSIONS=3,4  SEEDS=16  BUDGET=20000 (strong player) / 600 (casual)
 //      PRUNE=none|spike|thorn (rules v9+: what the bot cuts with Pruning Shears)
 //      SETS=chase (the bot builds toward relic sets: rules v10+ pays them ×1.25)
+//      FERT=first|never (rules v12+: the bot buys Fertilizer before anything else, or never)
 import { findEntityCoord, searchBestFloorLine } from "@/lib/engine";
 import type { HeroClassId } from "@/types/game";
 import { completedRelicSets } from "@/lib/relicTags";
@@ -21,6 +22,8 @@ const PRUNE = process.env.PRUNE ?? "none";
 /** Companion the bot plays (KNIGHT = Keeper, ROGUE = Otter, MAGE = Fox, VAMPIRE = Sprite) */
 const HERO = (process.env.HERO ?? "KNIGHT") as HeroClassId;
 const CHASE_SETS = process.env.SETS === "chase";
+const FERT_FIRST = process.env.FERT === "first";
+const FERT_NEVER = process.env.FERT === "never";
 
 for (const budget of BUDGETS) {
   for (const v of VERSIONS) {
@@ -34,6 +37,7 @@ for (const budget of BUDGETS) {
     // Why Runs ended before MAX_GARDENS: out of lines (short of target) or no safe line left
     const endings = { shortOfTarget: 0, noSafeLine: 0 };
     let runsWithSet = 0;
+    const fertLevels: number[] = [];
     for (let i = 0; i < SEEDS; i++) {
       const run = createRunReplayer(`bal-run-${i}`, HERO, v, ASC);
       let lastGarden = -1;
@@ -53,12 +57,16 @@ for (const budget of BUDGETS) {
               );
             if (order.length > 0 && run.apply({ k: "p", i: order[0].i }) === null) continue;
           }
+          if (FERT_FIRST) {
+            const fert = s.shop.offers.find((o) => o.kind === "FERT" && !s.shop.soldIds.includes(o.id));
+            if (fert && run.apply({ k: "b", o: fert.id }) === null) continue;
+          }
           if (CHASE_SETS) {
             const move = setChaserShopMove(s);
             if (move && move.every((a) => run.apply(a) === null)) continue;
           }
           const offer = [...s.shop.offers]
-            .filter((o) => !s.shop.soldIds.includes(o.id))
+            .filter((o) => !s.shop.soldIds.includes(o.id) && !(FERT_NEVER && o.kind === "FERT"))
             .sort((a, b) => a.cost - b.cost)
             .find((o) => run.apply({ k: "b", o: o.id }) === null);
           if (offer) continue;
@@ -99,6 +107,11 @@ for (const budget of BUDGETS) {
         }
       }
       reachedCounts.push(run.state.gardensBloomed);
+      fertLevels.push(
+        Object.entries(run.state.counters)
+          .filter(([k]) => k.startsWith("FERT_"))
+          .reduce((sum, [, n]) => sum + (n ?? 0), 0)
+      );
       if (completedRelicSets(run.state.relics).length > 0) runsWithSet++;
       if (run.state.phase === "OVER" && run.state.gardensBloomed < MAX_GARDENS) endings.shortOfTarget++;
     }
@@ -113,7 +126,7 @@ for (const budget of BUDGETS) {
       `gardens cleared: median ${median(reachedCounts)}, avg ${avg(reachedCounts).toFixed(1)}, ` +
         `cleared all ${MAX_GARDENS}: ${reachedCounts.filter((n) => n >= MAX_GARDENS).length}`
     );
-    console.log(`Runs ending with a relic set: ${runsWithSet}/${SEEDS}`);
+    console.log(`Runs ending with a relic set: ${runsWithSet}/${SEEDS} · Fertilizer levels bought: avg ${avg(fertLevels).toFixed(1)}`);
     console.log(`ended early: ${endings.shortOfTarget} out of lines or Life (Run over), ${endings.noSafeLine} stuck with no scoring line`);
     for (let g = 0; g < MAX_GARDENS; g++) {
       if (!ratios[g].length) continue;
