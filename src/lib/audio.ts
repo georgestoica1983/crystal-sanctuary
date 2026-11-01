@@ -6,6 +6,21 @@ export const GARDEN_SCALE_HZ = [146.83, 164.81, 185.0, 220.0, 246.94];
 export const gardenNote = (step: number, base = 2) =>
   GARDEN_SCALE_HZ[((step % 5) + 5) % 5] * 2 ** (base + Math.floor(step / 5) - 1);
 
+/** Music layers a completed relic set adds to the garden's music, forever */
+export type MusicLayer = "THORNS" | "ACORNS" | "CARE" | "SHEARS" | "LONG" | "CAREFUL" | "GROWING" | "SEEDS";
+export const MUSIC_LAYERS: Record<MusicLayer, { name: string; icon: string }> = {
+  THORNS: { name: "Thorn heartbeat", icon: "🌺" },
+  ACORNS: { name: "Acorn marimba", icon: "🌰" },
+  CARE: { name: "Berry bells", icon: "🍓" },
+  SHEARS: { name: "Shears shaker", icon: "✂️" },
+  LONG: { name: "Long-line drone", icon: "🌙" },
+  CAREFUL: { name: "Quiet wind", icon: "🛡️" },
+  GROWING: { name: "Growing arpeggio", icon: "🌳" },
+  SEEDS: { name: "Seed rain", icon: "🌱" },
+};
+/** At most this many layers play in one 8-bar section, so the music never crowds */
+const MAX_LAYERS_AT_ONCE = 3;
+
 /**
  * Sound graph: effects → sfx bus, music → music bus; both feed a soft room
  * echo and a master chain (warm low-pass → gentle compressor → speakers).
@@ -26,6 +41,9 @@ class SoundAndHapticsEngine {
   private musicTimer: ReturnType<typeof setInterval> | null = null;
   /** Generated music state: next bar time, bar count, melody note, section density, seeded random */
   private music = { nextBar: 0, bar: 0, melody: 9, density: 0.55, rng: (Math.random() * 4294967296) >>> 0 };
+  /** Music layers unlocked by completed sets, and the ones playing this section */
+  private layersUnlocked: MusicLayer[] = [];
+  private layersActive: MusicLayer[] = [];
   // Off until the player turns them on; a saved choice wins
   public soundEnabled: boolean = false;
   public musicEnabled: boolean = false;
@@ -266,7 +284,11 @@ class SoundAndHapticsEngine {
       // New 8-bar section: how busy the melody is (0 = only pad and roots)
       const r = this.musicRandom();
       this.music.density = r < 0.2 ? 0 : r < 0.55 ? 0.55 : 0.85;
+      // ...and which unlocked layers join it (a few at a time, so it keeps changing)
+      const pool = [...this.layersUnlocked].sort(() => this.musicRandom() - 0.5);
+      this.layersActive = this.music.density === 0 ? [] : pool.slice(0, MAX_LAYERS_AT_ONCE);
     }
+    if (this.graph) for (const layer of this.layersActive) this.playLayer(layer, bar, at, chord, this.graph.music);
     // Pad on every chord change, held across both bars with a soft overlap
     if (bar % 2 === 0) this.musicPad(chord, at, beat * 8 + 1.5);
     // Low root
@@ -289,6 +311,125 @@ class SoundAndHapticsEngine {
     if (this.musicRandom() < 0.12) this.musicBell(gardenNote(chord[2] + 10, 1), at + beat * 3, 0.03);
   }
 
+  /** Sets which music layers the player has unlocked (from completed relic sets) */
+  public setMusicLayers(layers: MusicLayer[]): void {
+    const added = layers.filter((l) => !this.layersUnlocked.includes(l));
+    this.layersUnlocked = [...layers];
+    // A brand-new layer plays from the next bar instead of waiting for a new section
+    if (added.length > 0) this.layersActive = [...added, ...this.layersActive].slice(0, MAX_LAYERS_AT_ONCE);
+  }
+
+  /** Plays two bars of one layer on its own (the sound test page and My Garden) */
+  public previewMusicLayer(layer: MusicLayer): void {
+    const audio = this.ensureAudio();
+    if (!audio) return;
+    const now = audio.ctx.currentTime + 0.05;
+    const bar = SoundAndHapticsEngine.BEAT * 4;
+    const chords = SoundAndHapticsEngine.MUSIC_CHORDS;
+    for (let b = 0; b < 2; b++) this.playLayer(layer, b, now + b * bar, chords[b % chords.length], audio.graph.sfx);
+  }
+
+  /** One bar of a music layer, in the garden key */
+  private playLayer(layer: MusicLayer, bar: number, at: number, chord: number[], dest: GainNode): void {
+    const beat = SoundAndHapticsEngine.BEAT;
+    const tone = (freq: number, t: number, gain: number, decay: number, attack = 0.004, type: OscillatorType = "sine") =>
+      this.musicTone(type, freq, t, gain, decay, attack, dest);
+    switch (layer) {
+      case "THORNS": // a soft wooden heartbeat on beats 2 and 4
+        for (const b of [1, 3]) {
+          tone(gardenNote(chord[0] + 5, 1) * 1.15, at + b * beat, 0.035, 0.14, 0.002);
+          this.musicNoise(at + b * beat, 0.03, 0.012, 1800, "bandpass", dest);
+        }
+        break;
+      case "ACORNS": // a low marimba counter-melody
+        tone(gardenNote(chord[1], 1), at + beat * 0.5, 0.045, 1.2);
+        tone(gardenNote(chord[3], 1), at + beat * 2.5, 0.04, 1.1);
+        break;
+      case "CARE": // high bell sparkles now and then
+        if (bar % 2 === 1 || this.musicRandom() < 0.4) this.musicBell(gardenNote(chord[1] + 10, 1), at + beat * 1.5, 0.02, dest);
+        break;
+      case "SHEARS": // a very quiet brushed shaker in eighths
+        for (let i = 0; i < 8; i++) this.musicNoise(at + i * beat * 0.5, 0.05, i % 2 ? 0.008 : 0.005, 6500, "highpass", dest);
+        break;
+      case "LONG": // a held fifth under the pad
+        if (bar % 2 === 0) {
+          tone(gardenNote(chord[0], 1), at, 0.025, beat * 8, 1.5, "triangle");
+          tone(gardenNote(chord[0] + 3, 1), at, 0.02, beat * 8, 1.8, "triangle");
+        }
+        break;
+      case "CAREFUL": // a slow breath of wind every four bars
+        if (bar % 4 === 0) this.musicWind(at, beat * 12, dest);
+        break;
+      case "GROWING": // a rising four-note arpeggio, every other bar
+        if (bar % 2 === 1) chord.forEach((c, i) => tone(gardenNote(c + 5, 1), at + i * beat, 0.02 + i * 0.008, 0.6));
+        break;
+      case "SEEDS": // water drops falling in pitch
+        for (let i = 0; i < 2; i++) {
+          const t = at + Math.floor(this.musicRandom() * 8) * beat * 0.5;
+          this.musicDrop(gardenNote(chord[Math.floor(this.musicRandom() * 4)] + 10, 1), t, dest);
+        }
+        break;
+    }
+  }
+
+  /** A short filtered noise (shaker, wood click) on the music bus */
+  private musicNoise(at: number, dur: number, gain: number, freq: number, type: BiquadFilterType, dest: GainNode): void {
+    if (!this.ctx) return;
+    const src = this.ctx.createBufferSource();
+    src.buffer = this.getNoiseBuffer(this.ctx);
+    const f = this.ctx.createBiquadFilter();
+    f.type = type;
+    f.frequency.value = freq;
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.linearRampToValueAtTime(gain, at + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + dur);
+    src.connect(f);
+    f.connect(g);
+    g.connect(dest);
+    src.start(at);
+    src.stop(at + dur + 0.02);
+  }
+
+  /** A slow swell of soft wind */
+  private musicWind(at: number, dur: number, dest: GainNode): void {
+    if (!this.ctx) return;
+    const src = this.ctx.createBufferSource();
+    src.buffer = this.getNoiseBuffer(this.ctx);
+    src.loop = true;
+    const f = this.ctx.createBiquadFilter();
+    f.type = "lowpass";
+    f.frequency.setValueAtTime(380, at);
+    f.frequency.linearRampToValueAtTime(700, at + dur / 2);
+    f.frequency.linearRampToValueAtTime(380, at + dur);
+    const g = this.ctx.createGain();
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.linearRampToValueAtTime(0.014, at + dur / 2);
+    g.gain.linearRampToValueAtTime(0.0001, at + dur);
+    src.connect(f);
+    f.connect(g);
+    g.connect(dest);
+    src.start(at);
+    src.stop(at + dur + 0.05);
+  }
+
+  /** A water drop: a high note falling quickly in pitch */
+  private musicDrop(freq: number, at: number, dest: GainNode): void {
+    if (!this.ctx) return;
+    const osc = this.ctx.createOscillator();
+    const g = this.ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(freq * 1.5, at);
+    osc.frequency.exponentialRampToValueAtTime(freq, at + 0.08);
+    g.gain.setValueAtTime(0.0001, at);
+    g.gain.linearRampToValueAtTime(0.03, at + 0.004);
+    g.gain.exponentialRampToValueAtTime(0.0001, at + 0.3);
+    osc.connect(g);
+    g.connect(dest);
+    osc.start(at);
+    osc.stop(at + 0.32);
+  }
+
   /** One kalimba note on the music bus at an exact time */
   private musicPluck(freq: number, at: number, gain: number, decay: number): void {
     this.musicTone("sine", freq, at, gain, decay, 0.004);
@@ -296,12 +437,20 @@ class SoundAndHapticsEngine {
     this.musicTone("sine", freq * 5.4, at, gain * 0.08, 0.05, 0.002);
   }
 
-  private musicBell(freq: number, at: number, gain: number): void {
-    this.musicTone("sine", freq, at, gain, 2.2, 0.01);
-    this.musicTone("sine", freq * 2.76, at, gain * 0.3, 0.9, 0.006);
+  private musicBell(freq: number, at: number, gain: number, dest?: GainNode): void {
+    this.musicTone("sine", freq, at, gain, 2.2, 0.01, dest);
+    this.musicTone("sine", freq * 2.76, at, gain * 0.3, 0.9, 0.006, dest);
   }
 
-  private musicTone(type: OscillatorType, freq: number, at: number, gain: number, decay: number, attack: number): void {
+  private musicTone(
+    type: OscillatorType,
+    freq: number,
+    at: number,
+    gain: number,
+    decay: number,
+    attack: number,
+    dest?: GainNode
+  ): void {
     if (!this.ctx || !this.graph) return;
     const osc = this.ctx.createOscillator();
     const g = this.ctx.createGain();
@@ -311,7 +460,7 @@ class SoundAndHapticsEngine {
     g.gain.linearRampToValueAtTime(gain, at + attack);
     g.gain.exponentialRampToValueAtTime(0.0001, at + decay);
     osc.connect(g);
-    g.connect(this.graph.music);
+    g.connect(dest ?? this.graph.music);
     osc.start(at);
     osc.stop(at + decay + 0.02);
   }

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { soundEngine } from "@/lib/audio";
+import { MUSIC_LAYERS, MusicLayer, soundEngine } from "@/lib/audio";
 
 /**
  * Hidden page (/sound-test) to listen to every sound and the music without
@@ -62,11 +62,18 @@ const SOUNDS: Array<{ group: string; name: string; play: () => void }> = [
   },
   { group: "Shop", name: "Buy", play: () => soundEngine.playShopBuy() },
   { group: "Shop", name: "Set complete", play: () => soundEngine.playSetComplete() },
+  // Music layers earned by completing relic sets (two bars each, on their own)
+  ...(Object.keys(MUSIC_LAYERS) as MusicLayer[]).map((l) => ({
+    group: "Music layers (from relic sets)",
+    name: `${MUSIC_LAYERS[l].icon} ${MUSIC_LAYERS[l].name}`,
+    play: () => soundEngine.previewMusicLayer(l),
+  })),
 ];
 
 export default function SoundTestPage() {
   const [sound, setSound] = useState(false);
   const [music, setMusic] = useState(false);
+  const [allLayers, setAllLayers] = useState(false);
   useEffect(() => {
     setSound(soundEngine.soundEnabled);
     setMusic(soundEngine.musicEnabled);
@@ -101,7 +108,21 @@ export default function SoundTestPage() {
         >
           Music {music ? "on" : "off"}
         </button>
+        <button
+          type="button"
+          className={`${toggle} ${allLayers ? "bg-amber-300 text-slate-950 border-amber-200" : "bg-white/[0.04] border-white/15"}`}
+          onClick={() => {
+            const next = !allLayers;
+            soundEngine.setMusicLayers(next ? (Object.keys(MUSIC_LAYERS) as MusicLayer[]) : []);
+            setAllLayers(next);
+          }}
+        >
+          All layers {allLayers ? "on" : "off"}
+        </button>
       </div>
+      <p className="text-[12px] text-white/45 -mt-3">
+        &quot;All layers&quot; is how the music sounds once every relic set is done (up to 3 layers play at a time).
+      </p>
       {groups.map((g) => (
         <section key={g} className="space-y-2">
           <h2 className="text-[13px] font-semibold text-white/55">{g}</h2>
