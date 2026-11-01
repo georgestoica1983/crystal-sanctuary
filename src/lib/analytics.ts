@@ -42,6 +42,7 @@ export type TrackEvent =
   | "sound_prompt"
   | "goal_card_seen"
   | "tool_used"
+  | "bed_skipped"
   | "run_over"
   | "feedback_open";
 

@@ -30,6 +30,8 @@ const TOOLS_FIRST = process.env.TOOLS === "first";
 /** EDS=first|never: special tiles in the Shop (rules v14+) */
 const EDS_FIRST = process.env.EDS === "first";
 const EDS_NEVER = process.env.EDS === "never";
+/** SKIP=small|all (rules v17+): skip every Small bed, or every Small and Big bed, for its Tag */
+const SKIP = process.env.SKIP ?? "never";
 
 for (const budget of BUDGETS) {
   for (const v of VERSIONS) {
@@ -45,13 +47,15 @@ for (const budget of BUDGETS) {
     let runsWithSet = 0;
     const fertLevels: number[] = [];
     let toolsUsed = 0;
+    let skips = 0;
     for (let i = 0; i < SEEDS; i++) {
       const run = createRunReplayer(`bal-run-${i}`, HERO, v, ASC);
       let lastGarden = -1;
+      let runSkips = 0;
       for (let guard = 0; guard < 400 && run.state.phase !== "OVER"; guard++) {
         const s = run.state;
         if (s.phase === "SHOP") {
-          if (s.gardensBloomed >= MAX_GARDENS) break;
+          if (s.gardensBloomed + runSkips >= MAX_GARDENS) break;
           if (PRUNE !== "none" && !s.shop.pruned && s.shop.stats.gold >= RUN_PRUNE_COST) {
             // spike: a Spike first, then the weakest Thorn · thorn: the strongest Thorn
             const order = s.bag
@@ -99,6 +103,16 @@ for (const budget of BUDGETS) {
           lifeAtStart[g].push(s.startHero.hp);
           lastGarden = g;
         }
+        const fresh = s.garden.score === 0 && s.garden.strokesLeft === (s.garden.strokesTotal ?? s.garden.strokesLeft);
+        if (
+          fresh &&
+          ((SKIP === "small" && s.garden.kind === "SMALL") || (SKIP === "all" && s.garden.kind !== "BOSS")) &&
+          run.apply({ k: "k" }) === null
+        ) {
+          skips++;
+          runSkips++;
+          continue;
+        }
         if (s.tools.length > 0) {
           // Put a tool on the highest-value tile of today's best line (it stays in the bag)
           const plan = searchBestFloorLine(s.grid, s.startHero, modifier, s.classId, s.relics, budget, {
@@ -143,14 +157,15 @@ for (const budget of BUDGETS) {
           break;
         }
       }
-      reachedCounts.push(run.state.gardensBloomed);
+      // Beds passed: bloomed or skipped
+      reachedCounts.push(Math.min(MAX_GARDENS, run.state.gardensBloomed + runSkips));
       fertLevels.push(
         Object.entries(run.state.counters)
           .filter(([k]) => k.startsWith("FERT_"))
           .reduce((sum, [, n]) => sum + (n ?? 0), 0)
       );
       if (completedRelicSets(run.state.relics).length > 0) runsWithSet++;
-      if (run.state.phase === "OVER" && run.state.gardensBloomed < MAX_GARDENS) endings.shortOfTarget++;
+      if (run.state.phase === "OVER" && run.state.gardensBloomed + runSkips < MAX_GARDENS) endings.shortOfTarget++;
     }
     const avg = (a: number[]) => (a.length ? a.reduce((x, y) => x + y, 0) / a.length : NaN);
     const median = (a: number[]) => {
@@ -163,7 +178,7 @@ for (const budget of BUDGETS) {
       `gardens cleared: median ${median(reachedCounts)}, avg ${avg(reachedCounts).toFixed(1)}, ` +
         `cleared all ${MAX_GARDENS}: ${reachedCounts.filter((n) => n >= MAX_GARDENS).length}`
     );
-    console.log(`Runs ending with a relic set: ${runsWithSet}/${SEEDS} · Fertilizer levels bought: avg ${avg(fertLevels).toFixed(1)} · tools used: avg ${(toolsUsed / SEEDS).toFixed(1)}`);
+    console.log(`Runs ending with a relic set: ${runsWithSet}/${SEEDS} · Fertilizer levels bought: avg ${avg(fertLevels).toFixed(1)} · tools used: avg ${(toolsUsed / SEEDS).toFixed(1)} · beds skipped: avg ${(skips / SEEDS).toFixed(1)}`);
     console.log(`ended early: ${endings.shortOfTarget} out of lines or Life (Run over), ${endings.noSafeLine} stuck with no scoring line`);
     for (let g = 0; g < MAX_GARDENS; g++) {
       if (!ratios[g].length) continue;

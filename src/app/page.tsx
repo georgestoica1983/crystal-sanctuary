@@ -139,8 +139,14 @@ import {
   applyRunShopReroll,
   applyRunShopSell,
   createNextRunGarden,
+  addTagRelicOffer,
+  applyRunSkip,
   createRunLog,
   dryDewAfterStroke,
+  getSkipTag,
+  runRulesAllowSkip,
+  RUN_SKIP_TARGET_MULT,
+  SKIP_TAGS,
   getRunBloomResult,
   packCoords,
   RunActionLog,
@@ -329,6 +335,9 @@ export default function OneStrokeTacticianPage() {
   /** Garden tools held (rules v13+), and the one waiting for a tile tap */
   const [runTools, setRunTools] = useState<ToolId[]>([]);
   const [toolArmed, setToolArmed] = useState<number | null>(null);
+  /** Rules v17+: a Relic Tag's free Rare relic waits for the next Shop */
+  const [freeRelicNext, setFreeRelicNext] = useState(false);
+  const [skipOpen, setSkipOpen] = useState(false);
   const [runGarden, setRunGarden] = useState<RunGardenState | null>(null);
   const [runNoSafeLine, setRunNoSafeLine] = useState<boolean>(false);
   const [weedOutMode, setWeedOutMode] = useState<boolean>(false);
@@ -1181,6 +1190,8 @@ export default function OneStrokeTacticianPage() {
       setRunBag(bag);
       setRunTools([]);
       setToolArmed(null);
+      setFreeRelicNext(false);
+      setSkipOpen(false);
       runLogRef.current = practice ? null : createRunLog(runSeed, classId, asc);
       runBloomRef.current = null;
       setLessonIndex(null);
@@ -2116,7 +2127,12 @@ export default function OneStrokeTacticianPage() {
         logVersion: runLogRef.current?.v ?? RUN_LOG_VERSION,
         asc: runLogRef.current?.asc,
       });
-    runBloomRef.current = { statsWithPayout, offers };
+    // A Relic Tag from a skipped bed adds a free Rare relic to this Shop
+    runBloomRef.current = {
+      statsWithPayout,
+      offers: freeRelicNext ? addTagRelicOffer(offers, dungeon.seedKey, garden.gardenIndex, relicsAfter) : offers,
+    };
+    if (freeRelicNext) setFreeRelicNext(false);
     setRelicCounters(countersAfter);
     if (legendary) setActiveRelics(relicsAfter);
     setLegendaryAward(legendary);
@@ -2216,6 +2232,60 @@ export default function OneStrokeTacticianPage() {
     });
   };
 
+  /** Rules v17+: this Small bed can still be skipped (no line drawn yet) */
+  const canSkipBed =
+    mode === "RUN" &&
+    !lesson &&
+    !practiceStep &&
+    !isInteractiveTutorial &&
+    phase === "PLANNING" &&
+    runRulesAllowSkip(runLogRef.current?.v ?? 0) &&
+    runGarden?.kind === "SMALL" &&
+    runGarden.score === 0 &&
+    runGarden.strokesLeft === (runGarden.strokesTotal ?? runGarden.strokesLeft);
+  const skipTag = canSkipBed && runGarden ? getSkipTag(dungeon.seedKey, runGarden.gardenIndex) : null;
+
+  /** Skips this Small bed for its Tag (mirrors the replay's applyRunSkip) */
+  const handleSkipBed = () => {
+    if (!canSkipBed || !runGarden) return;
+    const skip = applyRunSkip({
+      runSeed: dungeon.seedKey,
+      garden: runGarden,
+      startHero: floorStartHero,
+      counters: relicCounters,
+      bag: runBag,
+      classId: heroClassId,
+      relics: activeRelics,
+      upgrades: runUpgrades,
+      logVersion: runLogRef.current?.v ?? RUN_LOG_VERSION,
+      asc: runLogRef.current?.asc,
+    });
+    if (typeof skip === "string") {
+      handleNotice(skip);
+      return;
+    }
+    logRunAction({ k: "k" });
+    track("bed_skipped", { bed: runGarden.gardenIndex, tag: skip.tag });
+    setRelicCounters(skip.counters);
+    setRunBag(skip.bag);
+    if (skip.tag === "RELIC") setFreeRelicNext(true);
+    const nextIndex = runGarden.gardenIndex + 1;
+    setDungeon((d) => ({ ...d, floors: [...d.floors.slice(0, nextIndex), skip.next.floor] }));
+    setRunGarden(skip.next.state);
+    setCurrentFloorIndex(nextIndex);
+    setFloorStartHero(skip.next.hero);
+    setHero(skip.next.hero);
+    setDrawnPath([]);
+    setHintCoords([]);
+    setHintsRemaining(1);
+    setSkipOpen(false);
+    setPhase("PLANNING");
+    soundEngine.playShopBuy();
+    const t = SKIP_TAGS[skip.tag];
+    handleNotice(`${t.icon} ${t.name}: ${t.text}. The Big bed grew wilder: target ${skip.next.state.target.toLocaleString()}.`);
+    checkRunSafeLine(skip.next.floor.grid, skip.next.hero, skip.next.state, floorHistory);
+  };
+
   /** Garden tools (rules v13+): the armed tool goes onto the tapped tile, and stays on it in the bag */
   const handleUseTool = (coord: GridCoord) => {
     if (toolArmed === null || !runGarden || phase !== "PLANNING") return;
@@ -2307,6 +2377,8 @@ export default function OneStrokeTacticianPage() {
     setRunBag(r.bag);
     setRunTools(r.tools);
     setToolArmed(null);
+    setFreeRelicNext(r.freeRelicNext);
+    setSkipOpen(false);
     runLogRef.current = { ...r.log, a: [...r.log.a] };
     runBloomRef.current = null;
     setLessonIndex(null);
@@ -3437,6 +3509,46 @@ export default function OneStrokeTacticianPage() {
                 suggestSwap={swapSuggested}
                 asc={runLogRef.current?.asc ?? 0}
               />
+            )
+          )}
+
+          {/* Rules v17+: skip a Small bed for a Tag, before its first line */}
+          {canSkipBed && skipTag && drawnPath.length <= 1 && (
+            skipOpen ? (
+              <div className="w-full max-w-[430px] rounded-xl border border-amber-300/40 bg-amber-400/[0.07] px-3 py-2 space-y-1.5">
+                <div className="text-[13px] font-bold text-amber-100">Skip this Small bed?</div>
+                <div className="text-[12px] leading-snug text-white/80">
+                  You get <b className="text-amber-100">{SKIP_TAGS[skipTag].icon} {SKIP_TAGS[skipTag].name}</b>: {SKIP_TAGS[skipTag].text}.
+                  <span className="block text-white/55">
+                    You give up this bed&apos;s Seeds and Shop, Life doesn&apos;t come back, and the Big bed&apos;s target grows +
+                    {Math.round((RUN_SKIP_TARGET_MULT - 1) * 100)}%.
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleSkipBed}
+                    className="flex-1 h-9 rounded-lg bg-amber-300 text-slate-950 text-[13px] font-bold active:scale-95"
+                  >
+                    Skip for the Tag
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSkipOpen(false)}
+                    className="flex-1 h-9 rounded-lg bg-white/[0.06] border border-white/10 text-[13px] font-semibold text-white/85"
+                  >
+                    Keep playing
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setSkipOpen(true)}
+                className="w-full max-w-[430px] h-8 rounded-lg border border-dashed border-amber-300/30 text-[12px] font-semibold text-amber-100/80 active:scale-[0.99]"
+              >
+                {SKIP_TAGS[skipTag].icon} Skip this bed for a {SKIP_TAGS[skipTag].name} ›
+              </button>
             )
           )}
 

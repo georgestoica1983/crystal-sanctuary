@@ -106,6 +106,8 @@ export interface RestoredRun {
   upgrades: RunUpgrades;
   /** Garden tools held (rules v13+) */
   tools: ToolId[];
+  /** Rules v17+: a Relic Tag's free relic is waiting for the next Shop */
+  freeRelicNext: boolean;
   history: FloorHistoryRecord[];
   totalCellsVisited: number;
   gemsSpent: number;
@@ -192,7 +194,8 @@ export function rebuildRunFromSave(raw: unknown): { ok: true; run: RestoredRun }
             logVersion: log.v,
             asc: log.asc ?? 0,
           });
-          bloom = { garden: s.garden, strokeStartHero: startHero, afterStroke, ...result };
+          // The Shop as the replay opened it (a Relic Tag can add a free relic)
+          bloom = { garden: s.garden, strokeStartHero: startHero, afterStroke, ...result, offers: s.shop.offers };
           purchases = 0;
           shopActionsSinceBloom = 0;
         }
@@ -241,6 +244,7 @@ export function rebuildRunFromSave(raw: unknown): { ok: true; run: RestoredRun }
         counters: s.counters,
         upgrades: s.upgrades,
         tools: s.tools,
+        freeRelicNext: s.freeRelicNext,
         history,
         totalCellsVisited,
         gemsSpent,

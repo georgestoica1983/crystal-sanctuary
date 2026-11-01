@@ -31,6 +31,9 @@ import {
   runFertilizerCost,
   runToolExtraCost,
   runEditionTileCost,
+  getSkipTag,
+  addTagRelicOffer,
+  RUN_SKIP_TARGET_MULT,
   runModifierFor,
   scoreRunStroke,
   RunActionLog,
@@ -698,6 +701,61 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
       hurt.finalStats.hp < 10 && soft.finalStats.hp === 10
     );
   }
+}
+
+// 14. Skipping a Small bed (rules v17+)
+{
+  const seed = "skip-check";
+  const run = createRunReplayer(seed, "KNIGHT", 17);
+  const before = run.state.garden;
+  const tag = getSkipTag(seed, before.gardenIndex);
+  const bigNormally = createRunReplayer(seed, "KNIGHT", 16);
+  check("skipping is refused under rules v16", bigNormally.apply({ k: "k" }) !== null);
+  check("a Small bed can be skipped before its first line", run.apply({ k: "k" }) === null);
+  const big = run.state.garden;
+  check(
+    `the next bed is the Big bed, ${RUN_SKIP_TARGET_MULT}× harder (${big.target})`,
+    big.gardenIndex === before.gardenIndex + 1 && big.kind === "BIG" && big.target > 1500
+  );
+  check(`the ${tag} Tag was taken`, run.state.tags.length === 1 && run.state.tags[0] === tag);
+  check("a Big bed can't be skipped", run.apply({ k: "k" }) !== null);
+  // After a line, the Small bed can't be skipped
+  const r2 = createRunReplayer("skip-check-2", "KNIGHT", 17);
+  const best = searchBestFloorLine(r2.state.grid, r2.state.startHero, RUN_MODIFIER, "KNIGHT", [], 4000, {});
+  if (best && best.score < r2.state.garden.target) {
+    r2.apply({ k: "s", p: packCoords(best.path) });
+    check("a bed can't be skipped after its first line", r2.apply({ k: "k" }) !== null);
+  }
+  // A Run with skips replays to the same score, and a Relic Tag adds a free relic to the next Shop
+  let relicSeed = "";
+  for (let i = 0; i < 40 && !relicSeed; i++) if (getSkipTag(`skip-relic-${i}`, 0) === "RELIC") relicSeed = `skip-relic-${i}`;
+  const rr = createRunReplayer(relicSeed, "KNIGHT", 17);
+  const log: RunActionLog = { v: 17, seed: relicSeed, hero: "KNIGHT", a: [{ k: "k" }] };
+  rr.apply({ k: "k" });
+  for (let g = 0; g < 30 && rr.state.phase === "PLAY"; g++) {
+    const s = rr.state;
+    const b = searchBestFloorLine(s.grid, s.startHero, RUN_MODIFIER, s.classId, s.relics, 20000, {
+      counters: s.counters,
+      strokesLeft: s.garden.strokesLeft,
+      relicSets: true,
+    });
+    if (!b) break;
+    const a: RunLogAction = { k: "s", p: packCoords(b.path) };
+    if (rr.apply(a)) break;
+    log.a.push(a);
+  }
+  const gifted = addTagRelicOffer([], relicSeed, 1, []);
+  check(
+    `Relic Tag: the next Shop gets a free Rare relic (${gifted[0]?.relicId ?? "none"})`,
+    gifted.length === 1 && gifted[0].cost === 0 && RELIC_REGISTRY[gifted[0].relicId!].rarity === "RARE"
+  );
+  const shopGift = rr.state.phase === "SHOP" ? rr.state.shop.offers.find((o) => o.id.endsWith("-tag-relic")) : undefined;
+  check(
+    "after a Relic Tag, the free relic waits until the next bloom",
+    rr.state.phase === "SHOP" ? Boolean(shopGift) && !rr.state.freeRelicNext : rr.state.freeRelicNext || rr.state.phase === "OVER"
+  );
+  const replay = replayRun(JSON.parse(JSON.stringify(log)));
+  check("a Run with a skip replays", replay.ok && replay.score === rr.state.score, replay.ok ? `${replay.score} vs ${rr.state.score}` : replay.error);
 }
 
 console.log(failures ? `\n${failures} check(s) failed` : "\nAll replay checks passed");

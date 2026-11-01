@@ -10,6 +10,10 @@ import {
   addStartEditions,
   EDITION_TILE_COST,
   createRunGarden,
+  FERT_TILES,
+  hashStringToSeed,
+  mulberry32,
+  RELIC_LIST,
   DEW_LINES,
   MAX_TOOLS,
   FERTILIZER_COST,
@@ -340,6 +344,84 @@ export const runRulesUseGentleStart = (logVersion: number) => logVersion >= 11;
 /** Rules v12+: the Shop sells Fertilizer, levelling a tile type for the Run */
 export const runRulesUseFertilizer = (logVersion: number) => logVersion >= 12;
 /** Fertilizer's Shop price (0 before v12); from Ascension 2 it costs 2 more */
+/** Relic Tag: the Shop after the next bloom gets a free Rare relic */
+export function addTagRelicOffer(offers: ShopOffer[], runSeed: string, gardenIndex: number, owned: RelicId[]): ShopOffer[] {
+  const gift = pickTagRelic(runSeed, gardenIndex, owned);
+  return gift ? [...offers, { id: `f${gardenIndex + 1}-tag-relic`, kind: "RELIC", relicId: gift, cost: 0 }] : offers;
+}
+
+/**
+ * Skips a Small bed (rules v17+) before its first line: its Tag pays out, and
+ * the Run moves straight to the next bed — no payout, no Life back, no Shop —
+ * whose target grows by half. Returns why it can't, or the new state.
+ */
+export function applyRunSkip(params: {
+  runSeed: string;
+  garden: RunGardenState;
+  startHero: HeroStats;
+  counters: RelicCounters;
+  bag: SeedTile[];
+  classId: HeroClassId;
+  relics: RelicId[];
+  upgrades: RunUpgrades;
+  logVersion: number;
+  asc?: number;
+}):
+  | string
+  | {
+      tag: SkipTag;
+      counters: RelicCounters;
+      bag: SeedTile[];
+      next: { hero: HeroStats; floor: DungeonFloor; state: RunGardenState };
+    } {
+  const { runSeed, garden } = params;
+  if (garden.kind !== "SMALL") return "only a Small bed can be skipped";
+  if (garden.strokesLeft !== (garden.strokesTotal ?? garden.strokesLeft) || garden.score > 0) {
+    return "a bed can only be skipped before its first line";
+  }
+  const tag = getSkipTag(runSeed, garden.gardenIndex);
+  let stats = params.startHero;
+  let counters = params.counters;
+  let bag = params.bag;
+  if (tag === "PURSE") stats = { ...stats, gold: stats.gold + 10 };
+  if (tag === "FERTILE") {
+    const rng = mulberry32(hashStringToSeed(`skip-fert-${runSeed}-g${garden.gardenIndex}`));
+    const tile = FERT_TILES[Math.floor(rng() * FERT_TILES.length)];
+    counters = { ...counters, [`FERT_${tile}`]: (counters[`FERT_${tile}`] ?? 0) + 1 };
+  }
+  if (tag === "GOLDEN") {
+    const rng = mulberry32(hashStringToSeed(`skip-gold-${runSeed}-g${garden.gardenIndex}`));
+    const plain = bag.map((t, i) => ({ t, i })).filter(({ t }) => !t.ed);
+    if (plain.length > 0) {
+      const { t, i } = plain[Math.floor(rng() * plain.length)];
+      bag = [...bag.slice(0, i), { ...t, ed: "GOLDEN" }, ...bag.slice(i + 1)];
+    }
+  }
+  const next = createNextRunGarden({
+    stats,
+    classId: params.classId,
+    relics: params.relics,
+    upgrades: params.upgrades,
+    runSeed,
+    bag,
+    gardenIndex: garden.gardenIndex + 1,
+    logVersion: params.logVersion,
+    asc: params.asc,
+    skipped: true,
+  });
+  // The garden grows wilder while you're away: the next bed's target is +50%
+  const state = { ...next.state, target: Math.round((next.state.target * RUN_SKIP_TARGET_MULT) / 50) * 50 };
+  return { tag, counters, bag, next: { ...next, state } };
+}
+
+/** Relic Tag: a seeded Rare relic you don't own yet (null if none left) */
+function pickTagRelic(runSeed: string, gardenIndex: number, owned: RelicId[]): RelicId | null {
+  const pool = RELIC_LIST.filter((r) => r.rarity === "RARE" && !owned.includes(r.id));
+  if (pool.length === 0) return null;
+  const rng = mulberry32(hashStringToSeed(`tag-relic-${runSeed}-g${gardenIndex}`));
+  return pool[Math.floor(rng() * pool.length)].id;
+}
+
 /** Rules v13+: garden tools upgrade a bag tile for the rest of the Run */
 export const runRulesUseTools = (logVersion: number) => logVersion >= 13;
 /** Rules v14+: special tiles (Golden, Iridescent, Radiant) in the bag and the Shop */
@@ -348,6 +430,26 @@ export const runRulesUseEditions = (logVersion: number) => logVersion >= 14;
 export const runRulesUseEcho = (logVersion: number) => logVersion >= 15;
 /** Rules v16+: 8 new relics (score-again and rule-benders) join the Shop */
 export const runRulesUseV16Relics = (logVersion: number) => logVersion >= 16;
+/** Rules v17+: a Small or Big bed can be skipped (before any line) for a Tag */
+export const runRulesAllowSkip = (logVersion: number) => logVersion >= 17;
+
+/** Skipping a Small bed makes the Big bed after it this much harder */
+export const RUN_SKIP_TARGET_MULT = 1.5;
+
+export type SkipTag = "FERTILE" | "GOLDEN" | "PURSE" | "RELIC";
+export const SKIP_TAGS: Record<SkipTag, { name: string; icon: string; text: string }> = {
+  FERTILE: { name: "Fertile Tag", icon: "🌱", text: "A free Fertilizer level for one tile type" },
+  GOLDEN: { name: "Golden Tag", icon: "✨", text: "A tile in your bag turns Golden (+30 Value)" },
+  PURSE: { name: "Purse Tag", icon: "👛", text: "+10 Seeds now" },
+  RELIC: { name: "Relic Tag", icon: "🎁", text: "The next Shop has a free Rare relic" },
+};
+const SKIP_TAG_IDS = Object.keys(SKIP_TAGS) as SkipTag[];
+
+/** The Tag a bed offers for skipping it (seeded, the same for everyone on this Run) */
+export function getSkipTag(runSeed: string, gardenIndex: number): SkipTag {
+  const rng = mulberry32(hashStringToSeed(`skip-tag-${runSeed}-g${gardenIndex}`));
+  return SKIP_TAG_IDS[Math.floor(rng() * SKIP_TAG_IDS.length)];
+}
 /** A special tile's Shop price: 8 Seeds, 10 from Ascension 2 (null = none in these rules) */
 export const runEditionTileCost = (logVersion: number, asc = 0): number | null =>
   runRulesUseEditions(logVersion) ? EDITION_TILE_COST + (runAscensionFor(logVersion, asc) >= 2 ? 2 : 0) : null;
@@ -473,6 +575,8 @@ export function createNextRunGarden(params: {
   logVersion?: number;
   /** Ascension level of the Run (rules v8+) */
   asc?: number;
+  /** Rules v17+: the bed before was skipped, so no Life comes back */
+  skipped?: boolean;
 }): { hero: HeroStats; floor: DungeonFloor; state: RunGardenState } {
   const v = params.logVersion ?? RUN_LOG_VERSION;
   const rules = ascensionRules(runAscensionFor(v, params.asc));
@@ -482,7 +586,7 @@ export function createNextRunGarden(params: {
     params.relics,
     params.upgrades,
     runModifierFor(v),
-    runClearLifeFor(v, params.asc)
+    params.skipped ? 0 : runClearLifeFor(v, params.asc)
   );
   const next = createRunGarden({
     runSeed: params.runSeed,
@@ -547,7 +651,7 @@ export function getRunPathError(
  * v11: a gentler first Season (targets 800 / 1,500 / 2,500).
  * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 16;
+export const RUN_LOG_VERSION = 17;
 export const RUN_LOG_MIN_VERSION = 2;
 /** Rule set of new Runs (the current version) */
 export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);
@@ -567,6 +671,8 @@ export type RunLogAction =
   | { k: "p"; i: number }
   /** Rules v13+: use held garden tool `i` on board tile `c` */
   | { k: "u"; i: number; c: number }
+  /** Rules v17+: skip this Small or Big bed for its Tag */
+  | { k: "k" }
   | { k: "l"; h: HeroClassId };
 
 export interface RunActionLog {
@@ -652,6 +758,7 @@ export function parseRunLog(raw: unknown): RunActionLog | null {
       continue;
     }
     if (a.k === "l" && isHeroClass(a.h)) continue;
+    if (a.k === "k" && log.v >= 17) continue;
     if (
       a.k === "u" &&
       log.v >= 13 &&
@@ -684,6 +791,9 @@ export interface RunReplayState {
   upgrades: RunUpgrades;
   /** Garden tools held (rules v13+) */
   tools: ToolId[];
+  /** Rules v17+: Tags taken by skipping beds, and a free Rare relic waiting for the next Shop */
+  tags: SkipTag[];
+  freeRelicNext: boolean;
   shop: { stats: HeroStats; offers: ShopOffer[]; soldIds: string[]; rerolls: number; pruned: boolean };
   score: number;
   gardensBloomed: number;
@@ -716,6 +826,8 @@ export function createRunReplayer(
     counters: {},
     upgrades: NO_RUN_UPGRADES,
     tools: [],
+    tags: [],
+    freeRelicNext: false,
     shop: { stats: first.hero, offers: [], soldIds: [], rerolls: 0, pruned: false },
     score: 0,
     gardensBloomed: 0,
@@ -778,7 +890,9 @@ export function createRunReplayer(
         s.relics = bloom.relicsAfter;
         s.counters = bloom.countersAfter;
         s.garden = scored;
-        s.shop = { stats: bloom.statsWithPayout, offers: bloom.offers, soldIds: [], rerolls: 0, pruned: false };
+        const offers = s.freeRelicNext ? addTagRelicOffer(bloom.offers, runSeed, scored.gardenIndex, s.relics) : bloom.offers;
+        s.freeRelicNext = false;
+        s.shop = { stats: bloom.statsWithPayout, offers, soldIds: [], rerolls: 0, pruned: false };
         s.phase = "SHOP";
       } else if (scored.strokesLeft <= 0) {
         s.garden = scored;
@@ -886,6 +1000,34 @@ export function createRunReplayer(
       s.grid = used.grid;
       s.bag = used.bag;
       s.tools = [...s.tools.slice(0, action.i), ...s.tools.slice(action.i + 1)];
+      return null;
+    }
+
+    if (action.k === "k") {
+      if (!runRulesAllowSkip(logVersion)) return "no skipping in these rules";
+      if (s.phase !== "PLAY") return "skip outside a garden";
+      const skip = applyRunSkip({
+        runSeed,
+        garden: s.garden,
+        startHero: s.startHero,
+        counters: s.counters,
+        bag: s.bag,
+        classId: s.classId,
+        relics: s.relics,
+        upgrades: s.upgrades,
+        logVersion,
+        asc,
+      });
+      if (typeof skip === "string") return skip;
+      s.counters = skip.counters;
+      s.bag = skip.bag;
+      if (skip.tag === "RELIC") s.freeRelicNext = true;
+      s.tags = [...s.tags, skip.tag];
+      s.floor = skip.next.floor;
+      s.grid = skip.next.floor.grid;
+      s.garden = skip.next.state;
+      s.startHero = skip.next.hero;
+      checkSafeLine();
       return null;
     }
 
