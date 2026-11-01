@@ -75,6 +75,22 @@ body {
   zoom: var(--ui-zoom, 1);
 }
 
+/* Pop-up cards: never taller than the screen; their content scrolls inside
+   if it must, and the main button (.card-footer) stays pinned at the bottom */
+.fit-card {
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.card-footer {
+  position: sticky;
+  bottom: -1rem;
+  margin-bottom: -1rem;
+  padding-bottom: 1rem;
+  padding-top: 0.5rem;
+  z-index: 5;
+}
+
 /* Numbers (scores, counters) use the text font with even-width figures, so
    they line up and don't jump while counting, without looking like code */
 svg text,

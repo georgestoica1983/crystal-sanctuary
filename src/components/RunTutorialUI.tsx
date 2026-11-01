@@ -332,7 +332,7 @@ export function RunHelpMenu({
       <motion.div
         initial={{ scale: 0.92, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="w-full max-w-[400px] rounded-2xl p-4 space-y-2.5 text-white border border-emerald-300/40 bg-gradient-to-b from-[#1F3125] to-[#111A14]"
+        className="fit-card w-full max-w-[400px] rounded-2xl p-4 space-y-2.5 text-white border border-emerald-300/40 bg-gradient-to-b from-[#1F3125] to-[#111A14]"
       >
         <div className="text-center space-y-0.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -433,7 +433,7 @@ function LineDemo({ cells, label, score, delay }: { cells: number[][]; label: st
   const still = useReducedMotion();
   return (
     <div className="flex flex-col items-center gap-1.5">
-      <svg viewBox="0 0 90 90" className="h-[86px] w-[86px] [@media(max-height:640px)]:h-[64px] [@media(max-height:640px)]:w-[64px]" aria-hidden="true">
+      <svg viewBox="0 0 90 90" className="h-[72px] w-[72px] [@media(max-height:640px)]:h-[60px] [@media(max-height:640px)]:w-[60px]" aria-hidden="true">
         {DEMO_CELL.flatMap((y) =>
           DEMO_CELL.map((x) => <rect key={`${x}-${y}`} x={x - 12} y={y - 12} width="24" height="24" rx="6" fill="rgba(255,255,255,0.07)" />)
         )}
@@ -478,36 +478,38 @@ export function RunGoalCard({
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[400px] rounded-2xl border border-white/10 bg-[#1B281F] px-5 pt-5 pb-4 text-white"
+        className="fit-card w-full max-w-[400px] rounded-2xl border border-white/10 bg-[#1B281F] px-5 pt-4 pb-4 text-white"
       >
-        <h2 className="text-center font-display text-[26px] font-bold leading-tight text-balance">Draw one line to the gate</h2>
+        <h2 className="text-center font-display text-[24px] font-bold leading-tight text-balance">Draw one line to the gate</h2>
         <p className="mt-2 text-center text-[15.5px] leading-snug text-white/85">
           Every tile you pass adds to your score, and <b className="text-amber-200">longer lines score far more</b>.
         </p>
 
-        <div className="mt-4 [@media(max-height:640px)]:mt-2 grid grid-cols-2 gap-2 rounded-xl bg-black/20 py-3 [@media(max-height:640px)]:py-2">
+        <div className="mt-3 [@media(max-height:640px)]:mt-2 grid grid-cols-2 gap-2 rounded-xl bg-black/20 py-2.5 [@media(max-height:640px)]:py-2">
           <LineDemo cells={DEMO_SHORT} label="3 tiles" score="27" delay={0} />
           <LineDemo cells={DEMO_LONG} label="9 tiles" score="243" delay={0.2} />
         </div>
         <p className="mt-2 text-center text-[13px] text-white/65">3 times the length, 9 times the points.</p>
 
-        <p className="mt-4 [@media(max-height:640px)]:mt-2 text-center text-[15px] leading-snug text-white/85">
+        <p className="mt-3 [@media(max-height:640px)]:mt-2 text-center text-[15px] leading-snug text-white/85">
           Thorns and Spikes cost Life, so plan your path. Reach <b className="text-amber-200">{fmt(target)}</b> in{" "}
           <b>{lines} lines</b> to clear this bed.
         </p>
 
-        <button
-          type="button"
-          onClick={onStart}
-          className="mt-4 [@media(max-height:640px)]:mt-3 w-full h-12 rounded-xl bg-lime-300 text-slate-950 text-[16px] font-bold active:scale-95 transition"
-        >
-          Start
-        </button>
-        {canHide && (
-          <button type="button" onClick={onHide} className="mt-1 w-full h-11 text-[14px] font-semibold text-white/60">
-            Don&apos;t show this again
+        <div className="card-footer mt-2 bg-[#1B281F]">
+          <button
+            type="button"
+            onClick={onStart}
+            className="w-full h-12 rounded-xl bg-lime-300 text-slate-950 text-[16px] font-bold active:scale-95 transition"
+          >
+            Start
           </button>
-        )}
+          {canHide && (
+            <button type="button" onClick={onHide} className="mt-1 w-full h-11 text-[14px] font-semibold text-white/60">
+              Don&apos;t show this again
+            </button>
+          )}
+        </div>
       </motion.div>
     </div>
   );
@@ -554,28 +556,12 @@ export function RunGardenClearModal({
         initial={{ scale: 0.85, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 22 }}
-        className="w-full max-w-[380px] rounded-2xl p-4 space-y-3 text-white border border-white/[0.08] bg-[#1B281F] shadow-2xl shadow-black/50"
+        className="fit-card w-full max-w-[380px] rounded-2xl p-4 space-y-3 text-white border border-white/[0.08] bg-[#1B281F] shadow-2xl shadow-black/50"
       >
         <div className="text-center">
           <div className="text-[12px] font-semibold text-emerald-300/90">
             {getRunGardenLabel(info.gardenIndex)}
             {!!info.asc && <span className="ml-1 text-orange-200">· 🔥 Ascension {info.asc}</span>}
-          </div>
-          {/* The bed bursts into bloom */}
-          <div className="flex justify-center items-end gap-1 h-10 mb-1" aria-hidden="true">
-            {[0.8, 1, 1.25, 1.5, 1.25, 1, 0.8].map((size, i) => (
-              <motion.img
-                key={i}
-                src={BLOOM_ART}
-                alt=""
-                draggable={false}
-                initial={{ scale: 0, rotate: -30, opacity: 0, y: 8 }}
-                animate={{ scale: 1, rotate: 0, opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 + Math.abs(i - 3) * 0.09, type: "spring", stiffness: 300, damping: 12 }}
-                className="object-contain"
-                style={{ width: 22 * size, height: 22 * size }}
-              />
-            ))}
           </div>
           <div className="text-[24px] font-display font-semibold text-white">
             Garden Bed bloomed!
@@ -592,11 +578,10 @@ export function RunGardenClearModal({
               </motion.span>
             ))}
           </div>
-          <div className="text-xs font-mono text-emerald-100/80 mt-1">
-            {fmt(info.score)} / {fmt(info.target)}
-          </div>
-          <div className="text-[10px] text-emerald-100/55 mt-0.5">
-            {info.newBestStars ? "✨ New best for this Garden Bed! " : ""}
+          <div className="text-[13px] text-emerald-100/75 mt-1">
+            <span className="font-mono font-bold text-emerald-100">{fmt(info.score)} / {fmt(info.target)}</span>
+            {" · "}
+            {info.newBestStars ? "✨ New best! " : ""}
             {STAR_HINT[stars]}
           </div>
           <SeasonMap season={season} clearedKind={kind} bestStars={info.seasonBestStars} />
@@ -619,13 +604,21 @@ export function RunGardenClearModal({
               <span className="font-mono font-black shrink-0 whitespace-nowrap text-amber-100">+{l.value} 🌱</span>
             </motion.div>
           ))}
-          <div className="border-t border-white/10 pt-1 flex justify-between text-sm font-black text-amber-200">
+          <div className="border-t border-white/10 pt-1 flex justify-between items-baseline text-sm font-black text-amber-200">
             <span>Payout</span>
-            <span className="font-mono">+{info.total} 🌱</span>
+            <span className="font-mono">
+              <span className="mr-1.5 text-[11px] font-semibold text-white/55">
+                {info.gemsBefore} → {info.gemsBefore + info.total}
+              </span>
+              +{info.total} 🌱
+            </span>
           </div>
-          <div className="text-[11px] text-white/50 text-right">
-            {info.gemsBefore} → {info.gemsBefore + info.total} 🌱 Seeds to spend
-          </div>
+          {!!info.lifeBonus && (
+            <div className="flex justify-between text-[12.5px] font-bold text-emerald-200">
+              <span>Life for the next bed</span>
+              <span>+{info.lifeBonus} ❤️</span>
+            </div>
+          )}
         </div>
 
 
@@ -650,16 +643,6 @@ export function RunGardenClearModal({
           </div>
         )}
 
-        {!!info.lifeBonus && (
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1, transition: { delay: 0.15 + lines.length * 0.18 } }}
-            className="rounded-xl border border-emerald-300/60 bg-emerald-400/15 px-3 py-2 text-center text-sm font-black text-emerald-100"
-          >
-            ❤️ +{info.lifeBonus} Life for the next Garden Bed
-          </motion.div>
-        )}
-
         {legendary && (
           <div className="rounded-xl border border-amber-300/50 bg-amber-400/10 px-3 py-2 text-xs text-amber-50">
             <span className="flex items-center gap-1.5">
@@ -672,13 +655,15 @@ export function RunGardenClearModal({
           </div>
         )}
 
-        <button
-          type="button"
-          onClick={onContinue}
-          className="w-full rounded-xl py-3 font-bold text-[14px] bg-teal-300 text-slate-950 active:scale-95"
-        >
-          Enter the Shop →
-        </button>
+        <div className="card-footer bg-[#1B281F]">
+          <button
+            type="button"
+            onClick={onContinue}
+            className="w-full rounded-xl py-3 font-bold text-[15px] bg-teal-300 text-slate-950 active:scale-95"
+          >
+            Enter the Shop →
+          </button>
+        </div>
       </motion.div>
     </div>
   );
@@ -758,7 +743,7 @@ export function RunOverModal({
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 200, damping: 22 }}
-        className="w-full max-w-[380px] rounded-2xl p-4 space-y-3 text-white border border-white/[0.08] bg-[#1A271E]"
+        className="fit-card w-full max-w-[380px] rounded-2xl p-4 space-y-3 text-white border border-white/[0.08] bg-[#1A271E]"
       >
         <div className="text-center">
           <motion.img
@@ -845,6 +830,7 @@ export function RunOverModal({
           </div>
         )}
 
+        <div className="card-footer bg-[#1A271E] space-y-2">
         <button
           type="button"
           onClick={onNewRun}
@@ -869,6 +855,7 @@ export function RunOverModal({
               {rankLine ? rankLine.replace("🏆 Leaderboard: ", "🏆 ") : "🏆 Leaderboard"}
             </button>
           )}
+        </div>
         </div>
       </motion.div>
     </div>
