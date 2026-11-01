@@ -6,6 +6,7 @@
 //      or:  node scripts/cut-icon-sheet.cjs design/gemini-relic-sheet-2.webp relics2   (4 × 2, rules v16 relics)
 //      or:  node scripts/cut-icon-sheet.cjs design/gemini-garden-plants.webp garden   (5 × 5 My Garden plants)
 //      or:  node scripts/cut-icon-sheet.cjs design/gemini-garden-decor.webp decor     (4 × 2 garden decorations)
+//      or:  node scripts/cut-icon-sheet.cjs design/gemini-visitors.webp visitors      (2 × 2 garden visitors)
 const sharp = require("sharp");
 const path = require("path");
 
@@ -42,6 +43,7 @@ const GARDEN_NAMES = [
 const DECOR_NAMES = [
   "bench", "pond", "lantern", "arch", "stepping-stones", "bird-bath", "wind-chime", "gate",
 ].map((n) => `decor-${n}`);
+const VISITOR_NAMES = ["ladybug", "bee", "butterfly", "snail"].map((n) => `visitor-${n}`);
 const FADE_EDGES = new Set(["garden-mist-orchid", "garden-moonflower", "garden-set-bloom"]);
 const SOLID = 14; // closer than this to the background: fully transparent
 const SOFT = 46; // up to this (and reachable from the edge): partly transparent
@@ -55,6 +57,7 @@ const OUT = 256;
     : mode === "relics2" ? RELIC_NAMES_2
     : mode === "garden" ? GARDEN_NAMES
     : mode === "decor" ? DECOR_NAMES
+    : mode === "visitors" ? VISITOR_NAMES
     : ICON_NAMES;
   const COLS = mode === "relics2" || mode === "decor" ? 4 : Math.round(Math.sqrt(NAMES.length));
   const ROWS = Math.ceil(NAMES.length / COLS);
