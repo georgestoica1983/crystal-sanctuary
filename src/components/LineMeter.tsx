@@ -143,7 +143,9 @@ export default function LineMeter({
 
   return artify(
     <div
-      className="relative w-full max-w-[430px] min-w-0 h-[78px] rounded-xl border border-white/[0.07] bg-white/[0.04] px-3 py-1.5 flex flex-col justify-center"
+      className={`relative w-full max-w-[430px] min-w-0 h-[78px] rounded-xl border px-3 py-1.5 flex flex-col transition-colors ${
+        drawing || intro ? "justify-center border-white/[0.07] bg-white/[0.04]" : "justify-end border-transparent bg-transparent"
+      }`}
       aria-live="polite"
     >
       {!drawing && intro ? (
@@ -167,8 +169,8 @@ export default function LineMeter({
         <div className="text-[12.5px] leading-snug text-white/60 text-center">
           {idleText ?? (
             <>
-              Drag or tap from your companion to the Exit gate.{" "}
-              <span className="text-amber-200/90">Longer lines score far more.</span>
+              Draw from your companion to the gate.
+              <span className="block text-amber-200/90">Longer lines score far more.</span>
             </>
           )}
         </div>

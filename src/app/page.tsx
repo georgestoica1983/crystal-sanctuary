@@ -3428,9 +3428,6 @@ export default function OneStrokeTacticianPage() {
         </p>
       </div>
 
-      {/* Spacer: centres the game vertically on tall screens (collapses when content overflows) */}
-      <div aria-hidden="true" className="grow basis-0 !shrink min-h-0" />
-
       {/* Training Complete Toast Banner */}
       {trainingToastBanner && (
         <div className="w-full max-w-[430px] mx-auto mb-1.5 rounded-xl px-3 py-2 bg-emerald-500/20 border border-emerald-400 text-emerald-100 font-mono text-xs font-extrabold text-center shadow-[0_0_24px_rgba(16,185,129,0.45)] animate-pulse">
@@ -3440,6 +3437,43 @@ export default function OneStrokeTacticianPage() {
 
       {/* Top Tactical / Sanctuary HUD + Hero Class Selector Bar / Coach Card */}
       <TopHUD
+        runCard={
+          mode === "RUN" && !isInteractiveTutorial && !lesson && runGarden && !(phase === "DEFEAT" && runOver === null) ? (
+            <RunHudStrip
+              bare
+              garden={runGarden}
+                  previewScore={
+                    simulation.canCommit && phase === "PLANNING"
+                      ? calculateFloorScoreBreakdown(
+                          simulation,
+                          floorStartHero,
+                          drawnPath.length,
+                          activeRelicsForBoard,
+                          relicScoreCtx
+                        ).total
+                      : null
+                  }
+                  noSafeLine={runNoSafeLine}
+                  weedOutActive={weedOutMode}
+                  weedOutCount={weedOutSelection.length}
+                  onToggleWeedOut={handleToggleWeedOut}
+                  onConfirmWeedOut={handleConfirmWeedOut}
+                  suggestSwap={swapSuggested}
+                  asc={runLogRef.current?.asc ?? 0}
+                  upcomingBoss={
+                    runGarden.kind !== "BOSS"
+                      ? previewSeasonBoss(
+                        dungeon.seedKey,
+                        runGarden.season,
+                        runRulesUseAllBosses(runLogRef.current?.v ?? RUN_LOG_VERSION),
+                        runRulesUseNewBosses(runLogRef.current?.v ?? RUN_LOG_VERSION)
+                      )
+                      : null
+                  }
+                />
+          ) : null
+        }
+        runCardBoss={mode === "RUN" && runGarden?.kind === "BOSS"}
         mode={mode}
         runOnly={RUN_ONLY}
         totalStars={totalStars}
@@ -3596,6 +3630,11 @@ export default function OneStrokeTacticianPage() {
         onOpenLeaderboard={() => setIsLeaderboardOpen(true)}
       />
 
+      {/* Spacer: on tall screens the leftover height is shared between here
+          and the bottom, so the board sits lower (in thumb reach) and the top
+          card stays at the top (collapses when content overflows) */}
+      <div aria-hidden="true" className="grow basis-0 !shrink min-h-0" />
+
       {showTutorial ? (
         <div className="my-2 flex-1">
           <TutorialView
@@ -3667,7 +3706,7 @@ export default function OneStrokeTacticianPage() {
           )}
 
           {/* Boss Garden twist (every 3rd garden) */}
-          {!isInteractiveTutorial && !lesson && currentFloor.bossRuleId && (
+          {!isInteractiveTutorial && !lesson && currentFloor.bossRuleId && mode !== "RUN" && (
             <div className="w-full max-w-[430px] mx-auto rounded-xl px-3 py-1.5 border border-rose-300/30 bg-rose-500/[0.07] text-rose-50 flex items-center gap-2">
               <span className="text-xl shrink-0">
                 {BOSS_RULE_REGISTRY[currentFloor.bossRuleId].icon}
@@ -3678,7 +3717,7 @@ export default function OneStrokeTacticianPage() {
                 </div>
                 <div className="text-[11px] leading-snug text-rose-50/65">
                   Boss · {BOSS_RULE_REGISTRY[currentFloor.bossRuleId].name}
-                  {(mode === "RUN" || currentFloorIndex < dungeon.floors.length - 1) &&
+                  {currentFloorIndex < dungeon.floors.length - 1 &&
                     " · 👑 Legendary relic if cleared"}
                 </div>
               </div>
@@ -3712,39 +3751,7 @@ export default function OneStrokeTacticianPage() {
               >
                 Garden Run over — start a new one
               </button>
-            ) : (
-              <RunHudStrip
-                garden={runGarden}
-                previewScore={
-                  simulation.canCommit && phase === "PLANNING"
-                    ? calculateFloorScoreBreakdown(
-                        simulation,
-                        floorStartHero,
-                        drawnPath.length,
-                        activeRelicsForBoard,
-                        relicScoreCtx
-                      ).total
-                    : null
-                }
-                noSafeLine={runNoSafeLine}
-                weedOutActive={weedOutMode}
-                weedOutCount={weedOutSelection.length}
-                onToggleWeedOut={handleToggleWeedOut}
-                onConfirmWeedOut={handleConfirmWeedOut}
-                suggestSwap={swapSuggested}
-                asc={runLogRef.current?.asc ?? 0}
-                upcomingBoss={
-                  runGarden.kind !== "BOSS"
-                    ? previewSeasonBoss(
-                      dungeon.seedKey,
-                      runGarden.season,
-                      runRulesUseAllBosses(runLogRef.current?.v ?? RUN_LOG_VERSION),
-                      runRulesUseNewBosses(runLogRef.current?.v ?? RUN_LOG_VERSION)
-                    )
-                    : null
-                }
-              />
-            )
+            ) : null
           )}
 
           {/* Rules v17+: skip a Small bed for a Tag, before its first line */}
@@ -3776,15 +3783,7 @@ export default function OneStrokeTacticianPage() {
                   </button>
                 </div>
               </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setSkipOpen(true)}
-                className="w-full max-w-[430px] h-8 rounded-lg border border-dashed border-amber-300/30 text-[12px] font-semibold text-amber-100/80 active:scale-[0.99]"
-              >
-                {SKIP_TAGS[skipTag].icon} Skip this bed for a {SKIP_TAGS[skipTag].name} ›
-              </button>
-            )
+            ) : null
           )}
 
           {/* Live Value × Length meter (Run and lessons) */}
@@ -3809,6 +3808,8 @@ export default function OneStrokeTacticianPage() {
                   idleText={
                     lesson
                       ? "Your points show here as you draw."
+                      : runNoSafeLine
+                      ? "No safe line on this board. 🌿 Swap can change up to 3 tiles."
                       : swapSuggested
                       ? "Tough board — even the best line falls short. Try 🌿 Swap to change up to 3 tiles."
                       : undefined
@@ -4309,6 +4310,11 @@ export default function OneStrokeTacticianPage() {
                     urge: runNoSafeLine ? "strong" : swapSuggested ? "soft" : "none",
                     onToggle: handleToggleWeedOut,
                   }
+                : undefined
+            }
+            skip={
+              canSkipBed && skipTag && drawnPath.length <= 1
+                ? { icon: SKIP_TAGS[skipTag].icon, open: skipOpen, onToggle: () => setSkipOpen((v) => !v) }
                 : undefined
             }
             onResetFloorStroke={() => {

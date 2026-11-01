@@ -475,6 +475,10 @@ export function CompanionDrawerModal({
 }
 
 interface TopHUDProps {
+  /** Garden Run: the bed's Season, score and lines, shown in the same card as the header row */
+  runCard?: React.ReactNode;
+  /** The card's border turns rose on a Boss bed */
+  runCardBoss?: boolean;
   mode: GameMode;
   /** Hides the mode tabs and Daily-only bits (the app is Run-only) */
   runOnly?: boolean;
@@ -564,6 +568,8 @@ interface TopHUDProps {
 }
 
 export function TopHUD({
+  runCard = null,
+  runCardBoss = false,
   mode,
   runOnly = false,
   totalStars,
@@ -744,7 +750,13 @@ export function TopHUD({
     const menuRow =
       "w-full h-12 px-3 rounded-xl flex items-center gap-3 text-left text-[14px] font-semibold text-white/90 hover:bg-white/[0.06] active:bg-white/[0.1] transition";
     return artify(
-      <div className="w-full max-w-[430px] mx-auto select-none">
+      <div
+        className={`w-full max-w-[430px] mx-auto select-none ${
+          runCard
+            ? `rounded-xl border px-2 pb-2 bg-white/[0.04] ${runCardBoss ? "border-rose-300/40" : "border-white/[0.07]"}`
+            : ""
+        }`}
+      >
         <div className="relative h-12 flex items-center gap-1 pl-0.5 pr-0.5">
           <button
             type="button"
@@ -801,7 +813,7 @@ export function TopHUD({
               }`}
             >
               <span className="flex items-center -space-x-2.5">
-                {relicCounts.slice(0, 3).map(([relicId]) => (
+                {relicCounts.slice(0, 1).map(([relicId]) => (
                   <RelicIcon key={relicId} id={relicId} size={22} />
                 ))}
               </span>
@@ -860,6 +872,8 @@ export function TopHUD({
             </div>
           )}
         </div>
+
+        {runCard}
 
         {showRunMenu && (
           <div
@@ -1737,6 +1751,12 @@ interface BottomControlsProps {
     urge: "none" | "soft" | "strong";
     onToggle: () => void;
   };
+  /** Garden Run: skip this Small bed for a Tag (opens the confirm card) */
+  skip?: {
+    icon: string;
+    open: boolean;
+    onToggle: () => void;
+  };
 }
 
 export function BottomControls({
@@ -1750,6 +1770,7 @@ export function BottomControls({
   onNewSandboxDungeon,
   onForfeitRun,
   swap,
+  skip,
 }: BottomControlsProps) {
   void visualTheme;
   const isSanctuary = true;
@@ -1759,7 +1780,7 @@ export function BottomControls({
       <div
         className={
           mode === "RUN"
-            ? `grid ${swap ? "grid-cols-3" : "grid-cols-2"} gap-2 [&>button]:w-full [&>button]:min-w-0 [&>button]:justify-center [&>button]:px-1`
+            ? `grid ${["grid-cols-2", "grid-cols-3", "grid-cols-4"][(swap ? 1 : 0) + (skip ? 1 : 0)]} gap-2 [&>button]:w-full [&>button]:min-w-0 [&>button]:justify-center [&>button]:px-1`
             : "flex items-center justify-between gap-1.5"
         }
       >
@@ -1789,6 +1810,20 @@ export function BottomControls({
             }`}
           >
             {swap.active ? "Cancel swap" : `🌿 Swap · ${swap.left}`}
+          </button>
+        )}
+
+        {skip && (
+          <button
+            type="button"
+            disabled={isResolving}
+            onClick={skip.onToggle}
+            aria-pressed={skip.open}
+            className={`h-11 rounded-xl border text-[13px] font-semibold transition active:scale-95 disabled:opacity-35 ${
+              skip.open ? "bg-amber-300 text-slate-950 border-amber-200" : "bg-white/[0.05] border-amber-300/30 text-amber-100/90"
+            }`}
+          >
+            {skip.icon} Skip
           </button>
         )}
 

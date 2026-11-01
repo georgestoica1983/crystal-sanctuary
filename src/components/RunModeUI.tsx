@@ -30,6 +30,8 @@ import { Plant, plantLook } from "@/lib/myGarden";
 const fmt = formatScore;
 
 /** Season · garden, target, score bar, lines and weed-outs */
+const BED_SHORT: Record<RunGardenState["kind"], string> = { SMALL: "Small bed", BIG: "Big bed", BOSS: "Boss bed" };
+
 export function RunHudStrip({
   garden,
   previewScore,
@@ -41,7 +43,10 @@ export function RunHudStrip({
   suggestSwap = false,
   asc = 0,
   upcomingBoss = null,
+  bare = false,
 }: {
+  /** Drawn inside the top card (no border or background of its own) */
+  bare?: boolean;
   /** The Season's Boss rule, previewed before its bed (from the Run's seed) */
   upcomingBoss?: BossRuleId | null;
   garden: RunGardenState;
@@ -66,11 +71,18 @@ export function RunHudStrip({
   const strokesTotal = garden.strokesTotal ?? RUN_STROKES_PER_GARDEN;
   const strokesUsed = strokesTotal - garden.strokesLeft;
   const [bossOpen, setBossOpen] = useState(false);
+  // A weak board is told in the line meter and by the glowing Swap button now
+  void noSafeLine;
+  void suggestSwap;
   return artify(
     <div
-      className={`w-full max-w-[430px] min-w-0 rounded-xl px-3 pt-2 pb-1.5 [@media(max-height:640px)]:pt-1.5 [@media(max-height:640px)]:pb-1 border space-y-1.5 [@media(max-height:640px)]:space-y-1 bg-white/[0.04] ${
-        isBoss ? "border-rose-300/40" : "border-white/[0.07]"
-      }`}
+      className={
+        bare
+          ? "w-full min-w-0 px-1 pb-0.5 space-y-1.5"
+          : `w-full max-w-[430px] min-w-0 rounded-xl px-3 pt-2 pb-1.5 [@media(max-height:640px)]:pt-1.5 [@media(max-height:640px)]:pb-1 border space-y-1.5 [@media(max-height:640px)]:space-y-1 bg-white/[0.04] ${
+              isBoss ? "border-rose-300/40" : "border-white/[0.07]"
+            }`
+      }
     >
       <div className="flex items-center justify-between gap-2 min-w-0">
         <div className="min-w-0">
@@ -79,7 +91,7 @@ export function RunHudStrip({
             {garden.season > RUN_FINAL_SEASON ? " · Endless" : ""} ·{" "}
             <span className={isBoss ? "text-rose-200" : "text-white/90"}>
               {boss ? `${boss.icon} ` : ""}
-              {getRunGardenKindLabel(garden.kind)}
+              {BED_SHORT[garden.kind]}
             </span>
             <SeasonDots
               gardenIndex={garden.gardenIndex}
@@ -93,16 +105,30 @@ export function RunHudStrip({
             )}
           </div>
         </div>
-        <div className="shrink-0 text-[12px] text-white/55">
-          {garden.score >= garden.target ? (
-            <span className="font-bold text-amber-200">Bloomed ✓</span>
-          ) : (
-            <>
-              <span className="font-mono font-black text-amber-200">{fmt(garden.target - garden.score)}</span> to go
-            </>
-          )}
+        <div
+          className="shrink-0 flex items-center gap-1"
+          aria-label={`${garden.strokesLeft} ${garden.strokesLeft === 1 ? "line" : "lines"} left`}
+          title="Lines left in this bed"
+        >
+          {Array.from({ length: strokesTotal }, (_, i) => (
+            <span
+              key={i}
+              className={`w-2.5 h-2.5 rounded-full ${i < strokesUsed ? "bg-white/15" : "bg-teal-300"}`}
+            />
+          ))}
+          <span className="ml-0.5 text-[12px] text-white/60">
+            <span className="font-mono font-black text-white/85">{garden.strokesLeft}</span>{" "}
+            {garden.strokesLeft === 1 ? "line" : "lines"}
+          </span>
         </div>
       </div>
+
+      {boss && (
+        <div className="text-[12px] leading-snug text-rose-100">
+          {boss.icon} <b>{boss.name}:</b> {boss.description}{" "}
+          <span className="text-rose-50/60">👑 Legendary relic if cleared</span>
+        </div>
+      )}
 
       {bossOpen && upcomingBoss && garden.kind !== "BOSS" && (
         <button
@@ -133,6 +159,7 @@ export function RunHudStrip({
         )}
         <div className="absolute inset-0 flex items-center justify-start pl-2.5 text-[11px] font-mono font-black text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">
           {fmt(garden.score)} / {fmt(garden.target)}
+          {garden.score >= garden.target && " · Bloomed ✓"}
         </div>
       </div>
       {/* Bloom bar: buds at half, three quarters and full open as the bed fills (the line you draw previews it) */}
@@ -155,32 +182,6 @@ export function RunHudStrip({
           );
         })}
       </div>
-
-      {!weedOutActive && (
-      <div className="flex items-center justify-between gap-2 h-5">
-        <div
-          className="flex items-center gap-1.5 text-[12px] text-white/55"
-          aria-label={`${garden.strokesLeft} lines left`}
-        >
-          <span className="hidden min-[360px]:inline">Lines</span>
-          {Array.from({ length: strokesTotal }, (_, i) => (
-            <span
-              key={i}
-              className={`w-2.5 h-2.5 rounded-full ${
-                i < strokesUsed ? "bg-white/15" : "bg-teal-300"
-              }`}
-            />
-          ))}
-          <span className="ml-0.5 font-mono font-black text-white/85">{garden.strokesLeft}</span>
-        </div>
-        {(noSafeLine || suggestSwap) && garden.weedOutsLeft > 0 && (
-          <span className="text-[11px] font-semibold text-lime-200/90">
-            {noSafeLine ? "No safe line — try Swap below" : "Tough board — Swap can help"}
-          </span>
-        )}
-      </div>
-      )}
-
 
       {weedOutActive && (
         <div className="flex items-center gap-1.5 h-8">
