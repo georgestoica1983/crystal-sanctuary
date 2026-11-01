@@ -46,7 +46,7 @@ Rule: anything random is visible before you commit — no hidden chances, no pai
 - [x] 2. Balatro-style scoring: tiles light up along the path (rising notes into Value/Length), then relics in order (flat, then ×), a 150 ms pause before each ×, total settles. Faster on long lines, tap to skip, Speed ×1/×2/×4.
 - [x] 3. "On fire" glow when the line beats what the bed needs (grows at ×2/×5); big-number format (12.4K, 3.1M, 1.2e15).
 - [x] 4. Living board (pitch variety kept to ±0.5% on notes so they stay in key; ±3% on noise sounds): idle tiles sway + note on touch, tiles tilt toward the finger, spring motion, Thorns squash/stretch/bloom, ±3% pitch variety.
-- [ ] 5. "The garden rests" end screen: harvest summary, no failure wording.
+- [x] 5. "The garden rests" end screen: harvest summary, no failure wording.
 
 **B — Run depth (one rules version each, bots first)**
 - [ ] 6. Fertilizer (Planet cards): level a tile type for the Run (Thorn +4 Value, Acorn +3 Value & +1 Seed, Berry +2 Value & +1 Life, Spike +3 Value / +1 Length dodged, Shears +5 per cut, Gloves +3), "Lv" leaf on tiles.

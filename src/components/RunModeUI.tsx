@@ -610,35 +610,25 @@ export interface RunOverInfo {
   isNewBest: boolean;
   /** Ascension level of this Garden Run */
   asc?: number;
+  /** The Run's best single line */
+  bestLine?: { points: number; tiles: number } | null;
+  /** Relics gathered this Run, and which were found for the first time ever */
+  relics?: RelicId[];
+  newRelics?: RelicId[];
 }
 
-const REASON_COPY: Record<RunEndReason, { title: string; body: string; icon: string }> = {
-  MISSED_TARGET: {
-    icon: "🥀",
-    title: "Target missed",
-    body: "Your last line didn't reach this garden's target.",
-  },
-  NO_SAFE_LINE: {
-    icon: "🪨",
-    title: "No safe line",
-    body: "Your Life can't carry the Companion to the Exit on this board, and no Swaps are left.",
-  },
-  WILTED: {
-    icon: "💫",
-    title: "Out of Life",
-    body: "Your Companion ran out of Life on that line.",
-  },
-  ENDED: {
-    icon: "🌙",
-    title: "Garden Run ended",
-    body: "You ended this Garden Run early.",
-  },
+/** Why the garden rests: said gently, never as a failure */
+const REST_COPY: Record<RunEndReason, string> = {
+  MISSED_TARGET: "This bed wanted a few more points.",
+  NO_SAFE_LINE: "No path was left through this bed — it will grow back next time.",
+  WILTED: "Your companion gave everything on that line and is resting now.",
+  ENDED: "You let the garden rest for now.",
 };
 
 /** Run summary: how far the run reached and the best record on this device */
 export function RunOverModal({
   info,
-  newRunLabel = "New Garden Run",
+  newRunLabel = "Plant another Run",
   rankLine,
   onOpenLeaderboard,
   onNewRun,
@@ -652,7 +642,6 @@ export function RunOverModal({
   onClose: () => void;
 }) {
   if (!info) return null;
-  const copy = REASON_COPY[info.reason];
   // What the next Run can earn: the nearest star unlock
   const progress = loadUnlockProgress();
   const next = getNextStarUnlocks(progress);
@@ -660,93 +649,138 @@ export function RunOverModal({
     ? { stars: next.stars, have: progress.stars, text: next.items.map((u) => `${u.icon} ${u.name}`).join(" · ") }
     : null;
   const shortBy = Math.max(0, info.target - info.gardenScore);
-  const body =
+  const why =
     info.reason === "MISSED_TARGET"
       ? shortBy <= info.target * 0.35
-        ? `So close — just ${fmt(shortBy)} points short. One longer line would have made it.`
-        : `${fmt(shortBy)} points short. Longer lines multiply your score — and score relics from the Shop push it further.`
-      : copy.body;
+        ? `So close — this bed wanted just ${fmt(shortBy)} more.`
+        : `This bed wanted ${fmt(shortBy)} more. Longer lines and score relics grow fast.`
+      : REST_COPY[info.reason];
+  const relicCounts = new Map<RelicId, number>();
+  for (const r of info.relics ?? []) relicCounts.set(r, (relicCounts.get(r) ?? 0) + 1);
+  const newSet = new Set(info.newRelics ?? []);
+  const harvest: Array<{ label: string; value: React.ReactNode; tone?: string }> = [
+    { label: "Beds bloomed", value: info.gardensCleared, tone: "text-emerald-200" },
+    ...(info.bestLine && info.bestLine.points > 0
+      ? [{ label: "Best line", value: `${fmt(info.bestLine.points)} · ${info.bestLine.tiles} tiles`, tone: "text-amber-200" }]
+      : []),
+    { label: "Run score", value: fmt(info.runScore), tone: "text-amber-200" },
+  ];
   return artify(
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3">
+    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3">
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 200, damping: 22 }}
         className="w-full max-w-[380px] rounded-2xl p-4 space-y-3 text-white border border-white/[0.08] bg-[#1A271E]"
       >
         <div className="text-center">
-          <div className="text-3xl">{copy.icon}</div>
-          <div className="text-xl font-black text-rose-100">{copy.title}</div>
-          <p className="text-[13px] text-rose-100/85 leading-snug mt-1">{body}</p>
+          <motion.img
+            src={BLOOM_ART}
+            alt=""
+            aria-hidden="true"
+            draggable={false}
+            initial={{ scale: 0.6, rotate: -20, opacity: 0 }}
+            animate={{ scale: 1, rotate: 0, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 180, damping: 12, delay: 0.1 }}
+            className="mx-auto h-12 w-12 object-contain"
+          />
+          <div className="mt-1 text-[22px] font-display font-semibold text-amber-100">The garden rests</div>
+          <p className="text-[13px] text-white/70 leading-snug mt-1">{why}</p>
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-white/[0.04] p-2.5 space-y-1 text-[12px]">
-          <div className="flex justify-between">
-            <span className="text-zinc-300">Reached</span>
-            <span className="font-black text-emerald-200">
+        <div className="rounded-xl border border-white/10 bg-white/[0.04] p-2.5 space-y-1.5 text-[12.5px]">
+          <div className="text-[11px] font-semibold text-white/45">Your harvest</div>
+          {harvest.map((h, i) => (
+            <motion.div
+              key={h.label}
+              initial={{ opacity: 0, x: -8 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.25 + i * 0.12 }}
+              className="flex justify-between"
+            >
+              <span className="text-white/65">{h.label}</span>
+              <span className={`font-black tabular-nums ${h.tone ?? ""}`}>{h.value}</span>
+            </motion.div>
+          ))}
+          <div className="flex justify-between text-white/50 text-[11.5px]">
+            <span>Reached</span>
+            <span>
               {getRunGardenLabel(info.gardenIndex)}
               {!!info.asc && <span className="ml-1 text-orange-200">· 🔥A{info.asc}</span>}
             </span>
           </div>
-          {info.reason !== "ENDED" && (
-            <div className="flex justify-between">
-              <span className="text-zinc-300">This Garden Bed</span>
-              <span className="font-black">
-                {fmt(info.gardenScore)} / {fmt(info.target)}
-              </span>
+          {relicCounts.size > 0 && (
+            <div className="pt-1">
+              <div className="text-[11px] text-white/45 mb-1">
+                Relics gathered{newSet.size > 0 ? ` · ${newSet.size} found for the first time` : ""}
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {Array.from(relicCounts.entries()).map(([id, count], i) => (
+                  <motion.span
+                    key={id}
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 14, delay: 0.5 + i * 0.07 }}
+                    className={`relative h-9 w-9 rounded-lg flex items-center justify-center border ${
+                      newSet.has(id) ? "border-amber-300/70 bg-amber-400/10" : "border-white/10 bg-white/[0.04]"
+                    }`}
+                    title={RELIC_REGISTRY[id]?.name}
+                  >
+                    <RelicIcon id={id} size={26} />
+                    {count > 1 && <span className="absolute -bottom-1 -right-1 text-[9px] font-black text-teal-200">×{count}</span>}
+                    {newSet.has(id) && (
+                      <span className="absolute -top-1.5 -right-1.5 rounded-full bg-amber-300 px-1 text-[8px] font-black text-slate-950">
+                        NEW
+                      </span>
+                    )}
+                  </motion.span>
+                ))}
+              </div>
             </div>
           )}
-          <div className="flex justify-between">
-            <span className="text-zinc-300">Garden Beds cleared</span>
-            <span className="font-black">{info.gardensCleared}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="text-zinc-300">Garden Run score</span>
-            <span className="font-black text-amber-200">{fmt(info.runScore)}</span>
-          </div>
         </div>
 
         <div
           className={`rounded-xl px-3 py-2 text-center text-[12.5px] ${
             info.isNewBest
               ? "border-2 border-amber-300 bg-amber-400/15 text-amber-100 font-black"
-              : "border border-white/10 bg-white/5 text-zinc-300"
+              : "border border-white/10 bg-white/5 text-white/65"
           }`}
         >
-          {info.isNewBest ? "✨ New best Garden Run! " : "Best Garden Run: "}
+          {info.isNewBest ? "✨ Your best Garden Run yet! " : "Best Garden Run: "}
           {getRunGardenLabel(info.best.gardenIndex)}
         </div>
         {nextUnlock && (
           <div className="text-center text-[12px] text-white/60 -mt-1">
-            ⭐ {nextUnlock.have} · next unlock: <span className="font-semibold text-white/85">{nextUnlock.text}</span> in{" "}
+            ⭐ {nextUnlock.have} · next: <span className="font-semibold text-white/85">{nextUnlock.text}</span> in{" "}
             {nextUnlock.stars - nextUnlock.have} ⭐
           </div>
         )}
 
-        {onOpenLeaderboard && (
-          <button
-            type="button"
-            onClick={onOpenLeaderboard}
-            className="w-full rounded-xl px-3 py-2.5 text-[13px] font-semibold border border-amber-300/50 bg-amber-400/10 text-amber-100"
-          >
-            {rankLine ?? "🏆 See the leaderboard"}
-          </button>
-        )}
-
-        <div className="grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={onNewRun}
+          className="w-full py-3 rounded-xl bg-teal-300 text-slate-950 text-[15px] font-bold active:scale-[0.98] transition"
+        >
+          {newRunLabel}
+        </button>
+        <div className={`grid ${onOpenLeaderboard ? "grid-cols-2" : "grid-cols-1"} gap-2`}>
           <button
             type="button"
             onClick={onClose}
-            className="py-3 rounded-xl bg-white/[0.06] border border-white/15 text-white/90 text-[13px] font-semibold"
+            className="py-2.5 rounded-xl bg-white/[0.05] border border-white/10 text-white/80 text-[13px] font-semibold"
           >
-            Look at board
+            Look at the board
           </button>
-          <button
-            type="button"
-            onClick={onNewRun}
-            className="py-3 rounded-xl bg-teal-300 text-slate-950 text-[14px] font-bold"
-          >
-            {newRunLabel}
-          </button>
+          {onOpenLeaderboard && (
+            <button
+              type="button"
+              onClick={onOpenLeaderboard}
+              className="py-2.5 rounded-xl px-2 text-[12.5px] font-semibold border border-amber-300/40 bg-amber-400/10 text-amber-100 truncate"
+            >
+              {rankLine ? rankLine.replace("🏆 Leaderboard: ", "🏆 ") : "🏆 Leaderboard"}
+            </button>
+          )}
         </div>
       </motion.div>
     </div>

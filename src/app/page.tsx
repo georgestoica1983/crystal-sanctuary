@@ -229,6 +229,30 @@ const WALKTHROUGH_SKIPPED_KEY = "ost_walkthrough_skipped_v1";
 const THORN_TIP_SEEN_KEY = "ost_thorn_tip_seen_v1";
 /** After this many full score screens, lines 1–3 of a bed show a small card instead */
 const FULL_TALLIES_SEEN_KEY = "ost_full_tallies_seen_v1";
+const RELICS_FOUND_KEY = "ost_relics_found_v1";
+
+/** The highest-scoring line of a Run */
+function bestLineOf(history: FloorHistoryRecord[]): { points: number; tiles: number } | null {
+  let best: { points: number; tiles: number } | null = null;
+  for (const h of history) {
+    const points = h.floorScore ?? 0;
+    if (points > (best?.points ?? 0)) best = { points, tiles: Math.max(0, h.path.length - 1) };
+  }
+  return best;
+}
+
+/** Adds this Run's relics to the ones ever found on this device; returns the first-time finds */
+function rememberFoundRelics(relics: RelicId[]): RelicId[] {
+  try {
+    const found = new Set<string>(JSON.parse(window.localStorage.getItem(RELICS_FOUND_KEY) ?? "[]"));
+    const fresh = Array.from(new Set(relics)).filter((r) => !found.has(r));
+    fresh.forEach((r) => found.add(r));
+    window.localStorage.setItem(RELICS_FOUND_KEY, JSON.stringify(Array.from(found)));
+    return fresh;
+  } catch {
+    return [];
+  }
+}
 const SHOP_INTRO_SEEN_KEY = "ost_shop_intro_seen_v1";
 const LAST_OPEN_KEY = "ost_last_open_v1";
 const FULL_TALLIES_BEFORE_COMPACT = 3;
@@ -1714,6 +1738,9 @@ export default function OneStrokeTacticianPage() {
       best: record,
       isNewBest: isNew,
       asc: practiceStep ? 0 : runLogRef.current?.asc ?? 0,
+      bestLine: bestLineOf(history),
+      relics: activeRelics,
+      newRelics: practiceStep ? [] : rememberFoundRelics(activeRelics),
     });
     setRunNoSafeLine(false);
     setWeedOutMode(false);
