@@ -501,6 +501,9 @@ interface TopHUDProps {
   bagPanel?: React.ReactNode;
   /** Tiles left in the Tile Bag (menu label) */
   bagCount?: number;
+  /** My Garden: open it, and how many plants it has */
+  onOpenGarden?: () => void;
+  gardenCount?: number;
   /** Garden upgrades owned (rules v18+), listed in the menu */
   gardenUpgradeList?: Array<{ icon: string; name: string; text: string }>;
   /** How fast a line's scoring plays (×1, ×2, ×4) */
@@ -568,6 +571,8 @@ export function TopHUD({
   scoreSpeed = 1,
   onCycleScoreSpeed,
   gardenUpgradeList = [],
+  onOpenGarden,
+  gardenCount = 0,
   flashRelics = [],
   relicSets = false,
   isDailyCompanionLocked = false,
@@ -904,6 +909,14 @@ export function TopHUD({
               )}
 
               <div className="space-y-0.5">
+                {onOpenGarden && (
+                  <button type="button" className={menuRow} onClick={() => { setShowRunMenu(false); onOpenGarden(); }}>
+                    <span className="w-6 text-center" aria-hidden="true">🌷</span> My Garden
+                    <span className="ml-auto text-[12px] text-white/50">
+                      {gardenCount} {gardenCount === 1 ? "plant" : "plants"}
+                    </span>
+                  </button>
+                )}
                 {bagPanel && (
                   <>
                     <button type="button" className={menuRow} onClick={() => setShowBag((v) => !v)} aria-expanded={showBag}>

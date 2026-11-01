@@ -163,3 +163,37 @@ export function plantLabel(p: Plant): string {
   const icon = p.kind === "SEASON" ? "🌳" : p.kind === "BOSS" ? "🌺" : p.kind === "SET" ? "💮" : "🌷";
   return `${icon} ${p.golden ? "golden " : ""}${p.species}`;
 }
+
+/** After this long away the garden looks sleepy (it never wilts or loses anything) */
+export const SLEEPY_AFTER_MS = 3 * 24 * 60 * 60 * 1000;
+
+/** Opening the garden: was it sleepy, and remember this visit */
+export function visitMyGarden(now = Date.now()): { garden: MyGarden; wasSleepy: boolean } {
+  const garden = loadMyGarden();
+  const wasSleepy = garden.plants.length > 0 && garden.lastVisit !== undefined && now - garden.lastVisit > SLEEPY_AFTER_MS;
+  saveMyGarden({ ...garden, lastVisit: now });
+  return { garden, wasSleepy };
+}
+
+/** Decorations that appear as the garden grows */
+export const GARDEN_MILESTONES: Array<{ at: number; name: string; icon: string }> = [
+  { at: 10, name: "a bench", icon: "🪑" },
+  { at: 25, name: "a pond", icon: "💧" },
+  { at: 50, name: "lanterns", icon: "🏮" },
+  { at: 100, name: "a flower arch", icon: "🌸" },
+];
+
+/** A stable spot for a plant (0–1 across, 0–1 deep), so the garden looks the same every visit */
+export function plantSpot(id: string): { x: number; y: number } {
+  let h = 2166136261;
+  for (let i = 0; i < id.length; i++) h = Math.imul(h ^ id.charCodeAt(i), 16777619);
+  const a = ((h >>> 0) % 10000) / 10000;
+  const b = (((h >>> 0) / 10000) % 10000) / 10000;
+  return { x: 0.06 + a * 0.88, y: 0.08 + (b % 1) * 0.84 };
+}
+
+/** "3 days ago", "today" */
+export function plantedAgo(at: number, now = Date.now()): string {
+  const days = Math.floor((now - at) / (24 * 60 * 60 * 1000));
+  return days <= 0 ? "today" : days === 1 ? "yesterday" : `${days} days ago`;
+}

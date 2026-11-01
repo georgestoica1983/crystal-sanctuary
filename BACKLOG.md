@@ -62,7 +62,7 @@ Rule: anything random is visible before you commit — no hidden chances, no pai
 
 **C — come back (no rules change)**
 - [x] 15a+c. My Garden, earning and planting (src/lib/myGarden.ts): every cleared bed plants a flower (golden with 3 ⭐), a Boss a rare one, a full Season a tree, a first-ever relic set a special flower; saved on the phone, never lost; shown on the bed-cleared screen and flying into "Planted in your garden" on the end screen.
-- [ ] 15b. My Garden screen: calm full-screen garden from the menu and end screen, touch flowers for their story, milestones (bench 10, pond 25, lanterns 50, arch 100), sleepy after 3+ days away.
+- [x] 15b. My Garden screen (☰ → My Garden, and 'Visit your garden' on the end screen): calm scene with depth, swaying flowers and pollen, touch a flower for its story, milestones (bench 10, pond 25, lanterns 50, arch 100), opens sleepy after 3+ days away and wakes with a chime. Placeholder art: tinted blooms and emoji decorations.
 - [ ] 15d. Garden art (Gemini sheet): 12 flowers, 4 decorations, ground.
 - [ ] 16. Garden Journal: relics, Fertilizers, tools, Editions, Bosses, sets, companions; empty slots show their unlock goal.
 - [ ] 17. Music grows: each completed set adds a permanent music layer.

@@ -690,6 +690,7 @@ export function RunOverModal({
   onOpenLeaderboard,
   onNewRun,
   onClose,
+  onOpenGarden,
 }: {
   info: RunOverInfo | null;
   newRunLabel?: string;
@@ -697,6 +698,8 @@ export function RunOverModal({
   onOpenLeaderboard?: () => void;
   onNewRun: () => void;
   onClose: () => void;
+  /** Opens My Garden */
+  onOpenGarden?: () => void;
 }) {
   if (!info) return null;
   // What the next Run can earn: the nearest star unlock
@@ -824,6 +827,15 @@ export function RunOverModal({
                 );
               })}
             </div>
+            {onOpenGarden && (
+              <button
+                type="button"
+                onClick={onOpenGarden}
+                className="mt-2 w-full h-9 rounded-lg border border-emerald-300/40 bg-emerald-400/10 text-[13px] font-semibold text-emerald-100 active:scale-[0.98]"
+              >
+                🌷 Visit your garden
+              </button>
+            )}
             {info.garden.intro && (
               <div className="mt-1.5 text-[11.5px] leading-snug text-white/65">
                 Your garden keeps everything you grow — every Run adds to it, and nothing is ever lost.

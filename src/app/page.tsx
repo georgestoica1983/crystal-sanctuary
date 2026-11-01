@@ -114,6 +114,7 @@ import {
 } from "@/components/Modals";
 import ShopModal from "@/components/ShopModal";
 import ScoreTally from "@/components/ScoreTally";
+import MyGardenScreen from "@/components/MyGardenScreen";
 import { loadMyGarden, plantForBed, plantForSet, plantLabel, plantsFromRun, takeGardenIntro } from "@/lib/myGarden";
 import { formatScore } from "@/lib/formatScore";
 import LineScoreShow, { echoValues, lineShowTimeline, lineStepMs, loadScoreSpeed, saveScoreSpeed, ScoreSpeed, stepValues } from "@/components/LineScoreShow";
@@ -346,6 +347,7 @@ export default function OneStrokeTacticianPage() {
   /** Rules v17+: a Relic Tag's free Rare relic waits for the next Shop */
   const [freeRelicNext, setFreeRelicNext] = useState(false);
   const [skipOpen, setSkipOpen] = useState(false);
+  const [gardenOpen, setGardenOpen] = useState(false);
   /** Rules v18+: garden upgrades owned, and the Seasons one was bought in */
   const [gardenUpgrades, setGardenUpgrades] = useState<GardenUpgradeId[]>([]);
   const [upgradeSeasons, setUpgradeSeasons] = useState<number[]>([]);
@@ -3437,6 +3439,8 @@ export default function OneStrokeTacticianPage() {
         bagCount={runGarden?.drawPile.length}
         scoreSpeed={scoreSpeed}
         gardenUpgradeList={gardenUpgrades.map((id) => GARDEN_UPGRADES[id])}
+        onOpenGarden={RUN_ONLY ? () => setGardenOpen(true) : undefined}
+        gardenCount={gardenOpen ? 0 : loadMyGarden().plants.length}
         onCycleScoreSpeed={() => {
           const next: ScoreSpeed = scoreSpeed === 1 ? 2 : scoreSpeed === 2 ? 4 : 1;
           saveScoreSpeed(next);
@@ -4454,7 +4458,10 @@ export default function OneStrokeTacticianPage() {
           practiceStep ? startRun(undefined, undefined, { practice: true }) : requestNewRun()
         }
         onClose={() => setRunOver(null)}
+        onOpenGarden={practiceStep ? undefined : () => setGardenOpen(true)}
       />
+
+      <MyGardenScreen open={gardenOpen} onClose={() => setGardenOpen(false)} />
 
       {/* Victory / Defeat Summary + Wordle Share Card Modal */}
       <RunSummaryModal
