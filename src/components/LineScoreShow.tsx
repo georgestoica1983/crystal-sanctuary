@@ -267,22 +267,22 @@ export default function LineScoreShow({
       onClick={onSkip}
       role="status"
       aria-label={`Line score ${breakdown.total.toLocaleString()}`}
-      className={`absolute inset-0 z-40 rounded-xl border bg-[#1A271E] px-3 flex flex-col justify-center cursor-pointer transition-[box-shadow,border-color] duration-500 ${
+      className={`absolute inset-0 z-40 overflow-hidden rounded-xl border bg-[#1A271E] px-3 flex flex-col justify-center cursor-pointer transition-[box-shadow,border-color] duration-500 ${
         fire > 0 ? "border-amber-300/70" : "border-amber-300/30"
       }`}
       style={fire > 0 ? { boxShadow: `inset 0 0 18px rgba(252,211,77,${0.06 * fire}), ${FIRE_GLOW[fire]}` } : undefined}
     >
       {fire > 0 && <Petals level={fire} />}
       <div className="flex items-center gap-1.5 min-w-0">
-        <div className="flex flex-col items-center min-w-[52px]">
-          <span className="text-[9.5px] font-semibold uppercase tracking-wide text-sky-300/70">Value</span>
+        <div className="flex flex-col items-center min-w-[40px]">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-sky-300/80">Value</span>
           <motion.span key={`v${pulse?.box === "value" ? pulse.key : 0}`} animate={pop("value")} className="text-[22px] font-display font-semibold tabular-nums leading-none text-sky-100">
             {fmt(value)}
           </motion.span>
         </div>
         <span className="text-white/35 font-black">×</span>
-        <div className="flex flex-col items-center min-w-[44px]">
-          <span className="text-[9.5px] font-semibold uppercase tracking-wide text-emerald-300/70">Length</span>
+        <div className="flex flex-col items-center min-w-[36px]">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-emerald-300/80">Length</span>
           <motion.span key={`l${pulse?.box === "length" ? pulse.key : 0}`} animate={pop("length")} className="text-[22px] font-display font-semibold tabular-nums leading-none text-emerald-100">
             {fmt(length)}
           </motion.span>
@@ -293,7 +293,7 @@ export default function LineScoreShow({
             initial={{ scale: 1.6, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 420, damping: 16 }}
-            className="text-[18px] font-display font-semibold tabular-nums text-fuchsia-200"
+            className="shrink-0 whitespace-nowrap text-[17px] font-display font-semibold tabular-nums text-fuchsia-200"
           >
             ×{Math.round(xMult * 100) / 100}
           </motion.span>
@@ -305,7 +305,7 @@ export default function LineScoreShow({
               initial={{ scale: 1.7, opacity: 0, y: -4 }}
               animate={{ scale: [1.7, 0.92, 1], opacity: 1, y: 0 }}
               transition={{ duration: 0.45 }}
-              className="text-[30px] font-display font-semibold tabular-nums leading-none text-amber-200"
+              className="shrink-0 whitespace-nowrap text-[28px] font-display font-semibold tabular-nums leading-none text-amber-200"
               style={fire > 0 ? { textShadow: FIRE_GLOW[fire] } : undefined}
             >
               {fmt(total)}

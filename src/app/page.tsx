@@ -3614,13 +3614,31 @@ export default function OneStrokeTacticianPage() {
                       : null
                   }
                 />
-            {meterBusy && (
-              <div className="absolute inset-x-0 bottom-0 z-30 rounded-xl bg-[#1c2a20]">{meterInner}</div>
-            )}
             </div>
           ) : null
         }
         runCardBoss={mode === "RUN" && runGarden?.kind === "BOSS"}
+        runCardOverlay={
+          meterBusy && runGarden && !lesson ? (
+            <>
+              {/* What the card hides while scoring, in one slim row */}
+              <div className="flex items-center gap-2 px-1 text-[13px] text-white/75 whitespace-nowrap overflow-hidden">
+                <span>
+                  ❤️ <b className="text-white">{floorStartHero.hp}</b>
+                  <span className="text-white/50">/{floorStartHero.maxHp}</span>
+                </span>
+                <span className="truncate text-white/60">
+                  · Season {runGarden.season} · {runGarden.kind === "BOSS" ? "Boss bed" : runGarden.kind === "BIG" ? "Big bed" : "Small bed"}
+                </span>
+                <span className="ml-auto shrink-0">
+                  <b className="text-white">{runGarden.strokesLeft}</b> {runGarden.strokesLeft === 1 ? "line" : "lines"} left
+                </span>
+              </div>
+              {/* The meter takes the card's remaining height exactly (no fixed 78px here) */}
+              <div className="relative mt-1 min-h-0 flex-1 [&>[aria-live=polite]]:!h-full [&>[aria-live=polite]]:!py-1">{meterInner}</div>
+            </>
+          ) : null
+        }
         mode={mode}
         runOnly={RUN_ONLY}
         totalStars={totalStars}
@@ -3950,7 +3968,9 @@ export default function OneStrokeTacticianPage() {
           )}
           {meterOn && !lesson && (
             <p className="ui-zoom w-full max-w-game text-center text-[14px] leading-snug text-amber-200/90 min-h-[20px]">
-              {runNoSafeLine
+              {phase === "RESOLVING"
+                ? "Tap the board to skip ⏩"
+                : runNoSafeLine
                 ? "No safe line on this board. 🌿 Swap can change up to 3 tiles."
                 : swapSuggested
                 ? "Tough board. Try 🌿 Swap to change up to 3 tiles."
@@ -4165,13 +4185,6 @@ export default function OneStrokeTacticianPage() {
               </div>
             )}
 
-            {phase === "RESOLVING" && mode === "RUN" && !lesson && (
-              <div className="pointer-events-none absolute bottom-2 inset-x-0 z-40 flex justify-center">
-                <span className="rounded-full bg-black/60 px-2.5 py-1 text-[11px] font-semibold text-white/75">
-                  Tap to skip ⏩
-                </span>
-              </div>
-            )}
 
 
             {/* Run notices float over the board so nothing below it moves */}

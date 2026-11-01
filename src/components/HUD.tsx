@@ -479,6 +479,8 @@ interface TopHUDProps {
   runCard?: React.ReactNode;
   /** The card's border turns rose on a Boss bed */
   runCardBoss?: boolean;
+  /** Garden Run: the live score, shown in place of the whole card while a line is drawn or scored */
+  runCardOverlay?: React.ReactNode;
   mode: GameMode;
   /** Hides the mode tabs and Daily-only bits (the app is Run-only) */
   runOnly?: boolean;
@@ -570,6 +572,7 @@ interface TopHUDProps {
 export function TopHUD({
   runCard = null,
   runCardBoss = false,
+  runCardOverlay = null,
   mode,
   runOnly = false,
   totalStars,
@@ -757,7 +760,7 @@ export function TopHUD({
       <div
         className={`w-full max-w-game mx-auto select-none ${
           runCard
-            ? `ui-zoom rounded-xl border px-2 pb-2 bg-white/[0.04] ${runCardBoss ? "border-rose-300/40" : "border-white/[0.07]"}`
+            ? `ui-zoom relative rounded-xl border px-2 pb-2 bg-white/[0.04] ${runCardBoss ? "border-rose-300/40" : "border-white/[0.07]"}`
             : ""
         }`}
       >
@@ -878,6 +881,10 @@ export function TopHUD({
         </div>
 
         {runCard}
+        {runCard && runCardOverlay && (
+          // Score mode: covers the card exactly (same size and corners), so nothing spills out
+          <div className="absolute inset-0 z-30 rounded-xl bg-[#1c2a20] px-2 pt-1.5 pb-2 flex flex-col">{runCardOverlay}</div>
+        )}
 
         {showRunMenu && (
           <div
