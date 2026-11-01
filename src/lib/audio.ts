@@ -424,7 +424,7 @@ class SoundAndHapticsEngine {
 
     const filter = ctx.createBiquadFilter();
     filter.type = options.filterType;
-    filter.frequency.setValueAtTime(options.filterFreq, now);
+    filter.frequency.setValueAtTime(options.filterFreq * (0.97 + Math.random() * 0.06), now);
     filter.Q.setValueAtTime(options.q ?? 1.5, now);
 
     const gain = ctx.createGain();
@@ -443,8 +443,16 @@ class SoundAndHapticsEngine {
   // ── Voices: every effect is built from these, all in the garden key ───────
 
   /** Kalimba tine: a warm fundamental, a soft octave and a quick bright "ping" */
-  private pluck(freq: number, opts: { delay?: number; gain?: number; decay?: number } = {}): void {
-    const gain = opts.gain ?? 0.12;
+  /**
+   * A touch of life in repeated sounds: tonal voices drift ±0.5% in pitch (in
+   * tune with the garden key) and ±10% in loudness, so the 500th pluck never grates
+   */
+  private vary(freq: number, gain: number): [number, number] {
+    return [freq * (1 + (Math.random() - 0.5) * 0.01), gain * (0.9 + Math.random() * 0.2)];
+  }
+
+  private pluck(baseFreq: number, opts: { delay?: number; gain?: number; decay?: number } = {}): void {
+    const [freq, gain] = this.vary(baseFreq, opts.gain ?? 0.12);
     const decay = opts.decay ?? 0.7;
     const delay = opts.delay ?? 0;
     this.playTone({ type: "sine", freqStart: freq, duration: decay, gainPeak: gain, delay, attack: 0.004 });
@@ -453,8 +461,8 @@ class SoundAndHapticsEngine {
   }
 
   /** Soft bell: slow decay with gentle inharmonic shimmer */
-  private bell(freq: number, opts: { delay?: number; gain?: number } = {}): void {
-    const gain = opts.gain ?? 0.08;
+  private bell(baseFreq: number, opts: { delay?: number; gain?: number } = {}): void {
+    const [freq, gain] = this.vary(baseFreq, opts.gain ?? 0.08);
     const delay = opts.delay ?? 0;
     this.playTone({ type: "sine", freqStart: freq, duration: 1.6, gainPeak: gain, delay, attack: 0.006 });
     this.playTone({ type: "sine", freqStart: freq * 2.76, duration: 0.7, gainPeak: gain * 0.3, delay, attack: 0.004 });
@@ -462,8 +470,8 @@ class SoundAndHapticsEngine {
   }
 
   /** Hollow wood-block tap */
-  private wood(freq: number, opts: { delay?: number; gain?: number } = {}): void {
-    const gain = opts.gain ?? 0.12;
+  private wood(baseFreq: number, opts: { delay?: number; gain?: number } = {}): void {
+    const [freq, gain] = this.vary(baseFreq, opts.gain ?? 0.12);
     const delay = opts.delay ?? 0;
     this.playTone({ type: "sine", freqStart: freq * 1.15, freqEnd: freq, duration: 0.12, gainPeak: gain, delay, attack: 0.002 });
     this.playNoiseBurst({ duration: 0.025, gainPeak: gain * 0.35, filterFreq: freq * 3, filterType: "bandpass", q: 4, delay });
@@ -534,6 +542,11 @@ class SoundAndHapticsEngine {
   }
 
   // ── The line plays out ────────────────────────────────────────────────────
+
+  /** Touching or brushing an idle tile: a soft high pluck, climbing across the board */
+  public playTilePoke(step: number): void {
+    this.pluck(gardenNote(5 + Math.max(0, Math.min(step, 9)), 2), { gain: 0.035, decay: 0.28 });
+  }
 
   /** Each tile the line passes as it plays out */
   public playStepPulse(stepIndex: number): void {

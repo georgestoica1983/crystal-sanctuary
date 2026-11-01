@@ -92,6 +92,14 @@ export default function GridCanvas({
     null
   );
   const [inspectedCoord, setInspectedCoord] = useState<GridCoord | null>(null);
+  // Living board: touching or brushing a tile (not drawing) sways it with a note
+  const [pokes, setPokes] = useState<Record<string, { n: number; dir: number }>>({});
+  const brushRef = useRef<{ key: string; x: number } | null>(null);
+  const pokeTile = useCallback((coord: GridCoord, dir: number, note: number) => {
+    const k = `${coord.row},${coord.col}`;
+    setPokes((p) => ({ ...p, [k]: { n: (p[k]?.n ?? 0) + 1, dir } }));
+    soundEngine.playTilePoke(note);
+  }, []);
 
   const isSanctuary = (cosmetics?.visualTheme ?? "SANCTUARY") === "SANCTUARY";
   const companionDef =
@@ -409,7 +417,9 @@ export default function GridCanvas({
         setInspectedCoord((prev) =>
           prev && isSameCoord(prev, coord) ? null : coord
         );
-        soundEngine.playSwipeTick(0, false);
+        // …and the tile sways with a soft note; sliding on brushes more tiles
+        pokeTile(coord, 1, 4 - coord.row + coord.col);
+        brushRef.current = { key: `${coord.row},${coord.col}`, x: e.clientX };
       }
     },
     [
@@ -423,11 +433,23 @@ export default function GridCanvas({
       onPathChange,
       onSkipPlayback,
       extendTo,
+      pokeTile,
     ]
   );
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!isDragging && brushRef.current && !isResolving) {
+        // Brushing idle tiles: each new tile sways toward the finger's way, notes climb
+        const { coord } = getCellFromClientXY(e.clientX, e.clientY, false);
+        const k = coord ? `${coord.row},${coord.col}` : null;
+        if (coord && k !== brushRef.current.key && grid[coord.row]?.[coord.col]?.type !== "VOID") {
+          setInspectedCoord(null);
+          pokeTile(coord, e.clientX >= brushRef.current.x ? 1 : -1, 4 - coord.row + coord.col);
+          brushRef.current = { key: k!, x: e.clientX };
+        }
+        return;
+      }
       if (!isDragging || isResolving) return;
       e.preventDefault();
       setInspectedCoord(null);
@@ -507,6 +529,7 @@ export default function GridCanvas({
   );
 
   const finishStroke = useCallback(() => {
+    brushRef.current = null;
     if (!isDragging) return;
     setIsDragging(false);
     setPointerPos(null);
@@ -945,20 +968,59 @@ export default function GridCanvas({
                         : "scale-100"
                     }`}
                   >
-                    <CellGeometricNode
-                      cell={cell}
-                      modifierId={modifierId}
-                      heroClassId={heroClassId}
-                      heroSymbol={activeEmblemSymbol}
-                      heroAccentColor={heroClassDef.accentColor}
-                      companionEmoji={isSanctuary && cosmetics?.companionId && cosmetics.companionId !== "CAT" ? companionDef.icon : undefined}
-                      isSanctuary={isSanctuary}
-                      isEnemyNeutralized={isEnemyNeutralized}
-                      isResolvedBloomed={isResolvedInPlayback && isSanctuary && !isThornHurt}
-                      isThornWilted={isSanctuary && isThornHurt}
-                      hideHero={isResolving && cell.type === "HERO"}
-                      isPortalReady={isExitCell && simulation.canCommit}
-                    />
+                    {(() => {
+                      const k = `${r},${c}`;
+                      const poke = pokes[k];
+                      // While drawing, tiles near the finger lean gently toward it
+                      let lean: React.CSSProperties | undefined;
+                      if (isDragging && pointerPos && !isVisited) {
+                        const dx = (pointerPos.x - (c + 0.5) * 100) / 100;
+                        const dy = (pointerPos.y - (r + 0.5) * 100) / 100;
+                        const d = Math.hypot(dx, dy);
+                        const k2 = Math.max(0, 1 - d / 1.8);
+                        if (d > 0.25 && k2 > 0) {
+                          lean = {
+                            transform: `perspective(240px) rotateX(${(-dy / d) * 9 * k2}deg) rotateY(${(dx / d) * 9 * k2}deg)`,
+                          };
+                        }
+                      }
+                      const bloomPop = cell.type === "ENEMY" && isEnemyNeutralized;
+                      return (
+                        <span className="living-lean w-full h-full flex items-center justify-center" style={lean}>
+                          <motion.span
+                            key={`${poke?.n ?? 0}-${isVisited ? "v" : "n"}-${bloomPop ? "b" : ""}`}
+                            initial={
+                              bloomPop
+                                ? { scaleX: 1.25, scaleY: 0.7, rotate: 0 }
+                                : isVisited
+                                ? { scale: 0.8, rotate: 0 }
+                                : poke
+                                ? { rotate: 11 * poke.dir, scale: 1.06 }
+                                : false
+                            }
+                            animate={{ scale: 1, scaleX: 1, scaleY: 1, rotate: 0 }}
+                            transition={{ type: "spring", stiffness: poke && !isVisited ? 260 : 520, damping: poke && !isVisited ? 7 : 13 }}
+                            className="w-full h-full flex items-center justify-center"
+                          >
+                        <CellGeometricNode
+                          cell={cell}
+                          modifierId={modifierId}
+                          heroClassId={heroClassId}
+                          heroSymbol={activeEmblemSymbol}
+                          heroAccentColor={heroClassDef.accentColor}
+                          companionEmoji={isSanctuary && cosmetics?.companionId && cosmetics.companionId !== "CAT" ? companionDef.icon : undefined}
+                          isSanctuary={isSanctuary}
+                          isEnemyNeutralized={isEnemyNeutralized}
+                          isResolvedBloomed={isResolvedInPlayback && isSanctuary && !isThornHurt}
+                          isThornWilted={isSanctuary && isThornHurt}
+                          hideHero={isResolving && cell.type === "HERO"}
+                          isPortalReady={isExitCell && simulation.canCommit}
+                        />
+                          </motion.span>
+                          {bloomPop && <PollenPuff />}
+                        </span>
+                      );
+                    })()}
                   </div>
 
                   {/* Drifting Combat Change-Indicators on Visited Cells */}
@@ -1546,6 +1608,26 @@ function calmPlateClass(t: {
  * Uniform 100x100 ViewBox Geometric / Crystal Sanctuary Entities with Strict 62% Scale & Crisp HTML Center Values
  */
 /** Board tile glyph: themed icon with its number in a small badge */
+/** A Thorn turning into a flower lets out a small puff of pollen */
+function PollenPuff() {
+  return (
+    <span aria-hidden="true" className="pointer-events-none absolute inset-0 flex items-center justify-center">
+      {Array.from({ length: 6 }, (_, i) => {
+        const a = (i / 6) * Math.PI * 2 + 0.4;
+        return (
+          <motion.span
+            key={i}
+            initial={{ opacity: 0.9, x: 0, y: 0, scale: 0.6 }}
+            animate={{ opacity: 0, x: Math.cos(a) * 22, y: Math.sin(a) * 22 - 6, scale: 1 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className="absolute h-[5px] w-[5px] rounded-full bg-amber-200/90"
+          />
+        );
+      })}
+    </span>
+  );
+}
+
 function TileIconWithValue({
   type,
   value,

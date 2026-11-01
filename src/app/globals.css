@@ -269,3 +269,12 @@ svg text,
   animation-iteration-count: 1 !important;
   scroll-behavior: auto !important;
 }
+
+/* Living board: tiles lean toward the finger while drawing */
+.living-lean {
+  transition: transform 140ms ease-out;
+  will-change: transform;
+}
+.reduce-motion .living-lean {
+  transform: none !important;
+}
