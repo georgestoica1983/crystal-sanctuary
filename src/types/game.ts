@@ -177,6 +177,8 @@ export interface ShopOffer {
 export interface ScoreSource {
   label: string;
   value: number;
+  /** An Echo tile's second count (the scoring show plays it on the tile itself) */
+  echo?: boolean;
   relicId?: RelicId;
   art?: string;
 }
@@ -330,13 +332,15 @@ export interface SeedTile {
   dew?: number;
   /** Special tile (rules v14+): a shimmer it was found or bought with */
   ed?: Edition;
+  /** Echo (rules v15+): the tile scores twice — its own layer, so it can sit with a tool upgrade */
+  echo?: boolean;
 }
 
 /** Special tiles (rules v14+), Bloomline's Editions */
 export type Edition = "GOLDEN" | "IRIDESCENT" | "RADIANT";
 
 /** One-use garden tools (rules v13+) that upgrade a tile in the Tile Bag for good */
-export type ToolId = "RICH_SOIL" | "LONG_ROOT" | "SUNLIT" | "DEW";
+export type ToolId = "RICH_SOIL" | "LONG_ROOT" | "SUNLIT" | "DEW" | "ECHO";
 
 /** Live state of the garden being played in Run mode */
 export interface RunGardenState {

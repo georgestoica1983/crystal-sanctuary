@@ -842,13 +842,19 @@ export default function GridCanvas({
                       </span>
                     </span>
                   )}
-                  {cell.bagTile?.enh && (
+                  {(cell.bagTile?.enh || cell.bagTile?.echo) && (
                     <span
-                      aria-label={`Upgraded: ${TOOL_MARKS[cell.bagTile.enh].label}`}
+                      aria-label={`Upgraded: ${[
+                        cell.bagTile.enh ? TOOL_MARKS[cell.bagTile.enh].label : null,
+                        cell.bagTile.echo ? TOOL_MARKS.ECHO.label : null,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}`}
                       className="tile-tag absolute bottom-0.5 left-0.5 z-20 flex items-center gap-px rounded-full bg-black/55 px-1 text-[10px] leading-[14px] text-amber-100 pointer-events-none select-none"
                     >
-                      {TOOL_MARKS[cell.bagTile.enh].icon}
+                      {cell.bagTile.enh && TOOL_MARKS[cell.bagTile.enh].icon}
                       {cell.bagTile.enh === "DEW" && <span className="text-[8.5px] font-black text-sky-200">{cell.bagTile.dew}</span>}
+                      {cell.bagTile.echo && TOOL_MARKS.ECHO.icon}
                     </span>
                   )}
                   {(tileLevels?.[cell.type] ?? 0) > 0 && (
@@ -1664,6 +1670,7 @@ const TOOL_MARKS: Record<string, { icon: string; label: string }> = {
   LONG_ROOT: { icon: "🌿", label: "Long Root, +2 Length" },
   SUNLIT: { icon: "☀️", label: "Sunlit, ×1.25" },
   DEW: { icon: "💧", label: "Dew, ×1.5" },
+  ECHO: { icon: "🔔", label: "Echo, scores twice" },
 };
 
 /** A Thorn turning into a flower lets out a small puff of pollen */

@@ -614,5 +614,38 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
   }
 }
 
+// 12. Echo (rules v15+): a tool that makes a tile score twice, on its own layer
+{
+  const before = generateShopOffers("echo-check", 1, 0, [], runFertilizerCost(14), runToolExtraCost(14), runEditionTileCost(14), false);
+  const after = generateShopOffers("echo-check", 1, 0, [], runFertilizerCost(15), runToolExtraCost(15), runEditionTileCost(15), true);
+  check("v15 keeps the v14 relic offers", before.filter((o) => o.kind === "RELIC").every((o) => after.some((p) => p.id === o.id)));
+  let echoShop = 0;
+  for (let f = 1; f < 60 && !echoShop; f++) {
+    if (generateShopOffers("echo-check", f, 0, [], 6, 0, 8, true).some((o) => o.tool === "ECHO")) echoShop = f;
+  }
+  check(`Echo shows up as a tool in v15 Shops (first at bed ${echoShop})`, echoShop > 0);
+
+  const r = createRunReplayer("echo-check", "KNIGHT", 15);
+  const best = searchBestFloorLine(r.state.grid, r.state.startHero, RUN_MODIFIER, "KNIGHT", [], 20000, {});
+  if (best) {
+    const cell = best.path.map((c) => r.state.grid[c.row][c.col]).find((c) => c.type === "ENEMY" || c.type === "GOLD")!;
+    const coord = { row: cell.row, col: cell.col };
+    const sun = applyGardenTool({ grid: r.state.grid, bag: r.state.bag, coord, tool: "RICH_SOIL" })!;
+    const both = applyGardenTool({ grid: sun.grid, bag: sun.bag, coord, tool: "ECHO" });
+    check("Echo can join a tile that already has a tool", Boolean(both) && both!.grid[coord.row][coord.col].bagTile?.echo === true);
+    check("a tile takes only one Echo", applyGardenTool({ grid: both!.grid, bag: both!.bag, coord, tool: "ECHO" }) === null);
+    const sim = (grid: typeof r.state.grid) =>
+      ({ ...best.sim, steps: best.sim.steps.map((st) => (st.cell.id === cell.id ? { ...st, cell: grid[coord.row][coord.col] } : st)) });
+    const plain = calculateFloorScoreBreakdown(sim(sun.grid), r.state.startHero, best.path.length, [], {});
+    const echoed = calculateFloorScoreBreakdown(sim(both!.grid), r.state.startHero, best.path.length, [], {});
+    check(
+      `Echo counts the tile's number and its Rich Soil again (+${cell.value} +20: ${plain.chips} → ${echoed.chips})`,
+      echoed.chips - plain.chips === cell.value + 20
+    );
+  }
+  const v14log = { v: 14, seed: "echo-check", hero: "KNIGHT" as const, a: [] as RunLogAction[] };
+  check("v14 logs still replay under the v15 code", replayRun(JSON.parse(JSON.stringify(v14log))).ok);
+}
+
 console.log(failures ? `\n${failures} check(s) failed` : "\nAll replay checks passed");
 process.exit(failures ? 1 : 0);

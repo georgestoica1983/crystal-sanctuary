@@ -273,7 +273,7 @@ function buildPages(): GuidePage[] {
               <>Clearing a Garden Bed pays 🌱 Seeds: {RUN_CLEAR_REWARD.SMALL}/{RUN_CLEAR_REWARD.BIG}/{RUN_CLEAR_REWARD.BOSS}, +1 per unused line, +1 per {RUN_INTEREST_STEP} 🌱 you&apos;ve saved (max +{RUN_INTEREST_MAX}).</>,
               <>In the Shop: buy relics and boosts, or reroll ({RUN_REROLL_BASE_COST} 🌱). You can hold {MAX_COMMON_RELICS} relics.</>,
               <>🌱 Fertilizer levels up one tile type for the whole Run: every one of those tiles on a line adds more Value. It stacks.</>,
-              <>☀️ Garden tools (hold 2): tap one under the board, then a tile. The upgrade stays on that tile in your bag for the whole Run.</>,
+              <>☀️ Garden tools (hold 2): tap one under the board, then a tile. The upgrade stays on that tile in your bag for the whole Run. 🔔 Echo makes a tile score twice and can join another upgrade.</>,
               <>✦ Shimmering tiles are special: Golden +30 Value, Iridescent +2 Length, Radiant ×1.25 on any line through them. Your bag starts with one; the Shop sometimes sells more.</>,
             ]}
           />

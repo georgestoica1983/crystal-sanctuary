@@ -244,7 +244,8 @@ export function getRunBloomResult(params: {
       relicsAfter,
       runFertilizerCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
       runToolExtraCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
-      runEditionTileCost(params.logVersion ?? RUN_LOG_VERSION, params.asc)
+      runEditionTileCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
+      runRulesUseEcho(params.logVersion ?? RUN_LOG_VERSION)
     ),
   };
 }
@@ -342,6 +343,8 @@ export const runRulesUseFertilizer = (logVersion: number) => logVersion >= 12;
 export const runRulesUseTools = (logVersion: number) => logVersion >= 13;
 /** Rules v14+: special tiles (Golden, Iridescent, Radiant) in the bag and the Shop */
 export const runRulesUseEditions = (logVersion: number) => logVersion >= 14;
+/** Rules v15+: Echo, a tool that makes a tile score twice */
+export const runRulesUseEcho = (logVersion: number) => logVersion >= 15;
 /** A special tile's Shop price: 8 Seeds, 10 from Ascension 2 (null = none in these rules) */
 export const runEditionTileCost = (logVersion: number, asc = 0): number | null =>
   runRulesUseEditions(logVersion) ? EDITION_TILE_COST + (runAscensionFor(logVersion, asc) >= 2 ? 2 : 0) : null;
@@ -362,8 +365,13 @@ export function applyGardenTool(params: {
 }): { grid: GridCell[][]; bag: SeedTile[] } | null {
   const cell = params.grid[params.coord.row]?.[params.coord.col];
   const tile = cell?.bagTile;
-  if (!cell || !tile || tile.enh || cell.type === "HERO" || cell.type === "EXIT" || cell.type === "VOID") return null;
-  const upgraded: SeedTile = { ...tile, enh: params.tool, dew: params.tool === "DEW" ? DEW_LINES : undefined };
+  if (!cell || !tile || cell.type === "HERO" || cell.type === "EXIT" || cell.type === "VOID") return null;
+  // Echo is its own layer (rules v15+): it can join a tool upgrade, but only once per tile
+  if (params.tool === "ECHO" ? tile.echo : tile.enh) return null;
+  const upgraded: SeedTile =
+    params.tool === "ECHO"
+      ? { ...tile, echo: true }
+      : { ...tile, enh: params.tool, dew: params.tool === "DEW" ? DEW_LINES : undefined };
   const index = params.bag.indexOf(tile);
   const bag = index >= 0 ? [...params.bag.slice(0, index), upgraded, ...params.bag.slice(index + 1)] : params.bag;
   const grid = params.grid.map((row) => [...row]);
@@ -441,7 +449,8 @@ export function applyRunShopReroll(params: {
       params.relics,
       runFertilizerCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
       runToolExtraCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
-      runEditionTileCost(params.logVersion ?? RUN_LOG_VERSION, params.asc)
+      runEditionTileCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
+      runRulesUseEcho(params.logVersion ?? RUN_LOG_VERSION)
     ),
     cost,
   };
@@ -534,7 +543,7 @@ export function getRunPathError(
  * v11: a gentler first Season (targets 800 / 1,500 / 2,500).
  * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 14;
+export const RUN_LOG_VERSION = 15;
 export const RUN_LOG_MIN_VERSION = 2;
 /** Rule set of new Runs (the current version) */
 export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);

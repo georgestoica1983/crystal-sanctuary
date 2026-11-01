@@ -113,7 +113,7 @@ import {
 import ShopModal from "@/components/ShopModal";
 import ScoreTally from "@/components/ScoreTally";
 import { formatScore } from "@/lib/formatScore";
-import LineScoreShow, { lineShowTimeline, lineStepMs, loadScoreSpeed, saveScoreSpeed, ScoreSpeed, stepValues } from "@/components/LineScoreShow";
+import LineScoreShow, { echoValues, lineShowTimeline, lineStepMs, loadScoreSpeed, saveScoreSpeed, ScoreSpeed, stepValues } from "@/components/LineScoreShow";
 import TutorialView from "@/components/TutorialView";
 import RunGuide, { RUN_GUIDE_STORAGE_KEY } from "@/components/RunGuide";
 import RunLeaderboardModal from "@/components/RunLeaderboard";
@@ -418,6 +418,7 @@ export default function OneStrokeTacticianPage() {
     key: number;
     breakdown: FloorScoreBreakdown;
     values: number[];
+    echoes: number[];
     steps: number;
     stepMs: number;
     target: number;
@@ -2536,11 +2537,13 @@ export default function OneStrokeTacticianPage() {
           activeRelicsForBoard,
           relicScoreCtx
         );
-        showEndMs = lineShowTimeline(b, simResult.steps.length, STEP_MS, scoreSpeed).endAt;
+        const echoes = echoValues(simResult);
+        showEndMs = lineShowTimeline(b, simResult.steps.length, STEP_MS, scoreSpeed, echoes).endAt;
         setLineShow({
           key: Date.now(),
           breakdown: b,
           values: stepValues(simResult),
+          echoes,
           steps: simResult.steps.length,
           stepMs: STEP_MS,
           target: runGarden ? Math.max(1, runGarden.target - runGarden.score) : 0,
@@ -3500,6 +3503,7 @@ export default function OneStrokeTacticianPage() {
                     key={lineShow.key}
                     breakdown={lineShow.breakdown}
                     values={lineShow.values}
+                    echoes={lineShow.echoes}
                     steps={lineShow.steps}
                     stepMs={lineShow.stepMs}
                     speed={scoreSpeed}

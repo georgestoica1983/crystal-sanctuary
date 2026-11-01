@@ -107,6 +107,7 @@ const TOOL_DESCRIPTIONS: Record<string, string> = {
   LONG_ROOT: "Put it on any tile: that tile adds +2 Length to every line through it, for the whole Run.",
   SUNLIT: "Put it on any tile: every line through it scores ×1.25, for the whole Run.",
   DEW: "Put it on any tile: the next 3 lines through it score ×1.5, then the Dew dries.",
+  ECHO: "Put it on any tile (even an upgraded one): its number, upgrade and shimmer count twice on every line, for the whole Run.",
 };
 
 const TILE_NAMES: Record<string, string> = {

@@ -39,6 +39,15 @@ export function stepValues(sim: PathSimulationResult): number[] {
   });
 }
 
+/** Value an Echo tile adds the second time it scores (rules v15+), per step */
+export function echoValues(sim: PathSimulationResult): number[] {
+  return sim.steps.map((s, i) =>
+    i > 0 && !s.isShadowStepCross && s.cell.bagTile?.echo && [...SCORED_TILES, "GOLD"].includes(s.cell.type)
+      ? Math.max(0, s.cell.value)
+      : 0
+  );
+}
+
 /** Time per tile as the line plays out: long lines speed up, Speed divides it */
 export function lineStepMs(steps: number, speed: ScoreSpeed): number {
   const base = Math.max(90, 180 - Math.max(0, steps - 10) * 6);
@@ -90,6 +99,7 @@ function Petals({ level }: { level: number }) {
 
 type ShowEvent =
   | { at: number; kind: "tile"; step: number }
+  | { at: number; kind: "echo"; step: number }
   | { at: number; kind: "flat"; box: "value" | "length"; source: ScoreSource; index: number }
   | { at: number; kind: "swell"; index: number }
   | { at: number; kind: "x"; source: ScoreSource; index: number }
@@ -103,13 +113,18 @@ export function lineShowTimeline(
   breakdown: FloorScoreBreakdown,
   steps: number,
   stepMs: number,
-  speed: ScoreSpeed
+  speed: ScoreSpeed,
+  echoes: number[] = []
 ): { events: ShowEvent[]; totalAt: number; endAt: number } {
   const events: ShowEvent[] = [];
-  for (let i = 1; i < steps; i++) events.push({ at: i * stepMs, kind: "tile", step: i });
-  let t = (steps - 1) * stepMs + 220 / speed;
+  for (let i = 1; i < steps; i++) {
+    events.push({ at: i * stepMs, kind: "tile", step: i });
+    // An Echo tile rings a second time, half a beat later
+    if ((echoes[i] ?? 0) > 0) events.push({ at: i * stepMs + stepMs * 0.5, kind: "echo", step: i });
+  }
+  let t = (steps - 1) * stepMs + ((echoes[steps - 1] ?? 0) > 0 ? stepMs * 0.5 : 0) + 220 / speed;
   let flat = 0;
-  for (const source of breakdown.chipSources) {
+  for (const source of breakdown.chipSources.filter((c) => !c.echo)) {
     events.push({ at: t, kind: "flat", box: "value", source, index: flat++ });
     t += 300 / speed;
   }
@@ -136,6 +151,7 @@ export function lineShowTimeline(
 export default function LineScoreShow({
   breakdown,
   values,
+  echoes = [],
   steps,
   stepMs,
   speed,
@@ -147,6 +163,8 @@ export default function LineScoreShow({
 }: {
   breakdown: FloorScoreBreakdown;
   values: number[];
+  /** Echo tiles' second count per step (rules v15+) */
+  echoes?: number[];
   steps: number;
   stepMs: number;
   speed: ScoreSpeed;
@@ -168,7 +186,9 @@ export default function LineScoreShow({
   onRelicRef.current = onRelic;
 
   useEffect(() => {
-    const { events } = lineShowTimeline(breakdown, steps, stepMs, speed);
+    const { events } = lineShowTimeline(breakdown, steps, stepMs, speed, echoes);
+    const echoTotal = echoes.reduce((a, b) => a + b, 0);
+    const lastWalkAt = Math.max(0, ...events.filter((e) => e.kind === "tile" || e.kind === "echo").map((e) => e.at));
     let v = 0;
     let len = 1;
     let x = 1;
@@ -177,15 +197,20 @@ export default function LineScoreShow({
         if (ev.kind === "tile") {
           v += values[ev.step] ?? 0;
           len += 1;
-          // The last tile snaps to the exact totals
-          if (ev.step === steps - 1) {
-            v = baseValue;
-            len = breakdown.pathMult;
-          }
+          // The walk's end snaps to the exact totals
+          if (ev.at === lastWalkAt) v = baseValue + echoTotal;
+          if (ev.step === steps - 1) len = breakdown.pathMult;
           setValue(v);
           setLength(len);
           const add = values[ev.step] ?? 0;
           if (add > 0) setPulse({ box: "value", key: ev.at });
+        } else if (ev.kind === "echo") {
+          v += echoes[ev.step] ?? 0;
+          if (ev.at === lastWalkAt) v = baseValue + echoTotal;
+          setValue(v);
+          setPulse({ box: "value", key: ev.at });
+          setCaption({ key: `e${ev.step}`, text: `🔔 Echo! +${echoes[ev.step]} again`, tone: "text-amber-200" });
+          soundEngine.playMultiplierSparkle(0);
         } else if (ev.kind === "flat") {
           if (ev.box === "value") {
             v += ev.source.value;

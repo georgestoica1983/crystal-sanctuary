@@ -797,8 +797,11 @@ export const GARDEN_TOOLS: Record<ToolId, { name: string; icon: string; tag: str
   LONG_ROOT: { name: "Long Root", icon: "🌿", tag: "+2 Length", cost: 5 },
   SUNLIT: { name: "Sunlit", icon: "☀️", tag: "×1.25", cost: 6 },
   DEW: { name: "Dew", icon: "💧", tag: "×1.5 for 3 lines", cost: 6 },
+  ECHO: { name: "Echo", icon: "🔔", tag: "scores twice", cost: 7 },
 };
-export const TOOL_IDS = Object.keys(GARDEN_TOOLS) as ToolId[];
+/** The tools the Shop draws from: Echo joins in rules v15 */
+export const TOOL_IDS: ToolId[] = ["RICH_SOIL", "LONG_ROOT", "SUNLIT", "DEW"];
+export const TOOL_IDS_WITH_ECHO: ToolId[] = [...TOOL_IDS, "ECHO"];
 export const MAX_TOOLS = 2;
 
 /** Special tiles (rules v14+): visible shimmers that pay when a line passes them */
@@ -847,7 +850,9 @@ export function generateShopOffers(
   /** Rules v13+: a garden tool is offered too, costing this much extra (null = no tools) */
   toolExtraCost: number | null = null,
   /** Rules v14+: sometimes a special tile is for sale, at this price (null = never) */
-  editionCost: number | null = null
+  editionCost: number | null = null,
+  /** Rules v15+: Echo is one of the tools */
+  echo = false
 ): ShopOffer[] {
   const rng = mulberry32(
     hashStringToSeed(`shop-${seedKey}-f${floorNumber}-r${rerollIndex}`)
@@ -900,7 +905,8 @@ export function generateShopOffers(
   }
   if (toolExtraCost !== null) {
     const trng = mulberry32(hashStringToSeed(`tool-${seedKey}-f${floorNumber}-r${rerollIndex}`));
-    const tool = TOOL_IDS[Math.floor(trng() * TOOL_IDS.length)];
+    const pool = echo ? TOOL_IDS_WITH_ECHO : TOOL_IDS;
+    const tool = pool[Math.floor(trng() * pool.length)];
     offers.push({ id: `f${floorNumber}-r${rerollIndex}-tool`, kind: "TOOL", tool, cost: GARDEN_TOOLS[tool].cost + toolExtraCost });
   }
   if (editionCost !== null) {
@@ -1977,8 +1983,19 @@ export function calculateFloorScoreBreakdown(
       });
     }
   }
+  // Echo tiles (rules v15+) score twice: their number, tool upgrade and shimmer count again
+  const echoes = visited.filter((s) => s.cell.bagTile?.echo);
+  const echoValue = echoes.reduce(
+    (sum, s) =>
+      sum + (["ENEMY", "SHIELD", "WEAPON", "POTION", "TRAP", "GOLD"].includes(s.cell.type) ? Math.max(0, s.cell.value) : 0),
+    0
+  );
+  if (echoValue > 0) {
+    chipSources.push({ label: echoes.length === 1 ? "Echo tile" : `${echoes.length} Echo tiles`, value: echoValue, echo: true });
+  }
+  const scoringSteps = [...visited, ...echoes];
   // Garden tool upgrades on the tiles of this line (rules v13+)
-  const upgraded = visited.map((s) => s.cell.bagTile).filter((t): t is SeedTile => Boolean(t?.enh));
+  const upgraded = scoringSteps.map((s) => s.cell.bagTile).filter((t): t is SeedTile => Boolean(t?.enh));
   const toolCount = (id: ToolId) =>
     upgraded.filter((t) => t.enh === id && (id !== "DEW" || (t.dew ?? 0) > 0)).length;
   const toolLabel = (name: string, n: number) => (n === 1 ? `${name} tile` : `${n} ${name} tiles`);
@@ -1989,7 +2006,7 @@ export function calculateFloorScoreBreakdown(
   for (let i = 0; i < toolCount("SUNLIT"); i++) xMultSources.push({ label: "Sunlit tile", value: 1.25 });
   for (let i = 0; i < toolCount("DEW"); i++) xMultSources.push({ label: "Dewy tile", value: 1.5 });
   // Special tiles on this line (rules v14+)
-  const shimmer = (ed: Edition) => visited.filter((s) => s.cell.bagTile?.ed === ed).length;
+  const shimmer = (ed: Edition) => scoringSteps.filter((s) => s.cell.bagTile?.ed === ed).length;
   const edLabel = (name: string, n: number) => (n === 1 ? `${name} tile` : `${n} ${name} tiles`);
   if (shimmer("GOLDEN") > 0) chipSources.push({ label: edLabel("Golden", shimmer("GOLDEN")), value: 30 * shimmer("GOLDEN") });
   if (shimmer("IRIDESCENT") > 0)
