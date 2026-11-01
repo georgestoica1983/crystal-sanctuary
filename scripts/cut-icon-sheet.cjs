@@ -4,6 +4,8 @@
 // Run with: node scripts/cut-icon-sheet.cjs design/gemini-icon-sheet.webp
 //      or:  node scripts/cut-icon-sheet.cjs design/gemini-relic-sheet.webp relics
 //      or:  node scripts/cut-icon-sheet.cjs design/gemini-relic-sheet-2.webp relics2   (4 × 2, rules v16 relics)
+//      or:  node scripts/cut-icon-sheet.cjs design/gemini-garden-plants.webp garden   (5 × 5 My Garden plants)
+//      or:  node scripts/cut-icon-sheet.cjs design/gemini-garden-decor.webp decor     (4 × 2 garden decorations)
 const sharp = require("sharp");
 const path = require("path");
 
@@ -28,6 +30,18 @@ const RELIC_NAMES_2 = [
   "FIRST_BLOOM", "THORN_CHORUS", "BELL_TOWER", "ACORN_GATE",
   "LONG_SHADOW", "BRAMBLE_BERRIES", "SOFT_MOSS", "SUNBEAM_LENS",
 ].map((id) => `relic-${id.toLowerCase().replace(/_/g, "-")}`);
+// My Garden sheets: plants (5 × 5) and decorations (4 × 2), in the order of their Gemini prompts
+const slug = (name) => name.toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "");
+const GARDEN_NAMES = [
+  "Daisy", "Clover", "Buttercup", "Violet", "Tulip",
+  "Iris", "Foxglove", "Lily", "Young Oak", "Lilac Bush",
+  "Rowan", "Cherry Tree", "Silver Thistle", "Queen Rose", "Desert Bloom",
+  "Moonflower", "Snowdrop", "Hazel Bloom", "Cactus Flower", "Twin Lily",
+  "Path Poppy", "Wayfarer Aster", "Mist Orchid", "Coin Marigold", "Set Bloom",
+].map((n) => `garden-${slug(n)}`);
+const DECOR_NAMES = [
+  "bench", "pond", "lantern", "arch", "stepping-stones", "bird-bath", "wind-chime", "gate",
+].map((n) => `decor-${n}`);
 const SOLID = 14; // closer than this to the background: fully transparent
 const SOFT = 46; // up to this (and reachable from the edge): partly transparent
 const OUT = 256;
@@ -35,8 +49,13 @@ const OUT = 256;
 (async () => {
   const src = process.argv[2];
   const mode = process.argv[3];
-  const NAMES = mode === "relics" ? RELIC_NAMES : mode === "relics2" ? RELIC_NAMES_2 : ICON_NAMES;
-  const COLS = mode === "relics2" ? 4 : Math.round(Math.sqrt(NAMES.length));
+  const NAMES =
+    mode === "relics" ? RELIC_NAMES
+    : mode === "relics2" ? RELIC_NAMES_2
+    : mode === "garden" ? GARDEN_NAMES
+    : mode === "decor" ? DECOR_NAMES
+    : ICON_NAMES;
+  const COLS = mode === "relics2" || mode === "decor" ? 4 : Math.round(Math.sqrt(NAMES.length));
   const ROWS = Math.ceil(NAMES.length / COLS);
   const { data, info } = await sharp(src).raw().toBuffer({ resolveWithObject: true });
   const { width: W, height: H, channels: C } = info;
