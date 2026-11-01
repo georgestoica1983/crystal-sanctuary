@@ -24,6 +24,9 @@ const HERO = (process.env.HERO ?? "KNIGHT") as HeroClassId;
 const CHASE_SETS = process.env.SETS === "chase";
 const FERT_FIRST = process.env.FERT === "first";
 const FERT_NEVER = process.env.FERT === "never";
+/** TOOLS=never: the bot skips garden tools (rules v13+) */
+const TOOLS_NEVER = process.env.TOOLS === "never";
+const TOOLS_FIRST = process.env.TOOLS === "first";
 
 for (const budget of BUDGETS) {
   for (const v of VERSIONS) {
@@ -38,6 +41,7 @@ for (const budget of BUDGETS) {
     const endings = { shortOfTarget: 0, noSafeLine: 0 };
     let runsWithSet = 0;
     const fertLevels: number[] = [];
+    let toolsUsed = 0;
     for (let i = 0; i < SEEDS; i++) {
       const run = createRunReplayer(`bal-run-${i}`, HERO, v, ASC);
       let lastGarden = -1;
@@ -57,6 +61,10 @@ for (const budget of BUDGETS) {
               );
             if (order.length > 0 && run.apply({ k: "p", i: order[0].i }) === null) continue;
           }
+          if (TOOLS_FIRST) {
+            const tool = s.shop.offers.find((o) => o.kind === "TOOL" && !s.shop.soldIds.includes(o.id));
+            if (tool && run.apply({ k: "b", o: tool.id }) === null) continue;
+          }
           if (FERT_FIRST) {
             const fert = s.shop.offers.find((o) => o.kind === "FERT" && !s.shop.soldIds.includes(o.id));
             if (fert && run.apply({ k: "b", o: fert.id }) === null) continue;
@@ -66,7 +74,12 @@ for (const budget of BUDGETS) {
             if (move && move.every((a) => run.apply(a) === null)) continue;
           }
           const offer = [...s.shop.offers]
-            .filter((o) => !s.shop.soldIds.includes(o.id) && !(FERT_NEVER && o.kind === "FERT"))
+            .filter(
+              (o) =>
+                !s.shop.soldIds.includes(o.id) &&
+                !(FERT_NEVER && o.kind === "FERT") &&
+                !(TOOLS_NEVER && o.kind === "TOOL")
+            )
             .sort((a, b) => a.cost - b.cost)
             .find((o) => run.apply({ k: "b", o: o.id }) === null);
           if (offer) continue;
@@ -77,6 +90,22 @@ for (const budget of BUDGETS) {
         if (g !== lastGarden && g < MAX_GARDENS) {
           lifeAtStart[g].push(s.startHero.hp);
           lastGarden = g;
+        }
+        if (s.tools.length > 0) {
+          // Put a tool on the highest-value tile of today's best line (it stays in the bag)
+          const plan = searchBestFloorLine(s.grid, s.startHero, modifier, s.classId, s.relics, budget, {
+            counters: s.counters,
+            strokesLeft: s.garden.strokesLeft,
+            relicSets: runRulesUseRelicSets(v),
+          });
+          const spot = plan?.path
+            .map((c) => s.grid[c.row][c.col])
+            .filter((cell) => cell.type !== "HERO" && cell.type !== "EXIT" && !cell.bagTile?.enh)
+            .sort((a, b) => b.value - a.value)[0];
+          if (spot && run.apply({ k: "u", i: 0, c: spot.row * 5 + spot.col }) === null) {
+            toolsUsed++;
+            continue;
+          }
         }
         const best = searchBestFloorLine(s.grid, s.startHero, modifier, s.classId, s.relics, budget, {
           counters: s.counters,
@@ -126,7 +155,7 @@ for (const budget of BUDGETS) {
       `gardens cleared: median ${median(reachedCounts)}, avg ${avg(reachedCounts).toFixed(1)}, ` +
         `cleared all ${MAX_GARDENS}: ${reachedCounts.filter((n) => n >= MAX_GARDENS).length}`
     );
-    console.log(`Runs ending with a relic set: ${runsWithSet}/${SEEDS} · Fertilizer levels bought: avg ${avg(fertLevels).toFixed(1)}`);
+    console.log(`Runs ending with a relic set: ${runsWithSet}/${SEEDS} · Fertilizer levels bought: avg ${avg(fertLevels).toFixed(1)} · tools used: avg ${(toolsUsed / SEEDS).toFixed(1)}`);
     console.log(`ended early: ${endings.shortOfTarget} out of lines or Life (Run over), ${endings.noSafeLine} stuck with no scoring line`);
     for (let g = 0; g < MAX_GARDENS; g++) {
       if (!ratios[g].length) continue;

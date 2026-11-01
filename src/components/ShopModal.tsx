@@ -17,7 +17,9 @@ import {
   countCommonRelics,
   describeRelicGrowth,
   FERTILIZER,
+  GARDEN_TOOLS,
   getFertLevel,
+  MAX_TOOLS,
   getRelicSellValue,
   MAX_COMMON_RELICS,
   RELIC_REGISTRY,
@@ -78,6 +80,8 @@ interface ShopModalProps {
   isSanctuary: boolean;
   /** Growth of scaling relics (shown on their slot) */
   relicCounters?: RelicCounters;
+  /** Garden tools held (rules v13+): a full pair blocks buying another */
+  toolsHeld?: number;
   /** Selling relics (Run); hidden when omitted */
   onSell?: (relicId: RelicId) => void;
   /** Pruning Shears (Run, rules v9+): the Tile Bag; hidden when omitted */
@@ -97,7 +101,26 @@ const RARITY_LABEL: Record<RelicRarity, { label: string; className: string }> = 
 };
 
 /** Display data for one shop offer (relic or stat boost) */
+const TOOL_DESCRIPTIONS: Record<string, string> = {
+  RICH_SOIL: "Put it on any tile: that tile adds +20 Value to every line through it, for the whole Run.",
+  LONG_ROOT: "Put it on any tile: that tile adds +2 Length to every line through it, for the whole Run.",
+  SUNLIT: "Put it on any tile: every line through it scores ×1.25, for the whole Run.",
+  DEW: "Put it on any tile: the next 3 lines through it score ×1.5, then the Dew dries.",
+};
+
 function describeOffer(offer: ShopOffer, isSanctuary: boolean, counters?: RelicCounters) {
+  if (offer.kind === "TOOL" && offer.tool) {
+    const t = GARDEN_TOOLS[offer.tool];
+    return {
+      icon: t.icon,
+      name: t.name,
+      tag: `Garden tool · ${t.tag}`,
+      description: TOOL_DESCRIPTIONS[offer.tool],
+      accent: "#FCD34D",
+      kindLabel: "Tool",
+      kindClass: "bg-amber-400/15 text-amber-200",
+    };
+  }
   if (offer.kind === "FERT" && offer.fert) {
     const f = FERTILIZER[offer.fert];
     const level = getFertLevel(counters, offer.fert);
@@ -163,6 +186,7 @@ export default function ShopModal({
   hasPurchased = false,
   isSanctuary,
   relicCounters,
+  toolsHeld = 0,
   onSell,
   bag,
   pruned = false,
@@ -272,7 +296,8 @@ export default function ShopModal({
             {offers.map((offer, idx) => {
               const info = describeOffer(offer, isSanctuary, relicCounters);
               const sold = soldIds.includes(offer.id);
-              const blockedBySlots = offer.kind === "RELIC" && slotsFull;
+              const blockedBySlots =
+                (offer.kind === "RELIC" && slotsFull) || (offer.kind === "TOOL" && toolsHeld >= MAX_TOOLS);
               const affordable = gems >= offer.cost;
               const disabled = sold || blockedBySlots || !affordable;
               return artify(
@@ -306,6 +331,10 @@ export default function ShopModal({
                   >
                     {offer.relicId ? (
                       <RelicIcon id={offer.relicId} size={34} />
+                    ) : offer.kind === "TOOL" && offer.tool ? (
+                      <span className="text-[26px] leading-none" aria-hidden="true">
+                        {GARDEN_TOOLS[offer.tool].icon}
+                      </span>
                     ) : offer.kind === "FERT" && offer.fert ? (
                       <span className="relative h-8 w-8">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -375,7 +404,12 @@ export default function ShopModal({
                     )}
                     <div className="text-[11px] text-zinc-300 leading-snug">
                       {info.description}
-                      {blockedBySlots && !sold && (
+                      {blockedBySlots && !sold && offer.kind === "TOOL" && (
+                        <span className="block text-amber-200/90 font-semibold">
+                          You already hold {MAX_TOOLS} tools — use one on a tile first.
+                        </span>
+                      )}
+                      {blockedBySlots && !sold && offer.kind === "RELIC" && (
                         <span className="block text-rose-200/90 font-semibold">
                           Slots full ({MAX_COMMON_RELICS}/{MAX_COMMON_RELICS}) —{" "}
                           {onSell ? "sell a relic below to make room." : "no room."}

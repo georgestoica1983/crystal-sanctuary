@@ -19,6 +19,7 @@ import {
   BossRuleId,
   FloorScoreBreakdown,
   RelicCounters,
+  ToolId,
   RelicId,
   RelicScoreContext,
   RunGardenState,
@@ -43,6 +44,7 @@ import {
   pickLegendaryRelic,
   SHOP_REROLL_COST,
   SHOP_STAT_BOOSTS,
+  GARDEN_TOOLS,
   FERTILIZER,
   getFertLevel,
   isPerfectFloor,
@@ -131,12 +133,14 @@ import {
 } from "@/lib/lineTiers";
 import EntityIcon from "@/components/EntityIcon";
 import {
+  applyGardenTool,
   applyRunShopPrune,
   applyRunShopPurchase,
   applyRunShopReroll,
   applyRunShopSell,
   createNextRunGarden,
   createRunLog,
+  dryDewAfterStroke,
   getRunBloomResult,
   packCoords,
   RunActionLog,
@@ -147,6 +151,7 @@ import {
   runRulesAllowPrune,
   runRulesUseRelicSets,
   runRulesUseGentleStart,
+  runRulesUseTools,
   runModifierFor,
   scoreRunStroke,
   startRunGarden,
@@ -321,6 +326,9 @@ export default function OneStrokeTacticianPage() {
   const afterTallyRef = useRef<(() => void) | null>(null);
   // Run mode: the run's Tile Bag, the garden in play, and its screens
   const [runBag, setRunBag] = useState<SeedTile[]>([]);
+  /** Garden tools held (rules v13+), and the one waiting for a tile tap */
+  const [runTools, setRunTools] = useState<ToolId[]>([]);
+  const [toolArmed, setToolArmed] = useState<number | null>(null);
   const [runGarden, setRunGarden] = useState<RunGardenState | null>(null);
   const [runNoSafeLine, setRunNoSafeLine] = useState<boolean>(false);
   const [weedOutMode, setWeedOutMode] = useState<boolean>(false);
@@ -1170,6 +1178,8 @@ export default function OneStrokeTacticianPage() {
       };
       resetRunWithDungeon(runDungeon, "RUN", classId, false);
       setRunBag(bag);
+      setRunTools([]);
+      setToolArmed(null);
       runLogRef.current = practice ? null : createRunLog(runSeed, classId, asc);
       runBloomRef.current = null;
       setLessonIndex(null);
@@ -1419,11 +1429,13 @@ export default function OneStrokeTacticianPage() {
         upgrades: runUpgrades,
         soldIds: shopSoldIds,
         counters: relicCounters,
+        tools: runTools,
       });
       if (!bought) return;
       if (bought.counters) setRelicCounters(bought.counters);
+      if (bought.tools) setRunTools(bought.tools);
       track("shop_buy", {
-        item: offer.relicId ?? offer.stat ?? (offer.fert ? `FERT_${offer.fert}` : offer.id),
+        item: offer.relicId ?? offer.stat ?? offer.tool ?? (offer.fert ? `FERT_${offer.fert}` : offer.id),
         kind: offer.kind,
         cost: offer.cost,
         bed: currentFloorIndex,
@@ -1450,6 +1462,8 @@ export default function OneStrokeTacticianPage() {
         handleNotice(`${SHOP_STAT_BOOSTS.MAX_MAGIC.icon} +2 Max Life for this visit!`);
       } else if (offer.stat === "START_DEW") {
         handleNotice(`${SHOP_STAT_BOOSTS.START_DEW.icon} +1 Gloves at the start of every garden!`);
+      } else if (offer.kind === "TOOL" && offer.tool) {
+        handleNotice(`${GARDEN_TOOLS[offer.tool].icon} ${GARDEN_TOOLS[offer.tool].name} is in your tools — tap it under the board, then a tile.`);
       } else if (offer.kind === "FERT" && offer.fert) {
         const level = getFertLevel(bought.counters, offer.fert);
         handleNotice(
@@ -1464,7 +1478,7 @@ export default function OneStrokeTacticianPage() {
       setShopPurchases((prev) => prev + 1);
       if (offer.kind !== "RELIC") soundEngine.playShopBuy();
     },
-    [pendingPostFloorStats, hero, shopSoldIds, activeRelics, runUpgrades, mode, handleNotice, relicCounters]
+    [pendingPostFloorStats, hero, shopSoldIds, activeRelics, runUpgrades, mode, handleNotice, relicCounters, runTools]
   );
 
   /** Sanctuary Shop (Run): sell a relic for half its price to free its slot */
@@ -1814,6 +1828,13 @@ export default function OneStrokeTacticianPage() {
     );
     setRelicCounters(countersAfter);
     logRunAction({ k: "s", p: packCoords(path) });
+    // Rules v13+: each Dewy tile this line passed loses a line of Dew (as the replay does)
+    let strokeGrid = currentFloor.grid;
+    if (runRulesUseTools(runLogRef.current?.v ?? RUN_LOG_VERSION)) {
+      const dried = dryDewAfterStroke(currentFloor.grid, runBag, path);
+      strokeGrid = dried.grid;
+      if (dried.bag !== runBag) setRunBag(dried.bag);
+    }
     track("line_drawn", {
       bed: garden.gardenIndex,
       line: (garden.strokesTotal ?? RUN_STROKES_PER_GARDEN) - garden.strokesLeft + 1,
@@ -1989,7 +2010,7 @@ export default function OneStrokeTacticianPage() {
         endRunMode("MISSED_TARGET", scored, history, afterStroke);
       } else {
         // Refill the tiles this stroke used; the Companion restarts at home
-        const refill = refillRunGarden(currentFloor.grid, path, scored, dungeon.seedKey);
+        const refill = refillRunGarden(strokeGrid, path, scored, dungeon.seedKey);
         if (practiceStep === "intro" || practiceStep === "draw") {
           setPracticeStep("regrow");
           setPracticeCollapsed(false);
@@ -2190,6 +2211,26 @@ export default function OneStrokeTacticianPage() {
     });
   };
 
+  /** Garden tools (rules v13+): the armed tool goes onto the tapped tile, and stays on it in the bag */
+  const handleUseTool = (coord: GridCoord) => {
+    if (toolArmed === null || !runGarden || phase !== "PLANNING") return;
+    const tool = runTools[toolArmed];
+    if (!tool) return;
+    const used = applyGardenTool({ grid: currentFloor.grid, bag: runBag, coord, tool });
+    if (!used) {
+      handleNotice("That tile can't take a tool — pick a tile that isn't upgraded yet (not your companion or the gate).");
+      return;
+    }
+    logRunAction({ k: "u", i: toolArmed, c: coord.row * 5 + coord.col });
+    setRunGrid(runGarden.gardenIndex, used.grid);
+    setRunBag(used.bag);
+    setRunTools((prev) => [...prev.slice(0, toolArmed), ...prev.slice(toolArmed + 1)]);
+    setToolArmed(null);
+    soundEngine.playShopBuy();
+    track("tool_used", { tool, bed: runGarden.gardenIndex });
+    handleNotice(`${GARDEN_TOOLS[tool].icon} ${GARDEN_TOOLS[tool].name} (${GARDEN_TOOLS[tool].tag}) stays on that tile for the whole Run.`);
+  };
+
   const handleConfirmWeedOut = () => {
     if (!runGarden || weedOutSelection.length === 0) return;
     const spent = { ...runGarden, weedOutsLeft: runGarden.weedOutsLeft - 1 };
@@ -2259,6 +2300,8 @@ export default function OneStrokeTacticianPage() {
     // Old free-trial saves keep their companion (no more trials in Runs)
     resetRunWithDungeon(runDungeon, "RUN", r.classId, false);
     setRunBag(r.bag);
+    setRunTools(r.tools);
+    setToolArmed(null);
     runLogRef.current = { ...r.log, a: [...r.log.a] };
     runBloomRef.current = null;
     setLessonIndex(null);
@@ -3526,6 +3569,8 @@ export default function OneStrokeTacticianPage() {
           <div className="relative w-full max-w-[430px] min-h-[220px] max-h-[min(calc(100vw-1.5rem),430px)] grow-[1000] basis-0 !shrink flex items-center justify-center [container-type:size]">
           <div className="relative aspect-square w-[min(100cqw,100cqh)]">
             <GridCanvas
+              toolArmed={toolArmed !== null && phase === "PLANNING"}
+              onToolTarget={handleUseTool}
               tileLevels={
                 mode === "RUN" && !lesson
                   ? Object.fromEntries(
@@ -3793,6 +3838,45 @@ export default function OneStrokeTacticianPage() {
             </button>
           )}
 
+          {/* Garden tools (rules v13+): tap one, then a tile — the upgrade stays on it */}
+          {mode === "RUN" && !lesson && !isInteractiveTutorial && runTools.length > 0 && phase === "PLANNING" && (
+            <div className="w-full max-w-[430px] flex items-center gap-1.5 min-h-[36px]">
+              {toolArmed !== null ? (
+                <>
+                  <span className="flex-1 text-[12px] font-semibold text-amber-100">
+                    {GARDEN_TOOLS[runTools[toolArmed]]?.icon} Tap a tile for {GARDEN_TOOLS[runTools[toolArmed]]?.name} (
+                    {GARDEN_TOOLS[runTools[toolArmed]]?.tag})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setToolArmed(null)}
+                    className="h-8 px-3 rounded-lg bg-white/[0.06] border border-white/10 text-[12px] font-semibold text-white/80"
+                  >
+                    Cancel
+                  </button>
+                </>
+              ) : (
+                <>
+                  <span className="text-[11px] font-semibold text-white/45">Tools</span>
+                  {runTools.map((t, i) => (
+                    <button
+                      key={`${t}-${i}`}
+                      type="button"
+                      disabled={drawnPath.length > 1}
+                      onClick={() => {
+                        setDrawnPath([]);
+                        setToolArmed(i);
+                      }}
+                      className="h-8 px-2.5 rounded-lg border border-amber-300/40 bg-amber-400/10 text-[12px] font-semibold text-amber-100 active:scale-95 disabled:opacity-40"
+                    >
+                      {GARDEN_TOOLS[t].icon} {GARDEN_TOOLS[t].name}
+                    </button>
+                  ))}
+                </>
+              )}
+            </div>
+          )}
+
           {/* Bottom Legend & Controls */}
           {lesson && lessonIndex !== null ? (
             <RunLessonControls
@@ -3945,6 +4029,7 @@ export default function OneStrokeTacticianPage() {
         ownedRelics={activeRelics}
         relicSets={mode === "RUN" && runRulesUseRelicSets(runLogRef.current?.v ?? RUN_LOG_VERSION)}
         relicCounters={relicCounters}
+        toolsHeld={runTools.length}
         onSell={mode === "RUN" ? handleSellRelic : undefined}
         bag={canPrune ? runBag : undefined}
         pruned={shopPruned}

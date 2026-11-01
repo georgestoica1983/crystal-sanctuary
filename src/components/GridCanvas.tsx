@@ -48,6 +48,9 @@ interface GridCanvasProps {
   clearsBed?: boolean;
   /** Fertilizer levels (rules v12+): fertilized tile types wear a small "Lv" leaf */
   tileLevels?: Partial<Record<string, number>>;
+  /** A garden tool is armed: the next tile tap uses it instead of drawing */
+  toolArmed?: boolean;
+  onToolTarget?: (coord: GridCoord) => void;
   onCommitPath: (committedPath: GridCoord[]) => void;
   onRetractNotice?: (reason: string) => void;
   /** First-time players: home and the Exit pulse until the first line */
@@ -73,6 +76,8 @@ export default function GridCanvas({
   onCommitPath,
   clearsBed = false,
   tileLevels,
+  toolArmed = false,
+  onToolTarget,
   onRetractNotice,
   pulseStartExit = false,
   liveScore = null,
@@ -375,6 +380,10 @@ export default function GridCanvas({
       );
       if (!coord) return;
       if (grid[coord.row]?.[coord.col]?.type === "VOID") return;
+      if (toolArmed && onToolTarget) {
+        onToolTarget(coord);
+        return;
+      }
 
       setRetractingPath(null);
       setPointerPos({ x: normX, y: normY });
@@ -437,6 +446,8 @@ export default function GridCanvas({
       onSkipPlayback,
       extendTo,
       pokeTile,
+      toolArmed,
+      onToolTarget,
     ]
   );
 
@@ -646,6 +657,8 @@ export default function GridCanvas({
         onPointerCancel={finishStroke}
         style={{ touchAction: "none" }}
         className={`relative w-full h-full rounded-2xl board-pad overflow-hidden cursor-crosshair select-none touch-none ${
+          toolArmed ? "ring-2 ring-amber-300/80 shadow-[0_0_24px_rgba(252,211,77,0.35)] " : ""
+        }${
           isSanctuary
             ? "bg-[var(--board-frame,#17231B)] border border-[color:var(--board-border,rgba(255,255,255,0.07))] shadow-[var(--board-glow,none)]"
             : "bg-gradient-to-b from-[#121B15]/95 via-[#0C120E] to-[#080B09] border border-indigo-500/25 shadow-2xl shadow-indigo-950/40"
@@ -819,6 +832,15 @@ export default function GridCanvas({
                   data-col={c}
                   className={`relative rounded-xl transition-colors duration-150 flex items-center justify-center overflow-visible ${plateClass}`}
                 >
+                  {cell.bagTile?.enh && (
+                    <span
+                      aria-label={`Upgraded: ${TOOL_MARKS[cell.bagTile.enh].label}`}
+                      className="tile-tag absolute bottom-0.5 left-0.5 z-20 flex items-center gap-px rounded-full bg-black/55 px-1 text-[10px] leading-[14px] text-amber-100 pointer-events-none select-none"
+                    >
+                      {TOOL_MARKS[cell.bagTile.enh].icon}
+                      {cell.bagTile.enh === "DEW" && <span className="text-[8.5px] font-black text-sky-200">{cell.bagTile.dew}</span>}
+                    </span>
+                  )}
                   {(tileLevels?.[cell.type] ?? 0) > 0 && (
                     <span
                       aria-label={`Fertilized: level ${(tileLevels?.[cell.type] ?? 0) + 1}`}
@@ -1619,6 +1641,14 @@ function calmPlateClass(t: {
  * Uniform 100x100 ViewBox Geometric / Crystal Sanctuary Entities with Strict 62% Scale & Crisp HTML Center Values
  */
 /** Board tile glyph: themed icon with its number in a small badge */
+/** Garden tool upgrades on a tile (rules v13+) */
+const TOOL_MARKS: Record<string, { icon: string; label: string }> = {
+  RICH_SOIL: { icon: "🟫", label: "Rich Soil, +20 Value" },
+  LONG_ROOT: { icon: "🌿", label: "Long Root, +2 Length" },
+  SUNLIT: { icon: "☀️", label: "Sunlit, ×1.25" },
+  DEW: { icon: "💧", label: "Dew, ×1.5" },
+};
+
 /** A Thorn turning into a flower lets out a small puff of pollen */
 function PollenPuff() {
   return (

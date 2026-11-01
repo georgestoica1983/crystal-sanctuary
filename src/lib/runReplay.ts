@@ -8,6 +8,8 @@ import {
   countPathBlinks,
   countPathSelfCrosses,
   createRunGarden,
+  DEW_LINES,
+  MAX_TOOLS,
   FERTILIZER_COST,
   calculateFloorScoreBreakdown,
   findEntityCoord,
@@ -47,6 +49,7 @@ import type {
   RunUpgrades,
   SeedTile,
   ShopOffer,
+  ToolId,
 } from "@/types/game";
 
 /**
@@ -236,7 +239,8 @@ export function getRunBloomResult(params: {
       garden.gardenIndex + 1,
       0,
       relicsAfter,
-      runFertilizerCost(params.logVersion ?? RUN_LOG_VERSION, params.asc)
+      runFertilizerCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
+      runToolExtraCost(params.logVersion ?? RUN_LOG_VERSION, params.asc)
     ),
   };
 }
@@ -250,7 +254,9 @@ export function applyRunShopPurchase(params: {
   soldIds: string[];
   /** Run counters (Fertilizer levels live here) */
   counters?: RelicCounters;
-}): { stats: HeroStats; relics: RelicId[]; upgrades: RunUpgrades; counters?: RelicCounters } | null {
+  /** Garden tools held (rules v13+) */
+  tools?: ToolId[];
+}): { stats: HeroStats; relics: RelicId[]; upgrades: RunUpgrades; counters?: RelicCounters; tools?: ToolId[] } | null {
   const { stats, offer, relics, upgrades, soldIds } = params;
   if (soldIds.includes(offer.id) || stats.gold < offer.cost) return null;
   if (offer.kind === "RELIC" && (!offer.relicId || countCommonRelics(relics) >= MAX_COMMON_RELICS)) {
@@ -259,6 +265,10 @@ export function applyRunShopPurchase(params: {
   const next: HeroStats = { ...stats, gold: stats.gold - offer.cost };
   if (offer.kind === "RELIC" && offer.relicId) {
     return { stats: next, relics: [...relics, offer.relicId], upgrades };
+  }
+  if (offer.kind === "TOOL" && offer.tool) {
+    if ((params.tools ?? []).length >= MAX_TOOLS) return null;
+    return { stats: next, relics, upgrades, tools: [...(params.tools ?? []), offer.tool] };
   }
   if (offer.kind === "FERT" && offer.fert) {
     const key = `FERT_${offer.fert}` as const;
@@ -312,6 +322,56 @@ export const runRulesUseGentleStart = (logVersion: number) => logVersion >= 11;
 /** Rules v12+: the Shop sells Fertilizer, levelling a tile type for the Run */
 export const runRulesUseFertilizer = (logVersion: number) => logVersion >= 12;
 /** Fertilizer's Shop price (0 before v12); from Ascension 2 it costs 2 more */
+/** Rules v13+: garden tools upgrade a bag tile for the rest of the Run */
+export const runRulesUseTools = (logVersion: number) => logVersion >= 13;
+/** Garden tools cost 2 more from Ascension 2 (null = no tools in these rules) */
+export const runToolExtraCost = (logVersion: number, asc = 0): number | null =>
+  runRulesUseTools(logVersion) ? (runAscensionFor(logVersion, asc) >= 2 ? 2 : 0) : null;
+
+/**
+ * Uses a garden tool on a board tile: the upgrade goes onto the tile's bag
+ * entry, so it comes back with the tile in every later bed. null when the
+ * tile can't take it (home, Exit, or already upgraded).
+ */
+export function applyGardenTool(params: {
+  grid: GridCell[][];
+  bag: SeedTile[];
+  coord: GridCoord;
+  tool: ToolId;
+}): { grid: GridCell[][]; bag: SeedTile[] } | null {
+  const cell = params.grid[params.coord.row]?.[params.coord.col];
+  const tile = cell?.bagTile;
+  if (!cell || !tile || tile.enh || cell.type === "HERO" || cell.type === "EXIT" || cell.type === "VOID") return null;
+  const upgraded: SeedTile = { ...tile, enh: params.tool, dew: params.tool === "DEW" ? DEW_LINES : undefined };
+  const index = params.bag.indexOf(tile);
+  const bag = index >= 0 ? [...params.bag.slice(0, index), upgraded, ...params.bag.slice(index + 1)] : params.bag;
+  const grid = params.grid.map((row) => [...row]);
+  grid[params.coord.row][params.coord.col] = { ...cell, bagTile: upgraded };
+  return { grid, bag };
+}
+
+/** After a scored line: each Dewy tile it passed loses one line of Dew (dry tiles lose the upgrade) */
+export function dryDewAfterStroke(
+  grid: GridCell[][],
+  bag: SeedTile[],
+  path: GridCoord[]
+): { grid: GridCell[][]; bag: SeedTile[] } {
+  let nextGrid = grid;
+  let nextBag = bag;
+  for (const c of path) {
+    const cell = nextGrid[c.row]?.[c.col];
+    const tile = cell?.bagTile;
+    if (!tile || tile.enh !== "DEW") continue;
+    const left = (tile.dew ?? 0) - 1;
+    const dried: SeedTile = left > 0 ? { ...tile, dew: left } : { type: tile.type, value: tile.value };
+    const index = nextBag.indexOf(tile);
+    if (index >= 0) nextBag = [...nextBag.slice(0, index), dried, ...nextBag.slice(index + 1)];
+    if (nextGrid === grid) nextGrid = grid.map((row) => [...row]);
+    nextGrid[c.row][c.col] = { ...cell, bagTile: dried };
+  }
+  return { grid: nextGrid, bag: nextBag };
+}
+
 export const runFertilizerCost = (logVersion: number, asc = 0) =>
   runRulesUseFertilizer(logVersion) ? FERTILIZER_COST + (runAscensionFor(logVersion, asc) >= 2 ? 2 : 0) : 0;
 
@@ -358,7 +418,8 @@ export function applyRunShopReroll(params: {
       params.floorNumber,
       rerolls,
       params.relics,
-      runFertilizerCost(params.logVersion ?? RUN_LOG_VERSION, params.asc)
+      runFertilizerCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
+      runToolExtraCost(params.logVersion ?? RUN_LOG_VERSION, params.asc)
     ),
     cost,
   };
@@ -451,7 +512,7 @@ export function getRunPathError(
  * v11: a gentler first Season (targets 800 / 1,500 / 2,500).
  * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 12;
+export const RUN_LOG_VERSION = 13;
 export const RUN_LOG_MIN_VERSION = 2;
 /** Rule set of new Runs (the current version) */
 export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);
@@ -469,6 +530,8 @@ export type RunLogAction =
   | { k: "r" }
   | { k: "x"; r: RelicId }
   | { k: "p"; i: number }
+  /** Rules v13+: use held garden tool `i` on board tile `c` */
+  | { k: "u"; i: number; c: number }
   | { k: "l"; h: HeroClassId };
 
 export interface RunActionLog {
@@ -554,6 +617,14 @@ export function parseRunLog(raw: unknown): RunActionLog | null {
       continue;
     }
     if (a.k === "l" && isHeroClass(a.h)) continue;
+    if (
+      a.k === "u" &&
+      log.v >= 13 &&
+      typeof a.i === "number" && Number.isInteger(a.i) && a.i >= 0 && a.i < MAX_TOOLS &&
+      typeof a.c === "number" && Number.isInteger(a.c) && a.c >= 0 && a.c < 25
+    ) {
+      continue;
+    }
     return null;
   }
   return log as unknown as RunActionLog;
@@ -576,6 +647,8 @@ export interface RunReplayState {
   /** Growth of scaling relics */
   counters: RelicCounters;
   upgrades: RunUpgrades;
+  /** Garden tools held (rules v13+) */
+  tools: ToolId[];
   shop: { stats: HeroStats; offers: ShopOffer[]; soldIds: string[]; rerolls: number; pruned: boolean };
   score: number;
   gardensBloomed: number;
@@ -607,6 +680,7 @@ export function createRunReplayer(
     relics: [],
     counters: {},
     upgrades: NO_RUN_UPGRADES,
+    tools: [],
     shop: { stats: first.hero, offers: [], soldIds: [], rerolls: 0, pruned: false },
     score: 0,
     gardensBloomed: 0,
@@ -642,6 +716,11 @@ export function createRunReplayer(
         runRulesUseRelicSets(logVersion)
       );
       s.counters = countersAfter;
+      if (runRulesUseTools(logVersion)) {
+        const dried = dryDewAfterStroke(s.grid, s.bag, path);
+        s.grid = dried.grid;
+        s.bag = dried.bag;
+      }
       s.strokes++;
       s.score += breakdown.total;
       const scored: RunGardenState = {
@@ -703,8 +782,10 @@ export function createRunReplayer(
         upgrades: s.upgrades,
         soldIds: s.shop.soldIds,
         counters: s.counters,
+        tools: s.tools,
       });
       if (!bought) return "purchase not allowed";
+      if (bought.tools) s.tools = bought.tools;
       s.relics = bought.relics;
       if (bought.counters) s.counters = bought.counters;
       s.upgrades = bought.upgrades;
@@ -755,6 +836,19 @@ export function createRunReplayer(
       if (!pruned) return "prune not allowed";
       s.bag = pruned.bag;
       s.shop = { ...s.shop, stats: pruned.stats, pruned: true };
+      return null;
+    }
+
+    if (action.k === "u") {
+      if (!runRulesUseTools(logVersion)) return "no garden tools in these rules";
+      if (s.phase !== "PLAY") return "tool used outside a garden";
+      const tool = s.tools[action.i];
+      if (!tool) return "no such tool";
+      const used = applyGardenTool({ grid: s.grid, bag: s.bag, coord: unpackCoord(action.c), tool });
+      if (!used) return "tool can't go on that tile";
+      s.grid = used.grid;
+      s.bag = used.bag;
+      s.tools = [...s.tools.slice(0, action.i), ...s.tools.slice(action.i + 1)];
       return null;
     }
 

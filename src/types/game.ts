@@ -160,7 +160,9 @@ export type ShopStatId = "MAX_MAGIC" | "START_DEW";
 
 export interface ShopOffer {
   id: string;
-  kind: "RELIC" | "STAT" | "FERT";
+  kind: "RELIC" | "STAT" | "FERT" | "TOOL";
+  /** Garden tool (rules v13+) */
+  tool?: ToolId;
   relicId?: RelicId;
   stat?: ShopStatId;
   /** Fertilizer: the tile type it levels up for the rest of the Run */
@@ -320,7 +322,14 @@ export type RunGardenKind = "SMALL" | "BIG" | "BOSS";
 export interface SeedTile {
   type: EntityType;
   value: number;
+  /** Garden tool upgrade (rules v13+): stays on this tile for the whole Run */
+  enh?: ToolId;
+  /** Dew: lines left before it dries */
+  dew?: number;
 }
+
+/** One-use garden tools (rules v13+) that upgrade a tile in the Tile Bag for good */
+export type ToolId = "RICH_SOIL" | "LONG_ROOT" | "SUNLIT" | "DEW";
 
 /** Live state of the garden being played in Run mode */
 export interface RunGardenState {

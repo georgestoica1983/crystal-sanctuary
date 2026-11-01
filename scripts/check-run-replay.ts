@@ -16,8 +16,10 @@ import {
   searchBestFloorLine,
 } from "@/lib/engine";
 import {
+  applyGardenTool,
   applyRunShopPrune,
   createRunReplayer,
+  dryDewAfterStroke,
   RUN_BAG_MIN_SIZE,
   RUN_PRUNE_COST,
   packCoords,
@@ -26,6 +28,7 @@ import {
   RUN_LOG_VERSION,
   RUN_MODIFIER,
   runFertilizerCost,
+  runToolExtraCost,
   runModifierFor,
   scoreRunStroke,
   RunActionLog,
@@ -465,6 +468,84 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
       fed.chips - plain.chips === thorns * 6
     );
   }
+}
+
+// 10. Garden tools (rules v13+): a tool upgrade stays on the tile in the bag
+{
+  check(
+    "tools: none before v13, +2 Seeds from Ascension 2",
+    runToolExtraCost(12) === null && runToolExtraCost(13) === 0 && runToolExtraCost(13, 2) === 2
+  );
+  const v13 = generateShopOffers("tool-check", 1, 0, [], runFertilizerCost(13), runToolExtraCost(13));
+  check("v13 Shop adds one garden tool", v13.filter((o) => o.kind === "TOOL").length === 1);
+
+  // A bot that buys tools and puts them on its best line, recorded and replayed
+  const run = createRunReplayer("run-1700000000040-tools", "KNIGHT", 13);
+  const log: RunActionLog = { v: 13, seed: "run-1700000000040-tools", hero: "KNIGHT", a: [] };
+  const act = (a: RunLogAction) => {
+    const err = run.apply(a);
+    if (err) throw new Error(`tool bot made an illegal move: ${err}`);
+    log.a.push(a);
+  };
+  let used = 0;
+  for (let guard = 0; guard < 400 && run.state.phase !== "OVER" && run.state.gardensBloomed < 6; guard++) {
+    const s = run.state;
+    if (s.phase === "SHOP") {
+      const tool = s.shop.offers.find((o) => o.kind === "TOOL" && !s.shop.soldIds.includes(o.id));
+      if (tool && s.tools.length < 2 && s.shop.stats.gold >= tool.cost) {
+        act({ k: "b", o: tool.id });
+        continue;
+      }
+      act({ k: "l", h: s.classId });
+      continue;
+    }
+    const best = searchBestFloorLine(s.grid, s.startHero, RUN_MODIFIER, s.classId, s.relics, 20000, {
+      counters: s.counters,
+      strokesLeft: s.garden.strokesLeft,
+      relicSets: true,
+    });
+    if (!best) break;
+    if (s.tools.length > 0) {
+      const spot = best.path.map((c) => s.grid[c.row][c.col]).find(
+        (cell) => cell.type !== "HERO" && cell.type !== "EXIT" && !cell.bagTile?.enh
+      );
+      if (spot) {
+        act({ k: "u", i: 0, c: spot.row * 5 + spot.col });
+        used++;
+        continue;
+      }
+    }
+    act({ k: "s", p: packCoords(best.path) });
+  }
+  const upgradedInBag = run.state.bag.filter((t) => t.enh).length;
+  const replay = replayRun(JSON.parse(JSON.stringify(log)));
+  check(
+    `v13 tool Run replays (${used} tools used, ${upgradedInBag} upgraded tiles in the bag)`,
+    used > 0 && upgradedInBag > 0 && replay.ok && replay.score === run.state.score,
+    replay.ok ? `${replay.score} vs ${run.state.score}` : replay.error
+  );
+  const v12log = { ...log, v: 12 };
+  check("a tool use is refused under rules v12", !replayRun(JSON.parse(JSON.stringify(v12log))).ok);
+
+  // The upgrade sits on the bag tile; Dew dries after 3 lines
+  const fresh = createRunReplayer("run-1700000000040-tools", "KNIGHT", 13);
+  const spot = fresh.state.grid.flat().find((c) => c.type === "ENEMY")!;
+  const sunny = applyGardenTool({ grid: fresh.state.grid, bag: fresh.state.bag, coord: spot, tool: "SUNLIT" })!;
+  check(
+    "Sunlit goes onto the tile's bag entry",
+    sunny.bag.filter((t) => t.enh === "SUNLIT").length === 1 && sunny.grid[spot.row][spot.col].bagTile?.enh === "SUNLIT"
+  );
+  check("a tile can't take a second tool", applyGardenTool({ grid: sunny.grid, bag: sunny.bag, coord: spot, tool: "DEW" }) === null);
+  let dew = applyGardenTool({ grid: fresh.state.grid, bag: fresh.state.bag, coord: spot, tool: "DEW" })!;
+  const counts: number[] = [];
+  for (let i = 0; i < 3; i++) {
+    dew = dryDewAfterStroke(dew.grid, dew.bag, [spot]);
+    counts.push(dew.grid[spot.row][spot.col].bagTile?.dew ?? 0);
+  }
+  check(
+    `Dew dries after 3 lines (${counts.join(" → ")})`,
+    counts.join(",") === "2,1,0" && !dew.bag.some((t) => t.enh) && !dew.grid[spot.row][spot.col].bagTile?.enh
+  );
 }
 
 console.log(failures ? `\n${failures} check(s) failed` : "\nAll replay checks passed");

@@ -27,6 +27,7 @@ import type {
   RunUpgrades,
   SeedTile,
   ShopOffer,
+  ToolId,
 } from "@/types/game";
 
 const RUN_SAVE_KEY = "ost_run_save_v1";
@@ -103,6 +104,8 @@ export interface RestoredRun {
   relics: RelicId[];
   counters: RelicCounters;
   upgrades: RunUpgrades;
+  /** Garden tools held (rules v13+) */
+  tools: ToolId[];
   history: FloorHistoryRecord[];
   totalCellsVisited: number;
   gemsSpent: number;
@@ -237,6 +240,7 @@ export function rebuildRunFromSave(raw: unknown): { ok: true; run: RestoredRun }
         relics: s.relics,
         counters: s.counters,
         upgrades: s.upgrades,
+        tools: s.tools,
         history,
         totalCellsVisited,
         gemsSpent,

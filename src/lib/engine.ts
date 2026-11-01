@@ -5,6 +5,7 @@ import {
   DungeonTheme,
   EntityType,
   FertTile,
+  ToolId,
   FloorHistoryRecord,
   FloorScoreBreakdown,
   ScoreSource,
@@ -788,6 +789,17 @@ export const FERTILIZER: Record<FertTile, { name: string; perLevel: number }> = 
   WEAPON: { name: "Shears", perLevel: 2 },
 };
 export const FERT_TILES = Object.keys(FERTILIZER) as FertTile[];
+
+/** Garden tools (rules v13+): used on a board tile, the upgrade stays on it in the bag */
+export const GARDEN_TOOLS: Record<ToolId, { name: string; icon: string; tag: string; cost: number }> = {
+  RICH_SOIL: { name: "Rich Soil", icon: "🟫", tag: "+20 Value", cost: 4 },
+  LONG_ROOT: { name: "Long Root", icon: "🌿", tag: "+2 Length", cost: 5 },
+  SUNLIT: { name: "Sunlit", icon: "☀️", tag: "×1.25", cost: 6 },
+  DEW: { name: "Dew", icon: "💧", tag: "×1.5 for 3 lines", cost: 6 },
+};
+export const TOOL_IDS = Object.keys(GARDEN_TOOLS) as ToolId[];
+export const MAX_TOOLS = 2;
+export const DEW_LINES = 3;
 export const FERTILIZER_COST = 6;
 
 export function getFertLevel(counters: RelicCounters | undefined, tile: FertTile): number {
@@ -805,7 +817,9 @@ export function generateShopOffers(
   rerollIndex: number,
   ownedRelics: RelicId[],
   /** Rules v12+: one slot is a Fertilizer at this price (0 = none) */
-  fertilizerCost = 0
+  fertilizerCost = 0,
+  /** Rules v13+: a garden tool is offered too, costing this much extra (null = no tools) */
+  toolExtraCost: number | null = null
 ): ShopOffer[] {
   const rng = mulberry32(
     hashStringToSeed(`shop-${seedKey}-f${floorNumber}-r${rerollIndex}`)
@@ -855,6 +869,11 @@ export function generateShopOffers(
     const frng = mulberry32(hashStringToSeed(`fert-${seedKey}-f${floorNumber}-r${rerollIndex}`));
     const fert = FERT_TILES[Math.floor(frng() * FERT_TILES.length)];
     offers.push({ id: `f${floorNumber}-r${rerollIndex}-fert`, kind: "FERT", fert, cost: fertilizerCost });
+  }
+  if (toolExtraCost !== null) {
+    const trng = mulberry32(hashStringToSeed(`tool-${seedKey}-f${floorNumber}-r${rerollIndex}`));
+    const tool = TOOL_IDS[Math.floor(trng() * TOOL_IDS.length)];
+    offers.push({ id: `f${floorNumber}-r${rerollIndex}-tool`, kind: "TOOL", tool, cost: GARDEN_TOOLS[tool].cost + toolExtraCost });
   }
   return shuffle(offers);
 }
@@ -1918,6 +1937,17 @@ export function calculateFloorScoreBreakdown(
       });
     }
   }
+  // Garden tool upgrades on the tiles of this line (rules v13+)
+  const upgraded = visited.map((s) => s.cell.bagTile).filter((t): t is SeedTile => Boolean(t?.enh));
+  const toolCount = (id: ToolId) =>
+    upgraded.filter((t) => t.enh === id && (id !== "DEW" || (t.dew ?? 0) > 0)).length;
+  const toolLabel = (name: string, n: number) => (n === 1 ? `${name} tile` : `${n} ${name} tiles`);
+  if (toolCount("RICH_SOIL") > 0)
+    chipSources.push({ label: toolLabel("Rich Soil", toolCount("RICH_SOIL")), value: 20 * toolCount("RICH_SOIL") });
+  if (toolCount("LONG_ROOT") > 0)
+    multSources.push({ label: toolLabel("Long Root", toolCount("LONG_ROOT")), value: 2 * toolCount("LONG_ROOT") });
+  for (let i = 0; i < toolCount("SUNLIT"); i++) xMultSources.push({ label: "Sunlit tile", value: 1.25 });
+  for (let i = 0; i < toolCount("DEW"); i++) xMultSources.push({ label: "Dewy tile", value: 1.5 });
   // ×Length
   addX("STARLIGHT_COMPASS", 1.5, pathLength >= 12);
   addX("SUN_PRISM", 2, sim.boardSunbeams >= 2 && sunbeamsOnLine >= sim.boardSunbeams);
