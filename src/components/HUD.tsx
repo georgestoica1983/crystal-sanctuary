@@ -501,8 +501,9 @@ interface TopHUDProps {
   bagPanel?: React.ReactNode;
   /** Tiles left in the Tile Bag (menu label) */
   bagCount?: number;
-  /** Garden Journal: open it */
+  /** Garden Journal: open it, and how many new entries wait there */
   onOpenJournal?: () => void;
+  journalNew?: number;
   /** My Garden: open it, and how many plants it has */
   onOpenGarden?: () => void;
   gardenCount?: number;
@@ -576,6 +577,7 @@ export function TopHUD({
   onOpenGarden,
   gardenCount = 0,
   onOpenJournal,
+  journalNew = 0,
   flashRelics = [],
   relicSets = false,
   isDailyCompanionLocked = false,
@@ -923,6 +925,9 @@ export function TopHUD({
                 {onOpenJournal && (
                   <button type="button" className={menuRow} onClick={() => { setShowRunMenu(false); onOpenJournal(); }}>
                     <span className="w-6 text-center" aria-hidden="true">📖</span> Garden Journal
+                    {journalNew > 0 && (
+                      <span className="ml-auto rounded-full bg-lime-300 px-1.5 text-[11px] font-black text-slate-950">{journalNew} new</span>
+                    )}
                   </button>
                 )}
                 {bagPanel && (

@@ -65,8 +65,8 @@ Rule: anything random is visible before you commit — no hidden chances, no pai
 - [x] 15b. My Garden screen (☰ → My Garden, and 'Visit your garden' on the end screen): calm scene with depth, swaying flowers and pollen, touch a flower for its story, milestones (bench 10, pond 25, lanterns 50, arch 100), opens sleepy after 3+ days away and wakes with a chime. Placeholder art: tinted blooms and emoji decorations.
 - [x] 15d. Garden art: 25 illustrated plants (golden ones glow, relic-set flowers tinted by theme) and 8 decorations as milestones (stepping stones 5, bench 10, pond 25, bird bath 40, lanterns 50, wind chime 75, arch 100, gate 150).
 - [x] 16a. Garden Journal (☰ → Garden Journal, src/lib/journal.ts): 6 pages — Relics 44, Sets 8, Garden 33, Bosses 12, Supplies 24, Companions 4 — found entries in colour, missing ones as silhouettes with a hint; tap for details and records (Boss wins and best score, companion best Run). Records Bosses, supplies and companions from now on.
-- [ ] 16b. NEW dots on fresh entries and a gentle "New in your Journal" notice during Runs.
-- [ ] 16c. Journal rewards (cosmetic): Botanist title at 25%, Pressed Petal line at 50%, Herbarium board at 75%, golden cover and line at 100%.
+- [x] 16b. NEW dots on fresh entries and a gentle "New in your Journal" notice during Runs.
+- [x] 16c. Journal rewards (cosmetic): Botanist title at 25%, Pressed Petal line at 50%, Herbarium board at 75%, golden cover and line at 100%.
 - [ ] 17. Music grows: each completed set adds a permanent music layer.
 - [ ] 18. Time of day (dew, Night Garden after dark) and tappable visitors — cosmetic.
 - [ ] 19. Daily board with a days-played count that never breaks (needs Supabase).

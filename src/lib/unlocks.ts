@@ -1,6 +1,7 @@
 import { BoardThemeId, HeroClassId, SanctuaryCompanionId, TrailSkinId } from "@/types/game";
 import { loadBestStars, totalBestStars } from "@/lib/runStars";
 import { loadBestClearedAscension } from "@/lib/ascension";
+import { journalPercent } from "@/lib/journalProgress";
 
 /**
  * Earned by playing (never by paying): companions (each with its own rule),
@@ -16,6 +17,8 @@ export interface UnlockProgress {
   hasThreeStar: boolean;
   /** Highest Ascension level whose Season 3 Boss was beaten */
   bestAsc: number;
+  /** How much of the Garden Journal is filled (0–100) */
+  journalPct: number;
 }
 
 interface Need {
@@ -24,13 +27,16 @@ interface Need {
   threeStar?: boolean;
   /** Beat the Season 3 Boss on this Ascension level */
   asc?: number;
+  /** Fill this much of the Garden Journal (percent) */
+  journal?: number;
 }
 
 export type UnlockItem =
   | { id: string; kind: "COMPANION"; target: SanctuaryCompanionId; icon: string; name: string; need: Need; needText: string }
   | { id: string; kind: "TRAIL"; target: TrailSkinId; icon: string; name: string; need: Need; needText: string }
   | { id: string; kind: "BOARD"; target: BoardThemeId; icon: string; name: string; need: Need; needText: string }
-  | { id: string; kind: "RANK"; icon: string; name: string; need: Need; needText: string };
+  | { id: string; kind: "RANK"; icon: string; name: string; need: Need; needText: string }
+  | { id: string; kind: "TITLE"; icon: string; name: string; need: Need; needText: string };
 
 export const UNLOCKS: UnlockItem[] = [
   { id: "c-cat", kind: "COMPANION", target: "CAT", icon: "🐱", name: "Cozy Cat", need: {}, needText: "From the start" },
@@ -59,6 +65,11 @@ export const UNLOCKS: UnlockItem[] = [
   { id: "r-star", kind: "RANK", icon: "✨", name: "Star Gardener", need: { stars: 70 }, needText: "70 ⭐" },
   { id: "r-master", kind: "RANK", icon: "👑", name: "Master of Seasons", need: { season: 9 }, needText: "Clear Season 8" },
   { id: "r-endless", kind: "RANK", icon: "🌌", name: "Endless Gardener", need: { season: 10 }, needText: "Reach Season 10" },
+  // Garden Journal rewards
+  { id: "j-botanist", kind: "TITLE", icon: "📖", name: "Botanist title", need: { journal: 25 }, needText: "Fill 25% of the Garden Journal" },
+  { id: "j-petal", kind: "TRAIL", target: "PRESSED_PETAL", icon: "🌸", name: "Pressed Petal line", need: { journal: 50 }, needText: "Fill 50% of the Garden Journal" },
+  { id: "j-herbarium", kind: "BOARD", target: "HERBARIUM", icon: "📖", name: "Herbarium board", need: { journal: 75 }, needText: "Fill 75% of the Garden Journal" },
+  { id: "j-golden", kind: "TRAIL", target: "GOLDEN_LEAF", icon: "🍂", name: "Golden Leaf line", need: { journal: 100 }, needText: "Fill the whole Garden Journal" },
 ];
 
 const HIGHEST_BED_KEY = "ost_highest_bed_v1";
@@ -70,6 +81,7 @@ export function isUnlocked(item: UnlockItem, p: UnlockProgress): boolean {
   if (season !== undefined && Math.floor(p.highestBed / 3) + 1 < season) return false;
   if (threeStar && !p.hasThreeStar) return false;
   if (asc !== undefined && p.bestAsc < asc) return false;
+  if (item.need.journal !== undefined && p.journalPct < item.need.journal) return false;
   return true;
 }
 
@@ -86,6 +98,7 @@ export function loadUnlockProgress(): UnlockProgress {
     highestBed,
     hasThreeStar: Object.values(best).some((n) => n >= 3),
     bestAsc: loadBestClearedAscension(),
+    journalPct: journalPercent(),
   };
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X } from "lucide-react";
 import type { HeroClassId } from "@/types/game";
@@ -16,8 +16,9 @@ import {
 } from "@/lib/engine";
 import { GARDEN_UPGRADES, SKIP_TAGS } from "@/lib/runReplay";
 import { RELIC_TAG_INFO, RelicTag } from "@/lib/relicTags";
-import { BOSS_SPECIES, GARDEN_MILESTONES, loadMyGarden, SPECIES } from "@/lib/myGarden";
-import { loadJournal } from "@/lib/journal";
+import { BOSS_SPECIES, GARDEN_MILESTONES, SPECIES } from "@/lib/myGarden";
+import { loadJournal, markJournalSeen } from "@/lib/journal";
+import { journalFound } from "@/lib/journalProgress";
 import { decorArt, gardenArt, relicArt, relicHasArt, themeArt, tileArt } from "@/lib/art";
 import { formatScore } from "@/lib/formatScore";
 import RelicIcon from "@/components/RelicIcon";
@@ -61,13 +62,12 @@ const emoji = (e: string, size = 30) => (
 /** Everything the Journal can hold, page by page, from what this device remembers */
 function buildPages(): Record<PageId, Entry[]> {
   const j = loadJournal();
-  const garden = loadMyGarden();
-  const grown = new Set(garden.plants.map((p) => (p.kind === "SET" ? "Set Bloom" : p.species)));
+  const found = journalFound();
 
   const relics: Entry[] = RELIC_LIST.map((r) => ({
     id: r.id,
     name: r.name,
-    found: j.relics.includes(r.id),
+    found: found.has(r.id),
     art: relicHasArt(r.id) ? img(relicArt(r.id), 40) : <RelicIcon id={r.id} size={36} />,
     text: r.description,
     hint: r.rarity === "LEGENDARY" ? "Beat a Boss bed to win a Legendary relic." : "Look for it in the Shop.",
@@ -77,7 +77,7 @@ function buildPages(): Record<PageId, Entry[]> {
   const sets: Entry[] = setTags.map((t) => ({
     id: t,
     name: `${RELIC_TAG_INFO[t].name} set`,
-    found: garden.setsDone.includes(t),
+    found: found.has(t),
     art: img(themeArt(t), 38),
     text: `3 ${RELIC_TAG_INFO[t].name} relics at once: every line ×1.25.`,
     hint: `Hold 3 ${RELIC_TAG_INFO[t].name} relics at the same time.`,
@@ -90,7 +90,7 @@ function buildPages(): Record<PageId, Entry[]> {
   const plants: Entry[] = plantNames.map((name) => ({
     id: `plant-${name}`,
     name,
-    found: grown.has(name),
+    found: found.has(`plant-${name}`),
     art: img(gardenArt(name), 42),
     text: "Growing in your garden.",
     hint: SPECIES.SMALL.includes(name)
@@ -106,7 +106,7 @@ function buildPages(): Record<PageId, Entry[]> {
   const decor: Entry[] = GARDEN_MILESTONES.map((m) => ({
     id: `decor-${m.decor}`,
     name: m.name.replace(/^an? /, "").replace(/^\w/, (c) => c.toUpperCase()),
-    found: garden.plants.length >= m.at,
+    found: found.has(`decor-${m.decor}`),
     art: img(decorArt(m.decor), 42),
     text: "In your garden.",
     hint: `Grow ${m.at} plants.`,
@@ -117,7 +117,7 @@ function buildPages(): Record<PageId, Entry[]> {
     return {
       id,
       name: BOSS_RULE_REGISTRY[id].name,
-      found: Boolean(rec),
+      found: found.has(id),
       art: emoji(BOSS_RULE_REGISTRY[id].icon),
       text: BOSS_RULE_REGISTRY[id].description,
       hint: "Meet it on a Season's Boss bed — and beat it.",
@@ -125,7 +125,7 @@ function buildPages(): Record<PageId, Entry[]> {
     };
   });
 
-  const has = (id: string) => j.supplies.includes(id);
+  const has = (id: string) => found.has(id);
   const supplies: Entry[] = [
     ...FERT_TILES.map((t) => ({
       id: `FERT_${t}`,
@@ -175,7 +175,7 @@ function buildPages(): Record<PageId, Entry[]> {
     return {
       id,
       name: def.sanctuaryShortName ?? def.shortName,
-      found: Boolean(rec),
+      found: found.has(id),
       art: <EntityIcon type="HERO" companionId={id} size={38} />,
       text: COMPANION_RULES[id] ?? "",
       hint: "Play a Run with this companion (unlock it with stars).",
@@ -191,7 +191,14 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
   const [page, setPage] = useState<PageId>("RELICS");
   const [picked, setPicked] = useState<Entry | null>(null);
   const pages = useMemo(() => (open ? buildPages() : null), [open]);
+  // NEW dots: found entries not looked at before this visit (snapshot when the Journal opens)
+  const seenAtOpen = useMemo(() => (open ? new Set(loadJournal().seen ?? []) : new Set<string>()), [open]);
+  useEffect(() => {
+    if (!open || !pages) return;
+    markJournalSeen(pages[page].filter((e) => e.found).map((e) => e.id));
+  }, [open, pages, page]);
   if (!open || !pages) return null;
+  const isNew = (e: Entry) => e.found && !seenAtOpen.has(e.id);
 
   const all = Object.values(pages).flat();
   const total = all.filter((e) => e.found).length;
@@ -199,14 +206,23 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
   const entries = pages[page];
 
   return (
-    <div className="fixed inset-0 z-[70] flex flex-col bg-[#18231C] select-none">
+    <div
+      className={`fixed inset-0 z-[70] flex flex-col bg-[#18231C] select-none ${pct >= 100 ? "ring-4 ring-inset ring-amber-300/60" : ""}`}
+    >
       <div className="w-full max-w-[430px] mx-auto px-4 pt-4 pb-2">
         <div className="flex items-start justify-between gap-2">
           <div>
             <h2 className="text-[24px] font-display font-semibold text-amber-50 leading-tight">Garden Journal</h2>
             <div className="text-[12.5px] text-white/60">
               {total} of {all.length} found · {pct}%
+              {pct >= 25 && <span className="ml-1.5 rounded-full bg-amber-300/15 px-1.5 py-px text-[11px] font-semibold text-amber-100">📖 Botanist</span>}
+              {pct >= 100 && <span className="ml-1 text-amber-200">✨ complete</span>}
             </div>
+            {pct < 100 && (
+              <div className="text-[11px] text-white/45">
+                {pct < 25 ? "25%: Botanist title" : pct < 50 ? "50%: Pressed Petal line" : pct < 75 ? "75%: Herbarium board" : "100%: Golden Leaf line"}
+              </div>
+            )}
           </div>
           <button
             type="button"
@@ -239,6 +255,7 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
                 }`}
               >
                 {p.label} {n}/{list.length}
+                {list.some(isNew) && <span className="ml-1 inline-block h-1.5 w-1.5 rounded-full bg-lime-300 align-middle" aria-label="new" />}
               </button>
             );
           })}
@@ -262,6 +279,11 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
               <span style={e.found ? undefined : { filter: "brightness(0) opacity(0.35)" }} className="flex items-center justify-center">
                 {e.art}
               </span>
+              {isNew(e) && (
+                <span className="absolute top-1 right-1 rounded-full bg-lime-300 px-1 text-[8px] font-black leading-[12px] text-slate-950">
+                  NEW
+                </span>
+              )}
               <span className={`w-full truncate text-center text-[9.5px] leading-tight ${e.found ? "text-white/75" : "text-white/30"}`}>
                 {e.found ? e.name : "?"}
               </span>

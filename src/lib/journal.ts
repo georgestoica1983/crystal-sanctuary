@@ -17,9 +17,11 @@ export interface JournalData {
   relics: RelicId[];
   /** Best Run score and deepest bed per companion */
   companions: Partial<Record<HeroClassId, { best: number; deepest: number }>>;
+  /** Entries already looked at in the Journal (the rest wear a NEW dot) */
+  seen?: string[];
 }
 
-const EMPTY: JournalData = { bosses: {}, supplies: [], relics: [], companions: {} };
+const EMPTY: JournalData = { bosses: {}, supplies: [], relics: [], companions: {}, seen: [] };
 
 export function loadJournal(): JournalData {
   try {
@@ -42,22 +44,35 @@ function update(fn: (j: JournalData) => JournalData): void {
   }
 }
 
-/** A Boss bed bloomed */
-export function recordBossBeaten(id: BossRuleId, score: number): void {
+/** A Boss bed bloomed; true the first time this Boss is beaten */
+export function recordBossBeaten(id: BossRuleId, score: number): boolean {
+  const isNew = !loadJournal().bosses[id];
   update((j) => {
     const prev = j.bosses[id] ?? { beaten: 0, best: 0 };
     return { ...j, bosses: { ...j.bosses, [id]: { beaten: prev.beaten + 1, best: Math.max(prev.best, score) } } };
   });
+  return isNew;
 }
 
-/** A garden supply met for the first time (bought, used or taken) */
-export function recordSupply(...ids: string[]): void {
-  update((j) => ({ ...j, supplies: Array.from(new Set([...j.supplies, ...ids])) }));
+/** Garden supplies met (bought, used or taken); returns the ones new to the Journal */
+export function recordSupply(...ids: string[]): string[] {
+  const have = new Set(loadJournal().supplies);
+  const fresh = Array.from(new Set(ids)).filter((id) => !have.has(id));
+  if (fresh.length > 0) update((j) => ({ ...j, supplies: Array.from(new Set([...j.supplies, ...fresh])) }));
+  return fresh;
 }
 
-/** Relics owned (bought or won) */
-export function recordRelics(ids: RelicId[]): void {
-  update((j) => ({ ...j, relics: Array.from(new Set([...j.relics, ...ids])) }));
+/** Relics owned (bought or won); returns the ones new to the Journal */
+export function recordRelics(ids: RelicId[]): RelicId[] {
+  const have = new Set(loadJournal().relics);
+  const fresh = Array.from(new Set(ids)).filter((id) => !have.has(id));
+  if (fresh.length > 0) update((j) => ({ ...j, relics: Array.from(new Set([...j.relics, ...fresh])) }));
+  return fresh;
+}
+
+/** Entries looked at in the Journal: their NEW dots go away */
+export function markJournalSeen(ids: string[]): void {
+  update((j) => ({ ...j, seen: Array.from(new Set([...(j.seen ?? []), ...ids])) }));
 }
 
 /** A Run ended with this companion */

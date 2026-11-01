@@ -26,6 +26,7 @@ export const BOARD_THEMES: BoardTheme[] = [
   { id: "NIGHT", name: "Night Garden", icon: "🌙", frame: "#060A1A", border: "rgba(147,197,253,0.22)", plateTop: "#18214B", plateBottom: "#0F1535", plateTopHover: "#1F2959", plateBottomHover: "#141B41", glow: "0 0 26px rgba(253,230,138,0.18), inset 0 0 30px rgba(190,242,100,0.06)" },
   { id: "WINTER", name: "Winter Frost", icon: "❄️", frame: "#0D1824", border: "rgba(186,230,253,0.32)", plateTop: "#2A4259", plateBottom: "#1C3044", plateTopHover: "#33506B", plateBottomHover: "#233A51" },
   { id: "GOLDEN", name: "Golden Hour", icon: "🌾", frame: "#1D1507", border: "rgba(253,224,71,0.3)", plateTop: "#4A3815", plateBottom: "#33270D", plateTopHover: "#584219", plateBottomHover: "#3D2E10" },
+  { id: "HERBARIUM", name: "Herbarium", icon: "📖", frame: "#22201A", border: "rgba(233,220,190,0.35)", plateTop: "#4A4636", plateBottom: "#353226", plateTopHover: "#555040", plateBottomHover: "#3D392C", glow: "0 0 18px rgba(233,220,190,0.12)" },
   { id: "ROYAL", name: "Royal Garden", icon: "👑", frame: "#08170F", border: "rgba(250,204,21,0.5)", plateTop: "#1E412D", plateBottom: "#132C1F", plateTopHover: "#254C36", plateBottomHover: "#183726", glow: "0 0 22px rgba(250,204,21,0.2)" },
 ];
 

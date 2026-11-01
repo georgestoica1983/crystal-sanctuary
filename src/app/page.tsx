@@ -116,6 +116,7 @@ import ShopModal from "@/components/ShopModal";
 import ScoreTally from "@/components/ScoreTally";
 import MyGardenScreen from "@/components/MyGardenScreen";
 import JournalScreen from "@/components/JournalScreen";
+import { journalNewCount } from "@/lib/journalProgress";
 import { recordBossBeaten, recordCompanionRun, recordRelics, recordSupply } from "@/lib/journal";
 import { loadMyGarden, plantForBed, plantForSet, plantLabel, plantsFromRun, takeGardenIntro } from "@/lib/myGarden";
 import { formatScore } from "@/lib/formatScore";
@@ -734,6 +735,16 @@ export default function OneStrokeTacticianPage() {
     [isInteractiveTutorial, lesson, activeRelics]
   );
   // Run facts some relics score on: scaling growth and which stroke this is
+  // Menu counts for My Garden and the Journal: only refreshed between moments, never while drawing
+  const collectionCounts = useMemo(
+    () =>
+      typeof window === "undefined" || phase === "RESOLVING"
+        ? { garden: 0, journalNew: 0 }
+        : { garden: loadMyGarden().plants.length, journalNew: journalOpen ? 0 : journalNewCount() },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [phase === "PLANNING", journalOpen, gardenOpen, currentFloorIndex]
+  );
+
   const relicScoreCtx: RelicScoreContext = useMemo(
     () =>
       isInteractiveTutorial || lesson || mode !== "RUN"
@@ -1463,7 +1474,7 @@ export default function OneStrokeTacticianPage() {
         setUpgradeSeasons((prev) => [...prev, Math.floor(runGarden.gardenIndex / 3)]);
         logRunAction({ k: "b", o: offer.id });
         track("shop_buy", { item: offer.upgrade, kind: offer.kind, cost: offer.cost, bed: currentFloorIndex });
-        recordSupply(`UPG_${offer.upgrade}`);
+        if (recordSupply(`UPG_${offer.upgrade}`).length) journalNotice([up.name]);
         handleNotice(`${up.icon} ${up.name}: ${up.text}, for the rest of this Run.`);
         setPendingPostFloorStats(next);
         setHero(next);
@@ -1502,11 +1513,13 @@ export default function OneStrokeTacticianPage() {
       setActiveRelics(bought.relics);
       setRunUpgrades(bought.upgrades);
       if (mode === "RUN" && !practiceStep) {
-        // Garden Journal: what was bought
-        if (offer.relicId) recordRelics([offer.relicId]);
-        if (offer.fert) recordSupply(`FERT_${offer.fert}`);
-        if (offer.tool) recordSupply(`TOOL_${offer.tool}`);
-        if (offer.tile?.ed) recordSupply(`ED_${offer.tile.ed}`);
+        // Garden Journal: what was bought, and a gentle note when it's a first
+        const firsts: string[] = [];
+        if (offer.relicId && recordRelics([offer.relicId]).length) firsts.push(RELIC_REGISTRY[offer.relicId].name);
+        if (offer.fert && recordSupply(`FERT_${offer.fert}`).length) firsts.push(`Fertilizer · ${FERTILIZER[offer.fert].name}`);
+        if (offer.tool && recordSupply(`TOOL_${offer.tool}`).length) firsts.push(GARDEN_TOOLS[offer.tool].name);
+        if (offer.tile?.ed && recordSupply(`ED_${offer.tile.ed}`).length) firsts.push(`${EDITIONS[offer.tile.ed].name} tile`);
+        journalNotice(firsts);
       }
       if (offer.kind === "RELIC" && offer.relicId) {
         const relic = getRelicDisplay(RELIC_REGISTRY[offer.relicId], true);
@@ -2202,7 +2215,9 @@ export default function OneStrokeTacticianPage() {
       setPracticeStep("bloom");
       setPracticeCollapsed(false);
     }
-    if (!practiceStep && garden.kind === "BOSS" && garden.bossRuleId) recordBossBeaten(garden.bossRuleId, garden.score);
+    if (!practiceStep && garden.kind === "BOSS" && garden.bossRuleId && recordBossBeaten(garden.bossRuleId, garden.score)) {
+      journalNotice([BOSS_RULE_REGISTRY[garden.bossRuleId].name]);
+    }
     const { payout, legendary, relicsAfter, countersAfter, statsWithPayout, offers } =
       getRunBloomResult({
         garden,
@@ -2339,6 +2354,12 @@ export default function OneStrokeTacticianPage() {
     });
   };
 
+  /** Garden Journal: a gentle note for first finds, after whatever notice is showing */
+  const journalNotice = (names: string[]) => {
+    if (names.length === 0) return;
+    window.setTimeout(() => handleNotice(`📖 New in your Journal: ${names.join(", ")}`), 2800);
+  };
+
   /** Rules v17+: this Small bed can still be skipped (no line drawn yet) */
   const canSkipBed =
     mode === "RUN" &&
@@ -2373,7 +2394,7 @@ export default function OneStrokeTacticianPage() {
     }
     logRunAction({ k: "k" });
     track("bed_skipped", { bed: runGarden.gardenIndex, tag: skip.tag });
-    recordSupply(`TAG_${skip.tag}`);
+    if (recordSupply(`TAG_${skip.tag}`).length) journalNotice([SKIP_TAGS[skip.tag].name]);
     setRelicCounters(skip.counters);
     setRunBag(skip.bag);
     if (skip.tag === "RELIC") setFreeRelicNext(true);
@@ -3459,7 +3480,8 @@ export default function OneStrokeTacticianPage() {
         gardenUpgradeList={gardenUpgrades.map((id) => GARDEN_UPGRADES[id])}
         onOpenGarden={RUN_ONLY ? () => setGardenOpen(true) : undefined}
         onOpenJournal={RUN_ONLY ? () => setJournalOpen(true) : undefined}
-        gardenCount={gardenOpen ? 0 : loadMyGarden().plants.length}
+        journalNew={collectionCounts.journalNew}
+        gardenCount={collectionCounts.garden}
         onCycleScoreSpeed={() => {
           const next: ScoreSpeed = scoreSpeed === 1 ? 2 : scoreSpeed === 2 ? 4 : 1;
           saveScoreSpeed(next);

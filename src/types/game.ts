@@ -431,10 +431,13 @@ export type TrailSkinId =
   | "BLOSSOM"
   | "SUNSET"
   | "STARLIGHT"
-  | "EMBER";
+  | "EMBER"
+  // Garden Journal rewards
+  | "PRESSED_PETAL"
+  | "GOLDEN_LEAF";
 
 /** Garden board colour themes (looks only) */
-export type BoardThemeId = "SPRING" | "AUTUMN" | "NIGHT" | "WINTER" | "GOLDEN" | "ROYAL";
+export type BoardThemeId = "SPRING" | "AUTUMN" | "NIGHT" | "WINTER" | "GOLDEN" | "ROYAL" | "HERBARIUM";
 
 export type VisualThemeMode = "SANCTUARY" | "TACTICIAN";
 

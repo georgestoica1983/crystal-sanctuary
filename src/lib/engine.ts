@@ -1325,6 +1325,22 @@ export const TRAIL_SKINS: TrailSkinOption[] = [
     dashStroke: "#FED7AA",
     unlockGold: 0,
   },
+  {
+    id: "PRESSED_PETAL",
+    name: "Pressed Petal",
+    primaryStroke: "#E9B8C8",
+    glowClass: "stroke-rose-200/35 stroke-[8px] blur-sm",
+    dashStroke: "#FFF1F2",
+    unlockGold: 0,
+  },
+  {
+    id: "GOLDEN_LEAF",
+    name: "Golden Leaf",
+    primaryStroke: "#E8C15A",
+    glowClass: "stroke-amber-300/50 stroke-[9px] blur-sm",
+    dashStroke: "#FEF3C7",
+    unlockGold: 0,
+  },
 ];
 
 export const MODIFIER_REGISTRY: Record<ModifierId, ModifierDefinition> = {
