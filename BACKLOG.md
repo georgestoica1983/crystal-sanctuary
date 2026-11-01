@@ -56,7 +56,7 @@ Rule: anything random is visible before you commit — no hidden chances, no pai
 - [x] 10. 8 new relics (rules v16): First Bloom, Thorn Chorus, Bell Tower, Acorn Gate, Long Shadow (score-again), Bramble Berries, Soft Moss, Sunbeam Lens (rule-benders); emoji icons until the Gemini sheet (design/gemini-relic-sheet-2-prompt.md, cut with `node scripts/cut-icon-sheet.cjs design/gemini-relic-sheet-2.webp relics2`, then remove them from RELICS_PENDING_ART in src/lib/art.ts). Bots: small lift for casual buyers, sets a little rarer.
 - [x] 11. Skip a bed for a Tag (rules v17): only Small beds, before the first line; Tags: Fertile (free Fertilizer level), Golden (a bag tile turns Golden), Purse (+10 Seeds), Relic (free Rare relic in the next Shop). You lose the bed's Seeds, Shop and Life back, and the Big bed's target grows +50%. Without that last rule skipping was free progress (A6 strong 23 → 36 of 48); with it, 23 → 28.
 - [x] 12. Garden upgrades (rules v18): one per Season for 6 Seeds, two tiers — Root Cellar → Old Oak (interest cap +5 → +15), Market Day → Harvest Fair (Shop −25% → −50%), Almanac → Observatory (Fertilizer −3 Seeds → 2 levels each); listed in the menu. They cost a little over 3 Seasons and pay off over 5 (bots buying them first: 12 → 20 of 32 full 15-bed runs).
-- [ ] 13. Rerolls start at 5 Seeds, +1 each in the same Shop.
+- [x] 13. Rerolls start at 5 Seeds, +1 each in the same Shop — already the Garden Run rule (getRunRerollCost); the flat 10 was the old Daily mode.
 - [ ] 14. Boss check-up across 5 kinds (tile blockers, line rules, hidden tiles, taxes, finishers); show the Season's Boss in advance.
 
 **C — come back (no rules change)**
