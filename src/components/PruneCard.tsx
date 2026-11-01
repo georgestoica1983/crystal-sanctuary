@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { EntityType, SeedTile } from "@/types/game";
 import EntityIcon from "@/components/EntityIcon";
 import { RUN_BAG_MIN_SIZE, RUN_PRUNE_COST } from "@/lib/runReplay";
@@ -24,24 +24,32 @@ interface BagGroup {
   index: number;
 }
 
+/** Height of one tile group in the Prune sheet */
+const TILE_H = 76;
+
 /**
- * ✂️ Pruning Shears (Run Shop): pay a few Seeds to take one tile out of the
- * Tile Bag for the rest of the Run. Once per Shop visit.
+ * ✂️ Pruning Shears (Run Shop): a sheet over the Shop. Pay a few Seeds to take
+ * one tile out of the Tile Bag for the rest of the Run. Once per Shop visit.
+ * Every kind of tile is a big tap target; long bags split into screens, so
+ * nothing scrolls. It opens inside the Shop, so it shares the Shop's scale.
  */
-export default function PruneCard({
+export default function PruneSheet({
   bag,
   gems,
   pruned,
   onPrune,
+  onClose,
 }: {
   bag: SeedTile[];
   gems: number;
   pruned: boolean;
   onPrune: (index: number) => void;
+  onClose: () => void;
 }) {
-  const [open, setOpen] = useState(false);
   const [picked, setPicked] = useState<BagGroup | null>(null);
-  const [removed, setRemoved] = useState<SeedTile | null>(null);
+  const [screen, setScreen] = useState(0);
+  const gridRef = useRef<HTMLDivElement>(null);
+  const [perScreen, setPerScreen] = useState(16);
 
   const groups = useMemo(() => {
     const map = new Map<string, BagGroup>();
@@ -51,109 +59,134 @@ export default function PruneCard({
       if (g) g.count++;
       else map.set(key, { type: t.type, value: t.value, count: 1, index });
     });
-    return PRUNE_ORDER.map((type) => ({
-      type,
-      items: [...map.values()].filter((g) => g.type === type).sort((a, b) => a.value - b.value),
-    })).filter((row) => row.items.length > 0);
+    return [...map.values()].sort(
+      (a, b) => PRUNE_ORDER.indexOf(a.type) - PRUNE_ORDER.indexOf(b.type) || a.value - b.value
+    );
   }, [bag]);
+
+  // How many tiles fit in the grid area (4 columns)
+  useEffect(() => {
+    const el = gridRef.current;
+    if (!el) return;
+    const measure = () => {
+      const rows = Math.max(1, Math.floor((el.clientHeight + 8) / (TILE_H + 8)));
+      setPerScreen(rows * 4);
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  const screens = Math.max(1, Math.ceil(groups.length / perScreen));
+  const at = Math.min(screen, screens - 1);
+  const shown = groups.slice(at * perScreen, (at + 1) * perScreen);
 
   const atMin = bag.length <= RUN_BAG_MIN_SIZE;
   const affordable = gems >= RUN_PRUNE_COST;
-  const blocked = pruned || atMin || !affordable;
-  const status = pruned
-    ? removed
-      ? `✓ ${TILE_NAMES[removed.type]} ${removed.value} removed · ${bag.length} tiles left`
-      : `✓ Used this visit · ${bag.length} tiles left`
+  const blockedText = pruned
+    ? "Used this visit"
     : atMin
-    ? `Your bag is at its smallest (${RUN_BAG_MIN_SIZE} tiles).`
-    : `Take one tile out of your bag for the rest of the run · ${bag.length} tiles`;
+    ? `Your bag is at its smallest (${RUN_BAG_MIN_SIZE})`
+    : !affordable
+    ? `Needs ${RUN_PRUNE_COST} 🌱`
+    : null;
 
   return artify(
-    <div className="rounded-xl border border-lime-300/35 bg-white/[0.04]">
-      <button
-        type="button"
-        disabled={blocked && !open}
-        aria-expanded={open}
-        onClick={() => {
-          setOpen((o) => !o);
-          setPicked(null);
-        }}
-        className={`w-full text-left p-2.5 flex items-center gap-3 transition ${
-          blocked && !open ? "opacity-60" : "active:bg-white/[0.06]"
-        }`}
+    <div className="fixed inset-0 z-[60] bg-black/70 flex items-end sm:items-center justify-center p-3" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-label="Prune a tile"
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-[430px] h-full max-h-[620px] flex flex-col gap-3 rounded-2xl border border-lime-300/30 bg-[#1B281F] p-4 text-white"
       >
-        <div className="w-11 h-11 rounded-xl flex items-center justify-center text-2xl shrink-0 border border-lime-300/40 bg-lime-300/10">
-          ✂️
-        </div>
-        <div className="flex-1 min-w-0">
-          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-lime-300/15 text-lime-100">
-            Once per Shop
-          </span>
-          <div className="font-black text-sm leading-tight mt-0.5">Pruning Shears</div>
-          <div className="text-[11px] text-zinc-300 leading-snug">{status}</div>
-        </div>
-        <div
-          className={`shrink-0 rounded-lg px-2 py-1 font-mono font-black text-xs border ${
-            pruned
-              ? "border-white/15 text-zinc-400"
-              : affordable && !atMin
-              ? "border-amber-300 text-amber-200 bg-amber-400/15"
-              : "border-white/15 text-white/40"
-          }`}
-        >
-          {pruned ? "USED" : `🌱${RUN_PRUNE_COST}`}
-        </div>
-      </button>
-
-      {open && !blocked && (
-        <div className="px-2.5 pb-2.5 space-y-2">
-          <div className="text-[11px] text-white/55 leading-snug">
-            Tap a tile to remove. Numbers are base values. Thorns and Spikes grow each Season.
-          </div>
-          <div className="space-y-1.5">
-            {groups.map((row) => (
-              <div key={row.type} className="flex flex-wrap items-center gap-1.5">
-                <span className="w-14 text-[10.5px] font-semibold text-white/55">{TILE_NAMES[row.type]}</span>
-                {row.items.map((g) => {
-                  const selected = picked?.type === g.type && picked.value === g.value;
-                  return artify(
-                    <button
-                      key={`${g.type}-${g.value}`}
-                      type="button"
-                      aria-pressed={selected}
-                      aria-label={`${TILE_NAMES[g.type]} ${g.value}, ${g.count} in the bag`}
-                      onClick={() => setPicked(selected ? null : g)}
-                      className={`flex items-center gap-1 rounded-lg border px-1.5 py-1 text-[12px] font-mono font-black transition active:scale-95 ${
-                        selected ? "border-lime-300 bg-lime-300/20 text-white" : "border-white/15 bg-black/20 text-white/90"
-                      }`}
-                    >
-                      <EntityIcon type={g.type} size={15} />
-                      {g.value}
-                      <span className="text-[10px] font-semibold text-white/45">×{g.count}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            ))}
+        <div className="flex items-start gap-3">
+          <div className="min-w-0 flex-1">
+            <h2 className="font-display text-[22px] font-bold leading-tight">Prune a tile</h2>
+            <p className="text-[14px] leading-snug text-white/70">
+              Take one tile out of your bag for the rest of the Run. {bag.length} tiles in the bag.
+            </p>
           </div>
           <button
             type="button"
-            disabled={!picked}
-            onClick={() => {
-              if (!picked) return;
-              setRemoved({ type: picked.type, value: picked.value });
-              onPrune(picked.index);
-              setOpen(false);
-              setPicked(null);
-            }}
-            className="w-full rounded-xl py-2 font-bold text-[13px] bg-lime-300 text-slate-950 active:scale-95 transition disabled:opacity-40"
+            onClick={onClose}
+            aria-label="Close"
+            className="h-11 w-11 shrink-0 rounded-xl bg-white/[0.06] flex items-center justify-center text-[18px]"
           >
-            {picked
-              ? `Remove ${TILE_NAMES[picked.type]} ${picked.value} · 🌱${RUN_PRUNE_COST}`
-              : "Pick a tile to remove"}
+            ✕
           </button>
         </div>
-      )}
+
+        <div ref={gridRef} className="min-h-0 flex-1 overflow-hidden">
+          <div className="grid grid-cols-4 gap-2">
+            {shown.map((g) => {
+              const selected = picked?.type === g.type && picked.value === g.value;
+              return (
+                <button
+                  key={`${g.type}-${g.value}`}
+                  type="button"
+                  aria-pressed={selected}
+                  aria-label={`${TILE_NAMES[g.type]} ${g.value}, ${g.count} in the bag`}
+                  onClick={() => setPicked(selected ? null : g)}
+                  style={{ height: TILE_H }}
+                  className={`rounded-xl border flex flex-col items-center justify-center gap-0.5 transition active:scale-95 ${
+                    selected ? "border-lime-300 bg-lime-300/20" : "border-white/[0.12] bg-white/[0.05]"
+                  }`}
+                >
+                  <EntityIcon type={g.type} size={32} />
+                  <span className="text-[14px] font-bold leading-none">
+                    {TILE_NAMES[g.type]} {g.value}
+                  </span>
+                  <span className="text-[13px] leading-none text-white/60">×{g.count}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {screens > 1 && (
+          <div className="flex items-center justify-between">
+            <button
+              type="button"
+              disabled={at === 0}
+              onClick={() => setScreen(at - 1)}
+              className="h-10 px-4 rounded-xl bg-white/[0.06] text-[14px] font-semibold disabled:opacity-30"
+            >
+              ← Back
+            </button>
+            <span className="text-[13px] text-white/60">
+              {at + 1} of {screens}
+            </span>
+            <button
+              type="button"
+              disabled={at >= screens - 1}
+              onClick={() => setScreen(at + 1)}
+              className="h-10 px-4 rounded-xl bg-white/[0.06] text-[14px] font-semibold disabled:opacity-30"
+            >
+              More →
+            </button>
+          </div>
+        )}
+
+        <p className="text-[13px] leading-snug text-white/55">Numbers are base values. Thorns and Spikes grow each Season.</p>
+
+        <button
+          type="button"
+          disabled={!picked || !!blockedText}
+          onClick={() => {
+            if (!picked) return;
+            onPrune(picked.index);
+            setPicked(null);
+            onClose();
+          }}
+          className="h-12 w-full rounded-xl bg-lime-300 text-slate-950 text-[16px] font-bold active:scale-95 transition disabled:bg-white/10 disabled:text-white/50"
+        >
+          {blockedText ??
+            (picked
+              ? `Remove one ${TILE_NAMES[picked.type]} ${picked.value} for ${RUN_PRUNE_COST} 🌱`
+              : "Pick a tile to remove")}
+        </button>
+      </div>
     </div>
   );
 }

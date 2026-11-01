@@ -29,7 +29,7 @@ import {
   SHOP_STAT_BOOSTS,
 } from "@/lib/engine";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
-import PruneCard from "@/components/PruneCard";
+import PruneSheet from "@/components/PruneCard";
 import { statArt, themeArt, tileArt } from "@/lib/art";
 import {
   getRelicTags,
@@ -231,7 +231,9 @@ export default function ShopModal({
   onLeave,
 }: ShopModalProps) {
   // What the detail panel shows: an offer, an owned relic (to sell), or pruning
-  const [picked, setPicked] = useState<{ kind: "OFFER"; id: string } | { kind: "OWNED"; id: RelicId } | { kind: "PRUNE" } | null>(null);
+  const [picked, setPicked] = useState<{ kind: "OFFER"; id: string } | { kind: "OWNED"; id: RelicId } | null>(null);
+  // Pruning opens its own sheet over the Shop
+  const [pruneOpen, setPruneOpen] = useState(false);
   if (!isOpen) return null;
 
   const commonOwned = ownedRelics.filter((id) => RELIC_REGISTRY[id]?.rarity !== "LEGENDARY");
@@ -283,9 +285,6 @@ export default function ShopModal({
    *  (kept outside the panel's scroll, so it is always on screen) */
   let action: React.ReactNode = null;
   const detail = (() => {
-    if (current?.kind === "PRUNE" && bag && onPrune) {
-      return <PruneCard bag={bag} gems={gems} pruned={pruned} onPrune={onPrune} />;
-    }
     if (current?.kind === "OWNED") {
       const id = current.id;
       const info = getRelicDisplay(RELIC_REGISTRY[id], isSanctuary);
@@ -470,11 +469,11 @@ export default function ShopModal({
           {canPrune && (
             <button
               type="button"
-              onClick={() => setPicked({ kind: "PRUNE" })}
-              aria-pressed={current?.kind === "PRUNE"}
-              className={`relative h-[78px] rounded-xl border flex flex-col items-center justify-start gap-1 px-1 pt-1.5 active:scale-95 ${
-                current?.kind === "PRUNE" ? "border-amber-300 bg-amber-300/15" : "border-white/15 bg-white/[0.035]"
-              } ${pruned ? "opacity-45" : ""}`}
+              onClick={() => setPruneOpen(true)}
+              aria-haspopup="dialog"
+              className={`relative h-[78px] rounded-xl border flex flex-col items-center justify-start gap-1 px-1 pt-1.5 active:scale-95 border-white/15 bg-white/[0.035] ${
+                pruned ? "opacity-45" : ""
+              }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={tileArt("WEAPON") ?? ""} alt="" aria-hidden="true" draggable={false} className="h-[30px] w-[30px] object-contain" />
@@ -562,6 +561,9 @@ export default function ShopModal({
           </button>
         </div>
       </motion.div>
+      {pruneOpen && bag && onPrune && (
+        <PruneSheet bag={bag} gems={gems} pruned={pruned} onPrune={onPrune} onClose={() => setPruneOpen(false)} />
+      )}
     </div>
   );
 }
