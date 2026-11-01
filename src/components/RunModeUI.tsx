@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import EntityIcon from "@/components/EntityIcon";
 import { BossRuleId, GridCell, GridCoord, RelicId, RunGardenState } from "@/types/game";
 import {
@@ -421,50 +421,93 @@ function SeasonDots({
  * Shown once, before the very first Garden Bed: the goal in one sentence and
  * how a Season is built, so a new player knows what winning looks like.
  */
-export function RunGoalCard({ target, lines, onStart }: { target: number; lines: number; onStart: () => void }) {
-  const beds = [
-    { name: "Small bed", note: "now" },
-    { name: "Big bed", note: "" },
-    { name: "Boss bed", note: "a twist" },
-  ];
+/** Centres of a 3×3 mini board (in a 90×90 box) */
+const DEMO_CELL = [15, 45, 75];
+const DEMO_SHORT = [[0, 0], [0, 1], [0, 2]];
+const DEMO_LONG = [[0, 0], [0, 1], [0, 2], [1, 2], [1, 1], [1, 0], [2, 0], [2, 1], [2, 2]];
+const demoPath = (cells: number[][]) =>
+  cells.map(([r, c], i) => `${i ? "L" : "M"}${DEMO_CELL[c]} ${DEMO_CELL[r]}`).join(" ");
+
+/** A mini board that draws a line again and again, then shows what it scored */
+function LineDemo({ cells, label, score, delay }: { cells: number[][]; label: string; score: string; delay: number }) {
+  const still = useReducedMotion();
+  return (
+    <div className="flex flex-col items-center gap-1.5">
+      <svg viewBox="0 0 90 90" className="h-[86px] w-[86px] [@media(max-height:640px)]:h-[64px] [@media(max-height:640px)]:w-[64px]" aria-hidden="true">
+        {DEMO_CELL.flatMap((y) =>
+          DEMO_CELL.map((x) => <rect key={`${x}-${y}`} x={x - 12} y={y - 12} width="24" height="24" rx="6" fill="rgba(255,255,255,0.07)" />)
+        )}
+        <motion.path
+          d={demoPath(cells)}
+          fill="none"
+          stroke="#e9cf7e"
+          strokeWidth="5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          initial={{ pathLength: still ? 1 : 0 }}
+          animate={{ pathLength: 1 }}
+          transition={still ? { duration: 0 } : { duration: 0.25 * cells.length, delay, repeat: Infinity, repeatDelay: 1.6, ease: "linear" }}
+        />
+      </svg>
+      <div className="text-[13px] text-white/70">{label}</div>
+      <div className="text-[22px] font-extrabold leading-none text-amber-200 tabular-nums">{score}</div>
+    </div>
+  );
+}
+
+/** Before a Garden Run's first bed: what to do, in one short screen */
+export function RunGoalCard({
+  target,
+  lines,
+  canHide,
+  onStart,
+  onHide,
+}: {
+  target: number;
+  lines: number;
+  /** After a few views the player may turn it off */
+  canHide: boolean;
+  onStart: () => void;
+  onHide: () => void;
+}) {
   return artify(
-    <div className="ui-zoom fixed inset-0 z-[65] bg-black/70 flex items-end sm:items-center justify-center p-3">
+    <div className="ui-zoom fixed inset-0 z-[65] bg-black/70 flex items-end sm:items-center justify-center p-3 overflow-y-auto" onClick={onStart}>
       <motion.div
         role="dialog"
-        aria-label="Your goal"
+        aria-label="Before you begin"
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-[400px] rounded-2xl border border-amber-300/30 bg-[#1B281F] p-4 text-white space-y-3"
+        onClick={(e) => e.stopPropagation()}
+        className="w-full max-w-[400px] rounded-2xl border border-white/10 bg-[#1B281F] px-5 pt-5 pb-4 text-white"
       >
-        <div className="text-center">
-          <div className="text-[24px] font-display font-semibold">Your goal</div>
-          <p className="text-[14.5px] leading-snug text-white/85 mt-1">
-            Harvest <b className="text-amber-200">{fmt(target)}</b> points in <b>{lines} lines</b> to make this bed bloom 🌸
-          </p>
+        <h2 className="text-center font-display text-[26px] font-bold leading-tight text-balance">Draw one line to the gate</h2>
+        <p className="mt-2 text-center text-[15.5px] leading-snug text-white/85">
+          Every tile you pass adds to your score, and <b className="text-amber-200">longer lines score far more</b>.
+        </p>
+
+        <div className="mt-4 [@media(max-height:640px)]:mt-2 grid grid-cols-2 gap-2 rounded-xl bg-black/20 py-3 [@media(max-height:640px)]:py-2">
+          <LineDemo cells={DEMO_SHORT} label="3 tiles" score="27" delay={0} />
+          <LineDemo cells={DEMO_LONG} label="9 tiles" score="243" delay={0.2} />
         </div>
-        <div className="grid grid-cols-3 gap-1.5 text-center">
-          {beds.map((b, i) => (
-            <div
-              key={b.name}
-              className={`rounded-xl border px-1.5 py-2 ${i === 0 ? "border-amber-300/60 bg-amber-400/10" : "border-white/10 bg-white/[0.03]"}`}
-            >
-              <div className={`text-[12.5px] font-bold ${i === 0 ? "text-amber-100" : "text-white/75"}`}>{b.name}</div>
-              <div className="text-[10.5px] text-white/50">{b.note || "\u00a0"}</div>
-            </div>
-          ))}
-        </div>
-        <ul className="text-[12.5px] leading-snug text-white/75 space-y-1">
-          <li>• Three beds make a Season. Between beds, spend 🌱 Seeds in the Shop.</li>
-          <li>• Longer lines multiply your points. Thorns pay well but cost ❤️ Life.</li>
-          <li>• When a line is enough, the gate glows gold.</li>
-        </ul>
+        <p className="mt-2 text-center text-[13px] text-white/65">3 times the length, 9 times the points.</p>
+
+        <p className="mt-4 [@media(max-height:640px)]:mt-2 text-center text-[15px] leading-snug text-white/85">
+          Thorns and Spikes cost Life, so plan your path. Reach <b className="text-amber-200">{fmt(target)}</b> in{" "}
+          <b>{lines} lines</b> to clear this bed.
+        </p>
+
         <button
           type="button"
           onClick={onStart}
-          className="w-full h-12 rounded-xl bg-lime-300 text-slate-950 text-[15px] font-bold active:scale-95 transition"
+          className="mt-4 [@media(max-height:640px)]:mt-3 w-full h-12 rounded-xl bg-lime-300 text-slate-950 text-[16px] font-bold active:scale-95 transition"
         >
-          Let&apos;s grow
+          Start
         </button>
+        {canHide && (
+          <button type="button" onClick={onHide} className="mt-1 w-full h-11 text-[14px] font-semibold text-white/60">
+            Don&apos;t show this again
+          </button>
+        )}
       </motion.div>
     </div>
   );

@@ -41,6 +41,7 @@ export type TrackEvent =
   | "relic_set"
   | "sound_prompt"
   | "goal_card_seen"
+  | "goal_card_off"
   | "tool_used"
   | "bed_skipped"
   | "run_over"

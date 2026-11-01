@@ -169,8 +169,7 @@ export default function LineMeter({
         <div className="text-[14px] leading-snug text-white/70 text-center">
           {idleText ?? (
             <>
-              Draw from your companion to the gate.
-              <span className="block text-amber-200/90">Longer lines score far more.</span>
+              <span className="text-amber-200/90">Longer lines score far more.</span>
             </>
           )}
         </div>

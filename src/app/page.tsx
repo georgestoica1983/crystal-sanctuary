@@ -286,7 +286,11 @@ const FULL_TALLIES_BEFORE_COMPACT = 3;
 const THORN_TIP = "🌺 Thorns cost ❤️ Life. Grab ✂️ Shears first to cut one, or 🧤 Gloves to block it.";
 const RUN_LESSONS_PROGRESS_KEY = "ost_run_lessons_progress_v1";
 /** The one-time "Your goal" card before a new player's first Garden Bed */
-const GOAL_CARD_SEEN_KEY = "ost_goal_card_seen_v1";
+/** "Before you begin": how many times it was shown, and whether the player turned it off */
+const GOAL_CARD_COUNT_KEY = "ost_goal_card_count_v1";
+const GOAL_CARD_OFF_KEY = "ost_goal_card_off_v1";
+/** After this many views the card offers "Don't show this again" */
+const GOAL_CARD_HIDE_AFTER = 3;
 const RUN_ONLY_NOTICE = "The Sanctuary is in Run mode for now. Gauntlet, past Dailies and the Crafter are resting.";
 
 export default function OneStrokeTacticianPage() {
@@ -508,6 +512,9 @@ export default function OneStrokeTacticianPage() {
   const [drawnPath, setDrawnPath] = useState<GridCoord[]>([]);
   const [phase, setPhase] = useState<GamePhase>("PLANNING");
   const [showGoalCard, setShowGoalCard] = useState(false);
+  const [goalCardViews, setGoalCardViews] = useState(0);
+  // The Run whose first bed already had its card (once per Run)
+  const goalCardRunRef = useRef<string | null>(null);
   const [activeResolutionStep, setActiveResolutionStep] = useState<
     number | null
   >(null);
@@ -820,9 +827,10 @@ export default function OneStrokeTacticianPage() {
     }
     if (mode !== "RUN" || lessonIndex !== null || !runGarden) return;
     if (runGarden.gardenIndex !== 0 || runGarden.score > 0 || phase !== "PLANNING") return;
+    if (goalCardRunRef.current === dungeon.seedKey) return;
     try {
       const ls = window.localStorage;
-      if (ls.getItem(GOAL_CARD_SEEN_KEY)) return;
+      if (ls.getItem(GOAL_CARD_OFF_KEY)) return;
       // Only after the lessons (finished or skipped), never between them
       const lessonsOver =
         ls.getItem(RUN_LESSONS_DONE_KEY) ||
@@ -832,8 +840,17 @@ export default function OneStrokeTacticianPage() {
     } catch {
       return;
     }
+    goalCardRunRef.current = dungeon.seedKey;
+    let views = 0;
+    try {
+      views = (Number(window.localStorage.getItem(GOAL_CARD_COUNT_KEY)) || 0) + 1;
+      window.localStorage.setItem(GOAL_CARD_COUNT_KEY, String(views));
+    } catch {
+      // Ignore storage errors
+    }
+    setGoalCardViews(views);
     setShowGoalCard(true);
-  }, [mode, lesson, lessonIndex, runGarden, phase]);
+  }, [mode, lesson, lessonIndex, runGarden, phase, dungeon.seedKey]);
 
   // Points this Garden Bed still needs (Garden Run only, not lessons)
   const bedToGo =
@@ -4543,14 +4560,19 @@ export default function OneStrokeTacticianPage() {
         <RunGoalCard
           target={runGarden.target}
           lines={runGarden.strokesLeft}
+          canHide={goalCardViews > GOAL_CARD_HIDE_AFTER}
           onStart={() => {
             setShowGoalCard(false);
+            track("goal_card_seen");
+          }}
+          onHide={() => {
+            setShowGoalCard(false);
             try {
-              window.localStorage.setItem(GOAL_CARD_SEEN_KEY, "1");
+              window.localStorage.setItem(GOAL_CARD_OFF_KEY, "1");
             } catch {
               // Ignore storage errors
             }
-            track("goal_card_seen");
+            track("goal_card_off");
           }}
         />
       )}
