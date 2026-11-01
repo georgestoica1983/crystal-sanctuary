@@ -651,7 +651,7 @@ export default function GridCanvas({
 
   return (
     <div
-      className="board-cq relative w-full max-w-game aspect-square mx-auto select-none touch-none"
+      className="board-cq relative w-full h-full max-w-game mx-auto select-none touch-none"
       style={isSanctuary ? boardThemeStyle(cosmetics?.boardThemeId) : undefined}
     >
       {/* Outer Frame: Crystal Sanctuary Garden OR Swiss Cyberpunk Frame */}
@@ -1146,6 +1146,7 @@ export default function GridCanvas({
         {/* SVG Illuminated Energy Trail, Phase Mage Warp Line & Chevron Animations */}
         <svg
           viewBox="0 0 500 500"
+          preserveAspectRatio="none"
           className="absolute inset-0 w-full h-full pointer-events-none z-20 board-pad"
         >
           <defs>

@@ -3397,6 +3397,149 @@ export default function OneStrokeTacticianPage() {
   const isSanctuarySkin = visualTheme === "SANCTUARY";
   const totalSanctuaryGems = (playerStats.totalBankedGold || 0) + hero.gold;
 
+  // The live meter: shown in the lessons above the board, and in a Garden Run
+  // over the top card whenever it has something to say (it never moves the board)
+  const meterOn =
+    mode === "RUN" &&
+    !isInteractiveTutorial &&
+    (!!lesson || (!!runGarden && !(phase === "DEFEAT" && runOver === null)));
+  const meterBusy =
+    drawnPath.length >= 2 ||
+    (phase === "PLANNING" && (tileIntroQueue.length > 0 || showStartGlovesIntro)) ||
+    !!lineShow ||
+    !!lineToast ||
+    !!lineCallout;
+  const meterInner = (
+    <>
+                <LineMeter
+                  tiles={drawnPath.length}
+                  chips={lineMeter.now.chips}
+                  mult={lineMeter.now.mult}
+                  xMult={lineMeter.now.xMult}
+                  previousPoints={lineMeter.previousPoints}
+                  lastTileValue={lineMeter.lastTileValue}
+                  reachesArchway={simulation.canCommit}
+                  wilts={!simulation.survives}
+                  wiltReason={explainWilt(simulation)?.short ?? null}
+                  magicNow={floorStartHero.hp}
+                  magicAfter={simulation.survives ? simulation.finalStats.hp : 0}
+                  tilesOnBoard={lineMeter.tilesOnBoard}
+                  toGo={bedToGo}
+                  idleText={
+                    lesson
+                      ? "Your points show here as you draw."
+                      : runNoSafeLine
+                      ? "No safe line on this board. 🌿 Swap can change up to 3 tiles."
+                      : swapSuggested
+                      ? "Tough board. Even the best line falls short, so try 🌿 Swap to change up to 3 tiles."
+                      : undefined
+                  }
+                  intro={
+                    phase !== "PLANNING"
+                      ? null
+                      : tileIntroQueue.length > 0
+                      ? {
+                          icon: <EntityIcon type={tileIntroQueue[0]} size={30} />,
+                          name: TILE_INTROS[tileIntroQueue[0]].name,
+                          text: TILE_INTROS[tileIntroQueue[0]].text,
+                          index: 0,
+                          total: tileIntroQueue.length + (showStartGlovesIntro ? 1 : 0),
+                          onNext: () => dismissTileIntro(tileIntroQueue[0]),
+                        }
+                      : showStartGlovesIntro
+                      ? {
+                          icon: <EntityIcon type="SHIELD" size={30} />,
+                          label: "Good to know",
+                          name: `Your Cat wears ${floorStartHero.shield} Gloves`,
+                          text: `from the start. They block ${floorStartHero.shield} Thorn damage.`,
+                          index: 0,
+                          total: 1,
+                          onNext: () => dismissTileIntro(START_GLOVES_INTRO),
+                        }
+                      : null
+                  }
+                  showShortLineTip={
+                    !lesson &&
+                    !longLineLearned &&
+                    simulation.canCommit &&
+                    drawnPath.length < SHORT_LINE_NUDGE_TILES
+                  }
+                />
+              <AnimatePresence>
+                {lineShow && (
+                  <LineScoreShow
+                    key={lineShow.key}
+                    breakdown={lineShow.breakdown}
+                    values={lineShow.values}
+                    echoes={lineShow.echoes}
+                    steps={lineShow.steps}
+                    stepMs={lineShow.stepMs}
+                    speed={scoreSpeed}
+                    target={lineShow.target}
+                    tierName={lineShow.tierName}
+                    tierColor={lineShow.tierColor}
+                    onRelic={(id) => {
+                      setFlashRelics([id]);
+                      window.setTimeout(() => setFlashRelics((prev) => (prev.length === 1 && prev[0] === id ? [] : prev)), 600);
+                    }}
+                    onSkip={() => skipPlaybackRef.current?.()}
+                  />
+                )}
+              </AnimatePresence>
+              {/* Lines 1–3: the score lands here instead of a full screen */}
+              <AnimatePresence>
+                {lineToast && !lineCallout && (
+                  <motion.div
+                    key={lineToast.key}
+                    initial={{ y: 10, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.25 }}
+                    className="pointer-events-none absolute inset-0 z-30 rounded-xl border border-amber-300/50 bg-[#1F2922] px-3 flex items-center justify-between gap-2"
+                    role="status"
+                  >
+                    <span className="text-[22px] font-mono font-black text-amber-200 leading-none">
+                      +{formatScore(lineToast.points)}
+                    </span>
+                    <span className="text-right text-[11px] leading-tight text-white/75">
+                      <span className="font-mono font-black text-white">
+                        {formatScore(lineToast.score)} / {formatScore(lineToast.target)}
+                      </span>
+                      <br />
+                      {formatScore(Math.max(0, lineToast.target - lineToast.score))} to go · {lineToast.strokesLeft}{" "}
+                      {lineToast.strokesLeft === 1 ? "line" : "lines"} left
+                    </span>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* A long line gets a big callout over the meter, leaving the board visible */}
+              <AnimatePresence>
+                {lineCallout && (
+                  <motion.div
+                    key={lineCallout.key}
+                    initial={{ scale: 0.4, opacity: 0, rotate: -2 }}
+                    animate={{ scale: [0.4, 1.15, 1], opacity: 1, rotate: 0 }}
+                    exit={{ opacity: 0, y: -24, scale: 0.9 }}
+                    transition={{ duration: 0.45, ease: "easeOut" }}
+                    className="pointer-events-none absolute inset-0 z-40 flex items-center justify-center"
+                    aria-live="polite"
+                  >
+                    <div
+                      className="w-full h-full rounded-xl px-4 flex flex-col items-center justify-center text-center shadow-[0_0_40px_rgba(0,0,0,0.5)] border-2 border-white/70"
+                      style={{ backgroundColor: lineCallout.color }}
+                    >
+                      <div className="text-[24px] font-black leading-none text-slate-950">{lineCallout.name}!</div>
+                      <div className="mt-0.5 text-[12px] font-mono font-black text-slate-900/80">
+                        {lineCallout.tiles} tiles · {lineCallout.points.toLocaleString()} points
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+    </>
+  );
+
   if (!isMounted) {
     return (
       <main
@@ -3438,6 +3581,7 @@ export default function OneStrokeTacticianPage() {
       <TopHUD
         runCard={
           mode === "RUN" && !isInteractiveTutorial && !lesson && runGarden && !(phase === "DEFEAT" && runOver === null) ? (
+            <div className="relative">
             <RunHudStrip
               bare
               garden={runGarden}
@@ -3470,6 +3614,10 @@ export default function OneStrokeTacticianPage() {
                       : null
                   }
                 />
+            {meterBusy && (
+              <div className="absolute inset-x-0 bottom-0 z-30 rounded-xl bg-[#1c2a20]">{meterInner}</div>
+            )}
+            </div>
           ) : null
         }
         runCardBoss={mode === "RUN" && runGarden?.kind === "BOSS"}
@@ -3756,9 +3904,16 @@ export default function OneStrokeTacticianPage() {
           {/* Rules v17+: skip a Small bed for a Tag, before its first line */}
           {canSkipBed && skipTag && drawnPath.length <= 1 && (
             skipOpen ? (
-              <div className="ui-zoom w-full max-w-game rounded-xl border border-amber-300/40 bg-amber-400/[0.07] px-3 py-2 space-y-1.5">
-                <div className="text-[13px] font-bold text-amber-100">Skip this Small bed?</div>
-                <div className="text-[12px] leading-snug text-white/80">
+              // A sheet over the game, so the board never moves
+              <div className="ui-zoom fixed inset-0 z-[60] bg-black/60 flex items-end justify-center p-3" onClick={() => setSkipOpen(false)}>
+              <div
+                role="dialog"
+                aria-label="Skip this Small bed?"
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-[400px] rounded-2xl border border-amber-300/40 bg-[#24301f] px-4 py-3 space-y-2"
+              >
+                <div className="text-[16px] font-bold text-amber-100">Skip this Small bed?</div>
+                <div className="text-[14px] leading-snug text-white/85">
                   You get <b className="text-amber-100">{SKIP_TAGS[skipTag].icon} {SKIP_TAGS[skipTag].name}</b>: {SKIP_TAGS[skipTag].text}.
                   <span className="block text-white/55">
                     You give up this bed&apos;s Seeds and Shop, Life doesn&apos;t come back, and the Big bed&apos;s target grows +
@@ -3769,160 +3924,44 @@ export default function OneStrokeTacticianPage() {
                   <button
                     type="button"
                     onClick={handleSkipBed}
-                    className="flex-1 h-9 rounded-lg bg-amber-300 text-slate-950 text-[13px] font-bold active:scale-95"
+                    className="flex-1 h-12 rounded-xl bg-amber-300 text-slate-950 text-[15px] font-bold active:scale-95"
                   >
                     Skip for the Tag
                   </button>
                   <button
                     type="button"
                     onClick={() => setSkipOpen(false)}
-                    className="flex-1 h-9 rounded-lg bg-white/[0.06] border border-white/10 text-[13px] font-semibold text-white/85"
+                    className="flex-1 h-12 rounded-xl bg-white/[0.06] border border-white/10 text-[15px] font-semibold text-white/85"
                   >
                     Keep playing
                   </button>
                 </div>
               </div>
+              </div>
             ) : null
           )}
 
-          {/* Live Value × Length meter (Run and lessons) */}
-          {mode === "RUN" &&
-            !isInteractiveTutorial &&
-            (lesson || (runGarden && !(phase === "DEFEAT" && runOver === null))) && (
-              <div className="ui-zoom relative w-full max-w-game min-w-0">
-                <LineMeter
-                  tiles={drawnPath.length}
-                  chips={lineMeter.now.chips}
-                  mult={lineMeter.now.mult}
-                  xMult={lineMeter.now.xMult}
-                  previousPoints={lineMeter.previousPoints}
-                  lastTileValue={lineMeter.lastTileValue}
-                  reachesArchway={simulation.canCommit}
-                  wilts={!simulation.survives}
-                  wiltReason={explainWilt(simulation)?.short ?? null}
-                  magicNow={floorStartHero.hp}
-                  magicAfter={simulation.survives ? simulation.finalStats.hp : 0}
-                  tilesOnBoard={lineMeter.tilesOnBoard}
-                  toGo={bedToGo}
-                  idleText={
-                    lesson
-                      ? "Your points show here as you draw."
-                      : runNoSafeLine
-                      ? "No safe line on this board. 🌿 Swap can change up to 3 tiles."
-                      : swapSuggested
-                      ? "Tough board. Even the best line falls short, so try 🌿 Swap to change up to 3 tiles."
-                      : undefined
-                  }
-                  intro={
-                    phase !== "PLANNING"
-                      ? null
-                      : tileIntroQueue.length > 0
-                      ? {
-                          icon: <EntityIcon type={tileIntroQueue[0]} size={30} />,
-                          name: TILE_INTROS[tileIntroQueue[0]].name,
-                          text: TILE_INTROS[tileIntroQueue[0]].text,
-                          index: 0,
-                          total: tileIntroQueue.length + (showStartGlovesIntro ? 1 : 0),
-                          onNext: () => dismissTileIntro(tileIntroQueue[0]),
-                        }
-                      : showStartGlovesIntro
-                      ? {
-                          icon: <EntityIcon type="SHIELD" size={30} />,
-                          label: "Good to know",
-                          name: `Your Cat wears ${floorStartHero.shield} Gloves`,
-                          text: `from the start. They block ${floorStartHero.shield} Thorn damage.`,
-                          index: 0,
-                          total: 1,
-                          onNext: () => dismissTileIntro(START_GLOVES_INTRO),
-                        }
-                      : null
-                  }
-                  showShortLineTip={
-                    !lesson &&
-                    !longLineLearned &&
-                    simulation.canCommit &&
-                    drawnPath.length < SHORT_LINE_NUDGE_TILES
-                  }
-                />
-              <AnimatePresence>
-                {lineShow && (
-                  <LineScoreShow
-                    key={lineShow.key}
-                    breakdown={lineShow.breakdown}
-                    values={lineShow.values}
-                    echoes={lineShow.echoes}
-                    steps={lineShow.steps}
-                    stepMs={lineShow.stepMs}
-                    speed={scoreSpeed}
-                    target={lineShow.target}
-                    tierName={lineShow.tierName}
-                    tierColor={lineShow.tierColor}
-                    onRelic={(id) => {
-                      setFlashRelics([id]);
-                      window.setTimeout(() => setFlashRelics((prev) => (prev.length === 1 && prev[0] === id ? [] : prev)), 600);
-                    }}
-                    onSkip={() => skipPlaybackRef.current?.()}
-                  />
-                )}
-              </AnimatePresence>
-              {/* Lines 1–3: the score lands here instead of a full screen */}
-              <AnimatePresence>
-                {lineToast && !lineCallout && (
-                  <motion.div
-                    key={lineToast.key}
-                    initial={{ y: 10, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.25 }}
-                    className="pointer-events-none absolute inset-0 z-30 rounded-xl border border-amber-300/50 bg-[#1F2922] px-3 flex items-center justify-between gap-2"
-                    role="status"
-                  >
-                    <span className="text-[22px] font-mono font-black text-amber-200 leading-none">
-                      +{formatScore(lineToast.points)}
-                    </span>
-                    <span className="text-right text-[11px] leading-tight text-white/75">
-                      <span className="font-mono font-black text-white">
-                        {formatScore(lineToast.score)} / {formatScore(lineToast.target)}
-                      </span>
-                      <br />
-                      {formatScore(Math.max(0, lineToast.target - lineToast.score))} to go · {lineToast.strokesLeft}{" "}
-                      {lineToast.strokesLeft === 1 ? "line" : "lines"} left
-                    </span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* A long line gets a big callout over the meter, leaving the board visible */}
-              <AnimatePresence>
-                {lineCallout && (
-                  <motion.div
-                    key={lineCallout.key}
-                    initial={{ scale: 0.4, opacity: 0, rotate: -2 }}
-                    animate={{ scale: [0.4, 1.15, 1], opacity: 1, rotate: 0 }}
-                    exit={{ opacity: 0, y: -24, scale: 0.9 }}
-                    transition={{ duration: 0.45, ease: "easeOut" }}
-                    className="pointer-events-none absolute inset-0 z-40 flex items-center justify-center"
-                    aria-live="polite"
-                  >
-                    <div
-                      className="w-full h-full rounded-xl px-4 flex flex-col items-center justify-center text-center shadow-[0_0_40px_rgba(0,0,0,0.5)] border-2 border-white/70"
-                      style={{ backgroundColor: lineCallout.color }}
-                    >
-                      <div className="text-[24px] font-black leading-none text-slate-950">{lineCallout.name}!</div>
-                      <div className="mt-0.5 text-[12px] font-mono font-black text-slate-900/80">
-                        {lineCallout.tiles} tiles · {lineCallout.points.toLocaleString()} points
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-              </div>
-            )}
+          {/* Above the board: one quiet line. The live meter itself floats over
+              the top card while a line is drawn (or a score or tile tip shows) */}
+          {meterOn && lesson && (
+            <div className="ui-zoom relative w-full max-w-game min-w-0">
+{meterInner}
+            </div>
+          )}
+          {meterOn && !lesson && (
+            <p className="ui-zoom w-full max-w-game text-center text-[14px] leading-snug text-amber-200/90 min-h-[20px]">
+              {runNoSafeLine
+                ? "No safe line on this board. 🌿 Swap can change up to 3 tiles."
+                : swapSuggested
+                ? "Tough board. Try 🌿 Swap to change up to 3 tiles."
+                : "Longer lines score far more."}
+            </p>
+          )}
 
           {/* Interactive 5x5 Path-Drawing Board: a square that fills the space
               left on screen (smaller on short phones, up to 520px) */}
-          <div className="relative w-full max-w-game min-h-[220px] max-h-[min(calc(100vw-1rem),520px)] grow-[1000] basis-0 !shrink flex items-center justify-center [container-type:size]">
-          <div className="relative aspect-square w-[min(100cqw,100cqh)]">
+          <div className="relative w-full max-w-game min-h-[220px] max-h-[min(calc((100vw-1rem)*1.2),624px)] grow-[1000] basis-0 !shrink flex items-center justify-center [container-type:size]">
+          <div className="relative w-[min(100cqw,100cqh)] h-[min(100cqh,calc(min(100cqw,100cqh)*1.2))]">
             {/* Time of day: a soft light over the board, and fireflies at night (looks only) */}
             {boardLight && (
               <div

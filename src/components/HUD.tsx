@@ -1788,7 +1788,7 @@ export function BottomControls({
           type="button"
           disabled={isResolving}
           onClick={onResetFloorStroke}
-          className={mode === "RUN" ? "h-11 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[13px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-40" : "flex-1 h-10 px-2 rounded-xl whitespace-nowrap bg-[#17221B]/80 hover:bg-[#233328]/90 border border-indigo-500/40 text-[11px] font-mono font-bold text-indigo-200 hover:text-white shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition disabled:opacity-40"}
+          className={mode === "RUN" ? "h-11 [@media(min-height:800px)]:h-14 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[13px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-40" : "flex-1 h-10 px-2 rounded-xl whitespace-nowrap bg-[#17221B]/80 hover:bg-[#233328]/90 border border-indigo-500/40 text-[11px] font-mono font-bold text-indigo-200 hover:text-white shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition disabled:opacity-40"}
         >
           {mode === "RUN" ? "Clear line" : "CLEAR LINE"}
         </button>
@@ -1799,7 +1799,7 @@ export function BottomControls({
             disabled={swap.disabled || (swap.left <= 0 && !swap.active)}
             onClick={swap.onToggle}
             aria-pressed={swap.active}
-            className={`h-11 rounded-xl border text-[13px] font-semibold transition active:scale-95 disabled:opacity-35 ${
+            className={`h-11 [@media(min-height:800px)]:h-14 rounded-xl border text-[13px] font-semibold transition active:scale-95 disabled:opacity-35 ${
               swap.active
                 ? "bg-lime-300 text-slate-950 border-lime-200"
                 : swap.urge === "strong"
@@ -1819,7 +1819,7 @@ export function BottomControls({
             disabled={isResolving}
             onClick={skip.onToggle}
             aria-pressed={skip.open}
-            className={`h-11 rounded-xl border text-[13px] font-semibold transition active:scale-95 disabled:opacity-35 ${
+            className={`h-11 [@media(min-height:800px)]:h-14 rounded-xl border text-[13px] font-semibold transition active:scale-95 disabled:opacity-35 ${
               skip.open ? "bg-amber-300 text-slate-950 border-amber-200" : "bg-white/[0.05] border-amber-300/30 text-amber-100/90"
             }`}
           >
@@ -1832,7 +1832,7 @@ export function BottomControls({
           disabled={isResolving || hintsRemaining <= 0}
           onClick={onRequestHint}
           title="Highlight 3 safe steps of a winning path for 5 seconds"
-          className={mode === "RUN" ? "h-11 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[13px] font-semibold text-amber-200 active:scale-95 transition disabled:opacity-35 flex items-center gap-1.5" : "h-10 px-2 rounded-xl whitespace-nowrap bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/50 text-[11px] font-mono font-extrabold text-amber-300 hover:text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.2)] active:scale-95 transition disabled:opacity-35 flex items-center gap-1.5"}
+          className={mode === "RUN" ? "h-11 [@media(min-height:800px)]:h-14 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[13px] font-semibold text-amber-200 active:scale-95 transition disabled:opacity-35 flex items-center gap-1.5" : "h-10 px-2 rounded-xl whitespace-nowrap bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/50 text-[11px] font-mono font-extrabold text-amber-300 hover:text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.2)] active:scale-95 transition disabled:opacity-35 flex items-center gap-1.5"}
         >
           <Sparkles className="w-3.5 h-3.5 text-amber-400" />
           <span>

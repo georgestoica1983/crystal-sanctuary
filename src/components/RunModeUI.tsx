@@ -162,7 +162,7 @@ export function RunHudStrip({
         </div>
       </div>
       {/* Bloom bar: buds at half, three quarters and full open as the bed fills (the line you draw previews it) */}
-      <div className="relative h-0" aria-hidden="true">
+      <div className="relative h-0 !mt-0" aria-hidden="true">
         {[50, 75, 100].map((mark) => {
           const open = pct >= mark;
           const soon = !open && pct + previewPct >= mark;
