@@ -24,8 +24,9 @@ import { getNextStarUnlocks, loadUnlockProgress } from "@/lib/unlocks";
 const BLOOM_ART = tileArt("ENEMY", { bloomed: true }) ?? "";
 import { soundEngine } from "@/lib/audio";
 import { artify } from "@/components/ArtText";
+import { formatScore } from "@/lib/formatScore";
 
-const fmt = (n: number) => Math.round(n).toLocaleString();
+const fmt = formatScore;
 
 /** Season · garden, target, score bar, lines and weed-outs */
 export function RunHudStrip({

@@ -5,8 +5,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { FloorScoreBreakdown, PathSimulationResult, RelicId, ScoreSource } from "@/types/game";
 import { soundEngine } from "@/lib/audio";
 import { artify } from "@/components/ArtText";
+import { formatScore } from "@/lib/formatScore";
 
-const fmt = (n: number) => Math.round(n).toLocaleString();
+const fmt = formatScore;
 const SCORED_TILES = ["ENEMY", "SHIELD", "WEAPON", "POTION", "TRAP"];
 
 export const SCORE_SPEED_KEY = "ost_score_speed_v1";
@@ -42,6 +43,49 @@ export function stepValues(sim: PathSimulationResult): number[] {
 export function lineStepMs(steps: number, speed: ScoreSpeed): number {
   const base = Math.max(90, 180 - Math.max(0, steps - 10) * 6);
   return Math.round(base / speed);
+}
+
+/**
+ * How far a line beats what the bed still needs: 1 = clears it, 2 = twice
+ * over, 3 = five times over (the glow and petals grow with it)
+ */
+export function fireLevel(points: number, need: number | undefined): 0 | 1 | 2 | 3 {
+  if (!need || need <= 0 || points < need) return 0;
+  if (points >= need * 5) return 3;
+  if (points >= need * 2) return 2;
+  return 1;
+}
+
+const FIRE_NAMES = ["", "Clears the bed!", "Double bloom! ×2", "Wild bloom! ×5"];
+export const FIRE_GLOW = [
+  "",
+  "0 0 14px rgba(252,211,77,0.35)",
+  "0 0 22px rgba(252,211,77,0.5), 0 0 6px rgba(251,146,60,0.4)",
+  "0 0 34px rgba(252,211,77,0.65), 0 0 12px rgba(251,146,60,0.55)",
+];
+const PETAL_COLORS = ["#F9C784", "#F4A6A6", "#FCD34D", "#F7B2C4", "#FDBA74"];
+
+/** Warm petals drifting up from the total: more of them the bigger the overflow */
+function Petals({ level }: { level: number }) {
+  const count = [0, 6, 10, 16][level] ?? 0;
+  return (
+    <span aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-visible">
+      {Array.from({ length: count }, (_, i) => {
+        const left = 55 + ((i * 37) % 45);
+        const drift = ((i * 53) % 40) - 20;
+        return (
+          <motion.span
+            key={i}
+            initial={{ opacity: 0, y: 10, x: 0, rotate: 0, scale: 0.6 }}
+            animate={{ opacity: [0, 1, 0], y: -38 - ((i * 17) % 26), x: drift, rotate: 160 + i * 25, scale: 1 }}
+            transition={{ duration: 1.5 + (i % 4) * 0.2, delay: (i % 6) * 0.06, ease: "easeOut" }}
+            className="absolute bottom-2 h-[7px] w-[5px] rounded-[60%_40%_60%_40%]"
+            style={{ left: `${left}%`, backgroundColor: PETAL_COLORS[i % PETAL_COLORS.length] }}
+          />
+        );
+      })}
+    </span>
+  );
 }
 
 type ShowEvent =
@@ -175,6 +219,8 @@ export default function LineScoreShow({
           setTotal(breakdown.total);
           setCaption(null);
           soundEngine.playTallyTotal(target > 0 ? breakdown.total / target : 0.3);
+          const lvl = fireLevel(breakdown.total, target);
+          if (lvl >= 2) window.setTimeout(() => soundEngine.playMultiplierSparkle(lvl + 1), 160);
         }
       }, ev.at)
     );
@@ -183,6 +229,7 @@ export default function LineScoreShow({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const fire = total !== null ? fireLevel(total, target) : 0;
   const pop = (box: "value" | "length" | "x") =>
     pulse?.box === box ? { scale: [1.22, 1], transition: { duration: 0.22 } } : { scale: 1 };
 
@@ -195,8 +242,12 @@ export default function LineScoreShow({
       onClick={onSkip}
       role="status"
       aria-label={`Line score ${breakdown.total.toLocaleString()}`}
-      className="absolute inset-0 z-40 rounded-xl border border-amber-300/30 bg-[#1A271E] px-3 flex flex-col justify-center cursor-pointer"
+      className={`absolute inset-0 z-40 rounded-xl border bg-[#1A271E] px-3 flex flex-col justify-center cursor-pointer transition-[box-shadow,border-color] duration-500 ${
+        fire > 0 ? "border-amber-300/70" : "border-amber-300/30"
+      }`}
+      style={fire > 0 ? { boxShadow: `inset 0 0 18px rgba(252,211,77,${0.06 * fire}), ${FIRE_GLOW[fire]}` } : undefined}
     >
+      {fire > 0 && <Petals level={fire} />}
       <div className="flex items-center gap-1.5 min-w-0">
         <div className="flex flex-col items-center min-w-[52px]">
           <span className="text-[9.5px] font-semibold uppercase tracking-wide text-sky-300/70">Value</span>
@@ -230,6 +281,7 @@ export default function LineScoreShow({
               animate={{ scale: [1.7, 0.92, 1], opacity: 1, y: 0 }}
               transition={{ duration: 0.45 }}
               className="text-[30px] font-display font-semibold tabular-nums leading-none text-amber-200"
+              style={fire > 0 ? { textShadow: FIRE_GLOW[fire] } : undefined}
             >
               {fmt(total)}
             </motion.span>
@@ -264,6 +316,7 @@ export default function LineScoreShow({
             </motion.span>
           ) : (
             <motion.span key="done" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-amber-100/70">
+              {fire > 0 && <span className="font-black text-amber-200">{FIRE_NAMES[fire]} </span>}
               {fmt(breakdown.chips)} × {fmt(breakdown.mult)}
               {breakdown.xMult !== 1 ? ` × ${Math.round(breakdown.xMult * 100) / 100}` : ""} = {fmt(breakdown.total)}
             </motion.span>

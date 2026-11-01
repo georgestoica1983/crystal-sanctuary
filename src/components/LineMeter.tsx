@@ -5,8 +5,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { getLineTier, getNextLineTier, LINE_TIERS } from "@/lib/lineTiers";
 import { artify } from "@/components/ArtText";
 import { soundEngine } from "@/lib/audio";
+import { formatScore } from "@/lib/formatScore";
+import { FIRE_GLOW, fireLevel } from "@/components/LineScoreShow";
 
-const fmt = (n: number) => Math.round(n).toLocaleString();
+const fmt = formatScore;
 
 /**
  * Live Value × Length meter above the board. Calm by default: one hint line
@@ -90,6 +92,8 @@ export default function LineMeter({
   // The line is enough to finish the bed (it still has to end on the gate to count)
   const enough = toGo !== undefined && toGo > 0 && drawing && !wilts && points >= toGo;
   const clears = enough && reachesArchway;
+  // Warm glow while drawing, growing at 2× and 5× what the bed needs
+  const fire = clears ? fireLevel(points, toGo) : 0;
   const wasEnough = useRef(false);
   useEffect(() => {
     if (enough && !wasEnough.current) soundEngine.playStarLand(2);
@@ -180,6 +184,7 @@ export default function LineMeter({
               className={`origin-left text-[30px] font-display font-semibold tabular-nums leading-none ${
                 wilts ? "text-rose-300/70 line-through" : reachesArchway ? "text-amber-200" : "text-amber-200/60"
               }`}
+              style={fire > 0 ? { textShadow: FIRE_GLOW[fire] } : undefined}
             >
               {fmt(points)}
             </motion.div>
@@ -195,7 +200,7 @@ export default function LineMeter({
                     clears ? "text-amber-200" : enough ? "text-lime-200" : "text-white/55"
                   }`}
                 >
-                  {clears ? "✓ Clears the bed" : enough ? "Enough — head to the gate!" : `${fmt(toGo - points)} to go`}
+                  {fire >= 2 ? (fire === 3 ? "✓ Wild bloom — 5× what's needed" : "✓ Double bloom — 2× what's needed") : clears ? "✓ Clears the bed" : enough ? "Enough — head to the gate!" : `${fmt(toGo - points)} to go`}
                 </span>
               )}
             </div>

@@ -6,8 +6,9 @@ import { GridCoord, PathSimulationResult, PathStepSimulation } from "@/types/gam
 import { soundEngine } from "@/lib/audio";
 import { getLineTier } from "@/lib/lineTiers";
 import { artify } from "@/components/ArtText";
+import { formatScore } from "@/lib/formatScore";
 
-const fmt = (n: number) => Math.round(n).toLocaleString();
+const fmt = formatScore;
 
 export interface LiveLineScore {
   points: number;

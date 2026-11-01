@@ -108,6 +108,7 @@ import {
 } from "@/components/Modals";
 import ShopModal from "@/components/ShopModal";
 import ScoreTally from "@/components/ScoreTally";
+import { formatScore } from "@/lib/formatScore";
 import LineScoreShow, { lineShowTimeline, lineStepMs, loadScoreSpeed, saveScoreSpeed, ScoreSpeed, stepValues } from "@/components/LineScoreShow";
 import TutorialView from "@/components/TutorialView";
 import RunGuide, { RUN_GUIDE_STORAGE_KEY } from "@/components/RunGuide";
@@ -3433,14 +3434,14 @@ export default function OneStrokeTacticianPage() {
                     role="status"
                   >
                     <span className="text-[22px] font-mono font-black text-amber-200 leading-none">
-                      +{lineToast.points.toLocaleString()}
+                      +{formatScore(lineToast.points)}
                     </span>
                     <span className="text-right text-[11px] leading-tight text-white/75">
                       <span className="font-mono font-black text-white">
-                        {lineToast.score.toLocaleString()} / {lineToast.target.toLocaleString()}
+                        {formatScore(lineToast.score)} / {formatScore(lineToast.target)}
                       </span>
                       <br />
-                      {Math.max(0, lineToast.target - lineToast.score).toLocaleString()} to go · {lineToast.strokesLeft}{" "}
+                      {formatScore(Math.max(0, lineToast.target - lineToast.score))} to go · {lineToast.strokesLeft}{" "}
                       {lineToast.strokesLeft === 1 ? "line" : "lines"} left
                     </span>
                   </motion.div>

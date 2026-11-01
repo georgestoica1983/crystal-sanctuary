@@ -8,6 +8,7 @@ import { soundEngine } from "@/lib/audio";
 import { themeArt, tileArt } from "@/lib/art";
 import RelicIcon from "@/components/RelicIcon";
 import { artify } from "@/components/ArtText";
+import { formatScore } from "@/lib/formatScore";
 
 interface ScoreTallyProps {
   isOpen: boolean;
@@ -58,7 +59,7 @@ function useCountUp(value: number, active: boolean, durationMs = 650): number {
 }
 
 const fmt = (n: number) =>
-  Number.isInteger(n) ? n.toLocaleString() : n.toLocaleString(undefined, { maximumFractionDigits: 2 });
+  Number.isInteger(n) ? formatScore(n) : n.toLocaleString(undefined, { maximumFractionDigits: 2 });
 
 /**
  * Balatro-style floor tally: Value lines tick in, Length builds up, relic
@@ -335,7 +336,7 @@ export default function ScoreTally({
                 transition={{ duration: 1.3, ease: "easeOut" }}
                 className="pointer-events-none absolute inset-x-0 top-0 text-2xl font-black text-amber-100"
               >
-                +{breakdown.total.toLocaleString()}
+                +{formatScore(breakdown.total)}
               </motion.div>
             )}
           </AnimatePresence>
