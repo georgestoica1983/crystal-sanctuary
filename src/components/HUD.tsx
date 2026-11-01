@@ -481,6 +481,9 @@ interface TopHUDProps {
   runCardBoss?: boolean;
   /** Garden Run: the live score, shown in place of the whole card while a line is drawn or scored */
   runCardOverlay?: React.ReactNode;
+  /** "Tips between beds" setting */
+  tipsOn?: boolean;
+  onToggleTips?: () => void;
   mode: GameMode;
   /** Hides the mode tabs and Daily-only bits (the app is Run-only) */
   runOnly?: boolean;
@@ -573,6 +576,8 @@ export function TopHUD({
   runCard = null,
   runCardBoss = false,
   runCardOverlay = null,
+  tipsOn = true,
+  onToggleTips,
   mode,
   runOnly = false,
   totalStars,
@@ -1050,6 +1055,12 @@ export function TopHUD({
                     <button type="button" className={menuTile} onClick={onToggleMusicLayers} aria-pressed={musicLayersOn}>
                       <span className={menuTileTop}><span aria-hidden="true">🎵</span> Set music</span>
                       <span className={menuTileSub}>{musicLayersOn ? "On" : "Off"}</span>
+                    </button>
+                  )}
+                  {onToggleTips && (
+                    <button type="button" className={menuTile} onClick={onToggleTips} aria-pressed={tipsOn}>
+                      <span className={menuTileTop}><span aria-hidden="true">💡</span> Tips</span>
+                      <span className={menuTileSub}>{tipsOn ? "Between beds" : "Off"}</span>
                     </button>
                   )}
                   {onToggleFollowTime && (

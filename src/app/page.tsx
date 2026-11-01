@@ -1,5 +1,7 @@
 "use client";
 
+import TipCard from "@/components/TipCard";
+import { loadTipsOn, saveTipsOn, takeNextTip, type Tip } from "@/lib/tips";
 import { countRunStarted, runsStarted, TEACHING_RUNS } from "@/lib/playCount";
 import IntroSplash from "@/components/IntroSplash";
 import { watchUiScale } from "@/lib/uiScale";
@@ -515,6 +517,10 @@ export default function OneStrokeTacticianPage() {
   const [phase, setPhase] = useState<GamePhase>("PLANNING");
   const [showGoalCard, setShowGoalCard] = useState(false);
   const [goalCardViews, setGoalCardViews] = useState(0);
+  // Tip cards between beds (game and gardening tips), once per new bed
+  const [tipsOn, setTipsOn] = useState(true);
+  const [tip, setTip] = useState<Tip | null>(null);
+  const tipBedRef = useRef<string | null>(null);
   // The Run whose first bed already had its card (once per Run)
   const goalCardRunRef = useRef<string | null>(null);
   const [activeResolutionStep, setActiveResolutionStep] = useState<
@@ -853,6 +859,17 @@ export default function OneStrokeTacticianPage() {
     setGoalCardViews(views);
     setShowGoalCard(true);
   }, [mode, lesson, lessonIndex, runGarden, phase, dungeon.seedKey]);
+
+  useEffect(() => setTipsOn(loadTipsOn()), []);
+  // A new bed (not the first of a Run) opens with one short tip
+  useEffect(() => {
+    if (!tipsOn || mode !== "RUN" || lesson || practiceStep || !runGarden) return;
+    if (runGarden.gardenIndex === 0 || runGarden.score > 0 || phase !== "PLANNING" || runClear || tally) return;
+    const key = `${dungeon.seedKey}-${runGarden.gardenIndex}`;
+    if (tipBedRef.current === key) return;
+    tipBedRef.current = key;
+    setTip(takeNextTip());
+  }, [tipsOn, mode, lesson, practiceStep, runGarden, phase, runClear, tally, dungeon.seedKey]);
 
   // Points this Garden Bed still needs (Garden Run only, not lessons)
   const bedToGo =
@@ -3758,6 +3775,12 @@ export default function OneStrokeTacticianPage() {
         onOpenJournal={RUN_ONLY ? () => setJournalOpen(true) : undefined}
         journalNew={collectionCounts.journalNew}
         musicLayersOn={musicLayersOn}
+        tipsOn={tipsOn}
+        onToggleTips={() => {
+          const next = !tipsOn;
+          saveTipsOn(next);
+          setTipsOn(next);
+        }}
         followTime={followTime}
         onToggleFollowTime={() => {
           const next = !followTime;
@@ -3977,7 +4000,10 @@ export default function OneStrokeTacticianPage() {
                 ? "No safe line on this board. 🌿 Swap can change up to 3 tiles."
                 : swapSuggested
                 ? "Tough board. Try 🌿 Swap to change up to 3 tiles."
-                : "Longer lines score far more."}
+                : // The main rule, while it is new: the first two beds of a player's first Run
+                runsStarted() <= 1 && (runGarden?.gardenIndex ?? 0) < 2
+                ? "Longer lines score far more."
+                : ""}
             </p>
           )}
 
@@ -4614,6 +4640,7 @@ export default function OneStrokeTacticianPage() {
 
       {/* Run mode: garden-clear payout and the end-of-run summary */}
       <RunGardenClearModal info={runClear} onContinue={handleRunClearContinue} />
+      <AnimatePresence>{tip && <TipCard key={tip.text} tip={tip} onDone={() => setTip(null)} />}</AnimatePresence>
       {showGoalCard && runGarden && !lesson && (
         <RunGoalCard
           target={runGarden.target}
