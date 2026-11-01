@@ -5,6 +5,7 @@ import {
   DungeonTheme,
   EntityType,
   FertTile,
+  Edition,
   ToolId,
   FloorHistoryRecord,
   FloorScoreBreakdown,
@@ -799,6 +800,31 @@ export const GARDEN_TOOLS: Record<ToolId, { name: string; icon: string; tag: str
 };
 export const TOOL_IDS = Object.keys(GARDEN_TOOLS) as ToolId[];
 export const MAX_TOOLS = 2;
+
+/** Special tiles (rules v14+): visible shimmers that pay when a line passes them */
+export const EDITIONS: Record<Edition, { name: string; tag: string }> = {
+  GOLDEN: { name: "Golden", tag: "+30 Value" },
+  IRIDESCENT: { name: "Iridescent", tag: "+2 Length" },
+  RADIANT: { name: "Radiant", tag: "×1.25" },
+};
+export const EDITION_IDS = Object.keys(EDITIONS) as Edition[];
+/** Special tiles a new Run's bag starts with, and the Shop price of one */
+export const RUN_START_EDITIONS = 1;
+export const EDITION_TILE_COST = 8;
+/** Share of Shops that sell a special tile */
+export const EDITION_SHOP_CHANCE = 0.25;
+
+/** Rules v14+: a few seeded tiles of a new bag shimmer */
+export function addStartEditions(bag: SeedTile[], runSeed: string): SeedTile[] {
+  const rng = mulberry32(hashStringToSeed(`editions-${runSeed}`));
+  const next = [...bag];
+  const picked = new Set<number>();
+  while (picked.size < Math.min(RUN_START_EDITIONS, next.length)) picked.add(Math.floor(rng() * next.length));
+  for (const i of Array.from(picked).sort((a, b) => a - b)) {
+    next[i] = { ...next[i], ed: EDITION_IDS[Math.floor(rng() * EDITION_IDS.length)] };
+  }
+  return next;
+}
 export const DEW_LINES = 3;
 export const FERTILIZER_COST = 6;
 
@@ -819,7 +845,9 @@ export function generateShopOffers(
   /** Rules v12+: one slot is a Fertilizer at this price (0 = none) */
   fertilizerCost = 0,
   /** Rules v13+: a garden tool is offered too, costing this much extra (null = no tools) */
-  toolExtraCost: number | null = null
+  toolExtraCost: number | null = null,
+  /** Rules v14+: sometimes a special tile is for sale, at this price (null = never) */
+  editionCost: number | null = null
 ): ShopOffer[] {
   const rng = mulberry32(
     hashStringToSeed(`shop-${seedKey}-f${floorNumber}-r${rerollIndex}`)
@@ -874,6 +902,18 @@ export function generateShopOffers(
     const trng = mulberry32(hashStringToSeed(`tool-${seedKey}-f${floorNumber}-r${rerollIndex}`));
     const tool = TOOL_IDS[Math.floor(trng() * TOOL_IDS.length)];
     offers.push({ id: `f${floorNumber}-r${rerollIndex}-tool`, kind: "TOOL", tool, cost: GARDEN_TOOLS[tool].cost + toolExtraCost });
+  }
+  if (editionCost !== null) {
+    const erng = mulberry32(hashStringToSeed(`edtile-${seedKey}-f${floorNumber}-r${rerollIndex}`));
+    if (erng() < EDITION_SHOP_CHANCE) {
+      const mix = RUN_SEED_BAG_MIX[Math.floor(erng() * RUN_SEED_BAG_MIX.length)];
+      const tile: SeedTile = {
+        type: mix.type,
+        value: mix.min + Math.floor(erng() * (mix.max - mix.min + 1)),
+        ed: EDITION_IDS[Math.floor(erng() * EDITION_IDS.length)],
+      };
+      offers.push({ id: `f${floorNumber}-r${rerollIndex}-tile`, kind: "TILE", tile, cost: editionCost });
+    }
   }
   return shuffle(offers);
 }
@@ -1948,6 +1988,13 @@ export function calculateFloorScoreBreakdown(
     multSources.push({ label: toolLabel("Long Root", toolCount("LONG_ROOT")), value: 2 * toolCount("LONG_ROOT") });
   for (let i = 0; i < toolCount("SUNLIT"); i++) xMultSources.push({ label: "Sunlit tile", value: 1.25 });
   for (let i = 0; i < toolCount("DEW"); i++) xMultSources.push({ label: "Dewy tile", value: 1.5 });
+  // Special tiles on this line (rules v14+)
+  const shimmer = (ed: Edition) => visited.filter((s) => s.cell.bagTile?.ed === ed).length;
+  const edLabel = (name: string, n: number) => (n === 1 ? `${name} tile` : `${n} ${name} tiles`);
+  if (shimmer("GOLDEN") > 0) chipSources.push({ label: edLabel("Golden", shimmer("GOLDEN")), value: 30 * shimmer("GOLDEN") });
+  if (shimmer("IRIDESCENT") > 0)
+    multSources.push({ label: edLabel("Iridescent", shimmer("IRIDESCENT")), value: 2 * shimmer("IRIDESCENT") });
+  for (let i = 0; i < shimmer("RADIANT"); i++) xMultSources.push({ label: "Radiant tile", value: 1.25 });
   // ×Length
   addX("STARLIGHT_COMPASS", 1.5, pathLength >= 12);
   addX("SUN_PRISM", 2, sim.boardSunbeams >= 2 && sunbeamsOnLine >= sim.boardSunbeams);

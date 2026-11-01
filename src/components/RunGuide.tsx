@@ -274,6 +274,7 @@ function buildPages(): GuidePage[] {
               <>In the Shop: buy relics and boosts, or reroll ({RUN_REROLL_BASE_COST} 🌱). You can hold {MAX_COMMON_RELICS} relics.</>,
               <>🌱 Fertilizer levels up one tile type for the whole Run: every one of those tiles on a line adds more Value. It stacks.</>,
               <>☀️ Garden tools (hold 2): tap one under the board, then a tile. The upgrade stays on that tile in your bag for the whole Run.</>,
+              <>✦ Shimmering tiles are special: Golden +30 Value, Iridescent +2 Length, Radiant ×1.25 on any line through them. Your bag starts with one; the Shop sometimes sells more.</>,
             ]}
           />
           <div className="rounded-xl border border-white/10 overflow-hidden text-[12px] font-mono">

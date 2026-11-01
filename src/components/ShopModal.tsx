@@ -17,6 +17,7 @@ import {
   countCommonRelics,
   describeRelicGrowth,
   FERTILIZER,
+  EDITIONS,
   GARDEN_TOOLS,
   getFertLevel,
   MAX_TOOLS,
@@ -108,7 +109,28 @@ const TOOL_DESCRIPTIONS: Record<string, string> = {
   DEW: "Put it on any tile: the next 3 lines through it score ×1.5, then the Dew dries.",
 };
 
+const TILE_NAMES: Record<string, string> = {
+  ENEMY: "Thorn",
+  TRAP: "Spike",
+  GOLD: "Acorn",
+  POTION: "Berries",
+  SHIELD: "Gloves",
+  WEAPON: "Shears",
+};
+
 function describeOffer(offer: ShopOffer, isSanctuary: boolean, counters?: RelicCounters) {
+  if (offer.kind === "TILE" && offer.tile?.ed) {
+    const ed = EDITIONS[offer.tile.ed];
+    return {
+      icon: "✦",
+      name: `${ed.name} ${TILE_NAMES[offer.tile.type] ?? "tile"} ${offer.tile.value}`,
+      tag: `${ed.tag} · joins your bag`,
+      description: `A ${ed.name} ${TILE_NAMES[offer.tile.type] ?? "tile"} joins your Tile Bag: every line through it gets ${ed.tag}.`,
+      accent: offer.tile.ed === "GOLDEN" ? "#FCD34D" : offer.tile.ed === "IRIDESCENT" ? "#C4B5FD" : "#FED7AA",
+      kindLabel: "Special tile",
+      kindClass: "bg-amber-400/15 text-amber-200",
+    };
+  }
   if (offer.kind === "TOOL" && offer.tool) {
     const t = GARDEN_TOOLS[offer.tool];
     return {
@@ -465,7 +487,12 @@ export default function ShopModal({
                       }`}
                     >
                       <span className="mt-0.5 h-8 w-8 shrink-0 flex items-center justify-center">
-                        {offer.kind === "TOOL" && offer.tool ? (
+                        {offer.kind === "TILE" && offer.tile ? (
+                          <span className={`edition-shimmer edition-${(offer.tile.ed ?? "golden").toLowerCase()} relative h-8 w-8 rounded-lg flex items-center justify-center`}>
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={tileArt(offer.tile.type) ?? ""} alt="" aria-hidden="true" draggable={false} className="h-6 w-6 object-contain" />
+                          </span>
+                        ) : offer.kind === "TOOL" && offer.tool ? (
                           <span className="text-[22px] leading-none" aria-hidden="true">{GARDEN_TOOLS[offer.tool].icon}</span>
                         ) : offer.kind === "FERT" && offer.fert ? (
                           <span className="relative h-7 w-7">
@@ -493,6 +520,8 @@ export default function ShopModal({
                             ? `${FERTILIZER[offer.fert].name} Lv ${getFertLevel(relicCounters, offer.fert) + 2} · +${FERTILIZER[offer.fert].perLevel} each`
                             : offer.kind === "TOOL" && offer.tool
                             ? GARDEN_TOOLS[offer.tool].tag
+                            : offer.kind === "TILE" && offer.tile?.ed
+                            ? EDITIONS[offer.tile.ed].tag
                             : info.tag}
                         </span>
                         {sold ? (
@@ -505,6 +534,8 @@ export default function ShopModal({
                           </span>
                         ) : offer.kind === "TOOL" ? (
                           <span className="block text-[10.5px] text-white/45">stays on a tile</span>
+                        ) : offer.kind === "TILE" ? (
+                          <span className="block text-[10.5px] text-white/45">joins your bag</span>
                         ) : null}
                       </span>
                       <span

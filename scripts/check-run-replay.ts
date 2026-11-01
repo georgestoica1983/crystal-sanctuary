@@ -29,6 +29,7 @@ import {
   RUN_MODIFIER,
   runFertilizerCost,
   runToolExtraCost,
+  runEditionTileCost,
   runModifierFor,
   scoreRunStroke,
   RunActionLog,
@@ -546,6 +547,71 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
     `Dew dries after 3 lines (${counts.join(" → ")})`,
     counts.join(",") === "2,1,0" && !dew.bag.some((t) => t.enh) && !dew.grid[spot.row][spot.col].bagTile?.enh
   );
+}
+
+// 11. Special tiles (rules v14+): one shimmering tile in a new bag, more for sale, scoring on any line
+{
+  const v13 = createRunReplayer("edition-check", "KNIGHT", 13);
+  const v14 = createRunReplayer("edition-check", "KNIGHT", 14);
+  check(
+    `v14 bag starts with 1 special tile (v13: ${v13.state.bag.filter((t) => t.ed).length})`,
+    v14.state.bag.filter((t) => t.ed).length === 1 && !v13.state.bag.some((t) => t.ed) && v14.state.bag.length === v13.state.bag.length
+  );
+  check(
+    "special tile price: none before v14, 8 Seeds, 10 from Ascension 2",
+    runEditionTileCost(13) === null && runEditionTileCost(14) === 8 && runEditionTileCost(14, 2) === 10
+  );
+  // Find a Shop that sells one, then a bot buys it and the Run replays
+  let shopFloor = 0;
+  for (let f = 1; f < 40 && !shopFloor; f++) {
+    if (generateShopOffers("edition-check", f, 0, [], runFertilizerCost(14), runToolExtraCost(14), runEditionTileCost(14)).some((o) => o.kind === "TILE")) shopFloor = f;
+  }
+  check(`some Shops sell a special tile (first at bed ${shopFloor})`, shopFloor > 0);
+  const run = createRunReplayer("run-1700000000050-ed", "KNIGHT", 14);
+  const log: RunActionLog = { v: 14, seed: "run-1700000000050-ed", hero: "KNIGHT", a: [] };
+  const act = (a: RunLogAction) => {
+    const err = run.apply(a);
+    if (err) throw new Error(`edition bot made an illegal move: ${err}`);
+    log.a.push(a);
+  };
+  let bought = 0;
+  for (let guard = 0; guard < 400 && run.state.phase !== "OVER" && run.state.gardensBloomed < 7; guard++) {
+    const s = run.state;
+    if (s.phase === "SHOP") {
+      const tile = s.shop.offers.find((o) => o.kind === "TILE" && !s.shop.soldIds.includes(o.id));
+      if (tile && s.shop.stats.gold >= tile.cost) {
+        act({ k: "b", o: tile.id });
+        bought++;
+        continue;
+      }
+      act({ k: "l", h: s.classId });
+      continue;
+    }
+    const best = searchBestFloorLine(s.grid, s.startHero, RUN_MODIFIER, s.classId, s.relics, 20000, {
+      counters: s.counters,
+      strokesLeft: s.garden.strokesLeft,
+      relicSets: true,
+    });
+    if (!best) break;
+    act({ k: "s", p: packCoords(best.path) });
+  }
+  const replay = replayRun(JSON.parse(JSON.stringify(log)));
+  check(
+    `v14 Run with special tiles replays (${bought} bought, bag ${run.state.bag.length})`,
+    replay.ok && replay.score === run.state.score && run.state.bag.filter((t) => t.ed).length === 1 + bought,
+    replay.ok ? `${replay.score} vs ${run.state.score}` : replay.error
+  );
+  // A Golden tile adds +30 Value to a line through it
+  const g = createRunReplayer("edition-check", "KNIGHT", 14);
+  const best = searchBestFloorLine(g.state.grid, g.state.startHero, RUN_MODIFIER, "KNIGHT", [], 20000, {});
+  if (best) {
+    const base = calculateFloorScoreBreakdown(best.sim, g.state.startHero, best.path.length, [], {});
+    const cell = best.path.map((c) => g.state.grid[c.row][c.col]).find((c) => c.type !== "HERO" && c.type !== "EXIT" && !c.bagTile?.ed)!;
+    const gold = { ...cell, bagTile: { ...cell.bagTile!, ed: "GOLDEN" as const } };
+    const sim = { ...best.sim, steps: best.sim.steps.map((st) => (st.cell.id === cell.id ? { ...st, cell: gold } : st)) };
+    const golden = calculateFloorScoreBreakdown(sim, g.state.startHero, best.path.length, [], {});
+    check(`a Golden tile adds +30 Value (${base.chips} → ${golden.chips})`, golden.chips - base.chips === 30);
+  }
 }
 
 console.log(failures ? `\n${failures} check(s) failed` : "\nAll replay checks passed");

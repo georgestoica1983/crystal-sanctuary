@@ -51,7 +51,7 @@ Rule: anything random is visible before you commit — no hidden chances, no pai
 **B — Run depth (one rules version each, bots first)**
 - [x] 6. Fertilizer (rules v12): a 4th Shop offer that levels one tile type for the Run — Thorns +3 Value per level, other tiles +2; costs 6 Seeds (8 from Ascension 2); "🌱Lv" leaf on tiles, best-line preview in the Shop. Bots: balance unchanged vs v11; buying only Fertilizer is slightly weaker than relics.
 - [x] 7. Garden tools (rules v13): hold 2, bought as a 5th Shop offer, tap a tool then a tile; the upgrade stays on that tile in the bag for the Run — Rich Soil +20 Value (4), Long Root +2 Length (5), Sunlit ×1.25 (6), Dew ×1.5 for 3 lines (6); +2 Seeds from Ascension 2. Stone dropped. Bots: unchanged balance in normal use; heavy use helps casual players a little, Ascension 6 stays hard.
-- [ ] 8. Special tiles (Editions): Golden +50 Value, Iridescent +3 Length, Radiant ×1.5, visible shimmer.
+- [x] 8. Special tiles (rules v14): Golden +30 Value, Iridescent +2 Length, Radiant ×1.25 on any line through them, with a glow and slow sweep; a new bag starts with 1, a quarter of Shops sell one (8 Seeds, 10 from Ascension 2) that joins the bag. The first numbers (+50 / +3 / ×1.5, 2 to start) were far too strong; the gentle version keeps balance close to v13.
 - [ ] 9. Echo (Red Seal): the tile scores twice.
 - [ ] 10. ~8 new relics: score-again (first tile twice, Thorns twice, Echo ×3) and rule-benders (cross yourself once, Spikes never hurt, Exit = Acorn, diagonal = 2 Length, Berries count as Thorns).
 - [ ] 11. Skip a Small/Big bed for a Tag (free Rare relic, Edition on next item, +25 Seeds after Boss, free Fertilizer); no reward, interest, Shop or growth that bed.

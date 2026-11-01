@@ -31,7 +31,6 @@ import {
   BOSS_RULE_REGISTRY,
   countPathBlinks,
   countPathSelfCrosses,
-  RUN_SEED_BAG_SIZE,
   calculateFloorScoreBreakdown,
   findEntityCoord,
   calculateRunScore,
@@ -45,6 +44,7 @@ import {
   SHOP_REROLL_COST,
   SHOP_STAT_BOOSTS,
   GARDEN_TOOLS,
+  EDITIONS,
   FERTILIZER,
   getFertLevel,
   isPerfectFloor,
@@ -1430,8 +1430,10 @@ export default function OneStrokeTacticianPage() {
         soldIds: shopSoldIds,
         counters: relicCounters,
         tools: runTools,
+        bag: runBag,
       });
       if (!bought) return;
+      if (bought.bag) setRunBag(bought.bag);
       if (bought.counters) setRelicCounters(bought.counters);
       if (bought.tools) setRunTools(bought.tools);
       track("shop_buy", {
@@ -1462,6 +1464,8 @@ export default function OneStrokeTacticianPage() {
         handleNotice(`${SHOP_STAT_BOOSTS.MAX_MAGIC.icon} +2 Max Life for this visit!`);
       } else if (offer.stat === "START_DEW") {
         handleNotice(`${SHOP_STAT_BOOSTS.START_DEW.icon} +1 Gloves at the start of every garden!`);
+      } else if (offer.kind === "TILE" && offer.tile?.ed) {
+        handleNotice(`✨ A ${EDITIONS[offer.tile.ed].name} tile (${EDITIONS[offer.tile.ed].tag}) joins your bag — it shimmers when it's on the board.`);
       } else if (offer.kind === "TOOL" && offer.tool) {
         handleNotice(`${GARDEN_TOOLS[offer.tool].icon} ${GARDEN_TOOLS[offer.tool].name} is in your tools — tap it under the board, then a tile.`);
       } else if (offer.kind === "FERT" && offer.fert) {
@@ -1478,7 +1482,7 @@ export default function OneStrokeTacticianPage() {
       setShopPurchases((prev) => prev + 1);
       if (offer.kind !== "RELIC") soundEngine.playShopBuy();
     },
-    [pendingPostFloorStats, hero, shopSoldIds, activeRelics, runUpgrades, mode, handleNotice, relicCounters, runTools]
+    [pendingPostFloorStats, hero, shopSoldIds, activeRelics, runUpgrades, mode, handleNotice, relicCounters, runTools, runBag]
   );
 
   /** Sanctuary Shop (Run): sell a relic for half its price to free its slot */
@@ -3261,7 +3265,7 @@ export default function OneStrokeTacticianPage() {
         flashRelics={flashRelics}
         bagPanel={
           mode === "RUN" && !lesson && runGarden ? (
-            <BagPanel garden={runGarden} prunedCount={runBag.length > 0 ? Math.max(0, RUN_SEED_BAG_SIZE - runBag.length) : 0} />
+            <BagPanel garden={runGarden} prunedCount={runLogRef.current?.a.filter((a) => a.k === "p").length ?? 0} />
           ) : undefined
         }
         bagCount={runGarden?.drawPile.length}

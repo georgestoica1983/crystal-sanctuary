@@ -160,7 +160,9 @@ export type ShopStatId = "MAX_MAGIC" | "START_DEW";
 
 export interface ShopOffer {
   id: string;
-  kind: "RELIC" | "STAT" | "FERT" | "TOOL";
+  kind: "RELIC" | "STAT" | "FERT" | "TOOL" | "TILE";
+  /** Special tile for sale (rules v14+): added to the Tile Bag */
+  tile?: SeedTile;
   /** Garden tool (rules v13+) */
   tool?: ToolId;
   relicId?: RelicId;
@@ -326,7 +328,12 @@ export interface SeedTile {
   enh?: ToolId;
   /** Dew: lines left before it dries */
   dew?: number;
+  /** Special tile (rules v14+): a shimmer it was found or bought with */
+  ed?: Edition;
 }
+
+/** Special tiles (rules v14+), Bloomline's Editions */
+export type Edition = "GOLDEN" | "IRIDESCENT" | "RADIANT";
 
 /** One-use garden tools (rules v13+) that upgrade a tile in the Tile Bag for good */
 export type ToolId = "RICH_SOIL" | "LONG_ROOT" | "SUNLIT" | "DEW";

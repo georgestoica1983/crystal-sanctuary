@@ -27,6 +27,9 @@ const FERT_NEVER = process.env.FERT === "never";
 /** TOOLS=never: the bot skips garden tools (rules v13+) */
 const TOOLS_NEVER = process.env.TOOLS === "never";
 const TOOLS_FIRST = process.env.TOOLS === "first";
+/** EDS=first|never: special tiles in the Shop (rules v14+) */
+const EDS_FIRST = process.env.EDS === "first";
+const EDS_NEVER = process.env.EDS === "never";
 
 for (const budget of BUDGETS) {
   for (const v of VERSIONS) {
@@ -61,6 +64,10 @@ for (const budget of BUDGETS) {
               );
             if (order.length > 0 && run.apply({ k: "p", i: order[0].i }) === null) continue;
           }
+          if (EDS_FIRST) {
+            const tile = s.shop.offers.find((o) => o.kind === "TILE" && !s.shop.soldIds.includes(o.id));
+            if (tile && run.apply({ k: "b", o: tile.id }) === null) continue;
+          }
           if (TOOLS_FIRST) {
             const tool = s.shop.offers.find((o) => o.kind === "TOOL" && !s.shop.soldIds.includes(o.id));
             if (tool && run.apply({ k: "b", o: tool.id }) === null) continue;
@@ -78,7 +85,8 @@ for (const budget of BUDGETS) {
               (o) =>
                 !s.shop.soldIds.includes(o.id) &&
                 !(FERT_NEVER && o.kind === "FERT") &&
-                !(TOOLS_NEVER && o.kind === "TOOL")
+                !(TOOLS_NEVER && o.kind === "TOOL") &&
+                !(EDS_NEVER && o.kind === "TILE")
             )
             .sort((a, b) => a.cost - b.cost)
             .find((o) => run.apply({ k: "b", o: o.id }) === null);

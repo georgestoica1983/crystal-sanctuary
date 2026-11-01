@@ -832,6 +832,16 @@ export default function GridCanvas({
                   data-col={c}
                   className={`relative rounded-xl transition-colors duration-150 flex items-center justify-center overflow-visible ${plateClass}`}
                 >
+                  {cell.bagTile?.ed && (
+                    <span
+                      aria-label={`${EDITION_LOOK[cell.bagTile.ed].label} tile: ${EDITION_LOOK[cell.bagTile.ed].tag}`}
+                      className={`edition-shimmer edition-${cell.bagTile.ed.toLowerCase()} absolute inset-0 rounded-xl pointer-events-none z-[5]`}
+                    >
+                      <span className="absolute top-0.5 left-1 text-[9px] font-black leading-none" aria-hidden="true">
+                        ✦
+                      </span>
+                    </span>
+                  )}
                   {cell.bagTile?.enh && (
                     <span
                       aria-label={`Upgraded: ${TOOL_MARKS[cell.bagTile.enh].label}`}
@@ -1641,6 +1651,13 @@ function calmPlateClass(t: {
  * Uniform 100x100 ViewBox Geometric / Crystal Sanctuary Entities with Strict 62% Scale & Crisp HTML Center Values
  */
 /** Board tile glyph: themed icon with its number in a small badge */
+/** Special tiles (rules v14+): a shimmer that says what they add */
+const EDITION_LOOK: Record<string, { label: string; tag: string }> = {
+  GOLDEN: { label: "Golden", tag: "+30 Value" },
+  IRIDESCENT: { label: "Iridescent", tag: "+2 Length" },
+  RADIANT: { label: "Radiant", tag: "×1.25" },
+};
+
 /** Garden tool upgrades on a tile (rules v13+) */
 const TOOL_MARKS: Record<string, { icon: string; label: string }> = {
   RICH_SOIL: { icon: "🟫", label: "Rich Soil, +20 Value" },

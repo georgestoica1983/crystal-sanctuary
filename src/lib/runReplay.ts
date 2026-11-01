@@ -7,6 +7,8 @@ import {
   countCommonRelics,
   countPathBlinks,
   countPathSelfCrosses,
+  addStartEditions,
+  EDITION_TILE_COST,
   createRunGarden,
   DEW_LINES,
   MAX_TOOLS,
@@ -145,7 +147,8 @@ export function startRunGarden(
   floor: DungeonFloor;
   state: RunGardenState;
 } {
-  const bag = generateRunSeedBag(runSeed);
+  const baseBag = generateRunSeedBag(runSeed);
+  const bag = runRulesUseEditions(logVersion) ? addStartEditions(baseBag, runSeed) : baseBag;
   const base = getInitialHeroStatsForClass(classId);
   // Shears rule: a starting Power counts as one cut
   const shearsHero =
@@ -240,7 +243,8 @@ export function getRunBloomResult(params: {
       0,
       relicsAfter,
       runFertilizerCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
-      runToolExtraCost(params.logVersion ?? RUN_LOG_VERSION, params.asc)
+      runToolExtraCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
+      runEditionTileCost(params.logVersion ?? RUN_LOG_VERSION, params.asc)
     ),
   };
 }
@@ -256,7 +260,16 @@ export function applyRunShopPurchase(params: {
   counters?: RelicCounters;
   /** Garden tools held (rules v13+) */
   tools?: ToolId[];
-}): { stats: HeroStats; relics: RelicId[]; upgrades: RunUpgrades; counters?: RelicCounters; tools?: ToolId[] } | null {
+  /** The Tile Bag (a special tile bought in v14+ joins it) */
+  bag?: SeedTile[];
+}): {
+  stats: HeroStats;
+  relics: RelicId[];
+  upgrades: RunUpgrades;
+  counters?: RelicCounters;
+  tools?: ToolId[];
+  bag?: SeedTile[];
+} | null {
   const { stats, offer, relics, upgrades, soldIds } = params;
   if (soldIds.includes(offer.id) || stats.gold < offer.cost) return null;
   if (offer.kind === "RELIC" && (!offer.relicId || countCommonRelics(relics) >= MAX_COMMON_RELICS)) {
@@ -265,6 +278,9 @@ export function applyRunShopPurchase(params: {
   const next: HeroStats = { ...stats, gold: stats.gold - offer.cost };
   if (offer.kind === "RELIC" && offer.relicId) {
     return { stats: next, relics: [...relics, offer.relicId], upgrades };
+  }
+  if (offer.kind === "TILE" && offer.tile) {
+    return { stats: next, relics, upgrades, bag: [...(params.bag ?? []), { ...offer.tile }] };
   }
   if (offer.kind === "TOOL" && offer.tool) {
     if ((params.tools ?? []).length >= MAX_TOOLS) return null;
@@ -324,6 +340,11 @@ export const runRulesUseFertilizer = (logVersion: number) => logVersion >= 12;
 /** Fertilizer's Shop price (0 before v12); from Ascension 2 it costs 2 more */
 /** Rules v13+: garden tools upgrade a bag tile for the rest of the Run */
 export const runRulesUseTools = (logVersion: number) => logVersion >= 13;
+/** Rules v14+: special tiles (Golden, Iridescent, Radiant) in the bag and the Shop */
+export const runRulesUseEditions = (logVersion: number) => logVersion >= 14;
+/** A special tile's Shop price: 8 Seeds, 10 from Ascension 2 (null = none in these rules) */
+export const runEditionTileCost = (logVersion: number, asc = 0): number | null =>
+  runRulesUseEditions(logVersion) ? EDITION_TILE_COST + (runAscensionFor(logVersion, asc) >= 2 ? 2 : 0) : null;
 /** Garden tools cost 2 more from Ascension 2 (null = no tools in these rules) */
 export const runToolExtraCost = (logVersion: number, asc = 0): number | null =>
   runRulesUseTools(logVersion) ? (runAscensionFor(logVersion, asc) >= 2 ? 2 : 0) : null;
@@ -419,7 +440,8 @@ export function applyRunShopReroll(params: {
       rerolls,
       params.relics,
       runFertilizerCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
-      runToolExtraCost(params.logVersion ?? RUN_LOG_VERSION, params.asc)
+      runToolExtraCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
+      runEditionTileCost(params.logVersion ?? RUN_LOG_VERSION, params.asc)
     ),
     cost,
   };
@@ -512,7 +534,7 @@ export function getRunPathError(
  * v11: a gentler first Season (targets 800 / 1,500 / 2,500).
  * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 13;
+export const RUN_LOG_VERSION = 14;
 export const RUN_LOG_MIN_VERSION = 2;
 /** Rule set of new Runs (the current version) */
 export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);
@@ -783,9 +805,11 @@ export function createRunReplayer(
         soldIds: s.shop.soldIds,
         counters: s.counters,
         tools: s.tools,
+        bag: s.bag,
       });
       if (!bought) return "purchase not allowed";
       if (bought.tools) s.tools = bought.tools;
+      if (bought.bag) s.bag = bought.bag;
       s.relics = bought.relics;
       if (bought.counters) s.counters = bought.counters;
       s.upgrades = bought.upgrades;
