@@ -22,6 +22,8 @@ interface ScoreTallyProps {
   clearReward?: number;
   /** Run mode line tally: faster animation and garden-target wording */
   quick?: boolean;
+  /** The line already played its scoring show on the board: open on the result */
+  instant?: boolean;
   scoreLabel?: string;
   runningTotalLabel?: string;
   targetScore?: number;
@@ -83,6 +85,7 @@ export default function ScoreTally({
   isFinalFloor,
   clearReward = 0,
   quick = false,
+  instant = false,
   scoreLabel = "Garden score",
   runningTotalLabel = "Visit total",
   targetScore,
@@ -100,6 +103,10 @@ export default function ScoreTally({
     timersRef.current = [];
     if (!isOpen || !breakdown) {
       setStage(0);
+      return;
+    }
+    if (instant) {
+      setStage(5);
       return;
     }
     setStage(0);
@@ -134,12 +141,13 @@ export default function ScoreTally({
       timersRef.current.forEach((t) => window.clearTimeout(t));
       timersRef.current = [];
     };
-  }, [isOpen, breakdown, quick, targetScore]);
+  }, [isOpen, breakdown, quick, instant, targetScore]);
 
-  const chipsShown = useCountUp(breakdown?.chips ?? 0, stage >= 1, 700);
-  const multShown = useCountUp(breakdown?.mult ?? 0, stage >= 2, 600);
-  const totalShown = useCountUp(breakdown?.total ?? 0, stage >= 4, 750);
-  const runShown = useCountUp(runTotalBefore + (breakdown?.total ?? 0), stage >= 4, 900);
+  const d = instant ? 1 : undefined;
+  const chipsShown = useCountUp(breakdown?.chips ?? 0, stage >= 1, d ?? 700);
+  const multShown = useCountUp(breakdown?.mult ?? 0, stage >= 2, d ?? 600);
+  const totalShown = useCountUp(breakdown?.total ?? 0, stage >= 4, d ?? 750);
+  const runShown = useCountUp(runTotalBefore + (breakdown?.total ?? 0), stage >= 4, d ?? 900);
 
   if (!isOpen || !breakdown) return null;
 

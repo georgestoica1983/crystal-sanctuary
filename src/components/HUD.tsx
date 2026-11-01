@@ -501,6 +501,9 @@ interface TopHUDProps {
   bagPanel?: React.ReactNode;
   /** Tiles left in the Tile Bag (menu label) */
   bagCount?: number;
+  /** How fast a line's scoring plays (×1, ×2, ×4) */
+  scoreSpeed?: number;
+  onCycleScoreSpeed?: () => void;
   /** Hides the one-line goal under the stats (e.g. during a lesson) */
   hideGoalLine?: boolean;
   /** Daily is always played with the Keeper (fair scores). */
@@ -560,6 +563,8 @@ export function TopHUD({
   onEndRun,
   bagPanel,
   bagCount,
+  scoreSpeed = 1,
+  onCycleScoreSpeed,
   flashRelics = [],
   relicSets = false,
   isDailyCompanionLocked = false,
@@ -943,6 +948,13 @@ export function TopHUD({
                   Board look
                   <span className="ml-auto text-[12px] text-white/50">{isSanctuarySkin ? "Garden" : "Night"}</span>
                 </button>
+                {onCycleScoreSpeed && (
+                  <button type="button" className={menuRow} onClick={onCycleScoreSpeed}>
+                    <span className="w-6 text-center" aria-hidden="true">⏩</span>
+                    Scoring speed
+                    <span className="ml-auto text-[12px] text-white/50">×{scoreSpeed}</span>
+                  </button>
+                )}
                 {onToggleVibration && (
                   <button type="button" className={menuRow} onClick={onToggleVibration} aria-pressed={vibrationOn}>
                     <span className="w-6 text-center" aria-hidden="true">📳</span>

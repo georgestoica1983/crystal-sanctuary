@@ -653,6 +653,17 @@ class SoundAndHapticsEngine {
     this.vibrate(6);
   }
 
+  /** A relic adds flat Value or Length: a light wooden pluck that climbs */
+  public playRelicAdd(index: number = 0): void {
+    this.vibrate(6);
+    this.pluck(gardenNote(7 + Math.min(index, 6), 2), { gain: 0.06, decay: 0.35 });
+  }
+
+  /** The breath before a × relic: a soft airy swell */
+  public playMultSwell(): void {
+    this.playNoiseBurst({ duration: 0.14, gainPeak: 0.018, filterFreq: 2600, filterType: "bandpass", q: 1.2 });
+  }
+
   /** A relic multiplier pops in: a sparkle that rises with each one */
   public playMultiplierSparkle(index: number = 0): void {
     this.vibrate(10);

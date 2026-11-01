@@ -108,6 +108,7 @@ import {
 } from "@/components/Modals";
 import ShopModal from "@/components/ShopModal";
 import ScoreTally from "@/components/ScoreTally";
+import LineScoreShow, { lineShowTimeline, lineStepMs, loadScoreSpeed, saveScoreSpeed, ScoreSpeed, stepValues } from "@/components/LineScoreShow";
 import TutorialView from "@/components/TutorialView";
 import RunGuide, { RUN_GUIDE_STORAGE_KEY } from "@/components/RunGuide";
 import RunLeaderboardModal from "@/components/RunLeaderboard";
@@ -377,6 +378,19 @@ export default function OneStrokeTacticianPage() {
   // Relics that added to the last line light up in the relic row
   const [flashRelics, setFlashRelics] = useState<RelicId[]>([]);
   const pendingFlashRef = useRef<RelicId[]>([]);
+  /** Balatro-style scoring show over the meter while a let-go line plays out */
+  const [lineShow, setLineShow] = useState<{
+    key: number;
+    breakdown: FloorScoreBreakdown;
+    values: number[];
+    steps: number;
+    stepMs: number;
+    target: number;
+    tierName: string | null;
+    tierColor: string;
+  } | null>(null);
+  const [scoreSpeed, setScoreSpeed] = useState<ScoreSpeed>(1);
+  useEffect(() => setScoreSpeed(loadScoreSpeed()), []);
   const compareTokenRef = useRef(0);
   const [pendingPostFloorStats, setPendingPostFloorStats] =
     useState<HeroStats | null>(null);
@@ -2414,9 +2428,36 @@ export default function OneStrokeTacticianPage() {
         activeRelicsForBoard
       );
 
-      // Celebrate long lines (Sprout and up) as soon as they're let go
+      // Garden Run: the scoring show plays every tile, then relics, then the total
       const tier = getLineTier(committedPath.length);
-      if (mode === "RUN" && tier.level > 0 && simResult.survives && simResult.endsOnExit) {
+      const showLine =
+        mode === "RUN" && !isInteractiveTutorial && !lessonActiveRef.current && simResult.survives && simResult.endsOnExit;
+      const STEP_MS = showLine ? lineStepMs(simResult.steps.length, scoreSpeed) : 180;
+      let showEndMs = 0;
+      if (showLine) {
+        const b = calculateFloorScoreBreakdown(
+          simResult,
+          floorStartHero,
+          committedPath.length,
+          activeRelicsForBoard,
+          relicScoreCtx
+        );
+        showEndMs = lineShowTimeline(b, simResult.steps.length, STEP_MS, scoreSpeed).endAt;
+        setLineShow({
+          key: Date.now(),
+          breakdown: b,
+          values: stepValues(simResult),
+          steps: simResult.steps.length,
+          stepMs: STEP_MS,
+          target: runGarden ? Math.max(1, runGarden.target - runGarden.score) : 0,
+          tierName: tier.level > 0 ? tier.name : null,
+          tierColor: tier.color,
+        });
+        if (tier.level > 0) soundEngine.playVictoryChord();
+      }
+
+      // Celebrate long lines (Sprout and up) as soon as they're let go
+      if (!showLine && mode === "RUN" && tier.level > 0 && simResult.survives && simResult.endsOnExit) {
         const b = calculateFloorScoreBreakdown(
           simResult,
           floorStartHero,
@@ -2440,7 +2481,6 @@ export default function OneStrokeTacticianPage() {
         resolutionTimersRef.current.push(id);
       }
 
-      const STEP_MS = 180;
 
       simResult.steps.forEach((step, idx) => {
         if (idx === 0) return;
@@ -2514,6 +2554,7 @@ export default function OneStrokeTacticianPage() {
       // Finalize floor after last step completes (or right away when skipped)
       const finalize = () => {
         skipPlaybackRef.current = null;
+        setLineShow(null);
         // Handle 7-Step Interactive Onboarding stage progression
         if (isInteractiveTutorial) {
           if (!simResult.survives) {
@@ -2705,7 +2746,10 @@ export default function OneStrokeTacticianPage() {
           };
         }
       };
-      const finishTimerId = window.setTimeout(finalize, simResult.steps.length * STEP_MS + 140);
+      const finishTimerId = window.setTimeout(
+        finalize,
+        showLine ? showEndMs + 120 : simResult.steps.length * STEP_MS + 140
+      );
       resolutionTimersRef.current.push(finishTimerId);
 
       // A tap on the board jumps to the end of the replay
@@ -2752,6 +2796,8 @@ export default function OneStrokeTacticianPage() {
       currentFloorIndex,
       weedOutMode,
       runGarden,
+      scoreSpeed,
+      relicScoreCtx,
     ]
   );
 
@@ -3129,6 +3175,12 @@ export default function OneStrokeTacticianPage() {
           ) : undefined
         }
         bagCount={runGarden?.drawPile.length}
+        scoreSpeed={scoreSpeed}
+        onCycleScoreSpeed={() => {
+          const next: ScoreSpeed = scoreSpeed === 1 ? 2 : scoreSpeed === 2 ? 4 : 1;
+          saveScoreSpeed(next);
+          setScoreSpeed(next);
+        }}
         relicSets={mode === "RUN" && !lesson && runRulesUseRelicSets(runLogRef.current?.v ?? RUN_LOG_VERSION)}
         onNewRun={
           RUN_ONLY
@@ -3348,6 +3400,26 @@ export default function OneStrokeTacticianPage() {
                     drawnPath.length < SHORT_LINE_NUDGE_TILES
                   }
                 />
+              <AnimatePresence>
+                {lineShow && (
+                  <LineScoreShow
+                    key={lineShow.key}
+                    breakdown={lineShow.breakdown}
+                    values={lineShow.values}
+                    steps={lineShow.steps}
+                    stepMs={lineShow.stepMs}
+                    speed={scoreSpeed}
+                    target={lineShow.target}
+                    tierName={lineShow.tierName}
+                    tierColor={lineShow.tierColor}
+                    onRelic={(id) => {
+                      setFlashRelics([id]);
+                      window.setTimeout(() => setFlashRelics((prev) => (prev.length === 1 && prev[0] === id ? [] : prev)), 600);
+                    }}
+                    onSkip={() => skipPlaybackRef.current?.()}
+                  />
+                )}
+              </AnimatePresence>
               {/* Lines 1–3: the score lands here instead of a full screen */}
               <AnimatePresence>
                 {lineToast && !lineCallout && (
@@ -3866,6 +3938,7 @@ export default function OneStrokeTacticianPage() {
         isFinalFloor={tally?.isFinal ?? false}
         clearReward={tally?.clearReward ?? 0}
         quick={Boolean(tally?.runStroke)}
+        instant={Boolean(tally?.runStroke)}
         scoreLabel={tally?.runStroke ? "Line score" : undefined}
         runningTotalLabel={tally?.runStroke ? "Garden" : undefined}
         targetScore={tally?.runStroke?.target}
