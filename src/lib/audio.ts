@@ -44,6 +44,8 @@ class SoundAndHapticsEngine {
   /** Music layers unlocked by completed sets, and the ones playing this section */
   private layersUnlocked: MusicLayer[] = [];
   private layersActive: MusicLayer[] = [];
+  /** At night (time of day) the melody plays a little sparser */
+  private nightMusic = false;
   // Off until the player turns them on; a saved choice wins
   public soundEnabled: boolean = false;
   public musicEnabled: boolean = false;
@@ -283,7 +285,7 @@ class SoundAndHapticsEngine {
     if (bar % 8 === 0) {
       // New 8-bar section: how busy the melody is (0 = only pad and roots)
       const r = this.musicRandom();
-      this.music.density = r < 0.2 ? 0 : r < 0.55 ? 0.55 : 0.85;
+      this.music.density = (r < 0.2 ? 0 : r < 0.55 ? 0.55 : 0.85) * (this.nightMusic ? 0.7 : 1);
       // ...and which unlocked layers join it (a few at a time, so it keeps changing)
       const pool = [...this.layersUnlocked].sort(() => this.musicRandom() - 0.5);
       this.layersActive = this.music.density === 0 ? [] : pool.slice(0, MAX_LAYERS_AT_ONCE);
@@ -309,6 +311,11 @@ class SoundAndHapticsEngine {
       this.musicPluck(gardenNote(step, 1), at + b * beat, 0.06, 1.1);
     }
     if (this.musicRandom() < 0.12) this.musicBell(gardenNote(chord[2] + 10, 1), at + beat * 3, 0.03);
+  }
+
+  /** Night time: a sparser, calmer melody from the next section */
+  public setNightMusic(night: boolean): void {
+    this.nightMusic = night;
   }
 
   /** Sets which music layers the player has unlocked (from completed relic sets) */

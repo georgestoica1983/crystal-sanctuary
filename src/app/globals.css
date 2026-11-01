@@ -342,3 +342,33 @@ svg text,
 .reduce-motion .living-lantern {
   animation: none;
 }
+
+/* Night fireflies: a slow drift and a soft blink */
+.firefly {
+  box-shadow: 0 0 8px 2px rgba(217, 249, 157, 0.7);
+  animation: firefly 7s ease-in-out infinite;
+}
+@keyframes firefly {
+  0%, 100% { transform: translate(0, 0); opacity: 0.15; }
+  30% { opacity: 0.9; }
+  50% { transform: translate(10px, -14px); opacity: 0.5; }
+  70% { opacity: 0.95; }
+}
+.reduce-motion .firefly {
+  animation: none;
+  opacity: 0.6;
+}
+
+/* Autumn in My Garden: a few leaves drifting down */
+.garden-leaf {
+  animation: garden-leaf 11s linear infinite;
+}
+@keyframes garden-leaf {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+  10% { opacity: 0.9; }
+  100% { transform: translate(40px, 70vh) rotate(320deg); opacity: 0; }
+}
+.reduce-motion .garden-leaf {
+  animation: none;
+  opacity: 0;
+}

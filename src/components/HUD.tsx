@@ -501,6 +501,9 @@ interface TopHUDProps {
   bagPanel?: React.ReactNode;
   /** Tiles left in the Tile Bag (menu label) */
   bagCount?: number;
+  /** Time of day: the board follows the phone's clock */
+  followTime?: boolean;
+  onToggleFollowTime?: () => void;
   /** Music layers earned by relic sets: on/off */
   musicLayersOn?: boolean;
   onToggleMusicLayers?: () => void;
@@ -583,6 +586,8 @@ export function TopHUD({
   journalNew = 0,
   musicLayersOn = true,
   onToggleMusicLayers,
+  followTime = true,
+  onToggleFollowTime,
   flashRelics = [],
   relicSets = false,
   isDailyCompanionLocked = false,
@@ -993,6 +998,13 @@ export function TopHUD({
                     <span className="w-6 text-center" aria-hidden="true">🎵</span>
                     Music layers from sets
                     <span className="ml-auto text-[12px] text-white/50">{musicLayersOn ? "On" : "Off"}</span>
+                  </button>
+                )}
+                {onToggleFollowTime && (
+                  <button type="button" className={menuRow} onClick={onToggleFollowTime} aria-pressed={followTime}>
+                    <span className="w-6 text-center" aria-hidden="true">🌗</span>
+                    Follow time of day
+                    <span className="ml-auto text-[12px] text-white/50">{followTime ? "On" : "Off"}</span>
                   </button>
                 )}
                 <button type="button" className={menuRow} onClick={handleToggleVisualTheme}>

@@ -16,8 +16,19 @@ import {
 } from "@/lib/myGarden";
 import { formatScore } from "@/lib/formatScore";
 import { decorArt } from "@/lib/art";
+import { DayPhase, getDayPhase, getYearSeason, loadFollowTimeOfDay, YearSeason } from "@/lib/timeOfDay";
 
 const BED_NAMES = ["Small", "Big", "Boss"];
+
+/** The sky over the garden, by time of day */
+const SKY: Record<DayPhase, string> = {
+  DAWN: "from-[#3B2A3A] via-[#2E3A2C] to-[#2C3F23]",
+  DAY: "from-[#1C2B22] via-[#20331F] to-[#2C3F23]",
+  GOLDEN: "from-[#3A2A16] via-[#2C3420] to-[#2A3A20]",
+  NIGHT: "from-[#0B1424] via-[#132029] to-[#1A2A1E]",
+};
+/** Plants that glow softly after dark */
+const NIGHT_GLOW = new Set(["Moonflower", "Mist Orchid", "Set Bloom"]);
 
 /** Where each milestone decoration sits (behind the plants, except the front ones) */
 const DECOR_SPOTS: Array<{ key: string; at: number; decor: string; label: string; style: React.CSSProperties; z: number }> = [
@@ -44,9 +55,14 @@ export default function MyGardenScreen({ open, onClose }: { open: boolean; onClo
   const [sleepy, setSleepy] = useState(false);
   const [picked, setPicked] = useState<Plant | null>(null);
   const [pokes, setPokes] = useState<Record<string, number>>({});
+  const [phase, setPhase] = useState<DayPhase>("DAY");
+  const [season, setSeason] = useState<YearSeason>("SPRING");
 
   useEffect(() => {
     if (!open) return;
+    const follow = loadFollowTimeOfDay();
+    setPhase(follow ? getDayPhase() : "DAY");
+    setSeason(getYearSeason());
     const visit = visitMyGarden();
     setGarden(visit.garden);
     setPicked(null);
@@ -88,7 +104,7 @@ export default function MyGardenScreen({ open, onClose }: { open: boolean; onClo
   };
 
   return (
-    <div className="fixed inset-0 z-[70] flex flex-col bg-gradient-to-b from-[#1C2B22] via-[#20331F] to-[#2C3F23] select-none">
+    <div className={`fixed inset-0 z-[70] flex flex-col bg-gradient-to-b ${SKY[phase]} select-none transition-colors duration-1000`}>
       {/* Header */}
       <div className="flex items-start justify-between gap-2 px-4 pt-4 pb-2 max-w-[430px] w-full mx-auto">
         <div>
@@ -118,8 +134,40 @@ export default function MyGardenScreen({ open, onClose }: { open: boolean; onClo
       {/* The garden */}
       <div className="relative flex-1 w-full max-w-[430px] mx-auto overflow-hidden">
         {/* Soft ground and light */}
-        <div className="absolute inset-x-0 bottom-0 top-[6%] rounded-t-[48%] bg-gradient-to-b from-[#3A5230]/70 to-[#2A3D22]" />
-        <div className="absolute -top-10 left-1/2 h-48 w-72 -translate-x-1/2 rounded-full bg-amber-200/[0.06] blur-3xl" />
+        <div
+          className={`absolute inset-x-0 bottom-0 top-[6%] rounded-t-[48%] bg-gradient-to-b transition-colors duration-1000 ${
+            phase === "NIGHT"
+              ? "from-[#22361F]/70 to-[#152517]"
+              : phase === "GOLDEN"
+              ? "from-[#4A5530]/70 to-[#2E3A20]"
+              : "from-[#3A5230]/70 to-[#2A3D22]"
+          }`}
+        />
+        <div
+          className={`absolute -top-10 left-1/2 h-48 w-72 -translate-x-1/2 rounded-full blur-3xl ${
+            phase === "NIGHT" ? "bg-sky-200/[0.05]" : phase === "GOLDEN" ? "bg-amber-300/[0.14]" : phase === "DAWN" ? "bg-pink-200/[0.10]" : "bg-amber-200/[0.06]"
+          }`}
+        />
+        {phase === "NIGHT" && (
+          <div
+            aria-hidden="true"
+            className="absolute right-[10%] top-[1%] h-10 w-10 rounded-full bg-amber-50/90 shadow-[0_0_30px_8px_rgba(254,243,199,0.35)]"
+            title="Moon"
+          />
+        )}
+        {/* The real season, on the ground */}
+        {season === "WINTER" && (
+          <div aria-hidden="true" className="absolute inset-x-0 bottom-0 top-[6%] rounded-t-[48%] bg-gradient-to-b from-white/[0.10] to-white/[0.03]" />
+        )}
+        {season === "AUTUMN" &&
+          Array.from({ length: 7 }, (_, i) => (
+            <span
+              key={`leaf-${i}`}
+              aria-hidden="true"
+              className="garden-leaf absolute h-2 w-1.5 rounded-[60%_40%_60%_40%] bg-orange-400/70"
+              style={{ left: `${(i * 29) % 95}%`, top: "-2%", animationDelay: `${i * 1.9}s` }}
+            />
+          ))}
 
         {/* Milestone decorations, each in its own spot */}
         {DECOR_SPOTS.filter((d) => has(d.at)).map((d) => (
@@ -169,7 +217,14 @@ export default function MyGardenScreen({ open, onClose }: { open: boolean; onClo
                   alt=""
                   draggable={false}
                   className="object-contain drop-shadow-[0_3px_3px_rgba(0,0,0,0.45)]"
-                  style={{ width: size, height: size, filter: look.filter }}
+                  style={{
+                    width: size,
+                    height: size,
+                    filter:
+                      phase === "NIGHT" && NIGHT_GLOW.has(plant.species)
+                        ? `${look.filter === "none" ? "" : look.filter} drop-shadow(0 0 8px rgba(224,231,255,0.85))`
+                        : look.filter,
+                  }}
                 />
                 {plant.golden && <span className="absolute -top-1 -right-1 text-[10px]" aria-hidden="true">✨</span>}
               </motion.button>
@@ -177,14 +232,14 @@ export default function MyGardenScreen({ open, onClose }: { open: boolean; onClo
           })}
         </div>
 
-        {/* Drifting pollen */}
+        {/* Drifting pollen by day, fireflies by night */}
         {count > 0 &&
           Array.from({ length: 10 }, (_, i) => (
             <span
               key={i}
               aria-hidden="true"
-              className="garden-pollen absolute h-1 w-1 rounded-full bg-amber-100/60"
-              style={{ left: `${(i * 37) % 100}%`, top: `${20 + ((i * 23) % 70)}%`, animationDelay: `${i * 1.3}s` }}
+              className={phase === "NIGHT" ? "firefly absolute h-1.5 w-1.5 rounded-full bg-lime-200" : "garden-pollen absolute h-1 w-1 rounded-full bg-amber-100/60"}
+              style={{ left: `${(i * 37 + 11) % 97}%`, top: `${12 + ((i * 53) % 78)}%`, animationDelay: `${i * 1.3}s` }}
             />
           ))}
 

@@ -75,6 +75,7 @@ import {
   explainWilt,
 } from "@/lib/engine";
 import { MUSIC_LAYERS, MusicLayer, soundEngine } from "@/lib/audio";
+import { DAY_LIGHT, DayPhase, getDayPhase, loadFollowTimeOfDay, saveFollowTimeOfDay } from "@/lib/timeOfDay";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import { completedRelicSets, RELIC_SET_X, RELIC_TAG_INFO } from "@/lib/relicTags";
 import {
@@ -453,6 +454,23 @@ export default function OneStrokeTacticianPage() {
   } | null>(null);
   const [scoreSpeed, setScoreSpeed] = useState<ScoreSpeed>(1);
   useEffect(() => setScoreSpeed(loadScoreSpeed()), []);
+  // Time of day: the board's light (and the music) follow the phone's clock, unless switched off
+  const [followTime, setFollowTime] = useState(true);
+  const [dayPhase, setDayPhase] = useState<DayPhase>("DAY");
+  useEffect(() => {
+    const on = loadFollowTimeOfDay();
+    setFollowTime(on);
+    const tick = () => {
+      const p = getDayPhase();
+      setDayPhase(p);
+      soundEngine.setNightMusic(loadFollowTimeOfDay() && p === "NIGHT");
+    };
+    tick();
+    const id = window.setInterval(tick, 5 * 60 * 1000);
+    return () => window.clearInterval(id);
+  }, []);
+  const boardLight = followTime ? DAY_LIGHT[dayPhase] : null;
+
   // Music that grows: the layers earned by completed relic sets (unless switched off)
   const [musicLayersOn, setMusicLayersOn] = useState(true);
   useEffect(() => {
@@ -3497,6 +3515,13 @@ export default function OneStrokeTacticianPage() {
         onOpenJournal={RUN_ONLY ? () => setJournalOpen(true) : undefined}
         journalNew={collectionCounts.journalNew}
         musicLayersOn={musicLayersOn}
+        followTime={followTime}
+        onToggleFollowTime={() => {
+          const next = !followTime;
+          saveFollowTimeOfDay(next);
+          setFollowTime(next);
+          soundEngine.setNightMusic(next && dayPhase === "NIGHT");
+        }}
         onToggleMusicLayers={() => {
           const next = !musicLayersOn;
           saveMusicLayersOn(next);
@@ -3857,6 +3882,23 @@ export default function OneStrokeTacticianPage() {
               left on screen (smaller on short phones, up to 430px) */}
           <div className="relative w-full max-w-[430px] min-h-[220px] max-h-[min(calc(100vw-1.5rem),430px)] grow-[1000] basis-0 !shrink flex items-center justify-center [container-type:size]">
           <div className="relative aspect-square w-[min(100cqw,100cqh)]">
+            {/* Time of day: a soft light over the board, and fireflies at night (looks only) */}
+            {boardLight && (
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 z-[35] rounded-2xl transition-[background] duration-[3000ms]"
+                style={{ background: boardLight }}
+              >
+                {followTime && dayPhase === "NIGHT" &&
+                  Array.from({ length: 6 }, (_, i) => (
+                    <span
+                      key={i}
+                      className="firefly absolute h-1.5 w-1.5 rounded-full bg-lime-200"
+                      style={{ left: `${[4, 92, 10, 86, 48, 70][i]}%`, top: `${[8, 20, 70, 84, 96, 4][i]}%`, animationDelay: `${i * 1.7}s` }}
+                    />
+                  ))}
+              </div>
+            )}
             <GridCanvas
               toolArmed={toolArmed !== null && phase === "PLANNING"}
               fog={mode === "RUN" && !lesson && runGarden?.bossRuleId === "FOG" && phase === "PLANNING"}
