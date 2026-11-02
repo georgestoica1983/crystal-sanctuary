@@ -1,5 +1,6 @@
 "use client";
 
+import Badge from "@/components/Badge";
 import BossIcon from "@/components/BossIcon";
 import React, { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
@@ -103,7 +104,7 @@ export function RunHudStrip({
             />
             {asc > 0 && (
               <span className="ml-1.5 rounded-md bg-orange-400/15 px-1 py-px text-[10.5px] font-bold text-orange-200" title={`Ascension ${asc}`}>
-                🔥A{asc}
+                <Badge id="flame" className="mr-px" />A{asc}
               </span>
             )}
           </div>
@@ -129,7 +130,7 @@ export function RunHudStrip({
       {boss && (
         <div className="text-[13px] leading-snug text-rose-100">
           <b>{boss.name}:</b> {boss.description}{" "}
-          <span className="text-rose-50/60">👑 Legendary relic if cleared</span>
+          <span className="text-rose-50/60"><Badge id="crown" /> Legendary relic if cleared</span>
         </div>
       )}
 
@@ -364,7 +365,7 @@ function SeasonMap({
                   : "border-white/15"
               }`}
             >
-              {i <= done ? "✓" : k === "BOSS" ? "👑" : "🌼"}
+              {i <= done ? "✓" : k === "BOSS" ? <Badge id="crown" /> : "🌼"}
             </span>
             {k === "SMALL" ? "Small" : k === "BIG" ? "Big" : "Boss"}
             {bestStars && (
@@ -565,7 +566,7 @@ export function RunGardenClearModal({
         <div className="text-center">
           <div className="text-[12px] font-semibold text-emerald-300/90">
             {getRunGardenLabel(info.gardenIndex)}
-            {!!info.asc && <span className="ml-1 text-orange-200">· 🔥 Ascension {info.asc}</span>}
+            {!!info.asc && <span className="ml-1 text-orange-200">· <Badge id="flame" /> Ascension {info.asc}</span>}
           </div>
           <div className="text-[24px] font-display font-semibold text-white">
             Garden Bed bloomed!
@@ -576,9 +577,9 @@ export function RunGardenClearModal({
                 key={n}
                 initial={{ scale: 0, rotate: -40 }}
                 animate={{ scale: 1, rotate: 0, transition: { delay: 0.2 + n * 0.22, type: "spring", stiffness: 380, damping: 14 } }}
-                className={`text-[30px] leading-none ${n <= stars ? "" : "opacity-20 grayscale"}`}
+                className={`leading-none ${n <= stars ? "" : "opacity-20 grayscale"}`}
               >
-                ⭐
+                <Badge id="star" size={32} />
               </motion.span>
             ))}
           </div>
@@ -642,8 +643,8 @@ export function RunGardenClearModal({
 
         {info.nextUnlock && (
           <div className="text-center text-[11.5px] text-white/60">
-            ⭐ {info.nextUnlock.have} · next: <span className="font-semibold text-white/85">{info.nextUnlock.text}</span> at{" "}
-            {info.nextUnlock.stars} ⭐
+            <Badge id="star" /> {info.nextUnlock.have} · next: <span className="font-semibold text-white/85">{info.nextUnlock.text}</span> at{" "}
+            {info.nextUnlock.stars} <Badge id="star" />
           </div>
         )}
 
@@ -782,7 +783,7 @@ export function RunOverModal({
             <span>Reached</span>
             <span>
               {getRunGardenLabel(info.gardenIndex)}
-              {!!info.asc && <span className="ml-1 text-orange-200">· 🔥A{info.asc}</span>}
+              {!!info.asc && <span className="ml-1 text-orange-200">· <Badge id="flame" />A{info.asc}</span>}
             </span>
           </div>
           {relicCounts.size > 0 && (
@@ -829,8 +830,8 @@ export function RunOverModal({
         </div>
         {nextUnlock && (
           <div className="text-center text-[12px] text-white/60 -mt-1">
-            ⭐ {nextUnlock.have} · next: <span className="font-semibold text-white/85">{nextUnlock.text}</span> in{" "}
-            {nextUnlock.stars - nextUnlock.have} ⭐
+            <Badge id="star" /> {nextUnlock.have} · next: <span className="font-semibold text-white/85">{nextUnlock.text}</span> in{" "}
+            {nextUnlock.stars - nextUnlock.have} <Badge id="star" />
           </div>
         )}
 

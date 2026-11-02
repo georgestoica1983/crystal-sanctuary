@@ -1,5 +1,6 @@
 "use client";
 
+import Badge from "@/components/Badge";
 import BossIcon from "@/components/BossIcon";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
@@ -355,7 +356,7 @@ export default function ShopModal({
       <span className="relative" style={{ width: size, height: size }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={tileArt(offer.fert) ?? ""} alt="" aria-hidden="true" draggable={false} className="h-full w-full object-contain" />
-        <span className="absolute -bottom-1 -right-1.5 text-[12px]" aria-hidden="true">🌱</span>
+        <Badge id="seed" size={14} className="absolute -bottom-1 -right-1.5" />
       </span>
     ) : (
       // eslint-disable-next-line @next/next/no-img-element
@@ -408,7 +409,7 @@ export default function ShopModal({
           <div className="flex gap-3">
             <RelicIcon id={legendary.id} size={44} />
             <div className="min-w-0">
-              <div className="text-[12px] font-semibold text-amber-200">👑 Boss beaten · Legendary relic</div>
+              <div className="text-[12px] font-semibold text-amber-200"><Badge id="crown" /> Boss beaten · Legendary relic</div>
               <div className="text-[15px] font-black">{legendary.name}</div>
               <div className="text-[13px] leading-snug text-amber-50/90">{legendary.description.replace(/^Legendary: /, "")}</div>
             </div>
@@ -521,7 +522,7 @@ export default function ShopModal({
               className="rounded-xl px-3 py-1.5 border border-amber-300/40 bg-amber-400/10 text-[18px] font-mono font-black text-amber-200"
               aria-label={`Your Seeds: ${gems}`}
             >
-              🌱 {gems}
+              <Badge id="seed" size={20} className="mr-1 align-[-3px]" />{gems}
             </motion.div>
           </div>
         </div>
@@ -615,7 +616,7 @@ export default function ShopModal({
         </div>
         {legendaryOwned.length > 0 && (
           <div className="-mt-1 text-[12px] text-amber-200 truncate">
-            👑 {legendaryOwned.map((id) => RELIC_REGISTRY[id].name).join(" · ")}
+            <Badge id="crown" /> {legendaryOwned.map((id) => RELIC_REGISTRY[id].name).join(" · ")}
           </div>
         )}
 

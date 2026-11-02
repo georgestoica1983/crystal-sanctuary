@@ -39,7 +39,8 @@ export const companionArt = (id: HeroClassId | SanctuaryCompanionId = "KNIGHT") 
   icon(COMPANION_ART[id] ?? "companion-keeper");
 
 export type StatArtId = "life" | "gloves" | "shears" | "seeds";
-export const statArt = (id: StatArtId) => icon(`stat-${id}`);
+// Seeds use the brown seed badge, the same coin everywhere
+export const statArt = (id: StatArtId) => icon(id === "seeds" ? "badge-seed" : `stat-${id}`);
 
 const THEME_ART: Record<RelicTag, string> = {
   THORNS: "theme-thorns",
@@ -74,3 +75,6 @@ const kebab = (id: string) => id.toLowerCase().replace(/_/g, "-");
 export const toolArt = (id: string) => icon(`tool-${kebab(id)}`);
 export const upgradeArt = (id: string) => icon(`upgrade-${kebab(id)}`);
 export const tagArt = (id: string) => icon(`tag-${kebab(id)}`);
+/** Small badges (public/art/icons/badge-*.png) shown next to text and numbers */
+export type BadgeId = "star" | "crown" | "flame" | "lock" | "golden" | "iridescent" | "radiant" | "seed";
+export const badgeArt = (id: BadgeId) => icon(`badge-${id}`);

@@ -1,5 +1,6 @@
 "use client";
 
+import Badge from "@/components/Badge";
 import { useBackClose } from "@/lib/backClose";
 import { DoneButton, GrabBar, sheetDrag } from "@/components/SheetBits";
 import React, { useState } from "react";
@@ -953,7 +954,7 @@ export function TopHUD({
                           <span className="block text-[14px] font-bold text-amber-100">
                             {rank.icon} {rank.name}
                             {flame > 0 && (
-                              <span className="ml-1.5 rounded bg-orange-400/15 px-1 text-[11px] text-orange-200">🔥A{flame}</span>
+                              <span className="ml-1.5 rounded bg-orange-400/15 px-1 text-[11px] text-orange-200"><Badge id="flame" />A{flame}</span>
                             )}
                           </span>
                           {next && (
@@ -962,7 +963,7 @@ export function TopHUD({
                             </span>
                           )}
                         </span>
-                        <span className="shrink-0 text-[16px] font-mono font-black text-amber-200">⭐ {totalStars}</span>
+                        <span className="shrink-0 text-[16px] font-mono font-black text-amber-200"><Badge id="star" /> {totalStars}</span>
                       </div>
                     );
                   })()}
@@ -1392,7 +1393,7 @@ export function TopHUD({
               {
                 key: "gems",
                 label: "Seeds",
-                icon: <span className="text-[13px] leading-none" aria-hidden="true">🌱</span>,
+                icon: <Badge id="seed" size={15} />,
                 value: hero.gold,
                 color: "text-[#FACC15]",
                 box: "bg-[#222D26]/80 border-yellow-300/40",

@@ -1,5 +1,6 @@
 "use client";
 
+import Badge from "@/components/Badge";
 import React, { useState } from "react";
 import {
   Calendar,
@@ -635,7 +636,7 @@ function GardenCalendar({
       <div className="flex items-center justify-between text-[11px] font-sans font-bold text-zinc-200">
         <span>Your garden calendar</span>
         <span className="font-mono text-amber-300">
-          🔥 {currentStreak} · best {bestStreak}
+          <Badge id="flame" /> {currentStreak} · best {bestStreak}
         </span>
       </div>
       <div className="grid grid-cols-7 gap-1 text-center font-mono">

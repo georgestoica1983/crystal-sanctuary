@@ -58,6 +58,8 @@ const SUPPLY_NAMES = [
   "upgrade-root-cellar", "upgrade-old-oak", "upgrade-market-day", "upgrade-harvest-fair", "upgrade-almanac",
   "upgrade-observatory", "tag-fertile", "tag-golden", "tag-purse", "tag-relic",
 ];
+// Small badges: 4 × 2, in the order of the badges prompt
+const BADGE_NAMES = ["star", "crown", "flame", "lock", "golden", "iridescent", "radiant", "seed"].map((n) => `badge-${n}`);
 const FADE_EDGES = new Set(["garden-mist-orchid", "garden-moonflower", "garden-set-bloom"]);
 // Row lines (as a share of the height) for sheets whose rows are not evenly spaced
 const ROW_EDGES = { supplies: [0.273, 0.552] };
@@ -67,7 +69,7 @@ const SOFT = 46; // up to this (and reachable from the edge): partly transparent
 // see-through range, so the halo fades instead of staying a dark disc
 const WIDE_GLOW = new Set([
   "relic-long-shadow", "boss-eclipse", "boss-frost", "boss-long-road", "boss-fog",
-  "tool-sunlit", "upgrade-observatory", "tag-golden",
+  "tool-sunlit", "upgrade-observatory", "tag-golden", "badge-radiant",
 ]);
 const GLOW_SOFT = 120;
 const OUT = 256;
@@ -83,8 +85,9 @@ const OUT = 256;
     : mode === "visitors" ? VISITOR_NAMES
     : mode === "bosses" ? BOSS_NAMES
     : mode === "supplies" ? SUPPLY_NAMES
+    : mode === "badges" ? BADGE_NAMES
     : ICON_NAMES;
-  const COLS = mode === "relics2" || mode === "decor" || mode === "bosses" ? 4 : mode === "supplies" ? 5 : Math.round(Math.sqrt(NAMES.length));
+  const COLS = mode === "relics2" || mode === "decor" || mode === "bosses" || mode === "badges" ? 4 : mode === "supplies" ? 5 : Math.round(Math.sqrt(NAMES.length));
   const ROWS = Math.ceil(NAMES.length / COLS);
   const { data, info } = await sharp(src).raw().toBuffer({ resolveWithObject: true });
   const { width: W, height: H, channels: C } = info;

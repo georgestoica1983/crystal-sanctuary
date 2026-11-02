@@ -1,5 +1,6 @@
 "use client";
 
+import Badge from "@/components/Badge";
 import { motion } from "framer-motion";
 import { useBackClose } from "@/lib/backClose";
 import { DoneButton, GrabBar, sheetDrag } from "@/components/SheetBits";
@@ -104,7 +105,7 @@ export default function AscensionPicker({
                   </span>
                 </span>
                 <span className="block mt-1 text-[11px] leading-snug text-white/70">
-                  {locked ? `🔒 ${companionUnlockFor(id).needText}` : COMPANION_RULES[id]}
+                  {locked ? <><Badge id="lock" /> {companionUnlockFor(id).needText}</> : COMPANION_RULES[id]}
                 </span>
               </button>
             );
@@ -112,7 +113,7 @@ export default function AscensionPicker({
         </div>
 
         {unlocked === 0 ? (
-          <div className="text-[11px] text-white/45">🔒 Harder Ascension levels: clear the Season 3 Boss.</div>
+          <div className="text-[11px] text-white/45"><Badge id="lock" /> Harder Ascension levels: clear the Season 3 Boss.</div>
         ) : (
         <div className="space-y-1.5">
           <div className="text-[12px] font-semibold text-white/60">Difficulty · each level keeps the ones below it</div>
@@ -140,7 +141,7 @@ export default function AscensionPicker({
                     {l.level === 0 ? "Normal" : `Ascension ${l.level}`}
                   </span>
                   <span className="block text-[11.5px] text-white/60 leading-snug">
-                    {locked ? `🔒 Clear the Season 3 Boss on Ascension ${l.level - 1}` : l.adds}
+                    {locked ? <><Badge id="lock" /> Clear the Season 3 Boss on Ascension {l.level - 1}</> : l.adds}
                   </span>
                 </span>
               </button>

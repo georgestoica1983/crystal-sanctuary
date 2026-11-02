@@ -1,5 +1,6 @@
 "use client";
 
+import Badge from "@/components/Badge";
 import SupplyIcon from "@/components/SupplyIcon";
 import { useBackClose } from "@/lib/backClose";
 import { BossBeaten, BossIntro, BOSS_LOOK } from "@/components/BossMoments";
@@ -3950,7 +3951,7 @@ export default function OneStrokeTacticianPage() {
                 <div className="text-[11px] leading-snug text-rose-50/65">
                   Boss · {BOSS_RULE_REGISTRY[currentFloor.bossRuleId].name}
                   {currentFloorIndex < dungeon.floors.length - 1 &&
-                    " · 👑 Legendary relic if cleared"}
+                    <> · <Badge id="crown" /> Legendary relic if cleared</>}
                 </div>
               </div>
             </div>

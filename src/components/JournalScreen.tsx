@@ -22,7 +22,7 @@ import { RELIC_TAG_INFO, RelicTag } from "@/lib/relicTags";
 import { BOSS_SPECIES, GARDEN_MILESTONES, SPECIES, VISITOR_MILESTONES, VISITOR_NAMES } from "@/lib/myGarden";
 import { loadJournal, markJournalSeen } from "@/lib/journal";
 import { journalFound } from "@/lib/journalProgress";
-import { decorArt, gardenArt, relicArt, relicHasArt, tagArt, themeArt, tileArt, toolArt, upgradeArt, visitorArt } from "@/lib/art";
+import { badgeArt, type BadgeId, decorArt, gardenArt, relicArt, relicHasArt, tagArt, themeArt, tileArt, toolArt, upgradeArt, visitorArt } from "@/lib/art";
 import { formatScore } from "@/lib/formatScore";
 import RelicIcon from "@/components/RelicIcon";
 import { MUSIC_LAYERS, MusicLayer } from "@/lib/audio";
@@ -152,7 +152,7 @@ function buildPages(): Record<PageId, Entry[]> {
       id: `ED_${e}`,
       name: `${EDITIONS[e].name} tile`,
       found: has(`ED_${e}`),
-      art: emoji("✦", 26),
+      art: img(badgeArt(e.toLowerCase() as BadgeId), 36),
       text: `Special tile: ${EDITIONS[e].tag} on any line through it.`,
       hint: "Find one in your bag, or buy one in the Shop.",
     })),

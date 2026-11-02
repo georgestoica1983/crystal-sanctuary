@@ -1,5 +1,6 @@
 "use client";
 
+import Badge from "@/components/Badge";
 import { artify } from "@/components/ArtText";
 import { motion } from "framer-motion";
 import { useBackClose } from "@/lib/backClose";
@@ -69,8 +70,8 @@ export default function LooksModal({
         <div className="flex items-baseline justify-between gap-2">
           <div className="text-[16px] font-bold">Companions &amp; looks</div>
           <div className="min-w-0 truncate text-[13px] text-amber-100">
-            {rank.icon} {rank.name} · ⭐ {progress.stars}
-            {loadBestClearedAscension() > 0 && <span className="text-orange-200"> · 🔥A{loadBestClearedAscension()}</span>}
+            {rank.icon} {rank.name} · <Badge id="star" /> {progress.stars}
+            {loadBestClearedAscension() > 0 && <span className="text-orange-200"> · <Badge id="flame" />A{loadBestClearedAscension()}</span>}
           </div>
         </div>
 
@@ -126,7 +127,7 @@ export default function LooksModal({
                     </div>
                     <div className="text-[11.5px] leading-snug text-white/70">{COMPANION_RULES[id]}</div>
                     {!unlocked && (
-                      <div className="text-[11px] text-white/60">🔒 {companionUnlockFor(id).needText}</div>
+                      <div className="text-[11px] text-white/60"><Badge id="lock" /> {companionUnlockFor(id).needText}</div>
                     )}
                   </div>
                 </div>
@@ -160,7 +161,7 @@ export default function LooksModal({
                     aria-hidden="true"
                   />
                   <span className="text-[10.5px] font-bold leading-tight mt-1">{u.name.replace(" line", "")}</span>
-                  {!unlocked && <span className="w-full text-[11px] text-white/60 leading-tight line-clamp-2" title={u.needText}>🔒 {u.needText}</span>}
+                  {!unlocked && <span className="w-full text-[11px] text-white/60 leading-tight line-clamp-2" title={u.needText}><Badge id="lock" /> {u.needText}</span>}
                 </button>
               );
             })}
@@ -201,7 +202,7 @@ export default function LooksModal({
                   <span className="text-[10.5px] font-bold leading-tight mt-0.5">
                     {u.icon} {u.name.replace(" board", "")}
                   </span>
-                  {!unlocked && <span className="w-full text-[11px] text-white/60 leading-tight line-clamp-2" title={u.needText}>🔒 {u.needText}</span>}
+                  {!unlocked && <span className="w-full text-[11px] text-white/60 leading-tight line-clamp-2" title={u.needText}><Badge id="lock" /> {u.needText}</span>}
                 </button>
               );
             })}

@@ -1,5 +1,6 @@
 "use client";
 
+import Badge from "@/components/Badge";
 import { useBackClose } from "@/lib/backClose";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
@@ -40,7 +41,7 @@ function Row({ row }: { row: RunLeaderboardRow }) {
           )}
           {row.name}
           {!!row.asc && (
-            <span className="ml-1.5 rounded bg-orange-400/15 px-1 text-[10.5px] font-bold text-orange-200">🔥A{row.asc}</span>
+            <span className="ml-1.5 rounded bg-orange-400/15 px-1 text-[10.5px] font-bold text-orange-200"><Badge id="flame" />A{row.asc}</span>
           )}
           {row.isYou && <span className="ml-1 text-[10px] font-mono text-emerald-300">(you)</span>}
         </div>
