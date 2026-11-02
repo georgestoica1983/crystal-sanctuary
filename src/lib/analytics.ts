@@ -67,7 +67,8 @@ export type TrackEvent =
   | "run_start"
   | "bed_start"
   | "shop_open"
-  | "feedback_prompt";
+  | "feedback_prompt"
+  | "save_unreadable";
 
 export function track(event: TrackEvent, props: Record<string, string | number | boolean | null> = {}): void {
   if (!analyticsEnabled || typeof window === "undefined") return;

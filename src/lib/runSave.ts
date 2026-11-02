@@ -32,6 +32,8 @@ import type {
 } from "@/types/game";
 
 const RUN_SAVE_KEY = "ost_run_save_v1";
+/** A save that wouldn't rebuild is kept here (never deleted), so it can still be rescued */
+const RUN_SAVE_KEPT_KEY = "ost_run_save_unreadable_v1";
 
 export interface RunSave {
   log: RunActionLog;
@@ -48,6 +50,27 @@ export function writeRunSave(save: RunSave): void {
     window.localStorage.setItem(RUN_SAVE_KEY, JSON.stringify(save));
   } catch {
     // Storage unavailable or full: the Run just won't survive a reload
+  }
+}
+
+/** Puts an unreadable save aside instead of losing it */
+export function keepUnreadableRunSave(raw: unknown, error: string): void {
+  try {
+    window.localStorage.setItem(RUN_SAVE_KEPT_KEY, JSON.stringify({ at: Date.now(), error, save: raw }));
+  } catch {
+    // Storage unavailable or full: nothing more we can do
+  }
+}
+
+/**
+ * Asks the browser to keep this site's storage, so a phone low on space (or
+ * Safari after a week away) doesn't clear a Run in progress. Asked once.
+ */
+export function askToKeepStorage(): void {
+  try {
+    void navigator.storage?.persist?.();
+  } catch {
+    // Not supported: the save still works, just without the extra protection
   }
 }
 

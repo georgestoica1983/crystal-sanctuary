@@ -183,7 +183,7 @@ import {
   scoreRunStroke,
   startRunGarden,
 } from "@/lib/runReplay";
-import { clearRunSave, readRunSave, rebuildRunFromSave, writeRunSave } from "@/lib/runSave";
+import { askToKeepStorage, clearRunSave, keepUnreadableRunSave, readRunSave, rebuildRunFromSave, writeRunSave } from "@/lib/runSave";
 import {
   LessonResultInfo,
   PracticeCoach,
@@ -1315,8 +1315,12 @@ export default function OneStrokeTacticianPage() {
       const practice = Boolean(options?.practice);
       // Ascension level: the one passed in, or the last one chosen
       const asc = practice ? 0 : options?.asc ?? runAscensionRef.current;
-      // A new Run (or the Practice Garden) replaces any saved one
-      clearRunSave();
+      // A new Run replaces the saved one; the Practice Garden leaves it alone
+      if (!practice) {
+        clearRunSave();
+        pendingSaveRef.current = null;
+        askToKeepStorage();
+      }
       const runSeed = practice
         ? PRACTICE_GARDEN_SEED
         : `run-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
@@ -1974,7 +1978,10 @@ export default function OneStrokeTacticianPage() {
     finalStats: HeroStats,
     spent: number = gemsSpent
   ) => {
-    clearRunSave();
+    if (!practiceStep) {
+      clearRunSave();
+      pendingSaveRef.current = null;
+    }
     const runScore = calculateRunScore(history);
     setFinalScore(runScore);
     if (!practiceStep) {
@@ -2608,6 +2615,11 @@ export default function OneStrokeTacticianPage() {
    * it was left. A save that no longer replays is dropped with a notice.
    */
   const resumedRef = useRef(false);
+  /** Leaving a lesson or the Practice Garden: back to the saved Run, or a new one if there is none */
+  const backToRunOrNew = () => {
+    resumedRef.current = false;
+    resumeSavedRun();
+  };
   const showLongNotice = (msg: string) => {
     // Own timer (not a resolution timer) so a reset doesn't leave it stuck
     setRetractNotice(msg);
@@ -2624,6 +2636,9 @@ export default function OneStrokeTacticianPage() {
     }
     const rebuilt = rebuildRunFromSave(saved);
     if (!rebuilt.ok) {
+      // Put it aside before the fresh Run replaces it, and tell the tester stats
+      keepUnreadableRunSave(saved, rebuilt.error);
+      track("save_unreadable", { error: rebuilt.error.slice(0, 80) });
       startRun();
       showLongNotice(
         "Your last Garden Run couldn't be picked up after a game update, so a fresh one is ready. 🌱"
@@ -2712,22 +2727,43 @@ export default function OneStrokeTacticianPage() {
     showLongNotice(`✓ Your Garden Run was saved. Welcome back to ${r.label}.`);
   };
 
+  // The latest save, written again the moment the app is hidden or closed
+  // (phones often close a backgrounded app without warning)
+  const pendingSaveRef = useRef<Parameters<typeof writeRunSave>[0] | null>(null);
+  useEffect(() => {
+    const flush = () => {
+      if (pendingSaveRef.current && document.visibilityState === "hidden") writeRunSave(pendingSaveRef.current);
+    };
+    const onHide = () => pendingSaveRef.current && writeRunSave(pendingSaveRef.current);
+    document.addEventListener("visibilitychange", flush);
+    window.addEventListener("pagehide", onHide);
+    return () => {
+      document.removeEventListener("visibilitychange", flush);
+      window.removeEventListener("pagehide", onHide);
+    };
+  }, []);
+
   // Keep the Run in progress saved on this device after every committed
   // stroke, Swap, Shop action and garden change (never practice/lessons)
   useEffect(() => {
-    if (!isMounted || mode !== "RUN" || lessonIndex !== null) return;
+    // Lessons and the Practice Garden never touch the saved Run
+    if (!isMounted || mode !== "RUN" || lessonIndex !== null || practiceStep) return;
     const log = runLogRef.current;
+    if (!log || log.a.length === 0) return;
     const ended = phase === "DEFEAT" || phase === "VICTORY" || runOver !== null;
-    if (!log || log.a.length === 0 || practiceStep || ended) {
+    if (ended) {
       clearRunSave();
+      pendingSaveRef.current = null;
       return;
     }
-    writeRunSave({
+    const save = {
       log,
       trial: trialClassFloorActive,
       hints: hintsRemaining,
       inShop: phase === "SHOP",
-    });
+    };
+    pendingSaveRef.current = save;
+    writeRunSave(save);
   }, [
     isMounted,
     mode,
@@ -4425,7 +4461,7 @@ export default function OneStrokeTacticianPage() {
                 } catch {
                   // Ignore storage errors
                 }
-                startRun();
+                backToRunOrNew();
               }}
             />
           ) : (
@@ -4497,7 +4533,7 @@ export default function OneStrokeTacticianPage() {
               onButton={() => {
                 if (practiceStep === "intro") setPracticeStep("draw");
               }}
-              onQuit={() => startRun()}
+              onQuit={() => backToRunOrNew()}
             />
           )}
 
@@ -4691,9 +4727,9 @@ export default function OneStrokeTacticianPage() {
           collapsed={practiceCollapsed && practiceStep !== "done"}
           onToggleCollapsed={() => setPracticeCollapsed((v) => !v)}
           onButton={() => {
-            if (practiceStep === "done") startRun();
+            if (practiceStep === "done") backToRunOrNew();
           }}
-          onQuit={() => startRun()}
+          onQuit={() => backToRunOrNew()}
         />
       )}
 

@@ -13,8 +13,8 @@ Everything below this section is parked until this is done.
 ## Next: the reviewers' top 25 (2026-11-02, in this order, ask before each step)
 
 **Before testers**
-- [ ] 1. Tester round: tracking for Run start, bed start, first Shop and Boss beds, a one-time feedback card after the first Run, and the tester note (TESTER-NOTE.md). Your part is in "Waiting on setup" below.
-- [ ] 2. Saves are never lost: resuming a Run after closing the app is bulletproof.
+- [x] 1. Tester round (my part): tracking for Run start, bed start, first Shop and Boss beds, a one-time feedback card after the first Run, and the tester note (TESTER-NOTE.md). Your part is in "Waiting on setup" below.
+- [x] 2. Saves are never lost: resuming a Run after closing the app is bulletproof.
 - [ ] 3. Name and link match: a Bloomline address instead of crystal-sanctuary-tan.vercel.app.
 - [ ] 4. Back during auto-closing screens (tip cards, Boss intro) closes only that screen.
 - [ ] 5. Forgiving drawing: no wrong tile when a finger drifts at a corner, no half-finished line when a finger lifts by accident.
