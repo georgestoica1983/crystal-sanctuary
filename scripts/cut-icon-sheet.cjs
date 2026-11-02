@@ -8,6 +8,7 @@
 //      or:  node scripts/cut-icon-sheet.cjs design/gemini-garden-decor.webp decor     (4 × 2 garden decorations)
 //      or:  node scripts/cut-icon-sheet.cjs design/gemini-visitors.webp visitors      (2 × 2 garden visitors)
 //      or:  node scripts/cut-icon-sheet.cjs design/gemini-bosses.webp bosses          (4 × 3 Boss portraits)
+//      or:  node scripts/cut-icon-sheet.cjs design/gemini-supplies.webp supplies      (5 × 3 tools, upgrades, Tags)
 const sharp = require("sharp");
 const path = require("path");
 
@@ -51,12 +52,23 @@ const BOSS_NAMES = [
   "frost", "acorn-thief", "spike-bloom", "even-garden",
   "narrow-path", "long-road", "fog", "toll",
 ].map((n) => `boss-${n}`);
+// Shop supplies: 5 × 3 (garden tools, garden upgrades, skip Tags), in the order of the supplies prompt
+const SUPPLY_NAMES = [
+  "tool-rich-soil", "tool-long-root", "tool-sunlit", "tool-dew", "tool-echo",
+  "upgrade-root-cellar", "upgrade-old-oak", "upgrade-market-day", "upgrade-harvest-fair", "upgrade-almanac",
+  "upgrade-observatory", "tag-fertile", "tag-golden", "tag-purse", "tag-relic",
+];
 const FADE_EDGES = new Set(["garden-mist-orchid", "garden-moonflower", "garden-set-bloom"]);
+// Row lines (as a share of the height) for sheets whose rows are not evenly spaced
+const ROW_EDGES = { supplies: [0.273, 0.552] };
 const SOLID = 14; // closer than this to the background: fully transparent
 const SOFT = 46; // up to this (and reachable from the edge): partly transparent
 // Icons with a soft painted halo (a glow on the dark background): a much wider
 // see-through range, so the halo fades instead of staying a dark disc
-const WIDE_GLOW = new Set(["relic-long-shadow", "boss-eclipse", "boss-frost", "boss-long-road", "boss-fog"]);
+const WIDE_GLOW = new Set([
+  "relic-long-shadow", "boss-eclipse", "boss-frost", "boss-long-road", "boss-fog",
+  "tool-sunlit", "upgrade-observatory", "tag-golden",
+]);
 const GLOW_SOFT = 120;
 const OUT = 256;
 
@@ -70,8 +82,9 @@ const OUT = 256;
     : mode === "decor" ? DECOR_NAMES
     : mode === "visitors" ? VISITOR_NAMES
     : mode === "bosses" ? BOSS_NAMES
+    : mode === "supplies" ? SUPPLY_NAMES
     : ICON_NAMES;
-  const COLS = mode === "relics2" || mode === "decor" || mode === "bosses" ? 4 : Math.round(Math.sqrt(NAMES.length));
+  const COLS = mode === "relics2" || mode === "decor" || mode === "bosses" ? 4 : mode === "supplies" ? 5 : Math.round(Math.sqrt(NAMES.length));
   const ROWS = Math.ceil(NAMES.length / COLS);
   const { data, info } = await sharp(src).raw().toBuffer({ resolveWithObject: true });
   const { width: W, height: H, channels: C } = info;
@@ -81,8 +94,12 @@ const OUT = 256;
     const col = n % COLS, row = Math.floor(n / COLS);
     // The garden sheet has faint grid lines: step a few pixels inside each cell
     const inset = mode === "garden" ? 6 : 0;
-    const x0 = Math.round(col * cellW) + inset, y0 = Math.round(row * cellH) + inset;
-    const w = Math.round((col + 1) * cellW) - inset - x0, h = Math.round((row + 1) * cellH) - inset - y0;
+    // Some sheets have unevenly spaced rows: cut them at the empty gaps instead
+    const edges = ROW_EDGES[mode] ? [...ROW_EDGES[mode].map((f) => Math.round(f * H)), H] : null;
+    const x0 = Math.round(col * cellW) + inset;
+    const y0 = (edges ? (row === 0 ? 0 : edges[row - 1]) : Math.round(row * cellH)) + inset;
+    const w = Math.round((col + 1) * cellW) - inset - x0;
+    const h = (edges ? edges[row] : Math.round((row + 1) * cellH)) - inset - y0;
     const rgba = Buffer.alloc(w * h * 4);
     const dist = new Float32Array(w * h);
     for (let y = 0; y < h; y++)

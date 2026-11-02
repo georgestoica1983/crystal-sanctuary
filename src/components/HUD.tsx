@@ -77,6 +77,7 @@ import EntityIcon from "@/components/EntityIcon";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import { completedRelicSets, getRelicTags, RELIC_SET_X, RELIC_TAG_INFO } from "@/lib/relicTags";
 import { statArt, StatArtId, themeArt } from "@/lib/art";
+import SupplyIcon from "@/components/SupplyIcon";
 import RelicIcon from "@/components/RelicIcon";
 import { artify } from "@/components/ArtText";
 
@@ -539,7 +540,7 @@ interface TopHUDProps {
   onOpenGarden?: () => void;
   gardenCount?: number;
   /** Garden upgrades owned (rules v18+), listed in the menu */
-  gardenUpgradeList?: Array<{ icon: string; name: string; text: string }>;
+  gardenUpgradeList?: Array<{ id: string; name: string; text: string }>;
   /** How fast a line's scoring plays (×1, ×2, ×4) */
   scoreSpeed?: number;
   onCycleScoreSpeed?: () => void;
@@ -970,7 +971,7 @@ export function TopHUD({
                     <div className="rounded-xl bg-emerald-400/[0.06] border border-emerald-300/20 px-3 py-1.5 text-[12.5px] text-white/85">
                       {gardenUpgradeList.map((u) => (
                         <div key={u.name} className="truncate">
-                          <span aria-hidden="true">{u.icon}</span> <b>{u.name}:</b> <span className="text-white/60">{u.text}</span>
+                          <SupplyIcon kind="upgrade" id={u.id} size={20} className="mr-0.5 align-[-5px]" /> <b>{u.name}:</b> <span className="text-white/60">{u.text}</span>
                         </div>
                       ))}
                     </div>

@@ -69,3 +69,8 @@ export const decorArt = (name: string) => icon(`decor-${name}`);
 export const bossArt = (id: string) => icon(`boss-${id.toLowerCase().replace(/_/g, "-")}`);
 /** Garden visitors (public/art/icons/visitor-*.png) */
 export const visitorArt = (kind: string) => icon(`visitor-${kind}`);
+/** Shop supplies (public/art/icons/tool-*, upgrade-*, tag-*), e.g. RICH_SOIL → tool-rich-soil */
+const kebab = (id: string) => id.toLowerCase().replace(/_/g, "-");
+export const toolArt = (id: string) => icon(`tool-${kebab(id)}`);
+export const upgradeArt = (id: string) => icon(`upgrade-${kebab(id)}`);
+export const tagArt = (id: string) => icon(`tag-${kebab(id)}`);

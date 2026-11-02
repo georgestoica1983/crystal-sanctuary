@@ -1,5 +1,6 @@
 "use client";
 
+import SupplyIcon from "@/components/SupplyIcon";
 import { useBackClose } from "@/lib/backClose";
 import { BossBeaten, BossIntro, BOSS_LOOK } from "@/components/BossMoments";
 import TipCard from "@/components/TipCard";
@@ -3809,7 +3810,7 @@ export default function OneStrokeTacticianPage() {
         }
         bagCount={runGarden?.drawPile.length}
         scoreSpeed={scoreSpeed}
-        gardenUpgradeList={gardenUpgrades.map((id) => GARDEN_UPGRADES[id])}
+        gardenUpgradeList={gardenUpgrades.map((id) => ({ ...GARDEN_UPGRADES[id], id }))}
         onOpenGarden={RUN_ONLY ? () => setGardenOpen(true) : undefined}
         onOpenJournal={RUN_ONLY ? () => setJournalOpen(true) : undefined}
         journalNew={collectionCounts.journalNew}
@@ -3998,7 +3999,7 @@ export default function OneStrokeTacticianPage() {
               >
                 <div className="text-[16px] font-bold text-amber-100">Skip this Small bed?</div>
                 <div className="text-[14px] leading-snug text-white/85">
-                  You get <b className="text-amber-100">{SKIP_TAGS[skipTag].icon} {SKIP_TAGS[skipTag].name}</b>: {SKIP_TAGS[skipTag].text}.
+                  You get <b className="text-amber-100"><SupplyIcon kind="tag" id={skipTag} size={22} className="mr-0.5 align-[-6px]" />{SKIP_TAGS[skipTag].name}</b>: {SKIP_TAGS[skipTag].text}.
                   <span className="block text-white/55">
                     You give up this bed&apos;s Seeds and Shop, Life doesn&apos;t come back, and the Big bed&apos;s target grows +
                     {Math.round((RUN_SKIP_TARGET_MULT - 1) * 100)}%.
@@ -4349,7 +4350,7 @@ export default function OneStrokeTacticianPage() {
               {toolArmed !== null ? (
                 <>
                   <span className="flex-1 text-[12px] font-semibold text-amber-100">
-                    {GARDEN_TOOLS[runTools[toolArmed]]?.icon} Tap a tile for {GARDEN_TOOLS[runTools[toolArmed]]?.name} (
+                    <SupplyIcon kind="tool" id={runTools[toolArmed]} size={20} className="mr-1 align-[-5px]" />Tap a tile for {GARDEN_TOOLS[runTools[toolArmed]]?.name} (
                     {GARDEN_TOOLS[runTools[toolArmed]]?.tag})
                   </span>
                   <button
@@ -4372,9 +4373,9 @@ export default function OneStrokeTacticianPage() {
                         setDrawnPath([]);
                         setToolArmed(i);
                       }}
-                      className="h-8 px-2.5 rounded-lg border border-amber-300/40 bg-amber-400/10 text-[12px] font-semibold text-amber-100 active:scale-95 disabled:opacity-40"
+                      className="h-8 pl-1.5 pr-2.5 rounded-lg border border-amber-300/40 bg-amber-400/10 text-[12px] font-semibold text-amber-100 active:scale-95 disabled:opacity-40 inline-flex items-center gap-1"
                     >
-                      {GARDEN_TOOLS[t].icon} {GARDEN_TOOLS[t].name}
+                      <SupplyIcon kind="tool" id={t} size={22} /> {GARDEN_TOOLS[t].name}
                     </button>
                   ))}
                 </>

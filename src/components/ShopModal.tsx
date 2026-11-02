@@ -32,6 +32,7 @@ import {
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import PruneSheet from "@/components/PruneCard";
 import { statArt, themeArt, tileArt } from "@/lib/art";
+import SupplyIcon from "@/components/SupplyIcon";
 import {
   getRelicTags,
   RELIC_SET_SIZE,
@@ -339,9 +340,9 @@ export default function ShopModal({
     offer.relicId ? (
       <RelicIcon id={offer.relicId} size={size} />
     ) : offer.kind === "UPGRADE" && offer.upgrade ? (
-      <span style={{ fontSize: size * 0.7 }} className="leading-none" aria-hidden="true">{GARDEN_UPGRADES[offer.upgrade].icon}</span>
+      <SupplyIcon kind="upgrade" id={offer.upgrade} size={size} />
     ) : offer.kind === "TOOL" && offer.tool ? (
-      <span style={{ fontSize: size * 0.7 }} className="leading-none" aria-hidden="true">{GARDEN_TOOLS[offer.tool].icon}</span>
+      <SupplyIcon kind="tool" id={offer.tool} size={size} />
     ) : offer.kind === "TILE" && offer.tile ? (
       <span
         className={`edition-shimmer edition-${(offer.tile.ed ?? "golden").toLowerCase()} relative rounded-lg flex items-center justify-center`}

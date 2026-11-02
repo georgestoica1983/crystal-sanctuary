@@ -1,5 +1,6 @@
 "use client";
 
+import SupplyIcon from "@/components/SupplyIcon";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Cat, Crown, Sparkles, Compass } from "lucide-react";
@@ -878,9 +879,9 @@ export default function GridCanvas({
                         .join(" · ")}`}
                       className="tile-tag absolute bottom-0.5 left-0.5 z-20 flex items-center gap-px rounded-full bg-black/55 px-1 text-[10px] leading-[14px] text-amber-100 pointer-events-none select-none"
                     >
-                      {cell.bagTile.enh && TOOL_MARKS[cell.bagTile.enh].icon}
+                      {cell.bagTile.enh && <SupplyIcon kind="tool" id={cell.bagTile.enh} size={13} />}
                       {cell.bagTile.enh === "DEW" && <span className="text-[8.5px] font-black text-sky-200">{cell.bagTile.dew}</span>}
-                      {cell.bagTile.echo && TOOL_MARKS.ECHO.icon}
+                      {cell.bagTile.echo && <SupplyIcon kind="tool" id="ECHO" size={13} />}
                     </span>
                   )}
                   {(tileLevels?.[cell.type] ?? 0) > 0 && (
@@ -1699,12 +1700,12 @@ const EDITION_LOOK: Record<string, { label: string; tag: string }> = {
 };
 
 /** Garden tool upgrades on a tile (rules v13+) */
-const TOOL_MARKS: Record<string, { icon: string; label: string }> = {
-  RICH_SOIL: { icon: "🟫", label: "Rich Soil, +20 Value" },
-  LONG_ROOT: { icon: "🌿", label: "Long Root, +2 Length" },
-  SUNLIT: { icon: "☀️", label: "Sunlit, ×1.25" },
-  DEW: { icon: "💧", label: "Dew, ×1.5" },
-  ECHO: { icon: "🔔", label: "Echo, scores twice" },
+const TOOL_MARKS: Record<string, { label: string }> = {
+  RICH_SOIL: { label: "Rich Soil, +20 Value" },
+  LONG_ROOT: { label: "Long Root, +2 Length" },
+  SUNLIT: { label: "Sunlit, ×1.25" },
+  DEW: { label: "Dew, ×1.5" },
+  ECHO: { label: "Echo, scores twice" },
 };
 
 /** A Thorn turning into a flower lets out a small puff of pollen */

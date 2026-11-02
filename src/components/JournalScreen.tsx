@@ -22,7 +22,7 @@ import { RELIC_TAG_INFO, RelicTag } from "@/lib/relicTags";
 import { BOSS_SPECIES, GARDEN_MILESTONES, SPECIES, VISITOR_MILESTONES, VISITOR_NAMES } from "@/lib/myGarden";
 import { loadJournal, markJournalSeen } from "@/lib/journal";
 import { journalFound } from "@/lib/journalProgress";
-import { decorArt, gardenArt, relicArt, relicHasArt, themeArt, tileArt, visitorArt } from "@/lib/art";
+import { decorArt, gardenArt, relicArt, relicHasArt, tagArt, themeArt, tileArt, toolArt, upgradeArt, visitorArt } from "@/lib/art";
 import { formatScore } from "@/lib/formatScore";
 import RelicIcon from "@/components/RelicIcon";
 import { MUSIC_LAYERS, MusicLayer } from "@/lib/audio";
@@ -144,7 +144,7 @@ function buildPages(): Record<PageId, Entry[]> {
       id: `TOOL_${t}`,
       name: GARDEN_TOOLS[t].name,
       found: has(`TOOL_${t}`),
-      art: emoji(GARDEN_TOOLS[t].icon, 26),
+      art: img(toolArt(t), 40),
       text: `Garden tool: ${GARDEN_TOOLS[t].tag}, for the whole Run.`,
       hint: "Buy it in the Shop and use it on a tile.",
     })),
@@ -160,7 +160,7 @@ function buildPages(): Record<PageId, Entry[]> {
       id: `UPG_${u}`,
       name: GARDEN_UPGRADES[u].name,
       found: has(`UPG_${u}`),
-      art: emoji(GARDEN_UPGRADES[u].icon, 26),
+      art: img(upgradeArt(u), 40),
       text: `Garden upgrade: ${GARDEN_UPGRADES[u].text}.`,
       hint: GARDEN_UPGRADES[u].needs ? `Buy ${GARDEN_UPGRADES[GARDEN_UPGRADES[u].needs!].name} first, then it may appear.` : "Buy it in the Shop (one per Season).",
     })),
@@ -168,7 +168,7 @@ function buildPages(): Record<PageId, Entry[]> {
       id: `TAG_${t}`,
       name: SKIP_TAGS[t].name,
       found: has(`TAG_${t}`),
-      art: emoji(SKIP_TAGS[t].icon, 26),
+      art: img(tagArt(t), 40),
       text: `${SKIP_TAGS[t].text}.`,
       hint: "Skip a Small bed that offers it.",
     })),
