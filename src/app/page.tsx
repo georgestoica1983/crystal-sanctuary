@@ -539,7 +539,11 @@ export default function OneStrokeTacticianPage() {
   const bossBedRef = useRef<string | null>(null);
   // The phone's Back closes the Skip sheet and a Boss card preview
   useBackClose(skipOpen, () => setSkipOpen(false));
-  useBackClose(Boolean(bossIntro?.preview), () => setBossIntro(null));
+  // Back closes the screen on top and nothing else, including the ones that close by themselves
+  useBackClose(Boolean(bossIntro), () => setBossIntro(null));
+  useBackClose(Boolean(tip), () => setTip(null));
+  useBackClose(Boolean(bossBeaten), () => setBossBeaten(null));
+  useBackClose(runOver !== null, () => setRunOver(null));
   // The Run whose first bed already had its card (once per Run)
   const goalCardRunRef = useRef<string | null>(null);
   const [activeResolutionStep, setActiveResolutionStep] = useState<
@@ -782,6 +786,8 @@ export default function OneStrokeTacticianPage() {
   const activeTutorialStage = TUTORIAL_STAGES[tutorialStageIndex] ?? TUTORIAL_STAGES[0];
   // A hands-on Run lesson replaces the board, stats and relics while it's open
   const lesson = lessonIndex !== null ? RUN_LESSONS[lessonIndex] ?? null : null;
+  // "Before you begin": Back works like Start
+  useBackClose(showGoalCard && Boolean(runGarden) && !lesson, () => setShowGoalCard(false));
   const activeGrid = lesson
     ? lesson.grid
     : isInteractiveTutorial
