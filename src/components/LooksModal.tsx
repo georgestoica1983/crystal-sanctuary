@@ -1,5 +1,6 @@
 "use client";
 
+import { artify } from "@/components/ArtText";
 import { motion } from "framer-motion";
 import { useBackClose } from "@/lib/backClose";
 import { DoneButton, GrabBar, sheetDrag } from "@/components/SheetBits";
@@ -39,7 +40,7 @@ export default function LooksModal({
   const [tab, setTab] = useState<"COMPANIONS" | "LINE" | "BOARD">("COMPANIONS");
   useBackClose(isOpen, onClose);
   if (!isOpen || !progress) return null;
-  const { rank, next } = getGardenerRank(progress);
+  const { rank } = getGardenerRank(progress);
   const nextRunCompanion = loadChosenCompanion(cosmetics.companionId);
   const trails = UNLOCKS.filter((u) => u.kind === "TRAIL");
   const boards = UNLOCKS.filter((u) => u.kind === "BOARD");
@@ -54,7 +55,7 @@ export default function LooksModal({
         : "border-white/[0.06] bg-black/20 opacity-60"
     }`;
 
-  return (
+  return artify(
     <div className="ui-zoom fixed inset-0 z-[60] bg-black/70 flex items-end sm:items-center justify-center" onClick={onClose}>
       <motion.div
         role="dialog"
@@ -72,11 +73,6 @@ export default function LooksModal({
             {loadBestClearedAscension() > 0 && <span className="text-orange-200"> · 🔥A{loadBestClearedAscension()}</span>}
           </div>
         </div>
-        {next && (
-          <div className="-mt-1.5 truncate text-[12.5px] text-white/55">
-            Next: {next.icon} {next.name}: {next.needText}
-          </div>
-        )}
 
         {/* One section at a time, so the sheet fits on a phone */}
         <div className="flex rounded-xl bg-black/25 p-1" role="tablist" aria-label="Looks sections">

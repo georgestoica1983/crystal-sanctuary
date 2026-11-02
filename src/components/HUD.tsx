@@ -29,6 +29,20 @@ import {
   Lock,
   Zap,
   X,
+  ArrowLeftRight,
+  Backpack,
+  CircleHelp,
+  FastForward,
+  Flower2,
+  Image,
+  Leaf,
+  Lightbulb,
+  MessageCircle,
+  Moon,
+  Music2,
+  SkipForward,
+  SunMoon,
+  Vibrate,
 } from "lucide-react";
 import {
   CosmeticPreferences,
@@ -965,13 +979,13 @@ export function TopHUD({
                   <div className="grid grid-cols-2 gap-2">
                     {onOpenGarden && (
                       <button type="button" className={menuTile} onClick={() => { setShowRunMenu(false); onOpenGarden(); }}>
-                        <span className={menuTileTop}><span aria-hidden="true">🌷</span> My Garden</span>
+                        <span className={menuTileTop}><Flower2 className="w-4 h-4 text-white/75" /> My Garden</span>
                         <span className={menuTileSub}>{gardenCount} {gardenCount === 1 ? "plant" : "plants"}</span>
                       </button>
                     )}
                     {onOpenJournal && (
                       <button type="button" className={menuTile} onClick={() => { setShowRunMenu(false); onOpenJournal(); }}>
-                        <span className={menuTileTop}><span aria-hidden="true">📖</span> Journal</span>
+                        <span className={menuTileTop}><BookOpen className="w-4 h-4 text-white/75" /> Journal</span>
                         <span className={menuTileSub}>
                           {journalNew > 0 ? <span className="rounded-full bg-lime-300 px-1.5 font-black text-slate-950">{journalNew} new</span> : "Your collection"}
                         </span>
@@ -979,19 +993,19 @@ export function TopHUD({
                     )}
                     {bagPanel && (
                       <button type="button" className={menuTile} onClick={() => setShowBag((v) => !v)} aria-expanded={showBag}>
-                        <span className={menuTileTop}><span aria-hidden="true">🎒</span> Tile bag</span>
+                        <span className={menuTileTop}><Backpack className="w-4 h-4 text-white/75" /> Tile bag</span>
                         <span className={menuTileSub}>{bagCount ?? ""} tiles left</span>
                       </button>
                     )}
                     {onOpenLooks && (
                       <button type="button" className={menuTile} onClick={() => { setShowRunMenu(false); onOpenLooks(); }}>
-                        <span className={menuTileTop}><span aria-hidden="true">🎨</span> Companions</span>
+                        <span className={menuTileTop}><Palette className="w-4 h-4 text-white/75" /> Companions</span>
                         <span className={menuTileSub}>and looks</span>
                       </button>
                     )}
                     {onOpenGuide && (
                       <button type="button" className={menuTile} onClick={() => { setShowRunMenu(false); onOpenGuide(); }}>
-                        <span className={menuTileTop}><span aria-hidden="true">❓</span> How to play</span>
+                        <span className={menuTileTop}><CircleHelp className="w-4 h-4 text-white/75" /> How to play</span>
                         <span className={menuTileSub}>Rules and practice</span>
                       </button>
                     )}
@@ -1012,7 +1026,7 @@ export function TopHUD({
                           setShowRunMenu(false);
                         }}
                       >
-                        <span className={menuTileTop}><span aria-hidden="true">💬</span> Feedback</span>
+                        <span className={menuTileTop}><MessageCircle className="w-4 h-4 text-white/75" /> Feedback</span>
                         <span className={menuTileSub}>2 minutes</span>
                       </a>
                     )}
@@ -1028,7 +1042,7 @@ export function TopHUD({
                       )}
                       {onEndRun && (
                         <button type="button" className={`${menuTile} !h-12 !flex-row !items-center !justify-center !text-rose-200`} onClick={() => { setShowRunMenu(false); onEndRun(); }}>
-                          <span aria-hidden="true">🌙</span> End this Run
+                          <Moon className="w-4 h-4" /> End this Run
                         </button>
                       )}
                     </div>
@@ -1050,41 +1064,41 @@ export function TopHUD({
                   )}
                   {onToggleMusic && onToggleMusicLayers && (
                     <button type="button" className={menuTile} onClick={onToggleMusicLayers} aria-pressed={musicLayersOn}>
-                      <span className={menuTileTop}><span aria-hidden="true">🎵</span> Set music</span>
+                      <span className={menuTileTop}><Music2 className="w-4 h-4 text-white/75" /> Set music</span>
                       <span className={menuTileSub}>{musicLayersOn ? "On" : "Off"}</span>
                     </button>
                   )}
                   {onToggleTips && (
                     <button type="button" className={menuTile} onClick={onToggleTips} aria-pressed={tipsOn}>
-                      <span className={menuTileTop}><span aria-hidden="true">💡</span> Tips</span>
+                      <span className={menuTileTop}><Lightbulb className="w-4 h-4 text-white/75" /> Tips</span>
                       <span className={menuTileSub}>{tipsOn ? "Between beds" : "Off"}</span>
                     </button>
                   )}
                   {onToggleFollowTime && (
                     <button type="button" className={menuTile} onClick={onToggleFollowTime} aria-pressed={followTime}>
-                      <span className={menuTileTop}><span aria-hidden="true">🌗</span> Time of day</span>
+                      <span className={menuTileTop}><SunMoon className="w-4 h-4 text-white/75" /> Time of day</span>
                       <span className={menuTileSub}>{followTime ? "Follows your clock" : "Off"}</span>
                     </button>
                   )}
                   <button type="button" className={menuTile} onClick={handleToggleVisualTheme}>
-                    <span className={menuTileTop}><span aria-hidden="true">{isSanctuarySkin ? "🌸" : "🌙"}</span> Board look</span>
+                    <span className={menuTileTop}><Image className="w-4 h-4 text-white/75" /> Board look</span>
                     <span className={menuTileSub}>{isSanctuarySkin ? "Garden" : "Night"}</span>
                   </button>
                   {onCycleScoreSpeed && (
                     <button type="button" className={menuTile} onClick={onCycleScoreSpeed}>
-                      <span className={menuTileTop}><span aria-hidden="true">⏩</span> Scoring speed</span>
+                      <span className={menuTileTop}><FastForward className="w-4 h-4 text-white/75" /> Scoring speed</span>
                       <span className={menuTileSub}>×{scoreSpeed}</span>
                     </button>
                   )}
                   {onToggleVibration && (
                     <button type="button" className={menuTile} onClick={onToggleVibration} aria-pressed={vibrationOn}>
-                      <span className={menuTileTop}><span aria-hidden="true">📳</span> Vibration</span>
+                      <span className={menuTileTop}><Vibrate className="w-4 h-4 text-white/75" /> Vibration</span>
                       <span className={menuTileSub}>{vibrationOn ? "On" : "Off"}</span>
                     </button>
                   )}
                   {onToggleReduceMotion && (
                     <button type="button" className={menuTile} onClick={onToggleReduceMotion} aria-pressed={reduceMotion}>
-                      <span className={menuTileTop}><span aria-hidden="true">🍃</span> Reduce motion</span>
+                      <span className={menuTileTop}><Leaf className="w-4 h-4 text-white/75" /> Reduce motion</span>
                       <span className={menuTileSub}>{reduceMotion ? "On" : "Off"}</span>
                     </button>
                   )}
@@ -1844,7 +1858,13 @@ export function BottomControls({
                 : "bg-white/[0.05] border-white/[0.08] text-white/85"
             }`}
           >
-            {swap.active ? "Cancel swap" : `🌿 Swap · ${swap.left}`}
+            {swap.active ? (
+              "Cancel swap"
+            ) : (
+              <span className="inline-flex items-center gap-1.5">
+                <ArrowLeftRight className="w-4 h-4 text-lime-300" /> Swap · {swap.left}
+              </span>
+            )}
           </button>
         )}
 
@@ -1858,7 +1878,9 @@ export function BottomControls({
               skip.open ? "bg-amber-300 text-slate-950 border-amber-200" : "bg-white/[0.05] border-amber-300/30 text-amber-100/90"
             }`}
           >
-            {skip.icon} Skip
+            <span className="inline-flex items-center gap-1.5">
+              <SkipForward className="w-4 h-4" /> Skip
+            </span>
           </button>
         )}
 

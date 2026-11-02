@@ -10,7 +10,7 @@ Everything below this section is parked until this is done.
 - [x] Fonts: replace the Fraunces + JetBrains Mono + Nunito set with fonts that feel hand-picked, and use tabular figures instead of a mono font for numbers.
 - [x] Wording: no em dashes in anything a player reads; rewrite each sentence by hand so it sounds like a person wrote it.
 
-## Waiting on setup (your part, parked)
+## Waiting on setup (your part, parked for now: do this before the tester round)
 
 - [ ] **Feedback form** — create a Google Form ("Bloomline feedback": how do you score points · what do Shears, Gloves and Acorns do · when were you confused · what felt satisfying · play again tomorrow? · how far did you get · phone model), copy its forms.gle link.
 - [ ] **PostHog** — free account (EU region), project "Bloomline", copy the `phc_…` Project API key.
@@ -41,7 +41,7 @@ Everything below this section is parked until this is done.
 ## Design and sound (now)
 
 - [x] Art direction: moss look, illustrated tiles, companions, stats, relic themes and all 36 relics.
-- [ ] Leftover emoji: Shop boosts, score tally labels, welcome screen, companion picker.
+- [x] Leftover emoji: menu and Settings tiles, Swap and Skip use line icons; Companions & looks shows painted art (Boss icons, rank and stars stay emoji on purpose).
 - [ ] Art for the 8 rules-v16 relics (prompt: design/gemini-relic-sheet-2-prompt.md); they show emoji until then.
 - [x] Music and sound: generated kalimba score at 66 BPM (seeded per Run), soft effects in the garden key, earned-reward sounds, separate Music switch, /sound-test page.
 - [x] Drag and tap together to draw a line.
