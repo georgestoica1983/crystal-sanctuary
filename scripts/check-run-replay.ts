@@ -670,6 +670,22 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
     }
   }
   check(`new relics only in v16 Shops (v15: ${inOld}, v16: ${inNew} in 60 Shops)`, inOld === 0 && inNew > 0);
+}
+
+{
+  // Rules v20: the exact and careful relics only ever show up in v20 Shops
+  const NEW = ["SEVEN_STONES", "SHORT_CUT", "STRAIGHT_FURROW", "LIGHT_STEP", "THORNLESS_PATH", "EVEN_ROWS"];
+  let inOld = 0;
+  let inNew = 0;
+  for (let f = 1; f <= 80; f++) {
+    for (const v of [19, 20]) {
+      const offers = generateShopOffers(`relics20-${f}`, 1, 0, [], 6, 0, 8, true, true, v >= 20);
+      const n = offers.filter((o) => o.relicId && NEW.includes(o.relicId)).length;
+      if (v === 19) inOld += n;
+      else inNew += n;
+    }
+  }
+  check(`v20 relics only in v20 Shops (v19: ${inOld}, v20: ${inNew} in 80 Shops)`, inOld === 0 && inNew > 0);
 
   const r = createRunReplayer("relics16-effects", "KNIGHT", 16);
   const best = searchBestFloorLine(r.state.grid, r.state.startHero, RUN_MODIFIER, "KNIGHT", [], 20000, {});

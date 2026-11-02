@@ -721,6 +721,71 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     rarity: "UNCOMMON",
     category: "CHIPS",
   },
+  // ── Rules v20+: more ways to win than "longer" (exact and careful lines) ──
+  SEVEN_STONES: {
+    id: "SEVEN_STONES",
+    name: "Seven Stones",
+    icon: "🪨",
+    shortTag: "Length exactly 7: ×7",
+    description: "A line with a Length of exactly 7 scores ×7.",
+    accentColor: "#CBD5E1",
+    cost: 8,
+    rarity: "RARE",
+    category: "XMULT",
+  },
+  SHORT_CUT: {
+    id: "SHORT_CUT",
+    name: "Short Cut",
+    icon: "🪧",
+    shortTag: "Length 8 or less: ×5",
+    description: "A line with a Length of 8 or less scores ×5.",
+    accentColor: "#D6A86A",
+    cost: 7,
+    rarity: "UNCOMMON",
+    category: "XMULT",
+  },
+  STRAIGHT_FURROW: {
+    id: "STRAIGHT_FURROW",
+    name: "Straight Furrow",
+    icon: "🌱",
+    shortTag: "No diagonal steps: ×2",
+    description: "A line with no diagonal steps scores ×2.",
+    accentColor: "#A3E635",
+    cost: 6,
+    rarity: "UNCOMMON",
+    category: "XMULT",
+  },
+  LIGHT_STEP: {
+    id: "LIGHT_STEP",
+    name: "Light Step",
+    icon: "🪶",
+    shortTag: "+3 Length per ❤️ left at the gate",
+    description: "Your line gets +3 Length for every ❤️ Life you still have when it reaches the gate.",
+    accentColor: "#F5F5F4",
+    cost: 6,
+    category: "MULT",
+  },
+  THORNLESS_PATH: {
+    id: "THORNLESS_PATH",
+    name: "Thornless Path",
+    icon: "🌹",
+    shortTag: "No Thorns on the line: ×3",
+    description: "A line that passes no 🌺 Thorns scores ×3.",
+    accentColor: "#F9A8D4",
+    cost: 8,
+    rarity: "UNCOMMON",
+    category: "XMULT",
+  },
+  EVEN_ROWS: {
+    id: "EVEN_ROWS",
+    name: "Even Rows",
+    icon: "🪴",
+    shortTag: "Even Length: +4 Length",
+    description: "A line with an even Length (2, 4, 6…) gets +4 Length.",
+    accentColor: "#86EFAC",
+    cost: 4,
+    category: "MULT",
+  },
 };
 
 export const RELIC_LIST: RelicDefinition[] = Object.values(RELIC_REGISTRY);
@@ -735,6 +800,15 @@ export const V16_RELICS: RelicId[] = [
   "SOFT_MOSS",
   "SUNBEAM_LENS",
 ];
+/** Relics that only exist from rules v20 (older Runs never see them anywhere) */
+export const V20_RELICS: RelicId[] = [
+  "SEVEN_STONES",
+  "SHORT_CUT",
+  "STRAIGHT_FURROW",
+  "LIGHT_STEP",
+  "THORNLESS_PATH",
+  "EVEN_ROWS",
+];
 
 /**
  * Deterministically selects 3 distinct Tactical Relics for the between-floor draft modal
@@ -747,7 +821,9 @@ export function getRelicDraftChoices(
   const rng = mulberry32(
     hashStringToSeed(`relic-draft-${seedKey}-f${floorNumber}-${ownedRelics.length}`)
   );
-  const commons = RELIC_LIST.filter((r) => r.rarity !== "LEGENDARY" && !V16_RELICS.includes(r.id));
+  const commons = RELIC_LIST.filter(
+    (r) => r.rarity !== "LEGENDARY" && !V16_RELICS.includes(r.id) && !V20_RELICS.includes(r.id)
+  );
   const unowned = commons.filter((r) => !ownedRelics.includes(r.id));
   const owned = commons.filter((r) => ownedRelics.includes(r.id));
 
@@ -953,7 +1029,9 @@ export function generateShopOffers(
   /** Rules v15+: Echo is one of the tools */
   echo = false,
   /** Rules v16+: the new score-again and rule-bending relics join the pool */
-  v16Relics = false
+  v16Relics = false,
+  /** Rules v20+: the exact and careful line relics join the pool */
+  v20Relics = false
 ): ShopOffer[] {
   const rng = mulberry32(
     hashStringToSeed(`shop-${seedKey}-f${floorNumber}-r${rerollIndex}`)
@@ -970,7 +1048,11 @@ export function generateShopOffers(
   // Rarity-weighted draw without repeats (Efraimidis–Spirakis keys). Relics
   // are offered even with full slots: sell one to make room.
   const relicPool = RELIC_LIST.filter(
-    (r) => r.rarity !== "LEGENDARY" && !ownedRelics.includes(r.id) && (v16Relics || !V16_RELICS.includes(r.id))
+    (r) =>
+      r.rarity !== "LEGENDARY" &&
+      !ownedRelics.includes(r.id) &&
+      (v16Relics || !V16_RELICS.includes(r.id)) &&
+      (v20Relics || !V20_RELICS.includes(r.id))
   )
     .map((r) => ({
       r,
@@ -2195,6 +2277,13 @@ export function calculateFloorScoreBreakdown(
   if (shimmer("IRIDESCENT") > 0)
     multSources.push({ label: edLabel("Iridescent", shimmer("IRIDESCENT")), value: 2 * shimmer("IRIDESCENT") });
   for (let i = 0; i < shimmer("RADIANT"); i++) xMultSources.push({ label: "Radiant tile", value: 1.25 });
+  // Rules v20 relics: exact and careful lines
+  addMult("LIGHT_STEP", sim.endsOnExit ? Math.max(0, sim.finalStats.hp) * 3 : 0);
+  addMult("EVEN_ROWS", pathLength % 2 === 0 ? 4 : 0);
+  addX("SEVEN_STONES", 7, pathLength === 7);
+  addX("SHORT_CUT", 5, pathLength <= 8);
+  addX("STRAIGHT_FURROW", 2, diagonalSteps === 0);
+  addX("THORNLESS_PATH", 3, countOf("ENEMY") === 0);
   // ×Length
   addX("STARLIGHT_COMPASS", 1.5, pathLength >= 12);
   addX("SUN_PRISM", 2, sim.boardSunbeams >= 2 && sunbeamsOnLine >= sim.boardSunbeams);

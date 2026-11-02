@@ -15,6 +15,7 @@ import {
   hashStringToSeed,
   mulberry32,
   RELIC_LIST,
+  V20_RELICS,
   DEW_LINES,
   MAX_TOOLS,
   FERTILIZER_COST,
@@ -265,7 +266,8 @@ export function getRunBloomResult(params: {
       runToolExtraCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
       runEditionTileCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
       runRulesUseEcho(params.logVersion ?? RUN_LOG_VERSION),
-      runRulesUseV16Relics(params.logVersion ?? RUN_LOG_VERSION)
+      runRulesUseV16Relics(params.logVersion ?? RUN_LOG_VERSION),
+      runRulesUseV20Relics(params.logVersion ?? RUN_LOG_VERSION)
     ),
   };
 }
@@ -431,7 +433,8 @@ export function applyRunSkip(params: {
 
 /** Relic Tag: a seeded Rare relic you don't own yet (null if none left) */
 function pickTagRelic(runSeed: string, gardenIndex: number, owned: RelicId[]): RelicId | null {
-  const pool = RELIC_LIST.filter((r) => r.rarity === "RARE" && !owned.includes(r.id));
+  // (never the v20 relics: older Runs must keep drawing the same Rare relic)
+  const pool = RELIC_LIST.filter((r) => r.rarity === "RARE" && !owned.includes(r.id) && !V20_RELICS.includes(r.id));
   if (pool.length === 0) return null;
   const rng = mulberry32(hashStringToSeed(`tag-relic-${runSeed}-g${gardenIndex}`));
   return pool[Math.floor(rng() * pool.length)].id;
@@ -445,6 +448,8 @@ export const runRulesUseEditions = (logVersion: number) => logVersion >= 14;
 export const runRulesUseEcho = (logVersion: number) => logVersion >= 15;
 /** Rules v16+: 8 new relics (score-again and rule-benders) join the Shop */
 export const runRulesUseV16Relics = (logVersion: number) => logVersion >= 16;
+/** v20: relics for exact and careful lines join the Shop */
+export const runRulesUseV20Relics = (logVersion: number) => logVersion >= 20;
 /** Rules v17+: a Small or Big bed can be skipped (before any line) for a Tag */
 export const runRulesAllowSkip = (logVersion: number) => logVersion >= 17;
 
@@ -617,7 +622,8 @@ export function applyRunShopReroll(params: {
       runToolExtraCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
       runEditionTileCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
       runRulesUseEcho(params.logVersion ?? RUN_LOG_VERSION),
-      runRulesUseV16Relics(params.logVersion ?? RUN_LOG_VERSION)
+      runRulesUseV16Relics(params.logVersion ?? RUN_LOG_VERSION),
+      runRulesUseV20Relics(params.logVersion ?? RUN_LOG_VERSION)
     ),
     cost,
   };
@@ -711,9 +717,11 @@ export function getRunPathError(
  * v9: ✂️ Pruning Shears in the Shop remove a tile from the bag (action "p").
  * v10: relic sets — 3 relics with one theme tag score every line ×1.25.
  * v11: a gentler first Season (targets 800 / 1,500 / 2,500).
+ * v20: six relics for exact and careful lines (Seven Stones, Short Cut,
+ *      Straight Furrow, Light Step, Thornless Path, Even Rows) join the Shop.
  * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 19;
+export const RUN_LOG_VERSION = 20;
 export const RUN_LOG_MIN_VERSION = 2;
 /** Rule set of new Runs (the current version) */
 export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);

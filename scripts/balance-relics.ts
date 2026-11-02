@@ -43,6 +43,15 @@ const SETS: Array<{ name: string; relics: RelicId[] }> = [
     relics: ["ELDER_TREE", "OAK_SAPLING", "COMPOST_HEAP", "RAIN_BARREL", "STARLIGHT_COMPASS"],
   },
   {
+    // Rules v20 relics: the exact and careful build, against the long-line one above
+    name: "exact & careful (v20)",
+    relics: ["SEVEN_STONES", "SHORT_CUT", "THORNLESS_PATH", "LIGHT_STEP", "STRAIGHT_FURROW"],
+  },
+  {
+    name: "careful mix (v20)",
+    relics: ["THORNLESS_PATH", "LIGHT_STEP", "QUIET_SNAIL", "EVEN_ROWS", "MOSSY_STONE"],
+  },
+  {
     name: "long-line + 2 Legendaries",
     relics: ["HARVEST_MOON", "STARLIGHT_COMPASS", "ZIGZAG_KITE", "OAK_SAPLING", "MOSSY_STONE", "RAINBOW_HEART", "THORN_CROWN"],
   },

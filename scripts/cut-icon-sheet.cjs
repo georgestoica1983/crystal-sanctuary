@@ -58,6 +58,8 @@ const SUPPLY_NAMES = [
   "upgrade-root-cellar", "upgrade-old-oak", "upgrade-market-day", "upgrade-harvest-fair", "upgrade-almanac",
   "upgrade-observatory", "tag-fertile", "tag-golden", "tag-purse", "tag-relic",
 ];
+// Rules v20 relics: 3 × 2, each cell with its own background shade
+const RELIC_NAMES_3 = ["seven-stones", "short-cut", "straight-furrow", "light-step", "thornless-path", "even-rows"].map((n) => `relic-${n}`);
 // Small badges: 4 × 2, in the order of the badges prompt
 const BADGE_NAMES = ["star", "crown", "flame", "lock", "golden", "iridescent", "radiant", "seed"].map((n) => `badge-${n}`);
 // Lawn board pieces: 4 × 2. Each cell has its own background shade, and pieces keep their own shape
@@ -71,7 +73,7 @@ const SOFT = 46; // up to this (and reachable from the edge): partly transparent
 // see-through range, so the halo fades instead of staying a dark disc
 const WIDE_GLOW = new Set([
   "relic-long-shadow", "boss-eclipse", "boss-frost", "boss-long-road", "boss-fog",
-  "tool-sunlit", "upgrade-observatory", "tag-golden", "badge-radiant",
+  "tool-sunlit", "upgrade-observatory", "tag-golden", "badge-radiant", "relic-seven-stones",
 ]);
 const GLOW_SOFT = 120;
 const OUT = 256;
@@ -89,8 +91,9 @@ const OUT = 256;
     : mode === "supplies" ? SUPPLY_NAMES
     : mode === "badges" ? BADGE_NAMES
     : mode === "lawn" ? LAWN_NAMES
+    : mode === "relics3" ? RELIC_NAMES_3
     : ICON_NAMES;
-  const COLS = mode === "relics2" || mode === "decor" || mode === "bosses" || mode === "badges" || mode === "lawn" ? 4 : mode === "supplies" ? 5 : Math.round(Math.sqrt(NAMES.length));
+  const COLS = mode === "relics2" || mode === "decor" || mode === "bosses" || mode === "badges" || mode === "lawn" ? 4 : mode === "relics3" ? 3 : mode === "supplies" ? 5 : Math.round(Math.sqrt(NAMES.length));
   const ROWS = Math.ceil(NAMES.length / COLS);
   const { data, info } = await sharp(src).raw().toBuffer({ resolveWithObject: true });
   const { width: W, height: H, channels: C } = info;
@@ -99,7 +102,7 @@ const OUT = 256;
   for (let n = 0; n < NAMES.length; n++) {
     const col = n % COLS, row = Math.floor(n / COLS);
     // The garden sheet has faint grid lines: step a few pixels inside each cell
-    const inset = mode === "garden" ? 6 : 0;
+    const inset = mode === "garden" ? 6 : mode === "relics3" ? 10 : 0;
     // Some sheets have unevenly spaced rows: cut them at the empty gaps instead
     const edges = ROW_EDGES[mode] ? [...ROW_EDGES[mode].map((f) => Math.round(f * H)), H] : null;
     const x0 = Math.round(col * cellW) + inset;
@@ -107,8 +110,9 @@ const OUT = 256;
     const w = Math.round((col + 1) * cellW) - inset - x0;
     const h = (edges ? edges[row] : Math.round((row + 1) * cellH)) - inset - y0;
     // The lawn sheet's cells each have their own shade: read it from the cell's corner
-    const at = (mode === "lawn" ? (y0 + 4) * W + x0 + 4 : 2) * C;
-    const bg = mode === "lawn" ? [data[at], data[at + 1], data[at + 2]] : sheetBg;
+    const perCell = mode === "lawn" || mode === "relics3";
+    const at = (perCell ? (y0 + 4) * W + x0 + 4 : 2) * C;
+    const bg = perCell ? [data[at], data[at + 1], data[at + 2]] : sheetBg;
     const rgba = Buffer.alloc(w * h * 4);
     const dist = new Float32Array(w * h);
     for (let y = 0; y < h; y++)

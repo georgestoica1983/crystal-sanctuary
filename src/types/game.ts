@@ -104,7 +104,14 @@ export type RelicId =
   | "LONG_SHADOW"
   | "BRAMBLE_BERRIES"
   | "SOFT_MOSS"
-  | "SUNBEAM_LENS";
+  | "SUNBEAM_LENS"
+  // Rules v20+: relics for exact and careful lines
+  | "SEVEN_STONES"
+  | "SHORT_CUT"
+  | "STRAIGHT_FURROW"
+  | "LIGHT_STEP"
+  | "THORNLESS_PATH"
+  | "EVEN_ROWS";
 
 /** COMMON / UNCOMMON / RARE weight how often a relic shows up in the Shop */
 export type RelicRarity = "COMMON" | "UNCOMMON" | "RARE" | "LEGENDARY";
