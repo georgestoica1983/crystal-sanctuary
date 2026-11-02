@@ -4023,8 +4023,8 @@ export default function OneStrokeTacticianPage() {
                 ? "No safe line on this board. 🌿 Swap can change up to 3 tiles."
                 : swapSuggested
                 ? "Tough board. Try 🌿 Swap to change up to 3 tiles."
-                : // The main rule, while it is new: the first two beds of a player's first Run
-                runsStarted() <= 1 && (runGarden?.gardenIndex ?? 0) < 2
+                : // The main rule, while it is new: only the very first bed of a player's first Run
+                runsStarted() <= 1 && (runGarden?.gardenIndex ?? 0) === 0
                 ? "Longer lines score far more."
                 : ""}
             </p>
