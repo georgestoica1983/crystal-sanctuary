@@ -326,7 +326,7 @@ class SoundAndHapticsEngine {
     if (added.length > 0) this.layersActive = [...added, ...this.layersActive].slice(0, MAX_LAYERS_AT_ONCE);
   }
 
-  /** Plays two bars of one layer on its own (the sound test page and My Garden) */
+  /** Plays two bars of one layer on its own (the sound test page) */
   public previewMusicLayer(layer: MusicLayer): void {
     const audio = this.ensureAudio();
     if (!audio) return;

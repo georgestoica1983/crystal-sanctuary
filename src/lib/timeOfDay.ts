@@ -25,7 +25,7 @@ export function getDayPhase(date = new Date()): DayPhase {
   return "NIGHT";
 }
 
-/** Northern-hemisphere months (most players); only My Garden's ground follows it */
+/** Northern-hemisphere months (most players); used for the time-of-day light */
 export function getYearSeason(date = new Date()): YearSeason {
   const m = (previewParam("month") ?? date.getMonth() + 1) - 1;
   if (m === 11 || m <= 1) return "WINTER";

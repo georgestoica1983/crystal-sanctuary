@@ -408,35 +408,6 @@ svg text,
   opacity: 0;
 }
 
-/* My Garden: slow sway, drifting pollen, a breathing lantern glow */
-.garden-sway {
-  animation: garden-sway 5.5s ease-in-out infinite;
-}
-@keyframes garden-sway {
-  0%, 100% { rotate: -2deg; }
-  50% { rotate: 2deg; }
-}
-.garden-pollen {
-  animation: garden-pollen 9s ease-in-out infinite;
-}
-@keyframes garden-pollen {
-  0% { transform: translate(0, 0); opacity: 0; }
-  20% { opacity: 0.8; }
-  100% { transform: translate(24px, -60px); opacity: 0; }
-}
-.living-lantern {
-  animation: lantern-glow 4s ease-in-out infinite;
-}
-@keyframes lantern-glow {
-  0%, 100% { filter: drop-shadow(0 0 4px rgba(253, 186, 116, 0.4)); }
-  50% { filter: drop-shadow(0 0 10px rgba(253, 186, 116, 0.8)); }
-}
-.reduce-motion .garden-sway,
-.reduce-motion .garden-pollen,
-.reduce-motion .living-lantern {
-  animation: none;
-}
-
 /* Night fireflies: a slow drift and a soft blink */
 .firefly {
   box-shadow: 0 0 8px 2px rgba(217, 249, 157, 0.7);
@@ -451,20 +422,6 @@ svg text,
 .reduce-motion .firefly {
   animation: none;
   opacity: 0.6;
-}
-
-/* Autumn in My Garden: a few leaves drifting down */
-.garden-leaf {
-  animation: garden-leaf 11s linear infinite;
-}
-@keyframes garden-leaf {
-  0% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
-  10% { opacity: 0.9; }
-  100% { transform: translate(40px, 70vh) rotate(320deg); opacity: 0; }
-}
-.reduce-motion .garden-leaf {
-  animation: none;
-  opacity: 0;
 }
 
 /* Morning dew: tiny drops that catch the light */

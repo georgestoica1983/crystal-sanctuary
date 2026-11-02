@@ -97,7 +97,7 @@ function buildPages(): Record<PageId, Entry[]> {
     name,
     found: found.has(`plant-${name}`),
     art: img(gardenArt(name), 42),
-    text: "Growing in your garden.",
+    text: "In your collection.",
     hint: SPECIES.SMALL.includes(name)
       ? "Clear a Small bed."
       : SPECIES.BIG.includes(name)
@@ -113,7 +113,7 @@ function buildPages(): Record<PageId, Entry[]> {
     name: m.name.replace(/^an? /, "").replace(/^\w/, (c) => c.toUpperCase()),
     found: found.has(`decor-${m.decor}`),
     art: img(decorArt(m.decor), 42),
-    text: "In your garden.",
+    text: "In your collection.",
     hint: `Grow ${m.at} plants.`,
   }));
 
@@ -193,8 +193,8 @@ function buildPages(): Record<PageId, Entry[]> {
     name: VISITOR_NAMES[kind],
     found: found.has(`VIS_${kind}`),
     art: img(visitorArt(kind), 38),
-    text: `Came to stay when your garden reached ${at} plants.`,
-    hint: `Arrives when your garden reaches ${at} plants.`,
+    text: `Came to stay when you had grown ${at} plants.`,
+    hint: `Arrives when you have grown ${at} plants.`,
   }));
 
   return { RELICS: relics, SETS: sets, GARDEN: [...plants, ...decor], BOSSES: bosses, SUPPLIES: supplies, VISITORS: visitors, COMPANIONS: companions };

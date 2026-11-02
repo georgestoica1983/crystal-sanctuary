@@ -124,7 +124,6 @@ import {
 } from "@/components/Modals";
 import ShopModal from "@/components/ShopModal";
 import ScoreTally from "@/components/ScoreTally";
-import MyGardenScreen from "@/components/MyGardenScreen";
 import JournalScreen from "@/components/JournalScreen";
 import { journalNewCount } from "@/lib/journalProgress";
 import { recordBossBeaten, recordCompanionRun, recordRelics, recordSupply } from "@/lib/journal";
@@ -374,7 +373,6 @@ export default function OneStrokeTacticianPage() {
   /** Rules v17+: a Relic Tag's free Rare relic waits for the next Shop */
   const [freeRelicNext, setFreeRelicNext] = useState(false);
   const [skipOpen, setSkipOpen] = useState(false);
-  const [gardenOpen, setGardenOpen] = useState(false);
   /** A visitor wandering the board now and then (looks only) */
   /** Morning dew: tile ids still wet (they pop when a line passes them) */
   const [dewIds, setDewIds] = useState<string[]>([]);
@@ -804,14 +802,14 @@ export default function OneStrokeTacticianPage() {
     [isInteractiveTutorial, lesson, activeRelics]
   );
   // Run facts some relics score on: scaling growth and which stroke this is
-  // Menu counts for My Garden and the Journal: only refreshed between moments, never while drawing
+  // Menu count for the Journal: only refreshed between moments, never while drawing
   const collectionCounts = useMemo(
     () =>
       typeof window === "undefined" || phase === "RESOLVING"
-        ? { garden: 0, journalNew: 0 }
-        : { garden: loadMyGarden().plants.length, journalNew: journalOpen ? 0 : journalNewCount() },
+        ? { journalNew: 0 }
+        : { journalNew: journalOpen ? 0 : journalNewCount() },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [phase === "PLANNING", journalOpen, gardenOpen, currentFloorIndex]
+    [phase === "PLANNING", journalOpen, currentFloorIndex]
   );
 
 
@@ -3812,7 +3810,6 @@ export default function OneStrokeTacticianPage() {
         bagCount={runGarden?.drawPile.length}
         scoreSpeed={scoreSpeed}
         gardenUpgradeList={gardenUpgrades.map((id) => ({ ...GARDEN_UPGRADES[id], id }))}
-        onOpenGarden={RUN_ONLY ? () => setGardenOpen(true) : undefined}
         onOpenJournal={RUN_ONLY ? () => setJournalOpen(true) : undefined}
         journalNew={collectionCounts.journalNew}
         musicLayersOn={musicLayersOn}
@@ -3835,7 +3832,6 @@ export default function OneStrokeTacticianPage() {
           setMusicLayersOn(next);
           soundEngine.setMusicLayers(next ? earnedMusicLayers() : []);
         }}
-        gardenCount={collectionCounts.garden}
         onCycleScoreSpeed={() => {
           const next: ScoreSpeed = scoreSpeed === 1 ? 2 : scoreSpeed === 2 ? 4 : 1;
           saveScoreSpeed(next);
@@ -4766,7 +4762,6 @@ export default function OneStrokeTacticianPage() {
         onClose={() => setRunOver(null)}
       />
 
-      <MyGardenScreen open={gardenOpen} onClose={() => setGardenOpen(false)} />
       <JournalScreen open={journalOpen} onClose={() => setJournalOpen(false)} />
 
       {/* Victory / Defeat Summary + Wordle Share Card Modal */}

@@ -34,7 +34,6 @@ import {
   Backpack,
   CircleHelp,
   FastForward,
-  Flower2,
   Image,
   Leaf,
   Lightbulb,
@@ -537,9 +536,6 @@ interface TopHUDProps {
   /** Garden Journal: open it, and how many new entries wait there */
   onOpenJournal?: () => void;
   journalNew?: number;
-  /** My Garden: open it, and how many plants it has */
-  onOpenGarden?: () => void;
-  gardenCount?: number;
   /** Garden upgrades owned (rules v18+), listed in the menu */
   gardenUpgradeList?: Array<{ id: string; name: string; text: string }>;
   /** How fast a line's scoring plays (×1, ×2, ×4) */
@@ -612,8 +608,6 @@ export function TopHUD({
   scoreSpeed = 1,
   onCycleScoreSpeed,
   gardenUpgradeList = [],
-  onOpenGarden,
-  gardenCount = 0,
   onOpenJournal,
   journalNew = 0,
   musicLayersOn = true,
@@ -979,14 +973,8 @@ export function TopHUD({
                   )}
 
                   <div className="grid grid-cols-2 gap-2">
-                    {onOpenGarden && (
-                      <button type="button" className={menuTile} onClick={() => { setShowRunMenu(false); onOpenGarden(); }}>
-                        <span className={menuTileTop}><Flower2 className="w-4 h-4 text-white/75" /> My Garden</span>
-                        <span className={menuTileSub}>{gardenCount} {gardenCount === 1 ? "plant" : "plants"}</span>
-                      </button>
-                    )}
                     {onOpenJournal && (
-                      <button type="button" className={menuTile} onClick={() => { setShowRunMenu(false); onOpenJournal(); }}>
+                      <button type="button" className={`${menuTile} col-span-2`} onClick={() => { setShowRunMenu(false); onOpenJournal(); }}>
                         <span className={menuTileTop}><BookOpen className="w-4 h-4 text-white/75" /> Journal</span>
                         <span className={menuTileSub}>
                           {journalNew > 0 ? <span className="rounded-full bg-lime-300 px-1.5 font-black text-slate-950">{journalNew} new</span> : "Your collection"}
