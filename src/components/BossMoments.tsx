@@ -1,5 +1,6 @@
 "use client";
 
+import BossIcon from "@/components/BossIcon";
 import React, { useEffect, useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import type { BossRuleId, RelicId } from "@/types/game";
@@ -161,10 +162,10 @@ export function BossIntro({ id, preview = false, onDone }: { id: BossRuleId; pre
         initial={still ? false : { scale: 0.2, opacity: 0, rotate: -20 }}
         animate={{ scale: 1, opacity: 1, rotate: 0 }}
         transition={{ type: "spring", stiffness: 180, damping: 12 }}
-        className="relative text-[84px] leading-none drop-shadow-[0_6px_10px_rgba(0,0,0,0.5)]"
+        className="relative drop-shadow-[0_6px_10px_rgba(0,0,0,0.5)]"
         aria-hidden="true"
       >
-        {boss.icon}
+        <BossIcon id={id} size={150} />
       </motion.div>
       <motion.div
         initial={still ? false : { opacity: 0, y: 10 }}
@@ -214,7 +215,7 @@ export function BossBeaten({ id, legendary, onDone }: { id: BossRuleId; legendar
           transition={{ duration: 0.9, times: [0, 0.4, 1] }}
           aria-hidden="true"
         >
-          {boss.icon}
+          <BossIcon id={id} size={104} />
         </motion.div>
         {!still &&
           petals.map((a, i) => (

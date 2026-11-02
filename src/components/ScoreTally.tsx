@@ -1,5 +1,6 @@
 "use client";
 
+import BossIcon from "@/components/BossIcon";
 import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BossRuleId, FloorScoreBreakdown, FloorStarBreakdown, RelicId, ScoreSource } from "@/types/game";
@@ -248,7 +249,8 @@ export default function ScoreTally({
               animate={{ scale: 1, opacity: 1 }}
               className="mt-1 font-display text-[20px] font-bold text-rose-200"
             >
-              {boss.icon} {boss.name} beaten!
+              {defeatedBossRuleId && <BossIcon id={defeatedBossRuleId} size={30} className="mr-1.5 align-middle" />}
+              {boss.name} beaten!
             </motion.div>
           )}
           {starFlags.length > 0 && (

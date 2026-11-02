@@ -1,5 +1,6 @@
 "use client";
 
+import BossIcon from "@/components/BossIcon";
 import React, { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import EntityIcon from "@/components/EntityIcon";
@@ -92,12 +93,12 @@ export function RunHudStrip({
             Season {garden.season}
             {garden.season > RUN_FINAL_SEASON ? " · Endless" : ""} ·{" "}
             <span className={isBoss ? "text-rose-200" : "text-white/90"}>
-              {boss ? `${boss.icon} ` : ""}
+              {garden.bossRuleId && <BossIcon id={garden.bossRuleId} size={20} className="mr-1 -mt-0.5 align-middle" />}
               {BED_SHORT[garden.kind]}
             </span>
             <SeasonDots
               gardenIndex={garden.gardenIndex}
-              boss={upcomingBoss ? BOSS_RULE_REGISTRY[upcomingBoss] : null}
+              boss={upcomingBoss ? { id: upcomingBoss, name: BOSS_RULE_REGISTRY[upcomingBoss].name } : null}
               onBossTap={() => (onBossPreview && upcomingBoss ? onBossPreview(upcomingBoss) : setBossOpen((v) => !v))}
             />
             {asc > 0 && (
@@ -127,7 +128,7 @@ export function RunHudStrip({
 
       {boss && (
         <div className="text-[13px] leading-snug text-rose-100">
-          {boss.icon} <b>{boss.name}:</b> {boss.description}{" "}
+          <b>{boss.name}:</b> {boss.description}{" "}
           <span className="text-rose-50/60">👑 Legendary relic if cleared</span>
         </div>
       )}
@@ -139,7 +140,7 @@ export function RunHudStrip({
           className="w-full text-left rounded-lg border border-rose-300/30 bg-rose-500/[0.07] px-2.5 py-1.5 text-[12px] leading-snug text-rose-50"
         >
           <span className="font-bold">
-            {BOSS_RULE_REGISTRY[upcomingBoss].icon} Boss ahead: {BOSS_RULE_REGISTRY[upcomingBoss].name}
+            <BossIcon id={upcomingBoss} size={20} className="mr-1 align-middle" /> Boss ahead: {BOSS_RULE_REGISTRY[upcomingBoss].name}
           </span>
           <span className="block text-rose-50/75">{BOSS_RULE_REGISTRY[upcomingBoss].description}</span>
         </button>
@@ -390,7 +391,7 @@ function SeasonDots({
 }: {
   gardenIndex: number;
   /** The Season's Boss, shown ahead on its dot */
-  boss?: { icon: string; name: string } | null;
+  boss?: { id: BossRuleId; name: string } | null;
   onBossTap?: () => void;
 }) {
   const at = gardenIndex % 3;
@@ -409,9 +410,9 @@ function SeasonDots({
           type="button"
           onClick={onBossTap}
           aria-label={`Boss ahead: ${boss.name}. Tap for its rule.`}
-          className="ml-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-rose-400/15 px-0.5 text-[10px] leading-none ring-1 ring-rose-300/40 active:scale-90"
+          className="ml-1 inline-flex h-7 w-7 items-center justify-center rounded-full bg-rose-400/15 ring-1 ring-rose-300/40 active:scale-90"
         >
-          {boss.icon}
+          <BossIcon id={boss.id} size={24} />
         </button>
       ) : (
         <span className={`rounded-full h-2 w-2 ${at === 2 ? "bg-amber-200 ring-2 ring-amber-200/30" : "bg-white/20"}`} />

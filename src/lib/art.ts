@@ -65,5 +65,7 @@ export const gardenArt = (species: string) =>
   icon(`garden-${species.toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "")}`);
 /** My Garden decorations (public/art/icons/decor-*.png) */
 export const decorArt = (name: string) => icon(`decor-${name}`);
+/** Boss portraits (public/art/icons/boss-*.png), e.g. ACORN_THIEF → boss-acorn-thief */
+export const bossArt = (id: string) => icon(`boss-${id.toLowerCase().replace(/_/g, "-")}`);
 /** Garden visitors (public/art/icons/visitor-*.png) */
 export const visitorArt = (kind: string) => icon(`visitor-${kind}`);

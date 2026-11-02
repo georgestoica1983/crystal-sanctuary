@@ -7,6 +7,7 @@
 //      or:  node scripts/cut-icon-sheet.cjs design/gemini-garden-plants.webp garden   (5 × 5 My Garden plants)
 //      or:  node scripts/cut-icon-sheet.cjs design/gemini-garden-decor.webp decor     (4 × 2 garden decorations)
 //      or:  node scripts/cut-icon-sheet.cjs design/gemini-visitors.webp visitors      (2 × 2 garden visitors)
+//      or:  node scripts/cut-icon-sheet.cjs design/gemini-bosses.webp bosses          (4 × 3 Boss portraits)
 const sharp = require("sharp");
 const path = require("path");
 
@@ -44,12 +45,18 @@ const DECOR_NAMES = [
   "bench", "pond", "lantern", "arch", "stepping-stones", "bird-bath", "wind-chime", "gate",
 ].map((n) => `decor-${n}`);
 const VISITOR_NAMES = ["ladybug", "bee", "butterfly", "snail"].map((n) => `visitor-${n}`);
+// Boss portraits: 4 × 3, in the order of the Boss prompt (boss-<rule id in kebab case>)
+const BOSS_NAMES = [
+  "thistle-king", "briar-queen", "drought", "eclipse",
+  "frost", "acorn-thief", "spike-bloom", "even-garden",
+  "narrow-path", "long-road", "fog", "toll",
+].map((n) => `boss-${n}`);
 const FADE_EDGES = new Set(["garden-mist-orchid", "garden-moonflower", "garden-set-bloom"]);
 const SOLID = 14; // closer than this to the background: fully transparent
 const SOFT = 46; // up to this (and reachable from the edge): partly transparent
 // Icons with a soft painted halo (a glow on the dark background): a much wider
 // see-through range, so the halo fades instead of staying a dark disc
-const WIDE_GLOW = new Set(["relic-long-shadow"]);
+const WIDE_GLOW = new Set(["relic-long-shadow", "boss-eclipse", "boss-frost", "boss-long-road", "boss-fog"]);
 const GLOW_SOFT = 120;
 const OUT = 256;
 
@@ -62,8 +69,9 @@ const OUT = 256;
     : mode === "garden" ? GARDEN_NAMES
     : mode === "decor" ? DECOR_NAMES
     : mode === "visitors" ? VISITOR_NAMES
+    : mode === "bosses" ? BOSS_NAMES
     : ICON_NAMES;
-  const COLS = mode === "relics2" || mode === "decor" ? 4 : Math.round(Math.sqrt(NAMES.length));
+  const COLS = mode === "relics2" || mode === "decor" || mode === "bosses" ? 4 : Math.round(Math.sqrt(NAMES.length));
   const ROWS = Math.ceil(NAMES.length / COLS);
   const { data, info } = await sharp(src).raw().toBuffer({ resolveWithObject: true });
   const { width: W, height: H, channels: C } = info;

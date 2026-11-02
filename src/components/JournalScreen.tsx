@@ -1,5 +1,6 @@
 "use client";
 
+import BossIcon from "@/components/BossIcon";
 import { useBackClose } from "@/lib/backClose";
 import { BackButton } from "@/components/SheetBits";
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -122,7 +123,7 @@ function buildPages(): Record<PageId, Entry[]> {
       id,
       name: BOSS_RULE_REGISTRY[id].name,
       found: found.has(id),
-      art: emoji(BOSS_RULE_REGISTRY[id].icon),
+      art: <BossIcon id={id} size={40} />,
       text: BOSS_RULE_REGISTRY[id].description,
       hint: "Meet it on a Season's Boss bed and beat it.",
       record: rec ? `Beaten ${rec.beaten} ${rec.beaten === 1 ? "time" : "times"} · best ${formatScore(rec.best)}` : undefined,

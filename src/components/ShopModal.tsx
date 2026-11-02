@@ -1,5 +1,6 @@
 "use client";
 
+import BossIcon from "@/components/BossIcon";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { RefreshCw, ArrowRight, Lock } from "lucide-react";
@@ -621,7 +622,16 @@ export default function ShopModal({
         {nextFloorTitle && (
           <div className={`text-[12.5px] truncate ${nextBoss ? "text-rose-100" : "text-white/65"}`}>
             Up next:{" "}
-            <b>{nextBoss ? `${nextBoss.icon} Boss Garden: ${nextBoss.name}` : nextFloorTitle}</b>
+            <b>
+              {nextBoss && nextBossRuleId ? (
+                <>
+                  <BossIcon id={nextBossRuleId} size={18} className="mr-1 -mt-0.5 align-middle" />
+                  Boss Garden: {nextBoss.name}
+                </>
+              ) : (
+                nextFloorTitle
+              )}
+            </b>
             {(upgrades.bonusMaxMagic > 0 || upgrades.bonusStartDew > 0) && (
               <span className="text-emerald-300">
                 {upgrades.bonusMaxMagic > 0 && ` · ❤️ +${upgrades.bonusMaxMagic} Max Life`}
