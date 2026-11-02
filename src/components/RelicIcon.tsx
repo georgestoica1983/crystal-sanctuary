@@ -5,7 +5,7 @@ import { RelicId } from "@/types/game";
 import { relicArt, relicHasArt } from "@/lib/art";
 import { RELIC_REGISTRY } from "@/lib/engine";
 
-/** A relic's illustrated icon (public/art/icons/relic-*.png) */
+/** A relic's illustrated icon (public/art/icons/relic-*.webp) */
 export default function RelicIcon({
   id,
   size = 24,
@@ -32,6 +32,8 @@ export default function RelicIcon({
     // eslint-disable-next-line @next/next/no-img-element
     <img
       src={relicArt(id)}
+      loading="lazy"
+      decoding="async"
       alt=""
       aria-hidden="true"
       draggable={false}

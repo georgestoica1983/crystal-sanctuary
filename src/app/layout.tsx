@@ -67,8 +67,15 @@ const PRELOAD_ART = [
   "stat-life",
   "stat-gloves",
   "stat-shears",
-  "stat-seeds",
-].map((name) => `/art/icons/${name}.png`);
+  "badge-seed",
+  // The lawn every board is drawn on
+  "lawn-texture",
+  "lawn-fringe-a",
+  "lawn-fringe-b",
+  "lawn-fringe-c",
+  "lawn-soil",
+  "lawn-hedge",
+].map((name) => `/art/icons/${name}.webp`);
 
 const EXTENSION_SHIELD_SCRIPT = `
 (function() {

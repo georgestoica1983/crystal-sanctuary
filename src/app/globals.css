@@ -454,7 +454,7 @@ svg text,
   content: "";
   position: absolute;
   inset: 0;
-  background: url("/art/icons/lawn-texture.png") center / cover;
+  background: url("/art/icons/lawn-texture.webp") center / cover;
   filter: var(--lawn-filter, brightness(0.82) saturate(1));
 }
 /* Mowing stripes: every other tile a shade darker, with a soft top light */

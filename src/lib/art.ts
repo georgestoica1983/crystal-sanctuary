@@ -6,7 +6,7 @@ import type { RelicTag } from "@/lib/relicTags";
  * scripts/cut-icon-sheet.cjs). Each helper returns the image path, or null
  * when the thing has no illustration yet and keeps its drawn SVG.
  */
-const icon = (name: string) => `/art/icons/${name}.png`;
+const icon = (name: string) => `/art/icons/${name}.webp`;
 
 const TILE_ART: Partial<Record<EntityType, string>> = {
   ENEMY: "tile-thorn",
@@ -61,20 +61,20 @@ const RELICS_PENDING_ART: RelicId[] = [];
 export const relicHasArt = (id: RelicId) => !RELICS_PENDING_ART.includes(id);
 export const relicArt = (id: RelicId) => icon(`relic-${id.toLowerCase().replace(/_/g, "-")}`);
 
-/** My Garden plant art, by species name (public/art/icons/garden-*.png) */
+/** My Garden plant art, by species name (public/art/icons/garden-*.webp) */
 export const gardenArt = (species: string) =>
   icon(`garden-${species.toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-|-$/g, "")}`);
-/** My Garden decorations (public/art/icons/decor-*.png) */
+/** My Garden decorations (public/art/icons/decor-*.webp) */
 export const decorArt = (name: string) => icon(`decor-${name}`);
-/** Boss portraits (public/art/icons/boss-*.png), e.g. ACORN_THIEF → boss-acorn-thief */
+/** Boss portraits (public/art/icons/boss-*.webp), e.g. ACORN_THIEF → boss-acorn-thief */
 export const bossArt = (id: string) => icon(`boss-${id.toLowerCase().replace(/_/g, "-")}`);
-/** Garden visitors (public/art/icons/visitor-*.png) */
+/** Garden visitors (public/art/icons/visitor-*.webp) */
 export const visitorArt = (kind: string) => icon(`visitor-${kind}`);
 /** Shop supplies (public/art/icons/tool-*, upgrade-*, tag-*), e.g. RICH_SOIL → tool-rich-soil */
 const kebab = (id: string) => id.toLowerCase().replace(/_/g, "-");
 export const toolArt = (id: string) => icon(`tool-${kebab(id)}`);
 export const upgradeArt = (id: string) => icon(`upgrade-${kebab(id)}`);
 export const tagArt = (id: string) => icon(`tag-${kebab(id)}`);
-/** Small badges (public/art/icons/badge-*.png) shown next to text and numbers */
+/** Small badges (public/art/icons/badge-*.webp) shown next to text and numbers */
 export type BadgeId = "star" | "crown" | "flame" | "lock" | "golden" | "iridescent" | "radiant" | "seed";
 export const badgeArt = (id: BadgeId) => icon(`badge-${id}`);

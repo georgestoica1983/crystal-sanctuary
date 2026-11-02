@@ -168,8 +168,8 @@ const OUT = 256;
       await sharp(rgba, { raw: { width: w, height: h, channels: 4 } })
         .extract({ left: minX, top: minY, width: cw, height: ch })
         .resize(OUT, OUT, { fit: "inside" })
-        .png({ compressionLevel: 9 })
-        .toFile(path.join("public/art/icons", `${NAMES[n]}.png`));
+        .webp({ quality: 84, alphaQuality: 90, effort: 6, smartSubsample: true })
+        .toFile(path.join("public/art/icons", `${NAMES[n]}.webp`));
       console.log(NAMES[n], `${cw}×${ch}`);
       continue;
     }
@@ -183,7 +183,7 @@ const OUT = 256;
       .composite([{ input: icon, left, top }])
       .png()
       .toBuffer()
-      .then((b) => sharp(b).resize(OUT, OUT).png({ compressionLevel: 9, palette: true, quality: 92, effort: 10 }).toFile(path.join("public/art/icons", `${NAMES[n]}.png`)));
+      .then((b) => sharp(b).resize(OUT, OUT).webp({ quality: 84, alphaQuality: 90, effort: 6, smartSubsample: true }).toFile(path.join("public/art/icons", `${NAMES[n]}.webp`)));
     console.log(NAMES[n], `${maxX - minX}×${maxY - minY}`);
   }
 })();

@@ -906,15 +906,15 @@ export default function GridCanvas({
                       {/* Thorns and Spikes grow from scuffed soil; walked tiles are trodden flat */}
                       {harmful && !stepSim && (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src="/art/icons/lawn-soil.png" alt="" aria-hidden="true" draggable={false} className="lawn-patch w-[80%] h-[80%] opacity-80" />
+                        <img src="/art/icons/lawn-soil.webp" alt="" aria-hidden="true" draggable={false} className="lawn-patch w-[80%] h-[80%] opacity-80" />
                       )}
                       {(isVisited || crossSim) && !isExitCell && (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src="/art/icons/lawn-trodden.png" alt="" aria-hidden="true" draggable={false} className="lawn-patch w-[86%] h-[86%] opacity-70 brightness-110" />
+                        <img src="/art/icons/lawn-trodden.webp" alt="" aria-hidden="true" draggable={false} className="lawn-patch w-[86%] h-[86%] opacity-70 brightness-110" />
                       )}
                       {isExitCell && (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src="/art/icons/lawn-hedge.png" alt="" aria-hidden="true" draggable={false} className="lawn-patch !top-[54%] w-[96%] h-[96%] brightness-[0.8]" />
+                        <img src="/art/icons/lawn-hedge.webp" alt="" aria-hidden="true" draggable={false} className="lawn-patch !top-[54%] w-[96%] h-[96%] brightness-[0.8]" />
                       )}
                       <span aria-hidden="true" className={`absolute inset-0 rounded-xl pointer-events-none ${lawnTint}`} />
                     </>
@@ -1871,7 +1871,7 @@ function TileIconWithValue({
       )}
       {lawn && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={`/art/icons/lawn-fringe-${fringe}.png`} alt="" aria-hidden="true" draggable={false} className="lawn-fringe" />
+        <img src={`/art/icons/lawn-fringe-${fringe}.webp`} alt="" aria-hidden="true" draggable={false} className="lawn-fringe" />
       )}
       <span
         className="absolute z-[2] -bottom-1 -right-1.5 min-w-[clamp(22px,6.4cqw,32px)] h-[clamp(21px,6.2cqw,31px)] px-1 flex items-center justify-center rounded-full font-mono font-extrabold text-[clamp(13px,4cqw,19px)] leading-none border select-none pointer-events-none"

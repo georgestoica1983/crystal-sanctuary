@@ -56,7 +56,7 @@ const PAGES: Array<{ id: PageId; label: string }> = [
 const img = (src: string | null | undefined, size = 40) =>
   src ? (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={src} alt="" aria-hidden="true" draggable={false} className="object-contain" style={{ width: size, height: size }} />
+    <img src={src} alt="" aria-hidden="true" draggable={false} loading="lazy" decoding="async" className="object-contain" style={{ width: size, height: size }} />
   ) : null;
 const emoji = (e: string, size = 30) => (
   <span aria-hidden="true" className="leading-none" style={{ fontSize: size }}>
