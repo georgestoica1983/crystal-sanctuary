@@ -880,6 +880,23 @@ export default function OneStrokeTacticianPage() {
   }, [mode, lesson, lessonIndex, runGarden, phase, dungeon.seedKey]);
 
   useEffect(() => setTipsOn(loadTipsOn()), []);
+  // Tester funnel: each bed of a real Run (first bed, Bosses) and each Shop visit, once
+  const bedTrackRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (mode !== "RUN" || lesson || practiceStep || !runGarden || phase !== "PLANNING") return;
+    const key = `${dungeon.seedKey}-${runGarden.gardenIndex}`;
+    if (bedTrackRef.current === key) return;
+    bedTrackRef.current = key;
+    track("bed_start", { bed: runGarden.gardenIndex, season: runGarden.season, kind: runGarden.kind, runs: runsStarted() });
+  }, [mode, lesson, practiceStep, runGarden, phase, dungeon.seedKey]);
+  const shopTrackRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (mode !== "RUN" || practiceStep || phase !== "SHOP") return;
+    const key = `${dungeon.seedKey}-${currentFloorIndex}`;
+    if (shopTrackRef.current === key) return;
+    shopTrackRef.current = key;
+    track("shop_open", { bed: currentFloorIndex, seeds: (pendingPostFloorStats ?? hero).gold, first: shopIntroVisible });
+  }, [mode, practiceStep, phase, dungeon.seedKey, currentFloorIndex, pendingPostFloorStats, hero, shopIntroVisible]);
   // A new bed (not the first of a Run) opens with one short tip
   useEffect(() => {
     if (!tipsOn || mode !== "RUN" || lesson || practiceStep || !runGarden) return;
@@ -1334,7 +1351,10 @@ export default function OneStrokeTacticianPage() {
       setGardenUpgrades([]);
       setUpgradeSeasons([]);
       runLogRef.current = practice ? null : createRunLog(runSeed, classId, asc);
-      if (!practice) countRunStarted();
+      if (!practice) {
+        countRunStarted();
+        track("run_start", { companion: classId, asc: asc ?? 0, runs: runsStarted() });
+      }
       runBloomRef.current = null;
       setLessonIndex(null);
       setLessonResult(null);
@@ -4755,6 +4775,7 @@ export default function OneStrokeTacticianPage() {
         info={runOver}
         rankLine={practiceStep ? null : runRankLine}
         onOpenLeaderboard={practiceStep ? undefined : () => setIsRunLeaderboardOpen(true)}
+        askFeedback={!practiceStep}
         newRunLabel={practiceStep ? "Try the practice again" : undefined}
         onNewRun={() =>
           practiceStep ? startRun(undefined, undefined, { practice: true }) : requestNewRun()

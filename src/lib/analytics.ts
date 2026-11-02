@@ -12,6 +12,24 @@ export const FEEDBACK_URL = process.env.NEXT_PUBLIC_FEEDBACK_URL ?? "";
 
 export const analyticsEnabled = KEY.length > 0;
 
+const FEEDBACK_ASKED_KEY = "ost_feedback_asked_v1";
+/** The end of the first Run asks for feedback once (only when a form link is set) */
+export function shouldAskFeedback(): boolean {
+  if (!FEEDBACK_URL) return false;
+  try {
+    return window.localStorage.getItem(FEEDBACK_ASKED_KEY) !== "1";
+  } catch {
+    return false;
+  }
+}
+export function markFeedbackAsked(): void {
+  try {
+    window.localStorage.setItem(FEEDBACK_ASKED_KEY, "1");
+  } catch {
+    // Ignore storage errors
+  }
+}
+
 function deviceId(): string {
   try {
     let id = window.localStorage.getItem(DEVICE_ID_KEY);
@@ -45,7 +63,11 @@ export type TrackEvent =
   | "tool_used"
   | "bed_skipped"
   | "run_over"
-  | "feedback_open";
+  | "feedback_open"
+  | "run_start"
+  | "bed_start"
+  | "shop_open"
+  | "feedback_prompt";
 
 export function track(event: TrackEvent, props: Record<string, string | number | boolean | null> = {}): void {
   if (!analyticsEnabled || typeof window === "undefined") return;

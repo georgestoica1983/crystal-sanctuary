@@ -1010,9 +1010,9 @@ export function TopHUD({
                         href={FEEDBACK_URL}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={menuTile}
+                        className={`${menuTile} col-span-2`}
                         onClick={() => {
-                          track("feedback_open");
+                          track("feedback_open", { from: "menu" });
                           setShowRunMenu(false);
                         }}
                       >

@@ -10,12 +10,49 @@ Everything below this section is parked until this is done.
 - [x] Fonts: replace the Fraunces + JetBrains Mono + Nunito set with fonts that feel hand-picked, and use tabular figures instead of a mono font for numbers.
 - [x] Wording: no em dashes in anything a player reads; rewrite each sentence by hand so it sounds like a person wrote it.
 
+## Next: the reviewers' top 25 (2026-11-02, in this order, ask before each step)
+
+**Before testers**
+- [ ] 1. Tester round: tracking for Run start, bed start, first Shop and Boss beds, a one-time feedback card after the first Run, and the tester note (TESTER-NOTE.md). Your part is in "Waiting on setup" below.
+- [ ] 2. Saves are never lost: resuming a Run after closing the app is bulletproof.
+- [ ] 3. Name and link match: a Bloomline address instead of crystal-sanctuary-tan.vercel.app.
+- [ ] 4. Back during auto-closing screens (tip cards, Boss intro) closes only that screen.
+- [ ] 5. Forgiving drawing: no wrong tile when a finger drifts at a corner, no half-finished line when a finger lifts by accident.
+- [ ] 6. Fast first load: art as WebP, relic and Boss art loaded only when needed; test on a budget Android over 4G.
+- [ ] 7. Colour-blind safe numbers: a small thorn or leaf mark, not only red and green.
+
+**Core game depth**
+- [ ] 8. More ways to win than "longer": relics for exact or careful lines (e.g. exactly 7 tiles scores ×2).
+- [ ] 9. Bosses change where you draw (Toll, Drought, Thistle King), not only the target.
+- [ ] 10. Beds where the longest line is a trap.
+- [ ] 11. A livelier middle game (Seasons 4–6): new Boss rules, rarer relics, a mid-Run event.
+- [ ] 12. Interest isn't the only right answer: spending and saving both good.
+- [ ] 13. Softer first Boss: preview it in the Big bed before ("Next: Thistle King. Bring Gloves.").
+
+**Feel**
+- [ ] 14. Long lines feel huge: burst, sound and pause grow with length.
+- [ ] 15. Haptics while drawing: a tick per tile, stronger on Thorns and at the gate.
+- [ ] 16. Readable score versus target: bigger bar, a notch at the target, short numbers.
+
+**Teaching**
+- [ ] 17. Teach Spikes when they first appear (ghost arrow crossing diagonally).
+- [ ] 18. Show Fertilizer on the board (level badge on the tile).
+- [ ] 19. The Shop shows how a relic works with yours ("about +X on your best line", "2 of 3 Thorns set").
+- [ ] 20. The Life-out explanation stays until read.
+- [ ] 21. Bring in upgrade types gradually across the first Seasons.
+
+**Coming back and sharing**
+- [ ] 22. The end screen points forward: one next goal first.
+- [ ] 23. A good place to stop: "Stop here, resume later" after each Boss (quick mode fits here).
+- [ ] 24. Shareable daily result grid, and the daily easier to find.
+- [ ] 25. Shareable seeded Runs (a code like MOSS-4821) using the replay system.
+
 ## Waiting on setup (your part, parked for now: do this before the tester round)
 
 - [ ] **Feedback form** — create a Google Form ("Bloomline feedback": how do you score points · what do Shears, Gloves and Acorns do · when were you confused · what felt satisfying · play again tomorrow? · how far did you get · phone model), copy its forms.gle link.
 - [ ] **PostHog** — free account (EU region), project "Bloomline", copy the `phc_…` Project API key.
 - [ ] **Vercel** — Settings → Environment Variables: `NEXT_PUBLIC_FEEDBACK_URL`, `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com`, then Redeploy. Check one line shows up in PostHog → Activity.
-- [ ] **Real tester round** — send the link to 10–15 new players; mention anonymous gameplay stats.
+- [ ] **Real tester round** — send the link to 10–15 new players with the text in TESTER-NOTE.md.
 - [ ] **Rename the GitHub repo** to `bloomline` (optional).
 
 ## Phase 3 — online and habit (needs a free Supabase account)

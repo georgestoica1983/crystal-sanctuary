@@ -27,6 +27,7 @@ const BLOOM_ART = tileArt("ENEMY", { bloomed: true }) ?? "";
 import { soundEngine } from "@/lib/audio";
 import { artify } from "@/components/ArtText";
 import { formatScore } from "@/lib/formatScore";
+import { FEEDBACK_URL, markFeedbackAsked, shouldAskFeedback, track } from "@/lib/analytics";
 
 const fmt = formatScore;
 
@@ -710,14 +711,25 @@ export function RunOverModal({
   onOpenLeaderboard,
   onNewRun,
   onClose,
+  askFeedback = false,
 }: {
   info: RunOverInfo | null;
   newRunLabel?: string;
   rankLine?: string | null;
   onOpenLeaderboard?: () => void;
+  /** Ask for feedback here (once ever, after a real Run) */
+  askFeedback?: boolean;
   onNewRun: () => void;
   onClose: () => void;
 }) {
+  // Decided once when the card opens, so it doesn't vanish while it's on screen
+  const [feedbackAsk, setFeedbackAsk] = useState(false);
+  useEffect(() => {
+    if (!info || !askFeedback || !shouldAskFeedback()) return;
+    setFeedbackAsk(true);
+    markFeedbackAsked();
+    track("feedback_prompt");
+  }, [info, askFeedback]);
   if (!info) return null;
   // What the next Run can earn: the nearest star unlock
   const progress = loadUnlockProgress();
@@ -833,6 +845,19 @@ export function RunOverModal({
             <Badge id="star" /> {nextUnlock.have} · next: <span className="font-semibold text-white/85">{nextUnlock.text}</span> in{" "}
             {nextUnlock.stars - nextUnlock.have} <Badge id="star" />
           </div>
+        )}
+
+        {feedbackAsk && (
+          <a
+            href={FEEDBACK_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => track("feedback_open", { from: "run_over" })}
+            className="block rounded-xl border border-lime-300/40 bg-lime-300/10 px-3 py-2.5 text-center active:scale-[0.98] transition"
+          >
+            <span className="block text-[14px] font-bold text-lime-100">Tell us what you thought</span>
+            <span className="block text-[12px] text-white/60">One minute, it really helps</span>
+          </a>
         )}
 
         <div className="card-footer bg-[#1A271E] space-y-2">
