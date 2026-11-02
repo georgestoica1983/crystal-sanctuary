@@ -18,16 +18,18 @@ export interface BoardTheme {
   plateBottomHover: string;
   /** Soft glow around the frame (Night Garden's fireflies, Royal's gold) */
   glow?: string;
+  /** The lawn: how the painted grass is coloured, and the shade between tiles */
+  lawn: { filter: string; gap: string };
 }
 
 export const BOARD_THEMES: BoardTheme[] = [
-  { id: "SPRING", name: "Moss", icon: "🌿", frame: "#18221B", border: "rgba(207,234,143,0.12)", plateTop: "#3B4A3E", plateBottom: "#324035", plateTopHover: "#455646", plateBottomHover: "#3A4A3D" },
-  { id: "AUTUMN", name: "Autumn", icon: "🍂", frame: "#1E1712", border: "rgba(232,170,96,0.24)", plateTop: "#3E3024", plateBottom: "#33271D", plateTopHover: "#4A3A2B", plateBottomHover: "#3D3023" },
-  { id: "NIGHT", name: "Night Garden", icon: "🌙", frame: "#060A1A", border: "rgba(147,197,253,0.22)", plateTop: "#18214B", plateBottom: "#0F1535", plateTopHover: "#1F2959", plateBottomHover: "#141B41", glow: "0 0 26px rgba(253,230,138,0.18), inset 0 0 30px rgba(190,242,100,0.06)" },
-  { id: "WINTER", name: "Winter Frost", icon: "❄️", frame: "#0D1824", border: "rgba(186,230,253,0.32)", plateTop: "#2A4259", plateBottom: "#1C3044", plateTopHover: "#33506B", plateBottomHover: "#233A51" },
-  { id: "GOLDEN", name: "Golden Hour", icon: "🌾", frame: "#1D1507", border: "rgba(253,224,71,0.3)", plateTop: "#4A3815", plateBottom: "#33270D", plateTopHover: "#584219", plateBottomHover: "#3D2E10" },
-  { id: "HERBARIUM", name: "Herbarium", icon: "📖", frame: "#22201A", border: "rgba(233,220,190,0.35)", plateTop: "#4A4636", plateBottom: "#353226", plateTopHover: "#555040", plateBottomHover: "#3D392C", glow: "0 0 18px rgba(233,220,190,0.12)" },
-  { id: "ROYAL", name: "Royal Garden", icon: "👑", frame: "#08170F", border: "rgba(250,204,21,0.5)", plateTop: "#1E412D", plateBottom: "#132C1F", plateTopHover: "#254C36", plateBottomHover: "#183726", glow: "0 0 22px rgba(250,204,21,0.2)" },
+  { id: "SPRING", name: "Moss", icon: "🌿", frame: "#18221B", border: "rgba(207,234,143,0.12)", plateTop: "#3B4A3E", plateBottom: "#324035", plateTopHover: "#455646", plateBottomHover: "#3A4A3D", lawn: { filter: "brightness(0.82) saturate(1)", gap: "#2A4123" } },
+  { id: "AUTUMN", name: "Autumn", icon: "🍂", frame: "#1E1712", border: "rgba(232,170,96,0.24)", plateTop: "#3E3024", plateBottom: "#33271D", plateTopHover: "#4A3A2B", plateBottomHover: "#3D3023", lawn: { filter: "hue-rotate(-38deg) brightness(0.76) saturate(0.85)", gap: "#2E2416" } },
+  { id: "NIGHT", name: "Night Garden", icon: "🌙", frame: "#060A1A", border: "rgba(147,197,253,0.22)", plateTop: "#18214B", plateBottom: "#0F1535", plateTopHover: "#1F2959", plateBottomHover: "#141B41", glow: "0 0 26px rgba(253,230,138,0.18), inset 0 0 30px rgba(190,242,100,0.06)", lawn: { filter: "hue-rotate(55deg) brightness(0.52) saturate(0.8)", gap: "#0B1426" } },
+  { id: "WINTER", name: "Winter Frost", icon: "❄️", frame: "#0D1824", border: "rgba(186,230,253,0.32)", plateTop: "#2A4259", plateBottom: "#1C3044", plateTopHover: "#33506B", plateBottomHover: "#233A51", lawn: { filter: "hue-rotate(40deg) brightness(0.95) saturate(0.4)", gap: "#1B2C3A" } },
+  { id: "GOLDEN", name: "Golden Hour", icon: "🌾", frame: "#1D1507", border: "rgba(253,224,71,0.3)", plateTop: "#4A3815", plateBottom: "#33270D", plateTopHover: "#584219", plateBottomHover: "#3D2E10", lawn: { filter: "hue-rotate(-28deg) brightness(0.85) saturate(1)", gap: "#2F2810" } },
+  { id: "HERBARIUM", name: "Herbarium", icon: "📖", frame: "#22201A", border: "rgba(233,220,190,0.35)", plateTop: "#4A4636", plateBottom: "#353226", plateTopHover: "#555040", plateBottomHover: "#3D392C", glow: "0 0 18px rgba(233,220,190,0.12)", lawn: { filter: "sepia(0.35) brightness(0.8) saturate(0.5)", gap: "#2C2A20" } },
+  { id: "ROYAL", name: "Royal Garden", icon: "👑", frame: "#08170F", border: "rgba(250,204,21,0.5)", plateTop: "#1E412D", plateBottom: "#132C1F", plateTopHover: "#254C36", plateBottomHover: "#183726", glow: "0 0 22px rgba(250,204,21,0.2)", lawn: { filter: "brightness(0.64) saturate(1.1)", gap: "#10261A" } },
 ];
 
 export const getBoardTheme = (id?: BoardThemeId): BoardTheme =>
@@ -44,5 +46,7 @@ export function boardThemeStyle(id?: BoardThemeId): CSSProperties {
     "--plate-top-hover": t.plateTopHover,
     "--plate-bottom-hover": t.plateBottomHover,
     "--board-glow": t.glow ?? "none",
+    "--lawn-filter": t.lawn.filter,
+    "--lawn-gap": t.lawn.gap,
   } as CSSProperties;
 }

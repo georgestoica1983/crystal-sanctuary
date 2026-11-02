@@ -672,7 +672,7 @@ export default function GridCanvas({
           toolArmed ? "ring-2 ring-amber-300/80 shadow-[0_0_24px_rgba(252,211,77,0.35)] " : ""
         }${
           isSanctuary
-            ? "bg-[var(--board-frame,#17231B)] border border-[color:var(--board-border,rgba(255,255,255,0.07))] shadow-[var(--board-glow,none)]"
+            ? "lawn-board bg-[var(--board-frame,#17231B)] border border-[color:var(--board-border,rgba(255,255,255,0.07))] shadow-[var(--board-glow,none)]"
             : "bg-gradient-to-b from-[#121B15]/95 via-[#0C120E] to-[#080B09] border border-indigo-500/25 shadow-2xl shadow-indigo-950/40"
         } ${shouldShakeHeavyHit ? "animate-shake" : ""}`}
       >
@@ -698,6 +698,7 @@ export default function GridCanvas({
         </AnimatePresence>
 
         {/* 5x5 Luminous Metallic / Crystal Garden Plates */}
+        <LawnCtx.Provider value={isSanctuary}>
         <div className="grid grid-cols-5 grid-rows-5 board-gap w-full h-full relative z-10">
           {grid.map((rowCells, r) =>
             rowCells.map((cell, c) => {
@@ -837,6 +838,10 @@ export default function GridCanvas({
                 });
               }
 
+              // On the lawn, the tile's highlight colour sits as a thin layer above the grass
+              const lawnTint = isSanctuary ? plateClass.split(" ").filter((k) => k.startsWith("bg-")).join(" ") : "";
+              if (isSanctuary) plateClass = plateClass.split(" ").filter((k) => !k.startsWith("bg-")).join(" ");
+              const harmful = cell.type === "ENEMY" || cell.type === "TRAP";
               return (
                 <div
                   key={cell.id}
@@ -844,6 +849,25 @@ export default function GridCanvas({
                   data-col={c}
                   className={`relative rounded-xl transition-colors duration-150 flex items-center justify-center overflow-visible ${plateClass}`}
                 >
+                  {isSanctuary && (
+                    <>
+                      <span aria-hidden="true" className={`lawn-ground ${(r + c) % 2 ? "mown" : ""}`} />
+                      {/* Thorns and Spikes grow from scuffed soil; walked tiles are trodden flat */}
+                      {harmful && !stepSim && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src="/art/icons/lawn-soil.png" alt="" aria-hidden="true" draggable={false} className="lawn-patch w-[80%] h-[80%] opacity-80" />
+                      )}
+                      {(isVisited || crossSim) && !isExitCell && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src="/art/icons/lawn-trodden.png" alt="" aria-hidden="true" draggable={false} className="lawn-patch w-[86%] h-[86%] opacity-70 brightness-110" />
+                      )}
+                      {isExitCell && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src="/art/icons/lawn-hedge.png" alt="" aria-hidden="true" draggable={false} className="lawn-patch !top-[54%] w-[96%] h-[96%] brightness-[0.8]" />
+                      )}
+                      <span aria-hidden="true" className={`absolute inset-0 rounded-xl pointer-events-none ${lawnTint}`} />
+                    </>
+                  )}
                   {dewIds.includes(cell.id) && (
                     <span aria-label="Dew" className="pointer-events-none absolute inset-0 z-[6]">
                       {[
@@ -894,7 +918,7 @@ export default function GridCanvas({
                   )}
                   {/* Harmful tiles (Thorn, Spike) carry faint diagonal stripes, so they
                       differ by pattern as well as colour (colour-blind friendly) */}
-                  {isSanctuary && !stepSim && (cell.type === "ENEMY" || cell.type === "TRAP") && (
+                  {!isSanctuary && !stepSim && (cell.type === "ENEMY" || cell.type === "TRAP") && (
                     <span
                       aria-hidden="true"
                       className="absolute inset-0 rounded-xl pointer-events-none"
@@ -1032,7 +1056,7 @@ export default function GridCanvas({
 
                   {/* Uniformly Scaled Geometric / Sanctuary Crystal Entity Node */}
                   <div
-                    className={`w-full h-full flex items-center justify-center transition-transform duration-150 ${
+                    className={`relative w-full h-full flex items-center justify-center transition-transform duration-150 ${
                       isResolvedInPlayback &&
                       cell.type !== "EXIT" &&
                       cell.type !== "HERO"
@@ -1128,6 +1152,7 @@ export default function GridCanvas({
             })
           )}
         </div>
+        </LawnCtx.Provider>
 
         {/* Replay: the same short pops as while drawing, one tile at a time */}
         {isSanctuary && isResolving && activeResolutionStep !== null && activeResolutionStep > 0 && simulation.steps[activeResolutionStep] && (
@@ -1699,6 +1724,10 @@ const EDITION_LOOK: Record<string, { label: string; tag: string }> = {
   RADIANT: { label: "Radiant", tag: "×1.25" },
 };
 
+/** The garden board is a lawn: tile objects sit in grass (set by GridCanvas) */
+const LawnCtx = React.createContext(false);
+const LAWN_FRINGES = ["a", "b", "c"];
+
 /** Garden tool upgrades on a tile (rules v13+) */
 const TOOL_MARKS: Record<string, { label: string }> = {
   RICH_SOIL: { label: "Rich Soil, +20 Value" },
@@ -1763,10 +1792,14 @@ function TileIconWithValue({
       : type === "POTION"
       ? { backgroundColor: "#101913", borderColor: "rgba(52,211,153,0.6)", color: "#6EE7B7" }
       : { backgroundColor: "#101913", borderColor: "rgba(237,230,211,0.35)", color: "#EDE6D3" };
+  const lawn = React.useContext(LawnCtx);
+  // A steady mix of the three grass fringes, so neighbours rarely match
+  const fringe = LAWN_FRINGES[(type.charCodeAt(0) + type.length + (Number(n) || 0)) % LAWN_FRINGES.length];
   return (
     <div className="relative w-[72%] h-[72%] flex items-center justify-center">
+      {lawn && <span aria-hidden="true" className="lawn-shadow" />}
       <span
-        className="w-full h-full flex items-center justify-center transition-[filter,transform] duration-300"
+        className="relative w-full h-full flex items-center justify-center transition-[filter,transform] duration-300"
         style={wilted ? { filter: "grayscale(1) brightness(0.7)", transform: "rotate(14deg) translateY(6%) scale(0.92)" } : undefined}
       >
         <EntityIcon
@@ -1785,8 +1818,12 @@ function TileIconWithValue({
           ↗
         </span>
       )}
+      {lawn && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={`/art/icons/lawn-fringe-${fringe}.png`} alt="" aria-hidden="true" draggable={false} className="lawn-fringe" />
+      )}
       <span
-        className="absolute -bottom-1 -right-1.5 min-w-[clamp(22px,6.4cqw,32px)] h-[clamp(21px,6.2cqw,31px)] px-1 flex items-center justify-center rounded-full font-mono font-extrabold text-[clamp(13px,4cqw,19px)] leading-none border select-none pointer-events-none"
+        className="absolute z-[2] -bottom-1 -right-1.5 min-w-[clamp(22px,6.4cqw,32px)] h-[clamp(21px,6.2cqw,31px)] px-1 flex items-center justify-center rounded-full font-mono font-extrabold text-[clamp(13px,4cqw,19px)] leading-none border select-none pointer-events-none"
         style={style}
       >
         {n}

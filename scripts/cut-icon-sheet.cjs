@@ -60,6 +60,8 @@ const SUPPLY_NAMES = [
 ];
 // Small badges: 4 × 2, in the order of the badges prompt
 const BADGE_NAMES = ["star", "crown", "flame", "lock", "golden", "iridescent", "radiant", "seed"].map((n) => `badge-${n}`);
+// Lawn board pieces: 4 × 2. Each cell has its own background shade, and pieces keep their own shape
+const LAWN_NAMES = ["fringe-a", "fringe-b", "fringe-c", "trodden", "soil", "hedge", "texture", "tuft"].map((n) => `lawn-${n}`);
 const FADE_EDGES = new Set(["garden-mist-orchid", "garden-moonflower", "garden-set-bloom"]);
 // Row lines (as a share of the height) for sheets whose rows are not evenly spaced
 const ROW_EDGES = { supplies: [0.273, 0.552] };
@@ -86,12 +88,13 @@ const OUT = 256;
     : mode === "bosses" ? BOSS_NAMES
     : mode === "supplies" ? SUPPLY_NAMES
     : mode === "badges" ? BADGE_NAMES
+    : mode === "lawn" ? LAWN_NAMES
     : ICON_NAMES;
-  const COLS = mode === "relics2" || mode === "decor" || mode === "bosses" || mode === "badges" ? 4 : mode === "supplies" ? 5 : Math.round(Math.sqrt(NAMES.length));
+  const COLS = mode === "relics2" || mode === "decor" || mode === "bosses" || mode === "badges" || mode === "lawn" ? 4 : mode === "supplies" ? 5 : Math.round(Math.sqrt(NAMES.length));
   const ROWS = Math.ceil(NAMES.length / COLS);
   const { data, info } = await sharp(src).raw().toBuffer({ resolveWithObject: true });
   const { width: W, height: H, channels: C } = info;
-  const bg = [data[2 * C], data[2 * C + 1], data[2 * C + 2]];
+  const sheetBg = [data[2 * C], data[2 * C + 1], data[2 * C + 2]];
   const cellW = W / COLS, cellH = H / ROWS;
   for (let n = 0; n < NAMES.length; n++) {
     const col = n % COLS, row = Math.floor(n / COLS);
@@ -103,6 +106,9 @@ const OUT = 256;
     const y0 = (edges ? (row === 0 ? 0 : edges[row - 1]) : Math.round(row * cellH)) + inset;
     const w = Math.round((col + 1) * cellW) - inset - x0;
     const h = (edges ? edges[row] : Math.round((row + 1) * cellH)) - inset - y0;
+    // The lawn sheet's cells each have their own shade: read it from the cell's corner
+    const at = (mode === "lawn" ? (y0 + 4) * W + x0 + 4 : 2) * C;
+    const bg = mode === "lawn" ? [data[at], data[at + 1], data[at + 2]] : sheetBg;
     const rgba = Buffer.alloc(w * h * 4);
     const dist = new Float32Array(w * h);
     for (let y = 0; y < h; y++)
@@ -152,7 +158,21 @@ const OUT = 256;
         const x = j % w, y = (j - x) / w;
         minX = Math.min(minX, x); maxX = Math.max(maxX, x); minY = Math.min(minY, y); maxY = Math.max(maxY, y);
       }
+    // The lawn texture fills tiles edge to edge: keep only its even middle
+    if (NAMES[n] === "lawn-texture") {
+      const ix = Math.round((maxX - minX) * 0.1), iy = Math.round((maxY - minY) * 0.1);
+      minX += ix; maxX -= ix; minY += iy; maxY -= iy;
+    }
     const cw = maxX - minX + 1, ch = maxY - minY + 1;
+    if (mode === "lawn") {
+      await sharp(rgba, { raw: { width: w, height: h, channels: 4 } })
+        .extract({ left: minX, top: minY, width: cw, height: ch })
+        .resize(OUT, OUT, { fit: "inside" })
+        .png({ compressionLevel: 9 })
+        .toFile(path.join("public/art/icons", `${NAMES[n]}.png`));
+      console.log(NAMES[n], `${cw}×${ch}`);
+      continue;
+    }
     const side = Math.ceil(Math.max(cw, ch) * 1.08) + 2;
     const left = Math.round((side - cw) / 2), top = Math.round((side - ch) / 2);
     const icon = await sharp(rgba, { raw: { width: w, height: h, channels: 4 } })
