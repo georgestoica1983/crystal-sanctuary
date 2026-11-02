@@ -110,6 +110,21 @@ export default function GridCanvas({
   // Living board: touching or brushing a tile (not drawing) sways it with a note
   const [pokes, setPokes] = useState<Record<string, { n: number; dir: number }>>({});
   const brushRef = useRef<{ key: string; x: number } | null>(null);
+  // The line as it is right now: several tiles can be added within one finger
+  // move, before React has drawn the first of them
+  const pathRef = useRef(drawnPath);
+  pathRef.current = drawnPath;
+  const setPath = useCallback(
+    (next: GridCoord[]) => {
+      pathRef.current = next;
+      onPathChange(next);
+    },
+    [onPathChange]
+  );
+  /** The finger drawing the line: other touches (a second finger, a palm) are ignored */
+  const activePointerRef = useRef<number | null>(null);
+  /** Where that finger was last seen, to fill in tiles a fast swipe jumps over */
+  const lastPointRef = useRef<{ x: number; y: number } | null>(null);
   const pokeTile = useCallback((coord: GridCoord, dir: number, note: number) => {
     const k = `${coord.row},${coord.col}`;
     setPokes((p) => ({ ...p, [k]: { n: (p[k]?.n ?? 0) + 1, dir } }));
@@ -269,6 +284,7 @@ export default function GridCanvas({
    */
   const extendTo = useCallback(
     (coord: GridCoord): boolean => {
+      const drawnPath = pathRef.current;
       if (drawnPath.length === 0) return false;
       if (grid[coord.row]?.[coord.col]?.type === "VOID") return false;
       const currentHead = drawnPath[drawnPath.length - 1];
@@ -288,7 +304,7 @@ export default function GridCanvas({
           isValidStep(currentHead, coord, modifierId, heroClassId, blinkAlreadyUsed)
         ) {
           const crossedPath = [...drawnPath, coord];
-          onPathChange(crossedPath);
+          setPath(crossedPath);
           soundEngine.playSwipeTick(crossedPath.length - 1, false);
           if (onRetractNotice) {
             onRetractNotice("⚔ Shadow Step: Self-cross used (1/1)");
@@ -327,7 +343,7 @@ export default function GridCanvas({
       }
 
       const nextPath = [...drawnPath, coord];
-      onPathChange(nextPath);
+      setPath(nextPath);
 
       if (isBlinkJump(currentHead, coord)) {
         soundEngine.playHintReveal();
@@ -364,7 +380,7 @@ export default function GridCanvas({
       );
       return true;
     },
-    [drawnPath, grid, heroClassId, modifierId, onPathChange, onRetractNotice, simulation.firstDeathStepIndex]
+    [grid, heroClassId, modifierId, setPath, onRetractNotice, simulation.firstDeathStepIndex]
   );
 
   const handlePointerDown = useCallback(
@@ -373,7 +389,11 @@ export default function GridCanvas({
         onSkipPlayback?.();
         return;
       }
+      // A second finger or a palm while drawing: ignore it
+      if (isDragging && activePointerRef.current !== null && e.pointerId !== activePointerRef.current) return;
       e.preventDefault();
+      activePointerRef.current = e.pointerId;
+      lastPointRef.current = { x: e.clientX, y: e.clientY };
       try {
         e.currentTarget.setPointerCapture(e.pointerId);
       } catch {
@@ -447,6 +467,7 @@ export default function GridCanvas({
     },
     [
       isResolving,
+      isDragging,
       getCellFromClientXY,
       grid,
       heroStartCoord,
@@ -477,17 +498,32 @@ export default function GridCanvas({
         return;
       }
       if (!isDragging || isResolving) return;
+      if (activePointerRef.current !== null && e.pointerId !== activePointerRef.current) return;
       e.preventDefault();
       setInspectedCoord(null);
 
-      const { coord, normX, normY } = getCellFromClientXY(
-        e.clientX,
-        e.clientY,
-        true
-      );
+      const { normX, normY } = getCellFromClientXY(e.clientX, e.clientY, true);
       setPointerPos({ x: normX, y: normY });
 
-      if (!coord || drawnPath.length === 0) return;
+      // A fast swipe can jump over whole tiles between two reports: walk the
+      // way in small steps so every tile the finger crossed is counted
+      const from = lastPointRef.current ?? { x: e.clientX, y: e.clientY };
+      lastPointRef.current = { x: e.clientX, y: e.clientY };
+      const rect = boardRef.current?.getBoundingClientRect();
+      const stepPx = rect ? Math.max(4, rect.width / 5 / 6) : 8;
+      const n = Math.max(1, Math.ceil(Math.hypot(e.clientX - from.x, e.clientY - from.y) / stepPx));
+      for (let i = 1; i <= n; i++) {
+        const { coord } = getCellFromClientXY(from.x + ((e.clientX - from.x) * i) / n, from.y + ((e.clientY - from.y) * i) / n, true);
+        if (coord) stepRef.current(coord);
+      }
+    },
+    [isDragging, isResolving, getCellFromClientXY]
+  );
+
+  /** One finger position during a drag: extend, step back, or (Mage) vault */
+  function stepToward(coord: GridCoord) {
+      const drawnPath = pathRef.current;
+      if (drawnPath.length === 0) return;
       if (grid[coord.row]?.[coord.col]?.type === "VOID") return;
 
       const currentHead = drawnPath[drawnPath.length - 1];
@@ -499,7 +535,7 @@ export default function GridCanvas({
         isSameCoord(coord, drawnPath[drawnPath.length - 2])
       ) {
         const shortened = drawnPath.slice(0, -1);
-        onPathChange(shortened);
+        setPath(shortened);
         soundEngine.playUndoTick();
         return;
       }
@@ -529,7 +565,7 @@ export default function GridCanvas({
           isValidStep(prevAnchor, coord, modifierId, "MAGE", false)
         ) {
           const vaultedPath = [...pathBeforeHead, coord];
-          onPathChange(vaultedPath);
+          setPath(vaultedPath);
           soundEngine.playHintReveal();
           if (onRetractNotice) {
             onRetractNotice("✦ Astral Blink: Teleported over threat!");
@@ -539,23 +575,15 @@ export default function GridCanvas({
       }
 
       extendTo(coord);
-    },
-    [
-      isDragging,
-      isResolving,
-      getCellFromClientXY,
-      drawnPath,
-      heroClassId,
-      modifierId,
-      onPathChange,
-      onRetractNotice,
-      grid,
-      extendTo,
-    ]
-  );
+  }
+  const stepRef = useRef(stepToward);
+  stepRef.current = stepToward;
 
-  const finishStroke = useCallback(() => {
+  const finishStroke = useCallback((e?: React.PointerEvent<HTMLDivElement>) => {
     brushRef.current = null;
+    if (e && activePointerRef.current !== null && e.pointerId !== activePointerRef.current) return;
+    activePointerRef.current = null;
+    lastPointRef.current = null;
     if (!isDragging) return;
     setIsDragging(false);
     setPointerPos(null);
@@ -601,6 +629,29 @@ export default function GridCanvas({
     onPathChange,
     onRetractNotice,
   ]);
+
+  /**
+   * The phone took the touch away (a notification pull, an edge swipe, the
+   * screen turning): the line stays as drawn and is never sent by this.
+   * Tapping its end carries on; lifting on the gate sends it.
+   */
+  const pauseStroke = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      brushRef.current = null;
+      if (activePointerRef.current !== null && e.pointerId !== activePointerRef.current) return;
+      activePointerRef.current = null;
+      lastPointRef.current = null;
+      if (!isDragging) return;
+      setIsDragging(false);
+      setPointerPos(null);
+      if (drawnPath.length <= 1) {
+        onPathChange([]);
+        return;
+      }
+      if (simulation.endsOnExit && onRetractNotice) onRetractNotice("Line paused. Tap the gate and lift to send it.");
+    },
+    [isDragging, drawnPath, simulation.endsOnExit, onPathChange, onRetractNotice]
+  );
 
   // Coordinate center in 500x500 SVG space
   const cellCenter = (coord: GridCoord) => ({
@@ -666,7 +717,7 @@ export default function GridCanvas({
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={finishStroke}
-        onPointerCancel={finishStroke}
+        onPointerCancel={pauseStroke}
         style={{ touchAction: "none" }}
         className={`relative w-full h-full rounded-2xl board-pad overflow-hidden cursor-crosshair select-none touch-none ${
           toolArmed ? "ring-2 ring-amber-300/80 shadow-[0_0_24px_rgba(252,211,77,0.35)] " : ""

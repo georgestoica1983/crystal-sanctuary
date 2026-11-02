@@ -17,7 +17,7 @@ Everything below this section is parked until this is done.
 - [x] 2. Saves are never lost: resuming a Run after closing the app is bulletproof.
 - [x] 3. Name and link match (my part: /move page): a Bloomline address instead of crystal-sanctuary-tan.vercel.app.
 - [x] 4. Back during auto-closing screens (tip cards, Boss intro) closes only that screen.
-- [ ] 5. Forgiving drawing: no wrong tile when a finger drifts at a corner, no half-finished line when a finger lifts by accident.
+- [x] 5. Forgiving drawing: no wrong tile when a finger drifts at a corner, no half-finished line when a finger lifts by accident.
 - [ ] 6. Fast first load: art as WebP, relic and Boss art loaded only when needed; test on a budget Android over 4G.
 - [ ] 7. Colour-blind safe numbers: a small thorn or leaf mark, not only red and green.
 
