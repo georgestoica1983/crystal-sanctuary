@@ -290,6 +290,61 @@ svg text,
   padding-right: max(0.75rem, env(safe-area-inset-right));
 }
 
+/* Wide screens (laptops, big tablets held sideways, desktop windows): the run
+   screen in three columns. Left: the top card. Middle: the board, as tall as
+   the window allows. Right: the hint and the buttons, in reach of a right
+   thumb on a tablet. Phones and narrow windows keep the portrait layout.
+   Keep the query in step with isWideLayout() in src/lib/uiScale.ts. */
+@media (min-width: 1100px) and (min-height: 640px) and (orientation: landscape) {
+  main.game-main {
+    display: grid !important;
+    grid-template-columns: calc(290px * var(--ui-zoom, 1)) minmax(0, 1fr) calc(290px * var(--ui-zoom, 1));
+    grid-template-rows: minmax(0, 1fr) auto;
+    column-gap: 28px;
+    row-gap: 12px;
+    align-items: start;
+    padding: 24px 24px !important;
+    overflow: hidden !important;
+  }
+  main.game-main > [data-area="spacer"] {
+    display: none;
+  }
+  main.game-main > [data-area="hud"] {
+    display: block;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: start;
+  }
+  main.game-main > [data-area="board"] {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    width: 100%;
+    height: calc(100dvh - 48px);
+    max-width: none !important;
+    max-height: none !important;
+    align-self: center;
+  }
+  main.game-main > [data-area="hint"] {
+    grid-column: 3;
+    grid-row: 1;
+    align-self: end;
+    text-align: left;
+  }
+  main.game-main > [data-area="controls"] {
+    display: block;
+    grid-column: 3;
+    grid-row: 2;
+    align-self: end;
+  }
+  main.game-main .board-cq {
+    max-width: none;
+  }
+  /* Buttons two by two in the side column */
+  main.game-main > [data-area="controls"] .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
 /* Shown only on phones held sideways (short landscape screens) */
 .rotate-hint {
   display: none;

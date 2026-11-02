@@ -24,7 +24,16 @@ const RUN_FIXED_HEIGHT = 46;
 /** The board may give up this much of its width so the text can grow */
 const BOARD_GIVE = 0.95;
 
+/** The three-column layout for wide screens (same test as the CSS in globals.css) */
+export function isWideLayout(width: number, height: number): boolean {
+  return width >= 1100 && height >= 640 && width > height;
+}
+
 export function computeUiScale(width: number, height: number): number {
+  // Wide screens: the side columns grow with the window, gently (the board takes the middle)
+  if (isWideLayout(width, height)) {
+    return Math.round(Math.max(1, Math.min(1.25, width / 1200, height / 700)) * 100) / 100;
+  }
   const column = Math.min(width - 16, GAME_COLUMN_MAX);
   // Room across: text grows until the top card and buttons would run out of width
   const byWidth = column / NARROWEST_COLUMN;

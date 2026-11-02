@@ -3609,7 +3609,7 @@ export default function OneStrokeTacticianPage() {
   return (
     <MotionConfig reducedMotion={reduceMotion ? "always" : "user"}>
     <main
-      className={`h-[100dvh] w-full text-white flex flex-col justify-start items-center gap-1.5 sm:gap-2 [@media(max-height:700px)]:gap-1 overflow-x-hidden overflow-y-auto [&>*]:shrink-0 pt-[max(0.5rem,env(safe-area-inset-top))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))] transition-colors duration-500 ${
+      className={`game-main h-[100dvh] w-full text-white flex flex-col justify-start items-center gap-1.5 sm:gap-2 [@media(max-height:700px)]:gap-1 overflow-x-hidden overflow-y-auto [&>*]:shrink-0 pt-[max(0.5rem,env(safe-area-inset-top))] pb-[max(0.5rem,env(safe-area-inset-bottom))] pl-[max(0.5rem,env(safe-area-inset-left))] pr-[max(0.5rem,env(safe-area-inset-right))] transition-colors duration-500 ${
         isSanctuarySkin
           ? "bg-[radial-gradient(ellipse_at_top,_#294031_0%,_#19281E_55%,_#101813_100%)]"
           : "bg-[radial-gradient(ellipse_at_top,_#121B15_0%,_#0B0F0C_55%,_#060706_100%)]"
@@ -3635,6 +3635,7 @@ export default function OneStrokeTacticianPage() {
       )}
 
       {/* Top Tactical / Sanctuary HUD + Hero Class Selector Bar / Coach Card */}
+      <div data-area="hud" className="contents">
       <TopHUD
         runCard={
           mode === "RUN" && !isInteractiveTutorial && !lesson && runGarden && !(phase === "DEFEAT" && runOver === null) ? (
@@ -3858,11 +3859,12 @@ export default function OneStrokeTacticianPage() {
         onOpenPassModal={() => setIsPassModalOpen(true)}
         onOpenLeaderboard={() => setIsLeaderboardOpen(true)}
       />
+      </div>
 
       {/* Spacer: on tall screens the leftover height is shared between here
           and above the buttons, so the top card stays at the top and the
           buttons at the bottom (collapses when content overflows) */}
-      <div aria-hidden="true" className="grow basis-0 !shrink min-h-0" />
+      <div aria-hidden="true" data-area="spacer" className="grow basis-0 !shrink min-h-0" />
 
       {showTutorial ? (
         <div className="my-2 flex-1">
@@ -4031,7 +4033,7 @@ export default function OneStrokeTacticianPage() {
             </div>
           )}
           {meterOn && !lesson && (
-            <p className="ui-zoom w-full max-w-game text-center text-[14px] leading-snug text-amber-200/90 min-h-[20px]">
+            <p data-area="hint" className="ui-zoom w-full max-w-game text-center text-[14px] leading-snug text-amber-200/90 min-h-[20px]">
               {phase === "RESOLVING"
                 ? "Tap the board to skip ⏩"
                 : runNoSafeLine
@@ -4047,7 +4049,7 @@ export default function OneStrokeTacticianPage() {
 
           {/* Interactive 5x5 Path-Drawing Board: a square that fills the space
               left on screen (smaller on short phones, up to 520px) */}
-          <div className="relative w-full max-w-game min-h-[220px] max-h-[min(calc((100vw-1rem)*1.2),624px)] grow-[1000] basis-0 !shrink flex items-center justify-center [container-type:size]">
+          <div data-area="board" className="relative w-full max-w-game min-h-[220px] max-h-[min(calc((100vw-1rem)*1.2),624px)] grow-[1000] basis-0 !shrink flex items-center justify-center [container-type:size]">
           <div
             className="relative w-[min(100cqw,100cqh)] h-[min(100cqh,calc(min(100cqw,100cqh)*1.2))] rounded-2xl"
             style={
@@ -4382,7 +4384,7 @@ export default function OneStrokeTacticianPage() {
 
           {/* Spacer: spare height on tall phones is shared with the one under the
               top card, so the buttons stay at the bottom in thumb reach */}
-          <div aria-hidden="true" className="grow basis-0 !shrink min-h-0" />
+          <div aria-hidden="true" data-area="spacer" className="grow basis-0 !shrink min-h-0" />
 
           {/* Bottom Legend & Controls */}
           {lesson && lessonIndex !== null ? (
@@ -4409,6 +4411,7 @@ export default function OneStrokeTacticianPage() {
               }}
             />
           ) : (
+          <div data-area="controls" className="contents">
           <BottomControls
             mode={mode}
             visualTheme={visualTheme}
@@ -4465,6 +4468,7 @@ export default function OneStrokeTacticianPage() {
               }
             }}
           />
+          </div>
           )}
 
           {practiceStep && !isPracticeOverlayStep(practiceStep) && !isGuideOpen && !helpMenu && !isRunLeaderboardOpen && (
