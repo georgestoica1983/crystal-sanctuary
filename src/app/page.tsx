@@ -1,5 +1,6 @@
 "use client";
 
+import { useBackClose } from "@/lib/backClose";
 import { BossBeaten, BossIntro, BOSS_LOOK } from "@/components/BossMoments";
 import TipCard from "@/components/TipCard";
 import { loadTipsOn, saveTipsOn, takeNextTip, type Tip } from "@/lib/tips";
@@ -526,6 +527,9 @@ export default function OneStrokeTacticianPage() {
   const [bossIntro, setBossIntro] = useState<{ id: BossRuleId; preview: boolean } | null>(null);
   const [bossBeaten, setBossBeaten] = useState<{ id: BossRuleId; legendary: RelicId | null } | null>(null);
   const bossBedRef = useRef<string | null>(null);
+  // The phone's Back closes the Skip sheet and a Boss card preview
+  useBackClose(skipOpen, () => setSkipOpen(false));
+  useBackClose(Boolean(bossIntro?.preview), () => setBossIntro(null));
   // The Run whose first bed already had its card (once per Run)
   const goalCardRunRef = useRef<string | null>(null);
   const [activeResolutionStep, setActiveResolutionStep] = useState<

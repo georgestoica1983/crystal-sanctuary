@@ -1,5 +1,8 @@
 "use client";
 
+import { motion } from "framer-motion";
+import { useBackClose } from "@/lib/backClose";
+import { DoneButton, GrabBar, sheetDrag } from "@/components/SheetBits";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { EntityType, SeedTile } from "@/types/game";
 import EntityIcon from "@/components/EntityIcon";
@@ -50,6 +53,7 @@ export default function PruneSheet({
   const [screen, setScreen] = useState(0);
   const gridRef = useRef<HTMLDivElement>(null);
   const [perScreen, setPerScreen] = useState(16);
+  useBackClose(true, onClose);
 
   const groups = useMemo(() => {
     const map = new Map<string, BagGroup>();
@@ -94,12 +98,14 @@ export default function PruneSheet({
 
   return artify(
     <div className="fixed inset-0 z-[60] bg-black/70 flex items-end sm:items-center justify-center p-3" onClick={onClose}>
-      <div
+      <motion.div
         role="dialog"
         aria-label="Prune a tile"
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[430px] h-full max-h-[620px] flex flex-col gap-3 rounded-2xl border border-lime-300/30 bg-[#1B281F] p-4 text-white"
+        {...sheetDrag(onClose)}
+        className="w-full max-w-[430px] h-full max-h-[620px] flex flex-col gap-3 rounded-2xl border border-lime-300/30 bg-[#1B281F] px-4 pt-2 pb-4 text-white"
       >
+        <GrabBar />
         <div className="flex items-start gap-3">
           <div className="min-w-0 flex-1">
             <h2 className="font-display text-[22px] font-bold leading-tight">Prune a tile</h2>
@@ -107,14 +113,6 @@ export default function PruneSheet({
               Take one tile out of your bag for the rest of the Run. {bag.length} tiles in the bag.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="h-11 w-11 shrink-0 rounded-xl bg-white/[0.06] flex items-center justify-center text-[18px]"
-          >
-            ✕
-          </button>
         </div>
 
         <div ref={gridRef} className="min-h-0 flex-1 overflow-hidden">
@@ -186,7 +184,8 @@ export default function PruneSheet({
               ? `Remove one ${TILE_NAMES[picked.type]} ${picked.value} for ${RUN_PRUNE_COST} 🌱`
               : "Pick a tile to remove")}
         </button>
-      </div>
+        <DoneButton onClick={onClose} label="Back to the Shop" />
+      </motion.div>
     </div>
   );
 }

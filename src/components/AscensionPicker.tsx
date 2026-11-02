@@ -1,7 +1,9 @@
 "use client";
 
+import { motion } from "framer-motion";
+import { useBackClose } from "@/lib/backClose";
+import { DoneButton, GrabBar, sheetDrag } from "@/components/SheetBits";
 import React, { useEffect, useState } from "react";
-import { X } from "lucide-react";
 import { HeroClassId } from "@/types/game";
 import { HERO_CLASS_REGISTRY } from "@/lib/engine";
 import { ASCENSION_LEVELS } from "@/lib/runReplay";
@@ -53,30 +55,25 @@ export default function AscensionPicker({
     setLevel(Math.min(initial, unlocked));
     setCompanion(companions.includes(initialCompanion) ? initialCompanion : "KNIGHT");
   }, [isOpen, initial, unlocked, initialCompanion, companions]);
+  useBackClose(isOpen, onClose);
   if (!isOpen) return null;
   const pickedDef = HERO_CLASS_REGISTRY[companion];
 
   return artify(
     <div className="ui-zoom fixed inset-0 z-[60] bg-black/70 flex items-end sm:items-center justify-center" onClick={onClose}>
-      <div
+      <motion.div
         role="dialog"
         aria-label="New Garden Run"
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[430px] max-h-[calc(88dvh/var(--ui-zoom,1))] overflow-y-auto rounded-2xl bg-[#1B281F] border border-white/[0.08] p-3 space-y-3 text-white"
+        {...sheetDrag(onClose)}
+        className="w-full max-w-[430px] max-h-[calc(88dvh/var(--ui-zoom,1))] overflow-y-auto rounded-2xl bg-[#1B281F] border border-white/[0.08] px-3 pt-2 pb-3 space-y-3 text-white"
       >
+        <GrabBar />
         <div className="flex items-center justify-between">
           <div>
             <div className="text-[16px] font-bold">New Garden Run</div>
             <div className="text-[11.5px] text-white/55">Pick a companion. Each one plays differently.</div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close"
-            className="h-9 w-9 shrink-0 rounded-lg bg-white/[0.06] flex items-center justify-center"
-          >
-            <X className="w-4 h-4 text-white/80" />
-          </button>
         </div>
 
         <div className="grid grid-cols-2 gap-1.5">
@@ -160,7 +157,8 @@ export default function AscensionPicker({
           Start with {pickedDef.sanctuaryShortName ?? pickedDef.shortName}
           {level > 0 ? ` · Ascension ${level}` : ""} →
         </button>
-      </div>
+        <DoneButton onClick={onClose} label="Not now" />
+      </motion.div>
     </div>
   );
 }

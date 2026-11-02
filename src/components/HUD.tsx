@@ -1,5 +1,7 @@
 "use client";
 
+import { useBackClose } from "@/lib/backClose";
+import { DoneButton, GrabBar, sheetDrag } from "@/components/SheetBits";
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -651,6 +653,8 @@ export function TopHUD({
   const [menuTab, setMenuTab] = useState<"PLAY" | "SETTINGS">("PLAY");
   const [showRelics, setShowRelics] = useState(false);
   const [showBag, setShowBag] = useState(false);
+  useBackClose(showRunMenu, () => setShowRunMenu(false));
+  useBackClose(showRelics, () => setShowRelics(false));
 
   const isAnyTutorialActive = showTutorial || isInteractiveTutorial;
   // Sanctuary is the game's only voice; the theme setting is a visual skin.
@@ -849,10 +853,9 @@ export function TopHUD({
                 <button
                   type="button"
                   onClick={() => setShowRelics(false)}
-                  aria-label="Close"
-                  className="h-7 w-7 rounded-lg bg-white/[0.08] flex items-center justify-center"
+                  className="h-9 px-3 rounded-lg bg-white/[0.08] text-[13px] font-semibold text-white/85"
                 >
-                  <X className="w-4 h-4 text-white/70" />
+                  Done
                 </button>
               </div>
               {relicSetTags.map((tag) => (
@@ -896,13 +899,15 @@ export function TopHUD({
             className="fixed inset-0 z-[55] bg-black/60 flex items-end justify-center"
             onClick={() => setShowRunMenu(false)}
           >
-            <div
+            <motion.div
               role="dialog"
               aria-label="Menu"
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-[430px] max-h-[calc(92dvh/var(--ui-zoom,1))] overflow-y-auto overscroll-contain rounded-t-2xl bg-[#19271E] border border-white/[0.08] p-3 space-y-2.5"
+              {...sheetDrag(() => setShowRunMenu(false))}
+              className="w-full max-w-[430px] max-h-[calc(92dvh/var(--ui-zoom,1))] overflow-y-auto overscroll-contain rounded-t-2xl bg-[#19271E] border border-white/[0.08] px-3 pt-2 pb-3 space-y-2.5"
             >
-              {/* Header: Play / Settings, and close */}
+              <GrabBar />
+              {/* Header: Play / Settings */}
               <div className="flex items-center gap-2">
                 <div className="flex flex-1 rounded-xl bg-black/25 p-1" role="tablist" aria-label="Menu sections">
                   {(["PLAY", "SETTINGS"] as const).map((t) => (
@@ -920,14 +925,6 @@ export function TopHUD({
                     </button>
                   ))}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowRunMenu(false)}
-                  aria-label="Close menu"
-                  className="h-11 w-11 shrink-0 rounded-xl bg-white/[0.06] flex items-center justify-center"
-                >
-                  <X className="w-5 h-5 text-white/80" />
-                </button>
               </div>
 
               {menuTab === "PLAY" ? (
@@ -1093,7 +1090,11 @@ export function TopHUD({
                   )}
                 </div>
               )}
-            </div>
+              {/* Pinned, so Done is always in reach */}
+              <div className="sticky -bottom-3 -mx-3 -mb-3 bg-[#19271E] px-3 pt-1 pb-3">
+                <DoneButton onClick={() => setShowRunMenu(false)} />
+              </div>
+            </motion.div>
           </div>
         )}
 

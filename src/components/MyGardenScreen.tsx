@@ -1,8 +1,10 @@
 "use client";
 
+import { useBackClose } from "@/lib/backClose";
+import { BackButton } from "@/components/SheetBits";
 import React, { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { X } from "lucide-react";
+
 import { MUSIC_LAYERS, soundEngine } from "@/lib/audio";
 import {
   earnedMusicLayers,
@@ -102,6 +104,7 @@ export default function MyGardenScreen({ open, onClose }: { open: boolean; onClo
       .sort((a, b) => a.spot.y - b.spot.y);
   }, [garden]);
 
+  useBackClose(open, onClose);
   if (!open) return null;
   const count = garden?.plants.length ?? 0;
   const reached = GARDEN_MILESTONES.filter((m) => count >= m.at);
@@ -116,8 +119,11 @@ export default function MyGardenScreen({ open, onClose }: { open: boolean; onClo
 
   return (
     <div className={`ui-zoom fixed inset-0 z-[70] flex flex-col bg-gradient-to-b ${SKY[phase]} select-none transition-colors duration-1000`}>
-      {/* Header */}
-      <div className="flex items-start justify-between gap-2 px-4 pt-4 pb-2 max-w-[430px] w-full mx-auto">
+      {/* Header: Back (top left, where phones put it), then the title */}
+      <div className="px-4 pt-2 max-w-[430px] w-full mx-auto">
+        <BackButton onClick={onClose} label="Back to the game" />
+      </div>
+      <div className="flex items-start justify-between gap-2 px-4 pb-2 max-w-[430px] w-full mx-auto">
         <div>
           <h2 className="text-[24px] font-display font-semibold text-amber-50 leading-tight">My Garden</h2>
           <div className="text-[12.5px] text-white/60">
@@ -132,14 +138,6 @@ export default function MyGardenScreen({ open, onClose }: { open: boolean; onClo
             )}
           </div>
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close My Garden"
-          className="h-10 w-10 rounded-full bg-white/[0.08] flex items-center justify-center active:scale-95"
-        >
-          <X className="w-5 h-5 text-white/80" />
-        </button>
       </div>
 
       {/* The garden */}

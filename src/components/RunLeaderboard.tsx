@@ -1,5 +1,6 @@
 "use client";
 
+import { useBackClose } from "@/lib/backClose";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { getRunGardenLabel, HERO_CLASS_REGISTRY } from "@/lib/engine";
@@ -94,6 +95,7 @@ export default function RunLeaderboardModal({
     };
   }, [isOpen, load, refreshKey]);
 
+  useBackClose(isOpen, onClose);
   if (!isOpen) return null;
 
   const you = board?.you ?? null;

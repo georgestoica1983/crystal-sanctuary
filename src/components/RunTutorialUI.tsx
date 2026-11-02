@@ -1,5 +1,6 @@
 "use client";
 
+import { useBackClose } from "@/lib/backClose";
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { LessonGoalStatus, PRACTICE_GARDEN_GEMS, PRACTICE_GARDEN_TARGET, RunLesson } from "@/lib/runLessons";
@@ -323,6 +324,7 @@ export function RunHelpMenu({
   onGuide: () => void;
   onClose: () => void;
 }) {
+  useBackClose(isOpen, onClose);
   if (!isOpen) return null;
   const canResume = lessonsProgress > 0 && lessonsProgress < totalLessons;
   const option =

@@ -1,5 +1,6 @@
 "use client";
 
+import { useBackClose } from "@/lib/backClose";
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { EntityType, RelicCategory } from "@/types/game";
@@ -352,6 +353,7 @@ export default function RunGuide({
   const [page, setPage] = useState(0);
   const [showIndex, setShowIndex] = useState(false);
   const pages = React.useMemo(buildPages, []);
+  useBackClose(isOpen, onClose);
   if (!isOpen) return null;
   const current = pages[page];
   const isLast = page === pages.length - 1;

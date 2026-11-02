@@ -1,8 +1,10 @@
 "use client";
 
+import { useBackClose } from "@/lib/backClose";
+import { BackButton } from "@/components/SheetBits";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, X } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { HeroClassId } from "@/types/game";
 import {
   BOSS_RULE_REGISTRY,
@@ -229,6 +231,7 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
     const shown = pages[page].slice(screen * fit.perScreen, (screen + 1) * fit.perScreen);
     markJournalSeen(shown.filter((e) => e.found).map((e) => e.id));
   }, [open, pages, page, screen, fit.perScreen]);
+  useBackClose(open, onClose);
   if (!open || !pages) return null;
   const isNew = (e: Entry) => e.found && !seenAtOpen.has(e.id);
 
@@ -247,7 +250,8 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
     <div
       className={`ui-zoom fixed inset-0 z-[70] flex flex-col bg-[#18231C] select-none ${pct >= 100 ? "ring-4 ring-inset ring-amber-300/60" : ""}`}
     >
-      <div className="w-full max-w-[430px] mx-auto px-4 pt-4 pb-2">
+      <div className="w-full max-w-[430px] mx-auto px-4 pt-2 pb-2">
+        <BackButton onClick={onClose} label="Back to the game" />
         <div className="flex items-start justify-between gap-2">
           <div>
             <h2 className="text-[24px] font-display font-semibold text-amber-50 leading-tight">Garden Journal</h2>
@@ -262,14 +266,6 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
               </div>
             )}
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close the Journal"
-            className="h-10 w-10 rounded-full bg-white/[0.08] flex items-center justify-center active:scale-95"
-          >
-            <X className="w-5 h-5 text-white/80" />
-          </button>
         </div>
         <div className="mt-2 h-1.5 rounded-full bg-white/10 overflow-hidden">
           <div className="h-full bg-amber-300/80" style={{ width: `${pct}%` }} />

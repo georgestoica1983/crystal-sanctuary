@@ -1,7 +1,9 @@
 "use client";
 
+import { motion } from "framer-motion";
+import { useBackClose } from "@/lib/backClose";
+import { DoneButton, GrabBar, sheetDrag } from "@/components/SheetBits";
 import React, { useMemo, useState } from "react";
-import { X } from "lucide-react";
 import { CosmeticPreferences } from "@/types/game";
 import { TRAIL_SKINS } from "@/lib/engine";
 import {
@@ -35,6 +37,7 @@ export default function LooksModal({
   // Re-read progress each time the screen opens
   const progress = useMemo(() => (isOpen ? loadUnlockProgress() : null), [isOpen]);
   const [tab, setTab] = useState<"COMPANIONS" | "LINE" | "BOARD">("COMPANIONS");
+  useBackClose(isOpen, onClose);
   if (!isOpen || !progress) return null;
   const { rank, next } = getGardenerRank(progress);
   const nextRunCompanion = loadChosenCompanion(cosmetics.companionId);
@@ -53,44 +56,27 @@ export default function LooksModal({
 
   return (
     <div className="ui-zoom fixed inset-0 z-[60] bg-black/70 flex items-end sm:items-center justify-center" onClick={onClose}>
-      <div
+      <motion.div
         role="dialog"
         aria-label="Companions and looks"
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-[430px] max-h-[calc(94dvh/var(--ui-zoom,1))] overflow-y-auto overscroll-contain rounded-2xl bg-[#19271E] border border-white/[0.08] p-3 space-y-2.5 text-white"
+        {...sheetDrag(onClose)}
+        className="w-full max-w-[430px] max-h-[calc(94dvh/var(--ui-zoom,1))] overflow-y-auto overscroll-contain rounded-2xl bg-[#19271E] border border-white/[0.08] px-3 pt-2 pb-3 space-y-2 text-white"
       >
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-[16px] font-bold">Companions &amp; looks</div>
-            <div className="text-[11.5px] text-white/55">
-              Earned by playing.
-            </div>
+        <GrabBar />
+        {/* Title and your rank in one row */}
+        <div className="flex items-baseline justify-between gap-2">
+          <div className="text-[16px] font-bold">Companions &amp; looks</div>
+          <div className="min-w-0 truncate text-[13px] text-amber-100">
+            {rank.icon} {rank.name} · ⭐ {progress.stars}
+            {loadBestClearedAscension() > 0 && <span className="text-orange-200"> · 🔥A{loadBestClearedAscension()}</span>}
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close looks"
-            className="h-9 w-9 shrink-0 rounded-lg bg-white/[0.06] flex items-center justify-center"
-          >
-            <X className="w-4 h-4 text-white/80" />
-          </button>
         </div>
-
-        <div className="rounded-xl bg-amber-400/[0.07] border border-amber-300/20 px-3 py-2 text-[12.5px]">
-          <span className="font-bold text-amber-100">
-            {rank.icon} {rank.name}
-          </span>
-          <span className="text-white/60"> · ⭐ {progress.stars}</span>
-          {loadBestClearedAscension() > 0 && (
-            <span className="text-orange-200"> · 🔥A{loadBestClearedAscension()}</span>
-          )}
-          {next && (
-            <span className="text-white/55">
-              {" "}
-              · next {next.icon} {next.name}: {next.needText}
-            </span>
-          )}
-        </div>
+        {next && (
+          <div className="-mt-1.5 truncate text-[12.5px] text-white/55">
+            Next: {next.icon} {next.name}: {next.needText}
+          </div>
+        )}
 
         {/* One section at a time, so the sheet fits on a phone */}
         <div className="flex rounded-xl bg-black/25 p-1" role="tablist" aria-label="Looks sections">
@@ -117,7 +103,7 @@ export default function LooksModal({
         {tab === "COMPANIONS" && (
         <section>
           <div className="text-[12px] font-semibold text-white/60 mb-1.5">
-            Companions · pick one when you start a Garden Run
+            Pick one when you start a Run
           </div>
           <div className="space-y-1">
             {RUN_COMPANION_ORDER.map((id) => {
@@ -127,11 +113,11 @@ export default function LooksModal({
               return (
                 <div
                   key={id}
-                  className={`rounded-xl border px-2.5 py-1.5 flex items-start gap-2.5 ${
+                  className={`rounded-xl border px-2.5 py-1 flex items-start gap-2.5 ${
                     unlocked ? "border-white/15 bg-white/[0.04]" : "border-white/[0.06] bg-black/20 opacity-60"
                   }`}
                 >
-                  <EntityIcon type="HERO" companionId={id} size={34} className="mt-0.5" />
+                  <EntityIcon type="HERO" companionId={id} size={30} className="mt-0.5" />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-1.5">
                       <span className="text-[13px] font-bold">{def.sanctuaryShortName ?? def.shortName}</span>
@@ -226,7 +212,11 @@ export default function LooksModal({
           </div>
         </section>
         )}
-      </div>
+        {/* Pinned, so Done is always in reach */}
+        <div className="sticky -bottom-3 -mx-3 -mb-3 bg-[#19271E] px-3 pt-1 pb-3">
+          <DoneButton onClick={onClose} />
+        </div>
+      </motion.div>
     </div>
   );
 }
