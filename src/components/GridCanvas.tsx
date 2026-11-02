@@ -1788,6 +1788,23 @@ const TOOL_MARKS: Record<string, { label: string }> = {
   ECHO: { label: "Echo, scores twice" },
 };
 
+/** Tiny marks inside a tile's number: they follow the number's colour */
+function ThornMark() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 10 12" className="mr-px h-[0.62em] w-[0.52em] shrink-0" fill="currentColor">
+      <path d="M1 12 Q4 9.5 5 0 Q6 9.5 9 12 Z" />
+    </svg>
+  );
+}
+function LeafMark() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 12 12" className="mr-px h-[0.66em] w-[0.66em] shrink-0" fill="currentColor">
+      <path d="M1 11 C1 5 5 1 11 1 C11 7 7 11 1 11 Z" />
+      <path d="M2 10 L8 4" stroke="#101913" strokeWidth="1.1" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 /** A Thorn turning into a flower lets out a small puff of pollen */
 function PollenPuff() {
   return (
@@ -1877,6 +1894,10 @@ function TileIconWithValue({
         className="absolute z-[2] -bottom-1 -right-1.5 min-w-[clamp(22px,6.4cqw,32px)] h-[clamp(21px,6.2cqw,31px)] px-1 flex items-center justify-center rounded-full font-mono font-extrabold text-[clamp(13px,4cqw,19px)] leading-none border select-none pointer-events-none"
         style={style}
       >
+        {/* A shape as well as a colour (colour-blind friendly): a thorn on
+            numbers that cost Life, a leaf on numbers that give it back */}
+        {(costsLife || type === "TRAP") && <ThornMark />}
+        {type === "POTION" && !isCorrupted && <LeafMark />}
         {n}
       </span>
     </div>

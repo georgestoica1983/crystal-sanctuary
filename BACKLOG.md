@@ -19,7 +19,7 @@ Everything below this section is parked until this is done.
 - [x] 4. Back during auto-closing screens (tip cards, Boss intro) closes only that screen.
 - [x] 5. Forgiving drawing: no wrong tile when a finger drifts at a corner, no half-finished line when a finger lifts by accident.
 - [x] 6. Fast first load: art as WebP, relic and Boss art loaded only when needed; test on a budget Android over 4G.
-- [ ] 7. Colour-blind safe numbers: a small thorn or leaf mark, not only red and green.
+- [x] 7. Colour-blind safe numbers: a small thorn or leaf mark, not only red and green.
 
 **Core game depth**
 - [ ] 8. More ways to win than "longer": relics for exact or careful lines (e.g. exactly 7 tiles scores ×2).

@@ -216,10 +216,10 @@ function buildPages(): GuidePage[] {
       icon: "🧩",
       body: (
         <div className="space-y-2.5">
-          <TileLine type="ENEMY" value={5} name="Thorn" text="its red number is points, and it costs that much ❤️ Life." />
+          <TileLine type="ENEMY" value={5} name="Thorn" text="its red number with a thorn is points, and it costs that much ❤️ Life." />
           <TileLine type="WEAPON" value={5} name="Shears" text="cut the next Thorn completely." />
           <TileLine type="SHIELD" value={5} name="Gloves" text="block Thorn damage, and last." />
-          <TileLine type="POTION" value={5} name="Berries" text="green number: points, and gives that much ❤️ Life back." />
+          <TileLine type="POTION" value={5} name="Berries" text="green number with a leaf: points, and gives that much ❤️ Life back." />
           <TileLine type="GOLD" value={5} name="Acorn" text="adds points." />
           <TileLine type="TRAP" value={3} name="Spike" text="its grey number is points and costs that much ❤️ Life, unless you step on it diagonally ↗." />
           <P>Tap any tile on the board to read what it does.</P>

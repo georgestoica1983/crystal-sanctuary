@@ -113,7 +113,7 @@ export const RUN_LESSONS: RunLesson[] = [
       ok: reached(sim),
       detail: sim.endsOnExit ? "Ends on the Exit ✓" : "Keep going to the 🌈 Exit",
     }),
-    success: "Every number on your line is points. Red numbers also cost that much ❤️ Life; green ones give Life back.",
+    success: "Every number on your line is points. Red numbers with a thorn also cost that much ❤️ Life; green ones with a leaf give Life back.",
     failHint: "End your line on the 🌈 Exit.",
   },
   {
