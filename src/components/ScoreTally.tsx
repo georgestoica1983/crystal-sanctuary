@@ -31,6 +31,8 @@ interface ScoreTallyProps {
   continueLabel?: string;
   /** e.g. "Half this line would have scored 186 — yours scored 742 (4×)" */
   halfLineNote?: string | null;
+  /** What relics and boosts added to this line (the Shop's payoff, while it is new) */
+  relicBonus?: number | null;
   /** Extra teaching block shown with the result (e.g. your line vs a long line) */
   extra?: React.ReactNode;
   onContinue: () => void;
@@ -57,6 +59,10 @@ function useCountUp(value: number, active: boolean, durationMs = 650): number {
   }, [value, active, durationMs]);
   return shown;
 }
+
+/** "Your relics added +X" shows on the first few line cards that have it */
+const RELIC_PAYOFF_KEY = "ost_relic_payoff_v1";
+const RELIC_PAYOFF_TIMES = 4;
 
 const fmt = (n: number) =>
   Number.isInteger(n) ? formatScore(n) : n.toLocaleString(undefined, { maximumFractionDigits: 2 });
@@ -92,6 +98,7 @@ export default function ScoreTally({
   targetScore,
   continueLabel,
   halfLineNote,
+  relicBonus = null,
   extra,
   onContinue,
 }: ScoreTallyProps) {
@@ -143,6 +150,23 @@ export default function ScoreTally({
       timersRef.current = [];
     };
   }, [isOpen, breakdown, quick, instant, targetScore]);
+
+  // Shown (and counted) only on cards the player actually sees
+  const [payoffOn, setPayoffOn] = useState(false);
+  useEffect(() => {
+    if (!isOpen || !relicBonus) {
+      setPayoffOn(false);
+      return;
+    }
+    try {
+      const shown = Number(window.localStorage.getItem(RELIC_PAYOFF_KEY)) || 0;
+      if (shown >= RELIC_PAYOFF_TIMES) return setPayoffOn(false);
+      window.localStorage.setItem(RELIC_PAYOFF_KEY, String(shown + 1));
+      setPayoffOn(true);
+    } catch {
+      setPayoffOn(false);
+    }
+  }, [isOpen, breakdown, relicBonus]);
 
   const d = instant ? 1 : undefined;
   const chipsShown = useCountUp(breakdown?.chips ?? 0, stage >= 1, d ?? 700);
@@ -284,6 +308,12 @@ export default function ScoreTally({
             </>
           )}
         </div>
+
+        {payoffOn && relicBonus != null && stage >= 4 && (
+          <div className="rounded-xl border border-violet-300/40 bg-violet-500/10 px-3 py-2 text-center text-[15px] text-violet-100">
+            ✨ Your relics and boosts added <b className="text-white">+{fmt(relicBonus)}</b> to this line
+          </div>
+        )}
 
         {/* 3. How it added up, folded */}
         <details className="group rounded-xl border border-white/10 bg-white/[0.03] px-3 py-1.5">

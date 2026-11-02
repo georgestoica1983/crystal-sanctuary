@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { RefreshCw, ArrowRight, Lock } from "lucide-react";
 import {
@@ -198,6 +198,77 @@ function describeOffer(offer: ShopOffer, isSanctuary: boolean, counters?: RelicC
 }
 
 /**
+ * A short guided look at the Shop: a soft spotlight on one thing at a time,
+ * with a line of text and Next. Tapping anywhere also moves on.
+ */
+function ShopCoach({
+  step,
+  cardRef,
+  targets,
+  texts,
+  onStep,
+  onDone,
+}: {
+  step: number;
+  cardRef: React.RefObject<HTMLDivElement | null>;
+  targets: Array<React.RefObject<HTMLElement | null>>;
+  texts: string[];
+  onStep: (n: number) => void;
+  onDone: () => void;
+}) {
+  const [box, setBox] = useState<{ x: number; y: number; w: number; h: number; cardH: number } | null>(null);
+  useLayoutEffect(() => {
+    const card = cardRef.current;
+    const el = targets[step]?.current;
+    if (!card || !el) return;
+    // Rects are on screen (zoomed); the overlay lives inside the zoomed card
+    const c = card.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    const z = c.width / card.offsetWidth || 1;
+    setBox({ x: (r.left - c.left) / z, y: (r.top - c.top) / z, w: r.width / z, h: r.height / z, cardH: card.offsetHeight });
+  }, [step, cardRef, targets]);
+  const last = step >= texts.length - 1;
+  const next = () => (last ? onDone() : onStep(step + 1));
+  const below = box ? box.y + box.h / 2 < box.cardH / 2 : true;
+  return (
+    <div className="absolute inset-0 z-20 overflow-hidden rounded-2xl" onClick={next} role="dialog" aria-label="How the Shop works">
+      {box && (
+        <motion.div
+          className="pointer-events-none absolute rounded-xl ring-2 ring-amber-300"
+          initial={false}
+          animate={{ left: box.x - 4, top: box.y - 4, width: box.w + 8, height: box.h + 8 }}
+          transition={{ type: "spring", stiffness: 260, damping: 26 }}
+          style={{ boxShadow: "0 0 0 9999px rgba(8,14,10,0.72)" }}
+        />
+      )}
+      {box && (
+        <motion.div
+          key={step}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="absolute inset-x-3 rounded-xl border border-amber-300/40 bg-[#24301f] p-3 text-white shadow-2xl"
+          style={below ? { top: box.y + box.h + 12 } : { bottom: box.cardH - box.y + 12 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="text-[13px] font-semibold text-amber-200/90">
+            {step + 1} of {texts.length}
+          </div>
+          <p className="mt-0.5 text-[16px] leading-snug">{texts[step]}</p>
+          <div className="mt-2.5 flex gap-2">
+            <button type="button" onClick={onDone} className="h-11 flex-1 rounded-xl bg-white/[0.07] text-[14px] font-semibold text-white/80">
+              Skip
+            </button>
+            <button type="button" onClick={next} className="h-11 flex-[2] rounded-xl bg-amber-300 text-[15px] font-bold text-slate-950">
+              {last ? "Got it" : "Next"}
+            </button>
+          </div>
+        </motion.div>
+      )}
+    </div>
+  );
+}
+
+/**
  * Between-garden Sanctuary Shop: spend this visit's Gems on seeded relics and
  * stat boosts, sell relics (Run), reroll, or skip ahead.
  */
@@ -234,6 +305,14 @@ export default function ShopModal({
   const [picked, setPicked] = useState<{ kind: "OFFER"; id: string } | { kind: "OWNED"; id: RelicId } | null>(null);
   // Pruning opens its own sheet over the Shop
   const [pruneOpen, setPruneOpen] = useState(false);
+  // First visit: a short guided look (also from the "?" in the header)
+  const [coach, setCoach] = useState<number | null>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const seedsRef = useRef<HTMLDivElement>(null);
+  const detailRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (isOpen && showIntro) setCoach(0);
+  }, [isOpen, showIntro]);
   if (!isOpen) return null;
 
   const commonOwned = ownedRelics.filter((id) => RELIC_REGISTRY[id]?.rarity !== "LEGENDARY");
@@ -251,7 +330,7 @@ export default function ShopModal({
   // (a tapped offer that a reroll replaced falls back too)
   const pickedValid = picked && !(picked.kind === "OFFER" && !offers.some((o) => o.id === picked.id)) ? picked : null;
   const current =
-    pickedValid ?? (showIntro || legendary ? null : fallback ? { kind: "OFFER" as const, id: fallback.id } : null);
+    pickedValid ?? (legendary ? null : fallback ? { kind: "OFFER" as const, id: fallback.id } : null);
 
   const blockedOf = (o: ShopOffer) => (o.kind === "RELIC" && slotsFull) || (o.kind === "TOOL" && toolsHeld >= MAX_TOOLS);
 
@@ -412,7 +491,8 @@ export default function ShopModal({
         initial={{ opacity: 0, y: 24, scale: 0.96 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 22 }}
-        className="w-full max-w-[430px] max-h-full flex flex-col gap-2.5 rounded-2xl p-3.5 text-white border border-white/[0.08] bg-[#1B281F] shadow-2xl shadow-black/50"
+        ref={cardRef}
+        className="relative w-full max-w-[430px] max-h-full flex flex-col gap-2.5 rounded-2xl p-3.5 text-white border border-white/[0.08] bg-[#1B281F] shadow-2xl shadow-black/50"
       >
         {/* Header: one row */}
         <div className="flex items-center justify-between gap-2">
@@ -422,15 +502,26 @@ export default function ShopModal({
             </div>
             <h2 className="text-[22px] font-display font-semibold leading-tight">{isSanctuary ? "Garden Shop" : "Sanctuary Shop"}</h2>
           </div>
-          <motion.div
-            key={gems}
-            initial={{ scale: 1.2 }}
-            animate={{ scale: 1 }}
-            className="shrink-0 rounded-xl px-3 py-1.5 border border-amber-300/40 bg-amber-400/10 text-[18px] font-mono font-black text-amber-200"
-            aria-label={`Your Seeds: ${gems}`}
-          >
-            🌱 {gems}
-          </motion.div>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setCoach(0)}
+              aria-label="How the Shop works"
+              className="h-10 w-10 rounded-xl border border-white/10 bg-white/[0.05] text-[16px] font-bold text-white/70"
+            >
+              ?
+            </button>
+            <motion.div
+              ref={seedsRef}
+              key={gems}
+              initial={{ scale: 1.2 }}
+              animate={{ scale: 1 }}
+              className="rounded-xl px-3 py-1.5 border border-amber-300/40 bg-amber-400/10 text-[18px] font-mono font-black text-amber-200"
+              aria-label={`Your Seeds: ${gems}`}
+            >
+              🌱 {gems}
+            </motion.div>
+          </div>
         </div>
 
         {/* Every offer as a tile: tap to see it below */}
@@ -486,7 +577,7 @@ export default function ShopModal({
         </div>
 
         {/* The tapped offer, in full */}
-        <div className="min-h-[120px] flex-1 flex flex-col gap-2 rounded-xl border border-white/10 bg-black/20 p-3">
+        <div ref={detailRef} className="min-h-[120px] flex-1 flex flex-col gap-2 rounded-xl border border-white/10 bg-black/20 p-3">
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{detail}</div>
           {action}
         </div>
@@ -560,6 +651,32 @@ export default function ShopModal({
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
+        {coach !== null && (
+          <ShopCoach
+            step={coach}
+            cardRef={cardRef}
+            targets={[seedsRef, detailRef, seedsRef]}
+            texts={[
+              `You earned ${gems} 🌱 by clearing the bed. Spend them here, or keep some.`,
+              (() => {
+                const relic = ordered.find((o) => o.kind === "RELIC");
+                const p = relic ? scorePreview?.[relic.id] : undefined;
+                return p && p > 0
+                  ? `Relics are lasting powers for this Run. This one adds about +${p.toLocaleString()} to your best line.`
+                  : "Relics are lasting powers for this Run. Tap any offer to see what it does.";
+              })(),
+              `Seeds you keep earn interest: +1 for every ${RUN_INTEREST_STEP} 🌱 you keep, up to +${RUN_INTEREST_MAX} after each bed.`,
+            ]}
+            onStep={(n) => {
+              if (n === 1) {
+                const relic = ordered.find((o) => o.kind === "RELIC");
+                if (relic) setPicked({ kind: "OFFER", id: relic.id });
+              }
+              setCoach(n);
+            }}
+            onDone={() => setCoach(null)}
+          />
+        )}
       </motion.div>
       {pruneOpen && bag && onPrune && (
         <PruneSheet bag={bag} gems={gems} pruned={pruned} onPrune={onPrune} onClose={() => setPruneOpen(false)} />

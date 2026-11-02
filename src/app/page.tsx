@@ -295,6 +295,14 @@ const RUN_LESSONS_PROGRESS_KEY = "ost_run_lessons_progress_v1";
 /** "Before you begin": how many times it was shown, and whether the player turned it off */
 const GOAL_CARD_COUNT_KEY = "ost_goal_card_count_v1";
 const GOAL_CARD_OFF_KEY = "ost_goal_card_off_v1";
+/** What relics and boosts added to a line ("Your relics added +X", shown while new) */
+function relicPayoff(b: FloorScoreBreakdown, relicCount: number): number | null {
+  if (relicCount === 0) return null;
+  // What the line would score with only its tiles, Acorns and length
+  const bonus = Math.round(b.total - (b.gemChips + b.tileChips) * b.pathMult);
+  return bonus > 0 ? bonus : null;
+}
+
 /** After this many views the card offers "Don't show this again" */
 const GOAL_CARD_HIDE_AFTER = 3;
 const RUN_ONLY_NOTICE = "The Sanctuary is in Run mode for now. Gauntlet, past Dailies and the Crafter are resting.";
@@ -341,6 +349,8 @@ export default function OneStrokeTacticianPage() {
       target: number;
       continueLabel: string;
       halfLineNote: string | null;
+      /** What relics and boosts added to this line (shown while they are new) */
+      relicBonus: number | null;
       compare: {
         token: number;
         grid: GridCell[][];
@@ -2196,6 +2206,7 @@ export default function OneStrokeTacticianPage() {
       clearReward: 0,
       runStroke: {
         halfLineNote,
+        relicBonus: relicPayoff(breakdown, activeRelics.length),
         compare: teachCompare
           ? {
               token: compareToken,
@@ -4594,6 +4605,7 @@ export default function OneStrokeTacticianPage() {
         targetScore={tally?.runStroke?.target}
         continueLabel={tally?.runStroke?.continueLabel}
         halfLineNote={tally?.runStroke?.halfLineNote ?? null}
+        relicBonus={tally?.runStroke?.relicBonus ?? null}
         extra={
           tally?.runStroke?.compare &&
           (tally.runStroke.compare.bestScore === null ||

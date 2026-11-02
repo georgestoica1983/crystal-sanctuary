@@ -664,7 +664,7 @@ export function RunGardenClearModal({
             onClick={onContinue}
             className="w-full rounded-xl py-3 font-bold text-[15px] bg-teal-300 text-slate-950 active:scale-95"
           >
-            Enter the Shop →
+            Enter the Shop · {info.gemsBefore + info.total} 🌱 to spend →
           </button>
         </div>
       </motion.div>
