@@ -52,6 +52,11 @@ Everything below this section is parked until this is done.
 - [ ] **Feedback form** — create a Google Form ("Bloomline feedback": how do you score points · what do Shears, Gloves and Acorns do · when were you confused · what felt satisfying · play again tomorrow? · how far did you get · phone model), copy its forms.gle link.
 - [ ] **PostHog** — free account (EU region), project "Bloomline", copy the `phc_…` Project API key.
 - [ ] **Vercel** — Settings → Environment Variables: `NEXT_PUBLIC_FEEDBACK_URL`, `NEXT_PUBLIC_POSTHOG_KEY`, `NEXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com`, then Redeploy. Check one line shows up in PostHog → Activity.
+- [ ] **New address** (step 3, in this order):
+  1. Vercel → project → Settings → Domains → Add `bloomline-game.vercel.app`, make it the production domain. Keep the old one working for now.
+  2. On your phone, open `crystal-sanctuary-tan.vercel.app/move` and tap **Move my progress**, then **Bring it here** on the new address.
+  3. Back in Domains, set `crystal-sanctuary-tan.vercel.app` to redirect to the new address.
+  4. Optional: Settings → General → Project Name → `bloomline`.
 - [ ] **Real tester round** — send the link to 10–15 new players with the text in TESTER-NOTE.md.
 - [ ] **Rename the GitHub repo** to `bloomline` (optional).
 
