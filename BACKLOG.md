@@ -42,7 +42,7 @@ Everything below this section is parked until this is done.
 
 - [x] Art direction: moss look, illustrated tiles, companions, stats, relic themes and all 36 relics.
 - [x] Leftover emoji: menu and Settings tiles, Swap and Skip use line icons; Companions & looks shows painted art (Boss icons, rank and stars stay emoji on purpose).
-- [ ] Art for the 8 rules-v16 relics (prompt: design/gemini-relic-sheet-2-prompt.md); they show emoji until then.
+- [x] Art for the 8 rules-v16 relics (design/gemini-relic-sheet-2.webp).
 - [x] Music and sound: generated kalimba score at 66 BPM (seeded per Run), soft effects in the garden key, earned-reward sounds, separate Music switch, /sound-test page.
 - [x] Drag and tap together to draw a line.
 

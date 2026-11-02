@@ -47,6 +47,10 @@ const VISITOR_NAMES = ["ladybug", "bee", "butterfly", "snail"].map((n) => `visit
 const FADE_EDGES = new Set(["garden-mist-orchid", "garden-moonflower", "garden-set-bloom"]);
 const SOLID = 14; // closer than this to the background: fully transparent
 const SOFT = 46; // up to this (and reachable from the edge): partly transparent
+// Icons with a soft painted halo (a glow on the dark background): a much wider
+// see-through range, so the halo fades instead of staying a dark disc
+const WIDE_GLOW = new Set(["relic-long-shadow"]);
+const GLOW_SOFT = 120;
 const OUT = 256;
 
 (async () => {
@@ -85,11 +89,12 @@ const OUT = 256;
     const stack = [];
     for (let x = 0; x < w; x++) stack.push(x, (h - 1) * w + x);
     for (let y = 0; y < h; y++) stack.push(y * w, y * w + w - 1);
+    const soft = WIDE_GLOW.has(NAMES[n]) ? GLOW_SOFT : SOFT;
     while (stack.length) {
       const j = stack.pop();
-      if (seen[j] || dist[j] > SOFT) continue;
+      if (seen[j] || dist[j] > soft) continue;
       seen[j] = 1;
-      const a = dist[j] <= SOLID ? 0 : (dist[j] - SOLID) / (SOFT - SOLID);
+      const a = dist[j] <= SOLID ? 0 : (dist[j] - SOLID) / (soft - SOLID);
       for (let k = 0; k < 3; k++) {
         const c = a > 0 ? (rgba[j * 4 + k] - (1 - a) * bg[k]) / a : 0;
         rgba[j * 4 + k] = Math.max(0, Math.min(255, Math.round(c)));

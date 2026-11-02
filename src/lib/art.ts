@@ -56,16 +56,7 @@ export const themeArt = (tag: RelicTag) => icon(THEME_ART[tag]);
 
 /** relic-<id in kebab case>, e.g. GOLDEN_BEE → relic-golden-bee */
 /** Relics still waiting for their illustrated icon: shown as their emoji until the art lands */
-const RELICS_PENDING_ART: RelicId[] = [
-  "FIRST_BLOOM",
-  "THORN_CHORUS",
-  "BELL_TOWER",
-  "ACORN_GATE",
-  "LONG_SHADOW",
-  "BRAMBLE_BERRIES",
-  "SOFT_MOSS",
-  "SUNBEAM_LENS",
-];
+const RELICS_PENDING_ART: RelicId[] = [];
 export const relicHasArt = (id: RelicId) => !RELICS_PENDING_ART.includes(id);
 export const relicArt = (id: RelicId) => icon(`relic-${id.toLowerCase().replace(/_/g, "-")}`);
 
