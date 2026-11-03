@@ -45,7 +45,7 @@ Everything below this section is parked until this is done.
 - [x] 22. The end screen points forward: one next goal first.
 - [x] 23. A good place to stop: "Stop here, resume later" after each Boss. (Quick mode, a shorter Run, not built yet: it would need new rules.)
 - [x] 24. Daily Garden (same seed for everyone, Seasons 1 to 3, first try counts) with a shareable flower grid, a day streak, and a Today's garden button on the New Run sheet and the end screen.
-- [ ] 25. Shareable seeded Runs (a code like MOSS-4821) using the replay system.
+- [x] 25. Garden codes: every new Run has a code like MOSS-4821 (it is the seed), shown on the end screen with Challenge a friend (a ?seed= link); the New Run sheet plants a friend's code. Code Runs stay off the leaderboard.
 
 ## Waiting on setup (your part, parked for now: do this before the tester round)
 

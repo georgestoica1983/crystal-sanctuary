@@ -12,6 +12,7 @@ import { companionUnlockFor, RUN_COMPANION_ORDER } from "@/lib/unlocks";
 import EntityIcon from "@/components/EntityIcon";
 import { artify } from "@/components/ArtText";
 import { TodaysGardenButton } from "@/components/RunModeUI";
+import { normalizeSeedCode } from "@/lib/seedCode";
 
 /** Each companion's rule in a Garden Run, in plain words */
 export const COMPANION_RULES: Record<HeroClassId, string> = {
@@ -41,7 +42,13 @@ export default function AscensionPicker({
   onClose,
   onPlayDaily,
   dailyToday,
+  initialCode,
+  runInProgress = false,
 }: {
+  /** A shared garden code to fill in (from a ?seed= link) */
+  initialCode?: string | null;
+  /** Starting here ends the Run in progress */
+  runInProgress?: boolean;
   isOpen: boolean;
   /** Start today's Daily Garden instead */
   onPlayDaily?: () => void;
@@ -52,19 +59,26 @@ export default function AscensionPicker({
   /** Companions earned on this device */
   companions: HeroClassId[];
   initialCompanion: HeroClassId;
-  onStart: (level: number, companion: HeroClassId) => void;
+  /** `code`: a friend's garden code to plant instead of a fresh garden */
+  onStart: (level: number, companion: HeroClassId, code: string | null) => void;
   onClose: () => void;
 }) {
   const [level, setLevel] = useState(initial);
   const [companion, setCompanion] = useState<HeroClassId>(initialCompanion);
+  const [codeOpen, setCodeOpen] = useState(false);
+  const [codeText, setCodeText] = useState("");
   useEffect(() => {
     if (!isOpen) return;
+    setCodeText(initialCode ?? "");
+    setCodeOpen(Boolean(initialCode));
     setLevel(Math.min(initial, unlocked));
     setCompanion(companions.includes(initialCompanion) ? initialCompanion : "KNIGHT");
-  }, [isOpen, initial, unlocked, initialCompanion, companions]);
+  }, [isOpen, initial, unlocked, initialCompanion, companions, initialCode]);
   useBackClose(isOpen, onClose);
   if (!isOpen) return null;
   const pickedDef = HERO_CLASS_REGISTRY[companion];
+  const code = codeOpen ? normalizeSeedCode(codeText) : null;
+  const codeTyped = codeOpen && codeText.trim().length > 0;
 
   return artify(
     <div className="ui-zoom fixed inset-0 z-[60] bg-black/70 flex items-end sm:items-center justify-center" onClick={onClose}>
@@ -85,6 +99,49 @@ export default function AscensionPicker({
 
         {onPlayDaily && dailyToday && (
           <TodaysGardenButton played={dailyToday.played} streak={dailyToday.streak} onClick={onPlayDaily} />
+        )}
+
+        {codeOpen ? (
+          <div className="rounded-xl border border-white/15 bg-white/[0.04] px-3 py-2 space-y-1.5">
+            <label htmlFor="garden-code" className="block text-[12px] font-semibold text-white/70">
+              A friend&apos;s garden code
+            </label>
+            <input
+              id="garden-code"
+              value={codeText}
+              onChange={(e) => setCodeText(e.target.value)}
+              placeholder="MOSS-4821"
+              autoCapitalize="characters"
+              autoComplete="off"
+              spellCheck={false}
+              className="w-full rounded-lg border border-white/15 bg-black/30 px-2.5 py-2 font-mono text-[16px] tracking-wider text-white placeholder:text-white/25 outline-none focus:border-teal-300/70"
+            />
+            <div className="text-[11.5px] leading-snug text-white/55">
+              {code
+                ? "Same beds, Shops and Bosses as theirs. Code gardens stay off the leaderboard."
+                : codeTyped
+                  ? "That isn't a garden code yet: a garden word and 4 digits, like MOSS-4821."
+                  : "Type the code from a friend's end screen."}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setCodeOpen(false);
+                setCodeText("");
+              }}
+              className="text-[12px] font-semibold text-white/50 underline underline-offset-2"
+            >
+              Grow a fresh garden instead
+            </button>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setCodeOpen(true)}
+            className="w-full text-left text-[12.5px] font-semibold text-teal-200/85 px-1"
+          >
+            🌱 Play a friend&apos;s garden code
+          </button>
         )}
 
         <div className="grid grid-cols-2 gap-1.5">
@@ -160,12 +217,15 @@ export default function AscensionPicker({
         </div>
         )}
 
+        {runInProgress && <div className="text-center text-[11.5px] text-amber-200/80">Starting ends the Run in progress.</div>}
         <button
           type="button"
-          onClick={() => onStart(level, companion)}
-          className="w-full rounded-xl py-3 font-bold text-[14px] bg-teal-300 text-slate-950 active:scale-95"
+          disabled={codeTyped && !code}
+          onClick={() => onStart(level, companion, code)}
+          className="w-full rounded-xl py-3 font-bold text-[14px] bg-teal-300 text-slate-950 active:scale-95 disabled:opacity-40"
         >
-          Start with {pickedDef.sanctuaryShortName ?? pickedDef.shortName}
+          {code ? `Plant ${code} with ` : "Start with "}
+          {pickedDef.sanctuaryShortName ?? pickedDef.shortName}
           {level > 0 ? ` · Ascension ${level}` : ""} →
         </button>
         <DoneButton onClick={onClose} label="Not now" />

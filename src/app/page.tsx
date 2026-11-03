@@ -195,6 +195,7 @@ import {
   scoreRunStroke,
   startRunGarden,
 } from "@/lib/runReplay";
+import { isRunFromCode, loadPendingCode, markRunFromCode, newSeedCode, normalizeSeedCode, savePendingCode, seedCodeOf } from "@/lib/seedCode";
 import { dailyRecord, dailyStatus, finishDaily, noteRunStarted, recordDailyBed } from "@/lib/daily";
 import { askToKeepStorage, clearRunSave, keepUnreadableRunSave, readRunSave, rebuildRunFromSave, writeRunSave } from "@/lib/runSave";
 import {
@@ -401,6 +402,9 @@ export default function OneStrokeTacticianPage() {
   const [runClear, setRunClear] = useState<RunClearInfo | null>(null);
   // Stopped after a Boss: the saved-for-later screen is up
   const [runResting, setRunResting] = useState(false);
+  // A garden code waiting to be planted (from a ?seed= link)
+  const [pendingCode, setPendingCode] = useState<string | null>(null);
+  const openSheetForCodeRef = useRef(false);
   const [runOver, setRunOver] = useState<RunOverInfo | null>(null);
   // The Run's action log (sent with leaderboard submissions so the server can
   // replay it) and the Shop a bloomed garden opens; null for practice
@@ -668,6 +672,15 @@ export default function OneStrokeTacticianPage() {
       runCompanionRef.current = loadChosenCompanion(loadCosmeticPreferences().companionId);
       // Continue a Run saved on this device, or start a new one
       resumeSavedRun();
+      // A shared garden code (?seed=MOSS-4821) waits in the New Run sheet
+      const linkCode = normalizeSeedCode(new URLSearchParams(window.location.search).get("seed") ?? "");
+      if (linkCode) {
+        openSheetForCodeRef.current = true;
+        savePendingCode(linkCode);
+        window.history.replaceState(null, "", window.location.pathname);
+        track("code_link_open");
+      }
+      setPendingCode(linkCode ?? loadPendingCode());
       try {
         setLessonsProgress(
           Number(window.localStorage.getItem(RUN_LESSONS_PROGRESS_KEY)) || 0
@@ -1386,7 +1399,7 @@ export default function OneStrokeTacticianPage() {
    * Starts a fresh Run: a new seed, a new Tile Bag and Season 1's Small Garden.
    */
   const startRun = useCallback(
-    (overrideClassId?: HeroClassId, _isTrial?: boolean, options?: { practice?: boolean; asc?: number; daily?: boolean }) => {
+    (overrideClassId?: HeroClassId, _isTrial?: boolean, options?: { practice?: boolean; asc?: number; daily?: boolean; seed?: string }) => {
       const practice = Boolean(options?.practice);
       // Daily Garden: today's seed for everyone, the Keeper, Ascension 0
       const daily = !practice && options?.daily ? getTodayDateKey() : null;
@@ -1402,7 +1415,7 @@ export default function OneStrokeTacticianPage() {
         ? PRACTICE_GARDEN_SEED
         : daily
           ? dailyRunSeed(daily)
-          : `run-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+          : options?.seed ?? newSeedCode();
       // Each Run gets its own musical phrases
       soundEngine.setMusicSeed(runSeed);
       // Companions are earned by playing (no free trials): a locked one falls back to the Keeper
@@ -1437,6 +1450,13 @@ export default function OneStrokeTacticianPage() {
       if (!practice) {
         countRunStarted();
         const official = noteRunStarted(daily);
+        // A friend's garden code: plays the same beds, but stays off the leaderboard
+        markRunFromCode(options?.seed ?? null);
+        if (options?.seed) {
+          savePendingCode(null);
+          setPendingCode(null);
+          handleNotice(`🌱 Planting garden ${options.seed}: the same beds, Shops and Bosses as whoever shared it.`);
+        }
         track("run_start", { companion: classId, asc: asc ?? 0, runs: runsStarted(), daily: Boolean(daily), official });
         if (daily) {
           handleNotice(
@@ -1475,6 +1495,13 @@ export default function OneStrokeTacticianPage() {
     if (runsStarted() > 0 || loadUnlockedAscension() > 0 || unlockedRunCompanions().length > 1) setAscPickerOpen(true);
     else startRun();
   };
+
+  // A ?seed= link opens the New Run sheet with the code filled in (after any walkthrough)
+  useEffect(() => {
+    if (!isMounted || !openSheetForCodeRef.current || pendingWalkthrough || lessonIndex !== null) return;
+    openSheetForCodeRef.current = false;
+    setAscPickerOpen(true);
+  }, [isMounted, pendingWalkthrough, lessonIndex]);
 
   /** Today's Daily Garden (from the New Run sheet or the end screen) */
   const startDailyGarden = () => {
@@ -2048,7 +2075,7 @@ export default function OneStrokeTacticianPage() {
   /** Sends a Run checkpoint / finished Run to the leaderboard (never practice) */
   const sendRunToLeaderboard = (score: number, gardenIndex: number) => {
     const log = runLogRef.current;
-    if (practiceStep || score <= 0 || !log || log.seed === PRACTICE_GARDEN_SEED) return;
+    if (practiceStep || score <= 0 || !log || log.seed === PRACTICE_GARDEN_SEED || isRunFromCode(log.seed)) return;
     void submitRunToLeaderboard({
       score,
       gardenIndex,
@@ -2118,6 +2145,8 @@ export default function OneStrokeTacticianPage() {
       runScore,
       gardensCleared: garden.gardenIndex + (reason === "DAILY_DONE" ? 1 : 0),
       daily: dailyDate ? { dateKey: dailyDate, record: dailyRec, streak: dailyStatus(dailyDate).streak } : undefined,
+      seedCode: practiceStep ? null : seedCodeOf(dungeon.seedKey),
+      fromCode: !practiceStep && isRunFromCode(dungeon.seedKey),
       best: record,
       isNewBest: isNew,
       asc: practiceStep ? 0 : runLogRef.current?.asc ?? 0,
@@ -4994,17 +5023,19 @@ export default function OneStrokeTacticianPage() {
         initial={runAscensionRef.current}
         companions={ascPickerOpen ? unlockedRunCompanions() : ["KNIGHT"]}
         initialCompanion={runCompanionRef.current}
-        onStart={(level, companion) => {
+        onStart={(level, companion, code) => {
           setAscPickerOpen(false);
           saveChosenAscension(level);
           saveChosenCompanion(companion);
           runAscensionRef.current = level;
           runCompanionRef.current = companion;
           setRunOver(null);
-          startRun(companion, false, { asc: level });
+          startRun(companion, false, { asc: level, seed: code ?? undefined });
         }}
         onPlayDaily={startDailyGarden}
         dailyToday={ascPickerOpen ? dailyStatus() : undefined}
+        initialCode={pendingCode}
+        runInProgress={floorHistory.length > 0 && phase !== "DEFEAT" && !lesson && runOver === null}
         onClose={() => setAscPickerOpen(false)}
       />
       <LooksModal

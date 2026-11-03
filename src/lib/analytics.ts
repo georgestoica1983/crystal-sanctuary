@@ -65,6 +65,8 @@ export type TrackEvent =
   | "run_over"
   | "run_paused"
   | "daily_share"
+  | "code_share"
+  | "code_link_open"
   | "feedback_open"
   | "run_start"
   | "bed_start"

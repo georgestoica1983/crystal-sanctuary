@@ -24,6 +24,7 @@ import RelicIcon from "@/components/RelicIcon";
 import { tileArt } from "@/lib/art";
 import { pickNextGoal } from "@/lib/unlocks";
 import { DailyRecord, dailyGridRows, dailyShareText } from "@/lib/daily";
+import { seedCodeLink } from "@/lib/seedCode";
 
 const BLOOM_ART = tileArt("ENEMY", { bloomed: true }) ?? "";
 import { soundEngine } from "@/lib/audio";
@@ -774,6 +775,10 @@ export interface RunOverInfo {
   newRelics?: RelicId[];
   /** A Daily Garden: its date, the official try's record (null if this was a replay) and the day streak */
   daily?: { dateKey: string; record: DailyRecord | null; streak: number };
+  /** This Run's garden code (MOSS-4821), to share; older Runs have none */
+  seedCode?: string | null;
+  /** Planted from someone else's code */
+  fromCode?: boolean;
 }
 
 /** Why the garden rests: said gently, never as a failure */
@@ -784,6 +789,52 @@ const REST_COPY: Record<RunEndReason, string> = {
   ENDED: "You let the garden rest for now.",
   DAILY_DONE: "All three Seasons bloomed. Come back tomorrow for a new garden.",
 };
+
+/** Share sheet on phones, otherwise copy; true once copied */
+async function shareOrCopy(text: string): Promise<boolean> {
+  try {
+    if (navigator.share) {
+      await navigator.share({ text });
+      return false;
+    }
+  } catch {
+    // Cancelled or unavailable: fall back to copying
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** This Run's garden code: anyone who plants it gets the same beds */
+function GardenCodeRow({ code, fromCode, reached, score }: { code: string; fromCode: boolean; reached: string; score: number }) {
+  const [copied, setCopied] = useState(false);
+  const share = async () => {
+    track("code_share");
+    const text = `My Bloomline garden ${code}: I reached ${reached} with ${fmt(score)}. Can you beat it?\n${seedCodeLink(code)}`;
+    if (await shareOrCopy(text)) {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    }
+  };
+  return (
+    <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2">
+      <div className="min-w-0 flex-1">
+        <div className="text-[11px] text-white/45">{fromCode ? "Garden code (a friend's)" : "Garden code"}</div>
+        <div className="font-mono text-[15px] font-bold tracking-wider text-teal-100">{code}</div>
+      </div>
+      <button
+        type="button"
+        onClick={share}
+        className="shrink-0 rounded-lg border border-teal-300/40 bg-teal-300/10 px-3 py-1.5 text-[12.5px] font-bold text-teal-100 active:scale-[0.97]"
+      >
+        {copied ? "Copied!" : "Challenge a friend"}
+      </button>
+    </div>
+  );
+}
 
 /** The Daily Garden's flower grid with a Share button (a replay shows it's practice) */
 function DailyResultCard({ dateKey, record, streak }: { dateKey: string; record: DailyRecord | null; streak: number }) {
@@ -798,20 +849,9 @@ function DailyResultCard({ dateKey, record, streak }: { dateKey: string; record:
   const text = dailyShareText(dateKey, record, streak);
   const share = async () => {
     track("daily_share");
-    try {
-      if (navigator.share) {
-        await navigator.share({ text });
-        return;
-      }
-    } catch {
-      // Cancelled or unavailable: fall back to copying
-    }
-    try {
-      await navigator.clipboard.writeText(text);
+    if (await shareOrCopy(text)) {
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Nothing more to try
     }
   };
   return (
@@ -1013,6 +1053,15 @@ export function RunOverModal({
           )}
         </div>
 
+
+        {info.seedCode && !info.daily && (
+          <GardenCodeRow
+            code={info.seedCode}
+            fromCode={Boolean(info.fromCode)}
+            reached={getRunGardenLabel(info.gardenIndex)}
+            score={info.runScore}
+          />
+        )}
 
         <div
           className={`rounded-xl px-3 py-2 text-center text-[12.5px] ${
