@@ -501,6 +501,13 @@ export function shopUnlocks(logVersion: number, season: number) {
 export const runRulesUseRareShops = (logVersion: number) => logVersion >= 20;
 /** v20: targets grow ×1.4 from Season 4 (the Gardener and Rare Shops make Runs stronger) */
 export const runRulesUseLateTargets = (logVersion: number) => logVersion >= 20;
+/** v23: the late climb keeps steepening each Season (runLateTargetMult) */
+export const runRulesUseSteepTargets = (logVersion: number) => logVersion >= 23;
+/** v23: the Shop can reroll the coming Boss, once per Season */
+export const runRulesUseBossReroll = (logVersion: number) => logVersion >= 23;
+export const BOSS_REROLL_COST = 6;
+/** The Season whose Boss comes next after this bed (a Boss bed looks a Season ahead) */
+export const comingBossSeason = (gardenIndex: number) => Math.floor(gardenIndex / 3) + (gardenIndex % 3 === 2 ? 2 : 1);
 export const RARE_SHOP_SEASON = 4;
 /** v20: Golden Hour and Thick Brambles on some Small and Big beds from Season 2 */
 export const runRulesUseWeather = (logVersion: number) => logVersion >= 20;
@@ -793,6 +800,8 @@ export function createNextRunGarden(params: {
   asc?: number;
   /** Rules v17+: the bed before was skipped, so no Life comes back */
   skipped?: boolean;
+  /** Rules v23+: Seasons whose Boss was rerolled */
+  bossRerolls?: number[];
 }): { hero: HeroStats; floor: DungeonFloor; state: RunGardenState } {
   const v = params.logVersion ?? RUN_LOG_VERSION;
   const rules = ascensionRules(runAscensionFor(v, params.asc));
@@ -819,6 +828,8 @@ export function createNextRunGarden(params: {
     bossV20: runRulesUseV20Bosses(v),
     weather: runRulesUseWeather(v),
     lateTargets: runRulesUseLateTargets(v),
+    steepTargets: runRulesUseSteepTargets(v),
+    bossRerolled: Boolean(params.bossRerolls?.includes(getRunGardenPosition(params.gardenIndex).season)),
     ...ascensionGardenParams(rules),
   });
   // Rules v20: the Wandering Gardener waits at the start of Seasons 4 and 6
@@ -951,9 +962,12 @@ export function getRunPathError(
  * v22: relic families (Acorn Pouch, Twin Acorns, Acorn Hoard, Berry Jam,
  *      Bramble Wine, Iron Moss, Lodestone, Garden Path Map) join the Shop, and
  *      Seed packets: one-use items bought in the Shop, held two at a time.
+ * v23: a steeper climb (targets grow +0.25× each Season from Season 4, and
+ *      faster still in Endless), and the Shop can reroll the coming Boss
+ *      once per Season for Seeds.
  * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 22;
+export const RUN_LOG_VERSION = 23;
 export const RUN_LOG_MIN_VERSION = 2;
 /** Rule set of new Runs (the current version) */
 export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);
@@ -979,6 +993,8 @@ export type RunLogAction =
   | { k: "g"; i: number }
   /** Rules v22+: use held Seed packet `i` */
   | { k: "c"; i: number }
+  /** Rules v23+: reroll the coming Boss (in the Shop, once per Season) */
+  | { k: "o" }
   | { k: "l"; h: HeroClassId };
 
 export interface RunActionLog {
@@ -1080,6 +1096,7 @@ export function parseRunLog(raw: unknown): RunActionLog | null {
     if (a.k === "l" && isHeroClass(a.h)) continue;
     if (a.k === "k" && log.v >= 17) continue;
     if (a.k === "g" && log.v >= 20 && typeof a.i === "number" && Number.isInteger(a.i) && a.i >= 0 && a.i < 3) continue;
+    if (a.k === "o" && log.v >= 23) continue;
     if (a.k === "c" && log.v >= 22 && typeof a.i === "number" && Number.isInteger(a.i) && a.i >= 0 && a.i < MAX_PACKETS) continue;
     if (
       a.k === "u" &&
@@ -1116,6 +1133,8 @@ export interface RunReplayState {
   /** Rules v22+: Seed packets held, and the one armed for the next line */
   packets: PacketId[];
   armedPacket: PacketId | null;
+  /** Rules v23+: Seasons whose Boss was rerolled */
+  bossRerolls: number[];
   /** Rules v17+: Tags taken by skipping beds, and a free Rare relic waiting for the next Shop */
   tags: SkipTag[];
   freeRelicNext: boolean;
@@ -1158,6 +1177,7 @@ export function createRunReplayer(
     tools: [],
     packets: [],
     armedPacket: null,
+    bossRerolls: [],
     tags: [],
     freeRelicNext: false,
     gardenUpgrades: [],
@@ -1423,6 +1443,17 @@ export function createRunReplayer(
       return null;
     }
 
+    if (action.k === "o") {
+      if (!runRulesUseBossReroll(logVersion)) return "no Boss rerolls in these rules";
+      if (s.phase !== "SHOP") return "Boss reroll outside the Shop";
+      const season = comingBossSeason(s.garden.gardenIndex);
+      if (s.bossRerolls.includes(season)) return "this Season's Boss was already rerolled";
+      if (s.shop.stats.gold < BOSS_REROLL_COST) return "Boss reroll not affordable";
+      s.bossRerolls = [...s.bossRerolls, season];
+      s.shop = { ...s.shop, stats: { ...s.shop.stats, gold: s.shop.stats.gold - BOSS_REROLL_COST } };
+      return null;
+    }
+
     if (action.k === "k") {
       if (!runRulesAllowSkip(logVersion)) return "no skipping in these rules";
       if (s.phase !== "PLAY") return "skip outside a garden";
@@ -1465,6 +1496,7 @@ export function createRunReplayer(
       gardenIndex: s.garden.gardenIndex + 1,
       logVersion,
       asc,
+      bossRerolls: s.bossRerolls,
     });
     s.floor = next.floor;
     s.grid = next.floor.grid;

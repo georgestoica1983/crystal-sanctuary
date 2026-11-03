@@ -170,6 +170,10 @@ import {
   createNextRunGarden,
   addTagRelicOffer,
   applyRunSkip,
+  runRulesUseSteepTargets,
+  runRulesUseBossReroll,
+  comingBossSeason,
+  BOSS_REROLL_COST,
   finishShopOffers,
   GARDEN_UPGRADES,
   runRulesUseUpgrades,
@@ -425,6 +429,13 @@ export default function OneStrokeTacticianPage() {
   // The Run's action log (sent with leaderboard submissions so the server can
   // replay it) and the Shop a bloomed garden opens; null for practice
   const runLogRef = useRef<RunActionLog | null>(null);
+  /** Rules v23+: Seasons whose Boss was rerolled in the Shop */
+  const [bossRerolls, setBossRerolls] = useState<number[]>([]);
+  /** The Boss a Season brings in this Run (after any reroll) */
+  const seasonBoss = (season: number) => {
+    const v = runLogRef.current?.v ?? RUN_LOG_VERSION;
+    return previewSeasonBoss(dungeon.seedKey, season, runRulesUseAllBosses(v), runRulesUseNewBosses(v), bossRerolls.includes(season));
+  };
   const runBloomRef = useRef<{ statsWithPayout: HeroStats; offers: ShopOffer[] } | null>(null);
   const logRunAction = (action: RunLogAction) => {
     runLogRef.current?.a.push(action);
@@ -979,7 +990,7 @@ export default function OneStrokeTacticianPage() {
     tipBedRef.current = key;
     if (bossAhead) {
       const v = runLogRef.current?.v ?? RUN_LOG_VERSION;
-      const id = previewSeasonBoss(dungeon.seedKey, runGarden.season, runRulesUseAllBosses(v), runRulesUseNewBosses(v));
+      const id = seasonBoss(runGarden.season);
       const boss = BOSS_RULE_REGISTRY[id];
       setTip({
         kind: "GAME",
@@ -1493,6 +1504,7 @@ export default function OneStrokeTacticianPage() {
       setToolArmed(null);
       setRunPackets([]);
       setArmedPacket(null);
+      setBossRerolls([]);
       setFreeRelicNext(false);
       setSkipOpen(false);
       setGardenUpgrades([]);
@@ -1962,6 +1974,22 @@ export default function OneStrokeTacticianPage() {
     soundEngine.playHintReveal();
   }, [mode, pendingPostFloorStats, hero, shopRerolls, rerollCost, dungeon.seedKey, currentFloor, activeRelics, runGarden, gardenUpgrades, upgradeSeasons]);
 
+  /** Rules v23+: reroll the coming Boss (once per Season, mirrors the replay's "o") */
+  const handleRerollBoss = useCallback(() => {
+    const v = runLogRef.current?.v ?? RUN_LOG_VERSION;
+    if (mode !== "RUN" || !runGarden || !runRulesUseBossReroll(v)) return;
+    const season = comingBossSeason(runGarden.gardenIndex);
+    const base = pendingPostFloorStats ?? hero;
+    if (bossRerolls.includes(season) || base.gold < BOSS_REROLL_COST) return;
+    const next = { ...base, gold: base.gold - BOSS_REROLL_COST };
+    logRunAction({ k: "o" });
+    setPendingPostFloorStats(next);
+    setHero(next);
+    setGemsSpent((prev) => prev + BOSS_REROLL_COST);
+    setBossRerolls([...bossRerolls, season]);
+    soundEngine.playHintReveal();
+  }, [mode, runGarden, pendingPostFloorStats, hero, bossRerolls]);
+
   /** Pruning Shears (Run, rules v9+): remove one tile from the bag for the rest of the Run */
   const canPrune = mode === "RUN" && runRulesAllowPrune(runLogRef.current?.v ?? 0);
   const handlePruneTile = useCallback(
@@ -2038,6 +2066,7 @@ export default function OneStrokeTacticianPage() {
         // A resumed older Run keeps its own rules (it replays on the server)
         logVersion: runLogRef.current?.v,
         asc: runLogRef.current?.asc,
+        bossRerolls,
       });
       logRunAction({ k: "l", h: nextClassId });
       // The Run's own rules decide the next garden's Companion (same as its replay)
@@ -2657,7 +2686,7 @@ export default function OneStrokeTacticianPage() {
     const nextPos = getRunGardenPosition(garden.gardenIndex + 1);
     const nextBoss =
       nextPos.kind === "BOSS"
-        ? previewSeasonBoss(dungeon.seedKey, nextPos.season, runRulesUseAllBosses(v), runRulesUseNewBosses(v))
+        ? seasonBoss(nextPos.season)
         : null;
     const nextBed = runLogRef.current?.d && garden.gardenIndex >= RUN_DAILY_LAST_BED
       ? null
@@ -2665,7 +2694,7 @@ export default function OneStrokeTacticianPage() {
           label: `${nextPos.season > garden.season ? `Season ${nextPos.season} · ` : ""}${shortBedName(nextPos.kind)}`,
           target: scaleRunTarget(
             getRunGardenTarget(nextPos.season, nextPos.kind, runRulesUseGentleStart(v)),
-            runLateTargetMult(nextPos.season, runRulesUseLateTargets(v))
+            runLateTargetMult(nextPos.season, runRulesUseLateTargets(v), runRulesUseSteepTargets(v))
           ),
           boss: nextBoss,
         };
@@ -2965,6 +2994,7 @@ export default function OneStrokeTacticianPage() {
     setToolArmed(null);
     setRunPackets(r.packets ?? []);
     setArmedPacket(r.armedPacket ?? null);
+    setBossRerolls(r.bossRerolls ?? []);
     setFreeRelicNext(r.freeRelicNext);
     setSkipOpen(false);
     setGardenUpgrades(r.gardenUpgrades);
@@ -4050,12 +4080,7 @@ export default function OneStrokeTacticianPage() {
                   asc={runLogRef.current?.asc ?? 0}
                   upcomingBoss={
                     runGarden.kind !== "BOSS"
-                      ? previewSeasonBoss(
-                        dungeon.seedKey,
-                        runGarden.season,
-                        runRulesUseAllBosses(runLogRef.current?.v ?? RUN_LOG_VERSION),
-                        runRulesUseNewBosses(runLogRef.current?.v ?? RUN_LOG_VERSION)
-                      )
+                      ? seasonBoss(runGarden.season)
                       : null
                   }
                 />
@@ -5036,6 +5061,22 @@ phase === "RESOLVING"
         relicCounters={relicCounters}
         toolsHeld={runTools.length}
         packetsHeld={runPackets.length}
+        bossReroll={
+          mode === "RUN" && runGarden && runRulesUseBossReroll(runLogRef.current?.v ?? RUN_LOG_VERSION) &&
+          !(runLogRef.current?.d && runGarden.gardenIndex >= RUN_DAILY_LAST_BED)
+            ? (() => {
+                const season = comingBossSeason(runGarden.gardenIndex);
+                return {
+                  id: seasonBoss(season),
+                  season,
+                  isNext: runGarden.kind === "BIG",
+                  cost: BOSS_REROLL_COST,
+                  done: bossRerolls.includes(season),
+                  onReroll: handleRerollBoss,
+                };
+              })()
+            : null
+        }
         onSell={mode === "RUN" ? handleSellRelic : undefined}
         bag={canPrune ? runBag : undefined}
         pruned={shopPruned}
@@ -5059,7 +5100,7 @@ phase === "RESOLVING"
                 const v = runLogRef.current?.v ?? RUN_LOG_VERSION;
                 return `Season ${next.season} · ${shortBedName(next.kind)} · target ${scaleRunTarget(
                   getRunGardenTarget(next.season, next.kind, runRulesUseGentleStart(v)),
-                  runLateTargetMult(next.season, runRulesUseLateTargets(v))
+                  runLateTargetMult(next.season, runRulesUseLateTargets(v), runRulesUseSteepTargets(v))
                 ).toLocaleString()}`;
               })()
             : dungeon.floors[currentFloorIndex + 1]
@@ -5071,12 +5112,7 @@ phase === "RESOLVING"
         nextBossRuleId={
           // The next bed is this Season's Boss: show it ahead (from the Run's seed)
           mode === "RUN" && runGarden && runGarden.kind === "BIG"
-            ? previewSeasonBoss(
-                      dungeon.seedKey,
-                      runGarden.season,
-                      runRulesUseAllBosses(runLogRef.current?.v ?? RUN_LOG_VERSION),
-                      runRulesUseNewBosses(runLogRef.current?.v ?? RUN_LOG_VERSION)
-                    )
+            ? seasonBoss(runGarden.season)
             : dungeon.floors[currentFloorIndex + 1]?.bossRuleId
         }
         legendaryAward={legendaryAward}

@@ -32,7 +32,7 @@ import {
 } from "@/lib/engine";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import PruneSheet from "@/components/PruneCard";
-import { packetArt, statArt, themeArt, tileArt } from "@/lib/art";
+import { miscArt, packetArt, statArt, themeArt, tileArt } from "@/lib/art";
 import SupplyIcon from "@/components/SupplyIcon";
 import {
   getRelicTags,
@@ -88,6 +88,8 @@ interface ShopModalProps {
   toolsHeld?: number;
   /** Seed packets held (rules v22+): two at most */
   packetsHeld?: number;
+  /** Rules v23+: the coming Boss (this Season's, or next Season's after a Boss bed) and its reroll */
+  bossReroll?: { id: BossRuleId; season: number; isNext: boolean; cost: number; done: boolean; onReroll: () => void } | null;
   /** Selling relics (Run); hidden when omitted */
   onSell?: (relicId: RelicId) => void;
   /** Pruning Shears (Run, rules v9+): the Tile Bag; hidden when omitted */
@@ -345,6 +347,7 @@ export default function ShopModal({
   relicCounters,
   toolsHeld = 0,
   packetsHeld = 0,
+  bossReroll = null,
   onSell,
   bag,
   pruned = false,
@@ -717,8 +720,38 @@ export default function ShopModal({
           </div>
         )}
 
+        {/* The coming Boss, rerollable once per Season (rules v23+) */}
+        {bossReroll && (
+          <div className="flex items-center gap-2.5 rounded-xl border border-rose-300/25 bg-rose-500/[0.08] px-2.5 py-2">
+            <BossIcon id={bossReroll.id} size={36} className="shrink-0" />
+            <div className="min-w-0 flex-1 leading-tight">
+              <div className="text-[11.5px] text-rose-100/70 whitespace-nowrap">
+                {bossReroll.isNext ? "Up next: Boss Garden" : `Season ${bossReroll.season} Boss`}
+              </div>
+              <div className="text-[14px] font-semibold text-rose-50">{BOSS_RULE_REGISTRY[bossReroll.id].name}</div>
+            </div>
+            {bossReroll.done ? (
+              <span className="shrink-0 text-[12px] text-white/55">Rerolled ✓</span>
+            ) : (
+              <button
+                type="button"
+                onClick={bossReroll.onReroll}
+                disabled={gems < bossReroll.cost}
+                aria-label={`Reroll the Boss for ${bossReroll.cost} Seeds`}
+                className="shrink-0 h-11 rounded-lg pl-1.5 pr-2.5 border border-white/15 bg-white/[0.06] text-white/90 flex items-center gap-1.5 whitespace-nowrap active:scale-95 transition disabled:opacity-40"
+              >
+                <img src={miscArt("boss-reroll")} alt="" aria-hidden="true" draggable={false} className="h-7 w-7 object-contain" />
+                <span className="flex flex-col items-start leading-[1.1]">
+                  <span className="text-[12.5px] font-semibold">New Boss</span>
+                  <span className="text-[12px] text-white/70">{bossReroll.cost} 🌱</span>
+                </span>
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Up next, in one line */}
-        {nextFloorTitle && (
+        {nextFloorTitle && !(bossReroll?.isNext) && (
           <div className={`text-[12.5px] leading-snug ${nextBoss ? "text-rose-100" : "text-white/65"}`}>
             Up next:{" "}
             <b>

@@ -134,6 +134,8 @@ export interface RestoredRun {
   /** Seed packets held, and the one armed for the next line (rules v22+) */
   packets: PacketId[];
   armedPacket: PacketId | null;
+  /** Rules v23+: Seasons whose Boss was rerolled */
+  bossRerolls: number[];
   /** Rules v17+: a Relic Tag's free relic is waiting for the next Shop */
   freeRelicNext: boolean;
   /** Rules v18+: garden upgrades owned, and the Seasons one was bought in */
@@ -282,6 +284,7 @@ export function rebuildRunFromSave(raw: unknown): { ok: true; run: RestoredRun }
         tools: s.tools,
         packets: s.packets,
         armedPacket: s.armedPacket,
+        bossRerolls: s.bossRerolls,
         freeRelicNext: s.freeRelicNext,
         gardenUpgrades: s.gardenUpgrades,
         upgradeSeasons: s.upgradeSeasons,

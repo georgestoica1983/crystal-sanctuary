@@ -3701,8 +3701,20 @@ export function getRunSeasonGrowth(season: number): { briar: number; thistle: nu
  */
 export const RUN_LATE_TARGET_MULT = 1.4;
 export const RUN_LATE_TARGET_SEASON = 4;
-export const runLateTargetMult = (season: number, lateTargets: boolean) =>
-  lateTargets && season >= RUN_LATE_TARGET_SEASON ? RUN_LATE_TARGET_MULT : 1;
+/**
+ * Rules v23: like Balatro's antes, the climb steepens instead of one step:
+ * ×1.4 in Season 4, then +0.25 each Season (×2.15 in Season 7), and each
+ * Endless Season grows ×1.3 more on top of its usual growth
+ */
+export const RUN_STEEP_TARGET_STEP = 0.25;
+export const RUN_STEEP_ENDLESS_GROWTH = 1.3;
+export const runLateTargetMult = (season: number, lateTargets: boolean, steep = false) => {
+  if (!lateTargets || season < RUN_LATE_TARGET_SEASON) return 1;
+  if (!steep) return RUN_LATE_TARGET_MULT;
+  const s = Math.floor(season);
+  const climb = RUN_LATE_TARGET_MULT + RUN_STEEP_TARGET_STEP * (Math.min(s, RUN_FINAL_SEASON) - RUN_LATE_TARGET_SEASON);
+  return climb * Math.pow(RUN_STEEP_ENDLESS_GROWTH, Math.max(0, s - RUN_FINAL_SEASON));
+};
 
 export function scaleRunTarget(target: number, mult: number): number {
   if (mult === 1) return target;
@@ -3901,12 +3913,33 @@ export function getRunNewTileTypes(gardenIndex: number): EntityType[] {
  * The Boss a Season will most likely bring: its first choice for this Run.
  * (The bed itself takes the next one only if that board has no safe line.)
  */
-export function previewSeasonBoss(runSeed: string, season: number, allBossRules = true, newBosses = false): BossRuleId {
+export function previewSeasonBoss(
+  runSeed: string,
+  season: number,
+  allBossRules = true,
+  newBosses = false,
+  rerolled = false
+): BossRuleId {
+  return seasonBossOrder(runSeed, season, allBossRules, newBosses, rerolled)[0];
+}
+
+/**
+ * The Bosses a Season tries, in order (from the Run's seed). Rerolled (rules
+ * v23+), the first one moves to the back, so a different Boss comes.
+ */
+export function seasonBossOrder(
+  runSeed: string,
+  season: number,
+  allBossRules: boolean,
+  newBosses: boolean,
+  rerolled = false
+): BossRuleId[] {
   const rng = mulberry32(hashStringToSeed(`boss-${runSeed}-s${season}`));
-  const pool = bossPool(allBossRules, newBosses);
-  return [...pool]
+  const order = [...bossPool(allBossRules, newBosses)]
     .map((id) => ({ id, k: rng() }))
-    .sort((a, b) => a.k - b.k)[0].id;
+    .sort((a, b) => a.k - b.k)
+    .map((x) => x.id);
+  return rerolled ? [...order.slice(1), order[0]] : order;
 }
 
 export function createRunGarden(params: {
@@ -3929,6 +3962,10 @@ export function createRunGarden(params: {
   weather?: boolean;
   /** Rules v20+: higher targets from Season 4 (RUN_LATE_TARGET_MULT) */
   lateTargets?: boolean;
+  /** Rules v23+: targets keep climbing from Season 4 (runLateTargetMult) */
+  steepTargets?: boolean;
+  /** Rules v23+: this Season's Boss was rerolled in the Shop */
+  bossRerolled?: boolean;
   /** Rules v11+: gentler Season 1 targets */
   gentleStart?: boolean;
   /** Ascension (rules v8+): harder targets, stronger Thorns, fewer Swaps / Boss lines */
@@ -3942,14 +3979,7 @@ export function createRunGarden(params: {
   const { season, kind } = getRunGardenPosition(gardenIndex);
   const bossOrder: Array<BossRuleId | undefined> =
     kind === "BOSS"
-      ? (() => {
-          const rng = mulberry32(hashStringToSeed(`boss-${runSeed}-s${season}`));
-          const pool = bossPool(Boolean(params.allBossRules), Boolean(params.newBosses));
-          return [...pool]
-            .map((id) => ({ id, k: rng() }))
-            .sort((a, b) => a.k - b.k)
-            .map((x) => x.id);
-        })()
+      ? seasonBossOrder(runSeed, season, Boolean(params.allBossRules), Boolean(params.newBosses), params.bossRerolled)
       : [undefined];
 
   const weather = params.weather ? runBedWeather(runSeed, gardenIndex, season, kind) : undefined;
@@ -3990,7 +4020,7 @@ export function createRunGarden(params: {
         kind,
         target: scaleRunTarget(
           getRunGardenTarget(season, kind, params.gentleStart ?? false),
-          (params.targetMult ?? 1) * runLateTargetMult(season, Boolean(params.lateTargets))
+          (params.targetMult ?? 1) * runLateTargetMult(season, Boolean(params.lateTargets), params.steepTargets)
         ),
         score: 0,
         strokesLeft: kind === "BOSS" && params.bossLines ? params.bossLines : RUN_STROKES_PER_GARDEN,

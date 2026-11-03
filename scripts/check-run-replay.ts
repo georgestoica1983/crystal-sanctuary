@@ -22,6 +22,9 @@ import {
   searchBestFloorLine,
   simulatePath,
   V22_RELICS,
+  seasonBossOrder,
+  scaleRunTarget,
+  runLateTargetMult,
 } from "@/lib/engine";
 import {
   getRunBloomResult,
@@ -54,6 +57,7 @@ import {
   RunLogAction,
   applySeedPacket,
   SEED_PACKETS,
+  comingBossSeason,
 } from "@/lib/runReplay";
 import { verifyRunSubmission } from "@/lib/server/runLeaderboard";
 import { completedRelicSets, RELIC_SET_X } from "@/lib/relicTags";
@@ -75,7 +79,7 @@ function check(label: string, ok: boolean, detail = "") {
  * With `chaseSets` it first buys a relic that shares a tag with its own.
  * Returns its log and the score it expects from the searched lines' scores.
  */
-function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0, chaseSets = false, v = RUN_LOG_VERSION, fertFirst = false, usePackets = false) {
+function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0, chaseSets = false, v = RUN_LOG_VERSION, fertFirst = false, usePackets = false, rerollBoss = false) {
   const run = createRunReplayer(seed, hero, v, asc);
   const log: RunActionLog = asc ? { v, seed, hero, asc, a: [] } : { v, seed, hero, a: [] };
   let expected = 0;
@@ -89,6 +93,8 @@ function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0
     if (s.phase === "SHOP") {
       if (s.gardensBloomed >= maxGardens) break;
       if (!chaseSets && s.shop.rerolls === 0 && s.shop.stats.gold >= 20) act({ k: "r" });
+      // The reroll bot rerolls each Season's Boss when it can (rules v23+)
+      if (rerollBoss && run.apply({ k: "o" }) === null) log.a.push({ k: "o" });
       // The packet bot buys the Seed packet first
       if (usePackets) {
         const packet = run.state.shop.offers.find(
@@ -1151,6 +1157,68 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
   const old = createRunReplayer("packets-v21", "KNIGHT", 21);
   check("a packet use is refused under rules v21", old.apply({ k: "c", i: 0 }) === "no Seed packets in these rules");
   check("refused: a packet action in a v21 log", !parseRunLog({ v: 21, seed: "x", hero: "KNIGHT", a: [{ k: "c", i: 0 }] }));
+}
+
+// Rules v23: a steeper climb from Season 4, and a Boss reroll once per Season
+{
+  const targetOf = (season: number, steep: boolean) =>
+    scaleRunTarget(getRunGardenTarget(season, "SMALL"), runLateTargetMult(season, true, steep));
+  check("v23 targets match v22 up to Season 4", [1, 2, 3, 4].every((n) => targetOf(n, true) === targetOf(n, false)));
+  check(
+    `v23 targets climb from Season 5 (S5 ×${runLateTargetMult(5, true, true)}, S8 ×${runLateTargetMult(8, true, true)}, S9 ×${runLateTargetMult(9, true, true).toFixed(2)})`,
+    [5, 6, 7, 8, 9].every((n) => targetOf(n, true) > targetOf(n, false)) &&
+      runLateTargetMult(5, true, true) === 1.65 &&
+      runLateTargetMult(8, true, true) === 2.4
+  );
+  const v22Bed = createRunReplayer("steep-1", "KNIGHT", 22).state.garden.target;
+  check("a v22 Run's first bed keeps its target", v22Bed === createRunReplayer("steep-1", "KNIGHT", 23).state.garden.target);
+
+  // A rerolled Season brings a different Boss, the next one in its order
+  let differs = true;
+  for (let n = 1; n <= 30; n++) {
+    const order = seasonBossOrder(`boss-order-${n}`, 2, true, true);
+    const rerolled = previewSeasonBoss(`boss-order-${n}`, 2, true, true, true);
+    if (rerolled === order[0] || rerolled !== order[1]) differs = false;
+  }
+  check("a rerolled Boss is always a different one (the next in the Season's order)", differs);
+
+  // In a whole Run: the bot rerolls each Season's Boss, the Boss bed obeys, and the replay agrees
+  const bot = playBotRun("boss-reroll-run-1", "KNIGHT", 6, 0, false, 23, false, false, true);
+  const rerolls = bot.log.a.filter((a) => a.k === "o").length;
+  const replay = replayRun(JSON.parse(JSON.stringify(bot.log)));
+  check(
+    `v23 bot Run with Boss rerolls replays (${rerolls} rerolls, ${bot.state.gardensBloomed} gardens)`,
+    rerolls > 0 && replay.ok && replay.score === bot.expected,
+    replay.ok ? `${replay.score} vs ${bot.expected}` : replay.error
+  );
+  {
+    const r = createRunReplayer("boss-reroll-run-1", "KNIGHT", 23);
+    let bossBed: { season: number; boss: string | undefined } | null = null;
+    for (const a of bot.log.a) {
+      r.apply(a);
+      if (!bossBed && r.state.phase === "PLAY" && r.state.garden.kind === "BOSS") {
+        bossBed = { season: r.state.garden.season, boss: r.state.garden.bossRuleId };
+      }
+    }
+    const order = seasonBossOrder("boss-reroll-run-1", 1, true, true, true);
+    check(
+      `the rerolled Season 1 Boss bed uses the rerolled order (${bossBed?.boss})`,
+      Boolean(bossBed && bossBed.boss && order.includes(bossBed.boss as never) && bossBed.boss !== seasonBossOrder("boss-reroll-run-1", 1, true, true)[0])
+    );
+  }
+  // Refusals
+  const fresh = createRunReplayer("boss-reroll-run-1", "KNIGHT", 23);
+  check("refused: a Boss reroll outside the Shop", fresh.apply({ k: "o" }) === "Boss reroll outside the Shop");
+  {
+    const r = createRunReplayer("boss-reroll-run-1", "KNIGHT", 23);
+    const firstO = bot.log.a.findIndex((a) => a.k === "o");
+    for (const a of bot.log.a.slice(0, firstO + 1)) r.apply(a);
+    check("refused: a second Boss reroll in the same Season", r.apply({ k: "o" }) === "this Season's Boss was already rerolled");
+  }
+  const old = createRunReplayer("boss-v22", "KNIGHT", 22);
+  check("a Boss reroll is refused under rules v22", old.apply({ k: "o" }) === "no Boss rerolls in these rules");
+  check("refused: a Boss reroll in a v22 log", !parseRunLog({ v: 22, seed: "x", hero: "KNIGHT", a: [{ k: "o" }] }));
+  check("the Boss after a Boss bed is next Season's", comingBossSeason(2) === 2 && comingBossSeason(3) === 2 && comingBossSeason(4) === 2 && comingBossSeason(5) === 3);
 }
 
 // Daily Garden: today's seed, the Keeper, Ascension 0, and nothing after the Season 3 Boss

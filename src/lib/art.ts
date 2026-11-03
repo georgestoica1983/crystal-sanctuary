@@ -79,7 +79,7 @@ export const tagArt = (id: string) => icon(`tag-${kebab(id)}`);
 export type BadgeId = "star" | "crown" | "flame" | "lock" | "golden" | "iridescent" | "radiant" | "seed";
 export const badgeArt = (id: BadgeId) => icon(`badge-${id}`);
 /** Garden moments (public/art/icons/misc-*.webp): the Gardener, Swap, the Journal, Today's garden… */
-export type MiscArtId = "gardener" | "swap" | "no-safe-line" | "journal" | "daily" | "music" | "hint" | "rotate-phone";
+export type MiscArtId = "gardener" | "swap" | "no-safe-line" | "journal" | "daily" | "music" | "hint" | "rotate-phone" | "boss-reroll";
 export const miscArt = (id: MiscArtId) => icon(`misc-${id}`);
 /** Bed weather (public/art/icons/weather-*.webp), e.g. GOLDEN_HOUR → weather-golden-hour */
 export const weatherArt = (id: string) => icon(`weather-${kebab(id)}`);
