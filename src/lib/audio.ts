@@ -520,10 +520,38 @@ class SoundAndHapticsEngine {
         typeof navigator.vibrate === "function"
       ) {
         navigator.vibrate(pattern);
+      } else {
+        this.iosTap();
       }
     } catch {
       // Ignore on unsupported devices
     }
+  }
+
+  /**
+   * iPhones have no web vibration, but iOS 18+ gives a light haptic tap when
+   * a switch control is toggled. One tap per event (no patterns); does
+   * nothing on older iOS or other browsers.
+   */
+  private iosSwitch: HTMLLabelElement | null = null;
+  private iosTap(): void {
+    if (typeof document === "undefined" || !/iPhone|iPad|iPod/.test(navigator.userAgent)) return;
+    if (!this.iosSwitch) {
+      const label = document.createElement("label");
+      label.setAttribute("aria-hidden", "true");
+      label.style.cssText = "position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden;left:-10px;top:-10px";
+      const input = document.createElement("input");
+      input.type = "checkbox";
+      input.setAttribute("switch", "");
+      input.tabIndex = -1;
+      label.appendChild(input);
+      // Its clicks never reach the page
+      label.addEventListener("click", (e) => e.stopPropagation());
+      input.addEventListener("click", (e) => e.stopPropagation());
+      document.body.appendChild(label);
+      this.iosSwitch = label;
+    }
+    this.iosSwitch.click();
   }
 
   private playTone(options: {
@@ -676,6 +704,16 @@ class SoundAndHapticsEngine {
     this.pluck(gardenNote(step, 2), { gain: 0.1, decay: 0.55 });
     // Every fifth tile (a new octave) adds a soft harmony a third above
     if (stepIndex > 0 && stepIndex % 5 === 0) this.pluck(gardenNote(step + 2, 2), { gain: 0.05, decay: 0.5, delay: 0.03 });
+  }
+
+  /** Drawing onto a Thorn or a Spike that will cost Life: a firmer tap */
+  public hapticHarm(): void {
+    this.vibrate(18);
+  }
+
+  /** The line reaches the gate while drawing: a short double pulse */
+  public hapticGate(): void {
+    this.vibrate([12, 34, 20]);
   }
 
   /** Backing up one tile */

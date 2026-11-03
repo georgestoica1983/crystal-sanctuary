@@ -379,6 +379,11 @@ export default function GridCanvas({
         nextPath.length - 1,
         simulation.firstDeathStepIndex !== null
       );
+      // Haptics: a firmer tap on a Thorn or a straight-on Spike, a double pulse at the gate
+      const stepType = grid[coord.row]?.[coord.col]?.type;
+      const diagonal = Math.abs(coord.row - currentHead.row) === 1 && Math.abs(coord.col - currentHead.col) === 1;
+      if (stepType === "EXIT") soundEngine.hapticGate();
+      else if (stepType === "ENEMY" || (stepType === "TRAP" && !diagonal)) soundEngine.hapticHarm();
       return true;
     },
     [grid, heroClassId, modifierId, setPath, onRetractNotice, simulation.firstDeathStepIndex]
