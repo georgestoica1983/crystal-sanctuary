@@ -277,6 +277,9 @@ import SoundPrompt from "@/components/SoundPrompt";
 const COACH_STORAGE_KEY = "ost_first_daily_coach_v1";
 /** The game is Run-only: other modes stay in the code but have no way in */
 const RUN_ONLY = true;
+
+/** "Small bed", "Big bed", "Boss bed": the short names the Run's top card uses */
+const shortBedName = (kind: string): string => (kind === "BOSS" ? "Boss bed" : kind === "BIG" ? "Big bed" : "Small bed");
 const RUN_WELCOME_KEY = "ost_run_welcome_v1";
 /** Set when the walkthrough is skipped; a one-time Thorn tip then shows in play */
 const WALKTHROUGH_SKIPPED_KEY = "ost_walkthrough_skipped_v1";
@@ -4894,14 +4897,19 @@ export default function OneStrokeTacticianPage() {
         clearedFloorNumber={currentFloorIndex + 1}
         totalFloors={dungeon.floors.length}
         headerLabel={
-          mode === "RUN" ? `${getRunGardenLabel(currentFloorIndex)} cleared` : undefined
+          mode === "RUN"
+            ? (() => {
+                const pos = getRunGardenPosition(currentFloorIndex);
+                return `Season ${pos.season} · ${shortBedName(pos.kind)} ✓`;
+              })()
+            : undefined
         }
         nextFloorTitle={
           mode === "RUN"
             ? (() => {
                 const next = getRunGardenPosition(currentFloorIndex + 1);
                 const v = runLogRef.current?.v ?? RUN_LOG_VERSION;
-                return `${getRunGardenLabel(currentFloorIndex + 1)} · target ${scaleRunTarget(
+                return `Season ${next.season} · ${shortBedName(next.kind)} · target ${scaleRunTarget(
                   getRunGardenTarget(next.season, next.kind, runRulesUseGentleStart(v)),
                   runLateTargetMult(next.season, runRulesUseLateTargets(v))
                 ).toLocaleString()}`;

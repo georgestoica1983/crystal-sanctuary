@@ -97,6 +97,24 @@ interface ShopModalProps {
   onLeave: () => void;
 }
 
+/** An offer tile's price, the same chip on every tile: seed and number, ✓ once bought, a lock when there's no room */
+function PriceChip({ sold, blocked, affordable, cost }: { sold: boolean; blocked: boolean; affordable: boolean; cost: number }) {
+  return (
+    <span
+      className={`absolute top-1 right-1 flex items-center gap-0.5 rounded-md px-1 text-[10.5px] leading-[15px] font-mono font-black ${
+        sold ? "text-white/50" : affordable && !blocked ? "bg-amber-400/20 text-amber-200" : "bg-white/[0.06] text-white/40"
+      }`}
+    >
+      {sold ? "✓" : blocked ? <Lock className="w-3 h-3" /> : (
+        <>
+          <Badge id="seed" size={11} />
+          {cost}
+        </>
+      )}
+    </span>
+  );
+}
+
 /** Kinds of Shop offer this device has seen (for the "New" label) */
 const SHOP_KINDS_SEEN_KEY = "ost_shop_kinds_seen_v1";
 
@@ -259,7 +277,7 @@ function ShopCoach({
           <div className="text-[13px] font-semibold text-amber-200/90">
             {step + 1} of {texts.length}
           </div>
-          <p className="mt-0.5 text-[16px] leading-snug">{texts[step]}</p>
+          <p className="mt-0.5 text-[16px] leading-snug">{artify(texts[step])}</p>
           <div className="mt-2.5 flex gap-2">
             <button type="button" onClick={onDone} className="h-11 flex-1 rounded-xl bg-white/[0.07] text-[14px] font-semibold text-white/80">
               Skip
@@ -316,6 +334,7 @@ export default function ShopModal({
   const cardRef = useRef<HTMLDivElement>(null);
   const seedsRef = useRef<HTMLDivElement>(null);
   const detailRef = useRef<HTMLDivElement>(null);
+  const offersRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (isOpen && showIntro) setCoach(0);
   }, [isOpen, showIntro]);
@@ -478,9 +497,11 @@ export default function ShopModal({
             {offer.relicId && getRelicTags(offer.relicId).map((t) => <TagChip key={t} tag={t} />)}
           </div>
           <div className="mt-0.5 text-[15px] font-black leading-tight">{info.name}</div>
-          <div className="text-[13px] font-semibold" style={{ color: info.accent }}>
-            {info.tag}
-          </div>
+          {offer.kind === "FERT" && (
+            <div className="text-[13px] font-semibold" style={{ color: info.accent }}>
+              {info.tag}
+            </div>
+          )}
           <div className="text-[13px] leading-snug text-white/80">{info.description}</div>
           {progress.length > 0 && !sold && (
             <div className="text-[12.5px] font-semibold text-lime-200">
@@ -530,7 +551,7 @@ export default function ShopModal({
             <div className="text-[12px] font-semibold text-emerald-300/90 truncate">
               {headerLabel ?? `${isSanctuary ? "Garden" : "Floor"} ${clearedFloorNumber}/${totalFloors} cleared`}
             </div>
-            <h2 className="text-[22px] font-display font-semibold leading-tight">{isSanctuary ? "Garden Shop" : "Sanctuary Shop"}</h2>
+            <h2 className="whitespace-nowrap text-[22px] font-display font-semibold leading-tight">{isSanctuary ? "Garden Shop" : "Sanctuary Shop"}</h2>
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
             <button
@@ -555,7 +576,7 @@ export default function ShopModal({
         </div>
 
         {/* Every offer as a tile: tap to see it below */}
-        <div className="grid grid-cols-4 gap-1.5">
+        <div ref={offersRef} className="grid grid-cols-[repeat(4,minmax(0,1fr))] gap-1.5">
           {ordered.map((offer) => {
             const info = describeOffer(offer, isSanctuary, relicCounters);
             const sold = soldIds.includes(offer.id);
@@ -571,28 +592,24 @@ export default function ShopModal({
                 aria-pressed={on}
                 aria-label={`${info.name}, ${offer.cost} Seeds${sold ? ", bought" : ""}`}
                 style={{ borderColor: on ? "#FCD34D" : sold ? "rgba(255,255,255,0.08)" : `${info.accent}55` }}
-                className={`relative h-[78px] rounded-xl border flex flex-col items-center justify-start gap-1 px-1 pt-1.5 transition active:scale-95 ${
+                className={`relative h-[80px] rounded-xl border flex flex-col items-center justify-start gap-1 px-1 pt-[19px] transition active:scale-95 ${
                   on ? "bg-amber-300/15" : offer.kind === "RELIC" ? "bg-white/[0.07]" : "bg-white/[0.035]"
                 } ${sold ? "opacity-45" : ""}`}
               >
-                {offerIcon(offer, 30)}
+                {offerIcon(offer, 26)}
                 <span className="w-full text-center text-[11px] font-bold leading-tight line-clamp-2">{name}</span>
-                {newKinds?.includes(offer.kind) && !sold && (
-                  <span className="absolute bottom-1 right-1 rounded-md bg-lime-300 px-1 text-[9px] font-black uppercase text-slate-950">New</span>
-                )}
-                {/* What it would add to your best line, to compare offers at a glance */}
-                {!sold && gainPct(scorePreview?.[offer.id] ?? 0) > 0 && (
-                  <span className="absolute top-1 left-1 rounded-md bg-emerald-400/20 px-1 text-[10px] font-mono font-black text-emerald-200">
+                {/* Top row, above the art: what it adds to your best line (or New) on the left, the price on the right */}
+                {!sold && gainPct(scorePreview?.[offer.id] ?? 0) > 0 ? (
+                  <span className="absolute top-1 left-1 rounded-md bg-emerald-400/20 px-1 text-[10px] leading-[15px] font-mono font-black text-emerald-200">
                     +{gainPct(scorePreview?.[offer.id] ?? 0)}%
                   </span>
+                ) : (
+                  newKinds?.includes(offer.kind) &&
+                  !sold && (
+                    <span className="absolute top-1 left-1 rounded-md bg-lime-300 px-1 text-[9px] leading-[15px] font-black uppercase text-slate-950">New</span>
+                  )
                 )}
-                <span
-                  className={`absolute top-1 right-1 rounded-md px-1 text-[10.5px] font-mono font-black ${
-                    sold ? "text-white/50" : affordable && !blocked ? "bg-amber-400/20 text-amber-200" : "text-white/40"
-                  }`}
-                >
-                  {sold ? "✓" : blocked ? <Lock className="w-3 h-3" /> : offer.cost}
-                </span>
+                <PriceChip sold={sold} blocked={blocked} affordable={affordable} cost={offer.cost} />
               </button>
             );
           })}
@@ -601,16 +618,14 @@ export default function ShopModal({
               type="button"
               onClick={() => setPruneOpen(true)}
               aria-haspopup="dialog"
-              className={`relative h-[78px] rounded-xl border flex flex-col items-center justify-start gap-1 px-1 pt-1.5 active:scale-95 border-white/15 bg-white/[0.035] ${
+              className={`relative h-[80px] rounded-xl border flex flex-col items-center justify-start gap-1 px-1 pt-[19px] active:scale-95 border-white/15 bg-white/[0.035] ${
                 pruned ? "opacity-45" : ""
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={tileArt("WEAPON") ?? ""} alt="" aria-hidden="true" draggable={false} className="h-[30px] w-[30px] object-contain" />
-              <span className="text-[11px] font-bold leading-tight">Prune a tile</span>
-              <span className="absolute top-1 right-1 rounded-md px-1 text-[10.5px] font-mono font-black text-amber-200">
-                {pruned ? "✓" : RUN_PRUNE_COST}
-              </span>
+              <img src={tileArt("WEAPON") ?? ""} alt="" aria-hidden="true" draggable={false} className="h-[26px] w-[26px] object-contain" />
+              <span className="w-full text-center text-[11px] font-bold leading-tight line-clamp-2">Prune a tile</span>
+              <PriceChip sold={pruned} blocked={false} affordable={gems >= RUN_PRUNE_COST} cost={RUN_PRUNE_COST} />
             </button>
           )}
         </div>
@@ -622,13 +637,11 @@ export default function ShopModal({
         </div>
 
         {/* Your relics: tap one to see it or sell it */}
-        <div className="flex items-center gap-1.5">
-          <span className="shrink-0 text-[11px] font-semibold leading-tight text-white/55">
-            Relics
-            <br />
-            {commonOwned.length}/{MAX_COMMON_RELICS}
-          </span>
-          <div className="grid flex-1 grid-cols-5 gap-1.5">
+        <div>
+          <div className="mb-1 text-[11px] font-semibold text-white/55">
+            Your relics · {commonOwned.length}/{MAX_COMMON_RELICS}
+          </div>
+          <div className="grid grid-cols-5 gap-1.5">
             {Array.from({ length: MAX_COMMON_RELICS }, (_, i) => {
               const id = commonOwned[i];
               const on = Boolean(id) && current?.kind === "OWNED" && current.id === id;
@@ -658,7 +671,7 @@ export default function ShopModal({
 
         {/* Up next, in one line */}
         {nextFloorTitle && (
-          <div className={`text-[12.5px] truncate ${nextBoss ? "text-rose-100" : "text-white/65"}`}>
+          <div className={`text-[12.5px] leading-snug ${nextBoss ? "text-rose-100" : "text-white/65"}`}>
             Up next:{" "}
             <b>
               {nextBoss && nextBossRuleId ? (
@@ -703,7 +716,7 @@ export default function ShopModal({
           <ShopCoach
             step={coach}
             cardRef={cardRef}
-            targets={[seedsRef, detailRef, seedsRef]}
+            targets={[seedsRef, offersRef, seedsRef]}
             texts={[
               `You earned ${gems} 🌱 by clearing the bed. Spend them here, or keep some.`,
               (() => {
