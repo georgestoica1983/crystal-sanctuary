@@ -92,7 +92,11 @@ Constraints:
 
 ---
 
-## Sheet B: Weather and Daily flowers (4 × 2, 8 icons)
+## Sheet B: Weather and Daily flowers (4 × 2, 8 icons) ✅ In the game
+
+Cut with `node scripts/cut-icon-sheet.cjs design/gemini-weather-daily.webp weatherdaily`. Where they now appear:
+- **Weather:** the top card on weather beds and the weather tip's picture.
+- **Daily flowers:** the in-game Daily grid and its legend. The share text keeps its emoji.
 
 **File:** `design/gemini-weather-daily.webp` · **set:** `weatherdaily`
 

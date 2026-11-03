@@ -22,7 +22,7 @@ import {
   WEATHER_INFO,
 } from "@/lib/engine";
 import RelicIcon from "@/components/RelicIcon";
-import { miscArt, tileArt } from "@/lib/art";
+import { dailyArt, miscArt, tileArt, weatherArt } from "@/lib/art";
 import { pickNextGoal } from "@/lib/unlocks";
 import { DailyRecord, dailyGridRows, dailyShareText } from "@/lib/daily";
 import { seedCodeLink } from "@/lib/seedCode";
@@ -145,7 +145,9 @@ export function RunHudStrip({
             garden.weather === "GOLDEN_HOUR" ? "text-amber-100" : garden.weather === "SPRING_RAIN" || garden.weather === "FIREFLY_NIGHT" ? "text-sky-100" : "text-lime-100"
           }`}>
           <b>
-            {WEATHER_INFO[garden.weather].icon} {WEATHER_INFO[garden.weather].name}:
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={weatherArt(garden.weather)} alt="" aria-hidden="true" draggable={false} className="inline-block h-[1.35em] w-[1.35em] align-[-0.3em] object-contain" />{" "}
+            {WEATHER_INFO[garden.weather].name}:
           </b>{" "}
           {artify(WEATHER_INFO[garden.weather].short)}
         </div>
@@ -868,6 +870,15 @@ const DAILY_LEGEND: Array<[string, string]> = [
   ["🥀", "stopped here"],
 ];
 
+/** One cell of the Daily grid: the share text's emoji, drawn as the game's flowers (⬛ is a bed not reached) */
+const DAILY_CELL_ART: Record<string, Parameters<typeof dailyArt>[0]> = { "🌸": 3, "🌼": 2, "🌱": 1, "🥀": "stopped" };
+function DailyCell({ cell, size }: { cell: string; size: number }) {
+  const art = DAILY_CELL_ART[cell];
+  if (!art) return <span className="inline-block rounded-md bg-white/10" style={{ width: size, height: size }} aria-hidden="true" />;
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={dailyArt(art)} alt="" aria-hidden="true" draggable={false} className="inline-block object-contain" style={{ width: size, height: size }} />;
+}
+
 /** The Daily Garden's flower grid with a Share button (a replay shows it's practice) */
 function DailyResultCard({ dateKey, record, streak }: { dateKey: string; record: DailyRecord | null; streak: number }) {
   const [copied, setCopied] = useState(false);
@@ -891,15 +902,22 @@ function DailyResultCard({ dateKey, record, streak }: { dateKey: string; record:
       <div className="text-[11px] font-semibold text-amber-200/85">
         Daily Garden{streak > 1 ? ` · 🔥 ${streak} days in a row` : ""}
       </div>
-      <div className="mt-1 space-y-0.5 text-[22px] leading-tight tracking-[0.1em]" aria-label="Your Daily Garden flowers">
+      {/* The same grid as the share text, painted: one row per Season */}
+      <div className="mt-1.5 flex flex-col items-center gap-1" aria-label="Your Daily Garden flowers">
         {dailyGridRows(record).map((row, i) => (
-          <div key={i}>{row}</div>
+          <div key={i} className="flex gap-1.5">
+            {Array.from(row).map((cell, k) => (
+              <DailyCell key={k} cell={cell} size={30} />
+            ))}
+          </div>
         ))}
       </div>
-      <div className="mt-1 text-[11px] text-white/50">
-        {DAILY_LEGEND.filter(([cell]) => dailyGridRows(record).some((row) => row.includes(cell)))
-          .map(([cell, text]) => `${cell} ${text}`)
-          .join(" · ")}
+      <div className="mt-1.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[11px] text-white/50">
+        {DAILY_LEGEND.filter(([cell]) => dailyGridRows(record).some((row) => row.includes(cell))).map(([cell, text]) => (
+          <span key={cell} className="inline-flex items-center gap-0.5">
+            <DailyCell cell={cell} size={14} /> {text}
+          </span>
+        ))}
       </div>
       <button
         type="button"

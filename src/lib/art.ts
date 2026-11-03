@@ -81,3 +81,7 @@ export const badgeArt = (id: BadgeId) => icon(`badge-${id}`);
 /** Garden moments (public/art/icons/misc-*.webp): the Gardener, Swap, the Journal, Today's garden… */
 export type MiscArtId = "gardener" | "swap" | "no-safe-line" | "journal" | "daily" | "music" | "hint" | "rotate-phone";
 export const miscArt = (id: MiscArtId) => icon(`misc-${id}`);
+/** Bed weather (public/art/icons/weather-*.webp), e.g. GOLDEN_HOUR → weather-golden-hour */
+export const weatherArt = (id: string) => icon(`weather-${kebab(id)}`);
+/** The Daily grid's flowers: 3, 2 or 1 star(s), or the bed where the try stopped */
+export const dailyArt = (cell: 3 | 2 | 1 | "stopped") => icon(cell === "stopped" ? "daily-stopped" : `daily-bloom-${cell}`);

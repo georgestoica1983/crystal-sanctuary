@@ -2,7 +2,7 @@
 
 import Badge from "@/components/Badge";
 import SupplyIcon from "@/components/SupplyIcon";
-import { badgeArt, bossArt, miscArt, relicArt, tileArt, toolArt } from "@/lib/art";
+import { badgeArt, bossArt, miscArt, relicArt, tileArt, toolArt, weatherArt } from "@/lib/art";
 import { bossAdvice } from "@/lib/bossAdvice";
 import GardenerCard from "@/components/GardenerCard";
 import { applyGardenerGift, GARDENER_GIFTS, gardenerRelic } from "@/lib/runReplay";
@@ -986,13 +986,7 @@ export default function OneStrokeTacticianPage() {
         kind: "GAME",
         label: `Weather: ${w.name}`,
         text: w.text,
-        art:
-          {
-            GOLDEN_HOUR: toolArt("SUNLIT"),
-            THICK_BRAMBLES: tileArt("ENEMY") ?? "",
-            SPRING_RAIN: toolArt("DEW"),
-            FIREFLY_NIGHT: relicArt("LONG_SHADOW"),
-          }[runGarden.weather] ?? "",
+        art: weatherArt(runGarden.weather),
       });
       return;
     }
