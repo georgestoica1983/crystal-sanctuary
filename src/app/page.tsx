@@ -3783,6 +3783,7 @@ export default function OneStrokeTacticianPage() {
   const meterInner = (
     <>
                 <LineMeter
+                  scoring={!!lineShow}
                   tiles={drawnPath.length}
                   chips={lineMeter.now.chips}
                   mult={lineMeter.now.mult}
@@ -3868,6 +3869,7 @@ export default function OneStrokeTacticianPage() {
                       window.setTimeout(() => setFlashRelics((prev) => (prev.length === 1 && prev[0] === id ? [] : prev)), 600);
                     }}
                     onSkip={() => skipPlaybackRef.current?.()}
+                    recordBest={mode === "RUN" && !lesson && !practiceStep}
                   />
                 )}
               </AnimatePresence>
@@ -5179,6 +5181,8 @@ phase === "RESOLVING"
         onNewRun={() =>
           practiceStep ? startRun(undefined, undefined, { practice: true }) : requestNewRun()
         }
+        // One tap back in: same Companion and Ascension, a fresh garden (not after a Daily or practice)
+        onPlantAgain={practiceStep || runOver?.daily ? undefined : () => startRun(heroClassId, undefined, { asc: runOver?.asc ?? 0 })}
         onClose={() => setRunOver(null)}
       />
 

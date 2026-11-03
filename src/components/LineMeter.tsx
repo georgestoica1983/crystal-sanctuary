@@ -33,7 +33,10 @@ export default function LineMeter({
   intro,
   idleText,
   toGo,
+  scoring = false,
 }: {
+  /** The line is being scored (the score show covers the meter): no tier pill */
+  scoring?: boolean;
   /** Points the bed still needs (Garden Run only): shows "N to go" / "Clears the bed ✓" */
   toGo?: number;
   /** Tiles in the line, counting the Companion's home tile and the Exit */
@@ -201,7 +204,7 @@ export default function LineMeter({
                     clears ? "text-amber-200" : enough ? "text-lime-200" : "text-white/55"
                   }`}
                 >
-                  {fire >= 2 ? (fire === 3 ? "✓ Wild bloom: 5× what's needed" : "✓ Double bloom: 2× what's needed") : clears ? "✓ Clears the bed" : enough ? "Enough! Head to the gate" : `${fmt(toGo - points)} to go`}
+                  {fire >= 2 ? (fire === 5 ? "✓ Legendary bloom: 100× what's needed" : fire === 4 ? "✓ Mega bloom: 10× what's needed" : fire === 3 ? "✓ Wild bloom: 5× what's needed" : "✓ Double bloom: 2× what's needed") : clears ? "✓ Clears the bed" : enough ? "Enough! Head to the gate" : `${fmt(toGo - points)} to go`}
                 </span>
               )}
             </div>
@@ -235,7 +238,7 @@ export default function LineMeter({
       )}
 
       <AnimatePresence>
-        {tierUp && (
+        {tierUp && !scoring && (
           <motion.div
             key={tierUp}
             initial={{ scale: 0.6, opacity: 0, y: 4 }}

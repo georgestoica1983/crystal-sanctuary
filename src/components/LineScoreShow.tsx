@@ -7,6 +7,7 @@ import { FloorScoreBreakdown, PathSimulationResult, RelicId, ScoreSource } from 
 import { soundEngine } from "@/lib/audio";
 import { artify } from "@/components/ArtText";
 import { formatScore } from "@/lib/formatScore";
+import RelicIcon from "@/components/RelicIcon";
 
 const fmt = formatScore;
 const SCORED_TILES = ["ENEMY", "SHIELD", "WEAPON", "POTION", "TRAP"];
@@ -55,24 +56,48 @@ export function lineStepMs(steps: number, speed: ScoreSpeed): number {
   return Math.round(base / speed);
 }
 
+export type FireLevel = 0 | 1 | 2 | 3 | 4 | 5;
+
 /**
- * How far a line beats what the bed still needs: 1 = clears it, 2 = twice
- * over, 3 = five times over (the glow and petals grow with it)
+ * How far a line beats what the bed still needs (the overkill rings): 1 =
+ * clears it, 2 = twice over, 3 = five times, 4 = ten times, 5 = a hundred
+ * times over. The glow, petals, shake and sound grow with it.
  */
-export function fireLevel(points: number, need: number | undefined): 0 | 1 | 2 | 3 {
+export function fireLevel(points: number, need: number | undefined): FireLevel {
   if (!need || need <= 0 || points < need) return 0;
+  if (points >= need * 100) return 5;
+  if (points >= need * 10) return 4;
   if (points >= need * 5) return 3;
   if (points >= need * 2) return 2;
   return 1;
 }
 
-const FIRE_NAMES = ["", "Clears the bed!", "Double bloom! ×2", "Wild bloom! ×5"];
+export const FIRE_NAMES = ["", "Clears the bed!", "Double bloom! ×2", "Wild bloom! ×5", "Mega bloom! ×10", "Legendary bloom! ×100"];
 export const FIRE_GLOW = [
   "",
   "0 0 14px rgba(252,211,77,0.35)",
   "0 0 22px rgba(252,211,77,0.5), 0 0 6px rgba(251,146,60,0.4)",
   "0 0 34px rgba(252,211,77,0.65), 0 0 12px rgba(251,146,60,0.55)",
+  "0 0 44px rgba(253,224,71,0.75), 0 0 16px rgba(244,114,182,0.6)",
+  "0 0 60px rgba(253,224,71,0.9), 0 0 22px rgba(192,132,252,0.75)",
 ];
+
+/** The best line ever scored on this device (Garden Runs only) */
+const BEST_LINE_KEY = "ost_best_line_v1";
+function loadBestLine(): number {
+  try {
+    return Number(window.localStorage.getItem(BEST_LINE_KEY)) || 0;
+  } catch {
+    return 0;
+  }
+}
+function saveBestLine(points: number): void {
+  try {
+    window.localStorage.setItem(BEST_LINE_KEY, String(points));
+  } catch {
+    // Ignore storage errors
+  }
+}
 const PETAL_COLORS = ["#F9C784", "#F4A6A6", "#FCD34D", "#F7B2C4", "#FDBA74"];
 
 /** A burst of petals from the total: bigger, wider and more of them for longer lines */
@@ -101,7 +126,7 @@ function LengthBurst({ level, color }: { level: number; color: string }) {
 
 /** Warm petals drifting up from the total: more of them the bigger the overflow */
 function Petals({ level }: { level: number }) {
-  const count = [0, 6, 10, 16][level] ?? 0;
+  const count = [0, 6, 10, 16, 22, 30][level] ?? 0;
   return (
     <span aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-visible">
       {Array.from({ length: count }, (_, i) => {
@@ -188,7 +213,10 @@ export default function LineScoreShow({
   tierLevel = 0,
   onRelic,
   onSkip,
+  recordBest = false,
 }: {
+  /** A real Run's line: a new best line ever is celebrated (and remembered) */
+  recordBest?: boolean;
   /** Line tier of this line (0 Seedling … 4 Grand garden) */
   tierLevel?: number;
   breakdown: FloorScoreBreakdown;
@@ -213,6 +241,17 @@ export default function LineScoreShow({
   const still = useReducedMotion();
   const [total, setTotal] = useState<number | null>(null);
   const [pulse, setPulse] = useState<{ box: "value" | "length" | "x"; key: number } | null>(null);
+  // The total rolls up to its final number
+  const [shownTotal, setShownTotal] = useState(0);
+  // The relics that score on this line, lighting up (with a count) as they fire
+  const relicRow = React.useMemo(() => {
+    const ids: RelicId[] = [];
+    for (const src of [...breakdown.chipSources, ...breakdown.multSources, ...breakdown.xMultSources])
+      if (src.relicId && !ids.includes(src.relicId)) ids.push(src.relicId);
+    return ids.slice(0, 6);
+  }, [breakdown]);
+  const [hits, setHits] = useState<Partial<Record<RelicId, number>>>({});
+  const [bestLine, setBestLine] = useState(false);
   const onRelicRef = useRef(onRelic);
   onRelicRef.current = onRelic;
 
@@ -263,7 +302,11 @@ export default function LineScoreShow({
             text: `${ev.source.label} +${ev.source.value} ${ev.box}`,
             tone: ev.box === "value" ? "text-sky-200" : "text-emerald-200",
           });
-          if (ev.source.relicId) onRelicRef.current?.(ev.source.relicId);
+          if (ev.source.relicId) {
+            onRelicRef.current?.(ev.source.relicId);
+            const id = ev.source.relicId;
+            setHits((h) => ({ ...h, [id]: (h[id] ?? 0) + 1 }));
+          }
           soundEngine.playRelicAdd(ev.index);
         } else if (ev.kind === "swell") {
           soundEngine.playMultSwell();
@@ -272,7 +315,11 @@ export default function LineScoreShow({
           setXMult(x);
           setPulse({ box: "x", key: ev.at });
           setCaption({ key: `x${ev.index}`, art: ev.source.art, text: `${ev.source.label} ×${ev.source.value}`, tone: "text-fuchsia-200" });
-          if (ev.source.relicId) onRelicRef.current?.(ev.source.relicId);
+          if (ev.source.relicId) {
+            onRelicRef.current?.(ev.source.relicId);
+            const id = ev.source.relicId;
+            setHits((h) => ({ ...h, [id]: (h[id] ?? 0) + 1 }));
+          }
           soundEngine.playMultiplierSparkle(ev.index);
         } else {
           setValue(breakdown.chips);
@@ -280,10 +327,33 @@ export default function LineScoreShow({
           setXMult(breakdown.xMult);
           setTotal(breakdown.total);
           setCaption(null);
+          // Roll the total up from Value × Length to the final number
+          const from = Math.min(breakdown.total, Math.round(breakdown.chips * breakdown.mult));
+          const rollMs = still ? 0 : 520 / speed;
+          const start = performance.now();
+          const roll = (now: number) => {
+            const k = rollMs <= 0 ? 1 : Math.min(1, (now - start) / rollMs);
+            setShownTotal(Math.round(from + (breakdown.total - from) * (1 - Math.pow(1 - k, 3))));
+            if (k < 1) requestAnimationFrame(roll);
+          };
+          requestAnimationFrame(roll);
           soundEngine.playTallyTotal(target > 0 ? breakdown.total / target : 0.3);
           if (tierLevel > 0) window.setTimeout(() => soundEngine.playLineFanfare(tierLevel), 120);
           const lvl = fireLevel(breakdown.total, target);
           if (lvl >= 2) window.setTimeout(() => soundEngine.playMultiplierSparkle(lvl + 1), 160);
+          // Five times over and more: the phone feels it
+          if (lvl >= 3) soundEngine.vibrate(lvl >= 5 ? [40, 30, 60, 30, 90] : lvl >= 4 ? [40, 30, 70] : 45);
+          // A new best line ever (real Runs only)
+          if (recordBest && breakdown.total > 0) {
+            const best = loadBestLine();
+            if (breakdown.total > best) {
+              saveBestLine(breakdown.total);
+              if (best > 0) {
+                setBestLine(true);
+                window.setTimeout(() => soundEngine.playSetComplete(), 380);
+              }
+            }
+          }
         }
       }, ev.at)
     );
@@ -299,18 +369,46 @@ export default function LineScoreShow({
   return artify(
     <motion.div
       initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      // Five times over and more, the card thumps (harder for ×10 and ×100); it only
+      // grows, so nothing behind it ever shows
+      animate={
+        total !== null && !still && fire >= 3
+          ? { opacity: 1, scale: fire >= 5 ? [1, 1.12, 1.02, 1.07, 1] : fire >= 4 ? [1, 1.08, 1.01, 1.04, 1] : [1, 1.05, 1] }
+          : { opacity: 1, scale: 1 }
+      }
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.15 }}
+      transition={{ duration: total !== null && fire >= 3 ? 0.5 : 0.15 }}
       onClick={onSkip}
       role="status"
       aria-label={`Line score ${breakdown.total.toLocaleString()}`}
-      className={`absolute inset-0 z-40 overflow-hidden rounded-xl border bg-[#1A271E] px-3 flex flex-col justify-center cursor-pointer transition-[box-shadow,border-color] duration-500 ${
+      className={`absolute inset-0 z-40 overflow-hidden rounded-xl border bg-[#1A271E] px-3 pt-3 flex flex-col justify-center cursor-pointer transition-[box-shadow,border-color] duration-500 ${
         fire > 0 ? "border-amber-300/70" : "border-amber-300/30"
       }`}
       style={fire > 0 ? { boxShadow: `inset 0 0 18px rgba(252,211,77,${0.06 * fire}), ${FIRE_GLOW[fire]}` } : undefined}
     >
       {fire > 0 && <Petals level={fire} />}
+      {/* The relics scoring this line: each lights up (with a count) as it fires */}
+      {relicRow.length > 0 && (
+        <div className="pointer-events-none absolute top-1 right-2 flex items-center gap-1" aria-hidden="true">
+          {relicRow.map((id) => {
+            const n = hits[id] ?? 0;
+            return (
+              <motion.span
+                key={`${id}-${n}`}
+                initial={n > 0 ? { scale: 1.6 } : false}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 420, damping: 14 }}
+                className={`relative ${n > 0 ? "" : "opacity-30 grayscale"}`}
+              >
+                <RelicIcon id={id} size={15} />
+                {n > 1 && (
+                  <span className="absolute -bottom-1 -right-1.5 rounded-full bg-amber-300 px-[3px] text-[8px] font-black leading-[11px] text-slate-950">×{n}</span>
+                )}
+              </motion.span>
+            );
+          })}
+        </div>
+      )}
       {total !== null && tierLevel > 0 && !still && <LengthBurst level={tierLevel} color={tierColor ?? "#FCD34D"} />}
       {/* Bottom-aligned, so × sits on the numbers' line, not between label and number */}
       <div className="flex items-end gap-1.5 min-w-0">
@@ -365,20 +463,21 @@ export default function LineScoreShow({
               className={`shrink-0 whitespace-nowrap ${tierLevel >= 3 ? "text-[32px]" : "text-[28px]"} font-display font-semibold tabular-nums leading-none text-amber-200`}
               style={fire > 0 ? { textShadow: FIRE_GLOW[fire] } : undefined}
             >
-              {fmt(total)}
+              {fmt(shownTotal || total)}
             </motion.span>
           )}
         </AnimatePresence>
       </div>
       <div className="mt-1.5 h-[16px] flex items-center gap-1.5 text-[11.5px] font-semibold overflow-hidden whitespace-nowrap">
-        <AnimatePresence mode="popLayout">
+        {/* One caption at a time: the old one leaves before the next comes in */}
+        <AnimatePresence mode="wait">
           {caption ? (
             <motion.span
               key={caption.key}
               initial={{ y: 6, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -6, opacity: 0 }}
-              transition={{ duration: 0.16 }}
+              exit={{ y: -6, opacity: 0, transition: { duration: 0.07 } }}
+              transition={{ duration: 0.12 }}
               className={`flex items-center gap-1.5 ${caption.tone}`}
               style={caption.color ? { color: caption.color } : undefined}
             >
@@ -399,9 +498,15 @@ export default function LineScoreShow({
             </motion.span>
           ) : (
             <motion.span key="done" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-amber-100/70">
+              {bestLine && <span className="font-black text-fuchsia-200">✨ Best line ever! </span>}
               {fire > 0 && <span className="font-black text-amber-200">{FIRE_NAMES[fire]} </span>}
-              {fmt(breakdown.chips)} × {fmt(breakdown.mult)}
-              {breakdown.xMult !== 1 ? ` × ${Math.round(breakdown.xMult * 100) / 100}` : ""} = {fmt(breakdown.total)}
+              {/* The sum only when there's nothing to celebrate (the numbers are on screen anyway) */}
+              {!bestLine && fire === 0 && (
+                <>
+                  {fmt(breakdown.chips)} × {fmt(breakdown.mult)}
+                  {breakdown.xMult !== 1 ? ` × ${Math.round(breakdown.xMult * 100) / 100}` : ""} = {fmt(breakdown.total)}
+                </>
+              )}
             </motion.span>
           )}
         </AnimatePresence>

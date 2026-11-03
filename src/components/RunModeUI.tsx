@@ -1030,7 +1030,10 @@ export function RunOverModal({
   askFeedback = false,
   onPlayDaily,
   dailyToday,
+  onPlantAgain,
 }: {
+  /** Start a fresh Run at once with the same Companion and Ascension */
+  onPlantAgain?: () => void;
   info: RunOverInfo | null;
   newRunLabel?: string;
   /** Start today's Daily Garden (left out in practice) */
@@ -1057,6 +1060,8 @@ export function RunOverModal({
   const goal = info.daily ? null : pickNextGoal(info.asc ?? 0);
   const dailyRec = info.daily?.record ?? null;
   const shortBy = Math.max(0, info.target - info.gardenScore);
+  // So close it pulls you back in
+  const nearMiss = info.reason === "MISSED_TARGET" && !info.daily && shortBy > 0 && shortBy <= info.target * 0.35;
   const why =
     info.reason === "MISSED_TARGET"
       ? shortBy <= info.target * 0.35
@@ -1093,9 +1098,17 @@ export function RunOverModal({
             className="mx-auto h-12 w-12 object-contain"
           />
           <div className="mt-1 text-[22px] font-display font-semibold text-amber-100">
-            {info.reason === "DAILY_DONE" ? "Today's garden bloomed!" : info.daily ? "Today's garden rests" : "The garden rests"}
+            {info.reason === "DAILY_DONE"
+              ? "Today's garden bloomed!"
+              : info.daily
+              ? "Today's garden rests"
+              : nearMiss
+              ? `Only ${fmt(shortBy)} short!`
+              : "The garden rests"}
           </div>
-          <p className="text-[13px] text-white/70 leading-snug mt-1">{why}</p>
+          <p className="text-[13px] text-white/70 leading-snug mt-1">
+            {nearMiss ? `You reached ${getRunGardenLabel(info.gardenIndex)}. One more Run could bloom it.` : why}
+          </p>
         </div>
 
         {info.isNewBest && (
@@ -1239,13 +1252,35 @@ export function RunOverModal({
         )}
 
         <div className="card-footer bg-[#1A271E] space-y-2">
-        <button
-          type="button"
-          onClick={onNewRun}
-          className="w-full py-3 rounded-xl bg-teal-300 text-slate-950 text-[15px] font-bold active:scale-[0.98] transition"
-        >
-          {newRunLabel}
-        </button>
+        {onPlantAgain ? (
+          <>
+            <button
+              type="button"
+              onClick={onPlantAgain}
+              className={`w-full py-3 rounded-xl bg-teal-300 text-slate-950 text-[15px] font-bold active:scale-[0.98] transition flex items-center justify-center gap-1.5 ${
+                nearMiss ? "shadow-[0_0_18px_rgba(94,234,212,0.55)]" : ""
+              }`}
+            >
+              Plant again
+              <ArrowRight className="w-4 h-4 shrink-0" />
+            </button>
+            <button
+              type="button"
+              onClick={onNewRun}
+              className="w-full py-1 text-[12.5px] font-semibold text-white/60 underline underline-offset-2"
+            >
+              Change Companion or Ascension
+            </button>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={onNewRun}
+            className="w-full py-3 rounded-xl bg-teal-300 text-slate-950 text-[15px] font-bold active:scale-[0.98] transition"
+          >
+            {newRunLabel}
+          </button>
+        )}
         <div className={`grid ${onOpenLeaderboard ? "grid-cols-2" : "grid-cols-1"} gap-2`}>
           <button
             type="button"
