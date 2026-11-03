@@ -13,6 +13,7 @@ import {
   RefreshCw,
   Shield,
   Sparkles,
+  Eraser,
   Sword,
   Trophy,
   Volume2,
@@ -1819,7 +1820,7 @@ export function BottomControls({
       <div
         className={
           mode === "RUN"
-            ? `grid ${["grid-cols-2", "grid-cols-3", "grid-cols-4"][(swap ? 1 : 0) + (skip ? 1 : 0)]} gap-2 [&>button]:w-full [&>button]:min-w-0 [&>button]:justify-center [&>button]:px-1`
+            ? `grid ${["grid-cols-2", "grid-cols-3", "grid-cols-4"][(swap ? 1 : 0) + (skip ? 1 : 0)]} gap-2 [&>button]:w-full [&>button]:min-w-0 [&>button]:flex [&>button]:items-center [&>button]:justify-center [&>button]:px-1`
             : "flex items-center justify-between gap-1.5"
         }
       >
@@ -1827,9 +1828,15 @@ export function BottomControls({
           type="button"
           disabled={isResolving}
           onClick={onResetFloorStroke}
-          className={mode === "RUN" ? "h-11 [@media(min-height:800px)]:h-14 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[13px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-40" : "flex-1 h-10 px-2 rounded-xl whitespace-nowrap bg-[#17221B]/80 hover:bg-[#233328]/90 border border-indigo-500/40 text-[11px] font-mono font-bold text-indigo-200 hover:text-white shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition disabled:opacity-40"}
+          className={mode === "RUN" ? "h-11 [@media(min-height:800px)]:h-14 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[13px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-35" : "flex-1 h-10 px-2 rounded-xl whitespace-nowrap bg-[#17221B]/80 hover:bg-[#233328]/90 border border-indigo-500/40 text-[11px] font-mono font-bold text-indigo-200 hover:text-white shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition disabled:opacity-40"}
         >
-          {mode === "RUN" ? "Clear line" : "CLEAR LINE"}
+          {mode === "RUN" ? (
+            <span className="inline-flex items-center gap-1.5">
+              <Eraser className="w-4 h-4 text-white/60" /> Clear line
+            </span>
+          ) : (
+            "CLEAR LINE"
+          )}
         </button>
 
         {swap && (
@@ -1879,9 +1886,9 @@ export function BottomControls({
           disabled={isResolving || hintsRemaining <= 0}
           onClick={onRequestHint}
           title="Highlight 3 safe steps of a winning path for 5 seconds"
-          className={mode === "RUN" ? "h-11 [@media(min-height:800px)]:h-14 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[13px] font-semibold text-amber-200 active:scale-95 transition disabled:opacity-35 flex items-center gap-1.5" : "h-10 px-2 rounded-xl whitespace-nowrap bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/50 text-[11px] font-mono font-extrabold text-amber-300 hover:text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.2)] active:scale-95 transition disabled:opacity-35 flex items-center gap-1.5"}
+          className={mode === "RUN" ? "h-11 [@media(min-height:800px)]:h-14 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[13px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-35 flex items-center gap-1.5" : "h-10 px-2 rounded-xl whitespace-nowrap bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/50 text-[11px] font-mono font-extrabold text-amber-300 hover:text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.2)] active:scale-95 transition disabled:opacity-35 flex items-center gap-1.5"}
         >
-          <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+          <Sparkles className={mode === "RUN" ? "w-4 h-4 text-amber-300" : "w-3.5 h-3.5 text-amber-400"} />
           <span>
             {mode === "RUN" ? `Hint · ${hintsRemaining}` : `Hint (${hintsRemaining})`}
           </span>

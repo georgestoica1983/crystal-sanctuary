@@ -3752,6 +3752,14 @@ export default function OneStrokeTacticianPage() {
     mode === "RUN" &&
     !isInteractiveTutorial &&
     (!!lesson || (!!runGarden && !(phase === "DEFEAT" && runOver === null)));
+  // Run notices (a warning about the line, no safe line) take the top card's
+  // place like the meter does, so they never cover the board
+  const runNoticeText = RUN_ONLY && (retractNotice || (runNoSafeLine && !weedOutMode))
+    ? retractNotice ?? "🪨 No safe line on this board. Tap 🌿 Swap to change some tiles."
+    : null;
+  const runCardShown =
+    mode === "RUN" && !isInteractiveTutorial && !lesson && !!runGarden && !(phase === "DEFEAT" && runOver === null);
+  const noticeInCard = !!runNoticeText && runCardShown && drawnPath.length < 2 && !lineShow && !lineToast && !lineCallout;
   const meterBusy =
     drawnPath.length >= 2 ||
     (phase === "PLANNING" && (tileIntroQueue.length > 0 || showStartGlovesIntro || showFertilizedIntro)) ||
@@ -3984,10 +3992,10 @@ export default function OneStrokeTacticianPage() {
         }
         runCardBoss={mode === "RUN" && runGarden?.kind === "BOSS"}
         runCardOverlay={
-          meterBusy && runGarden && !lesson ? (
+          (meterBusy || noticeInCard) && runGarden && !lesson ? (
             <>
-              {/* What the card hides while scoring, in one slim row */}
-              <div className="flex items-center gap-2 px-1 text-[13px] text-white/75 whitespace-nowrap overflow-hidden">
+              {/* What the card hides while scoring, in one slim row (a notice takes the whole card) */}
+              <div className={`${noticeInCard ? "hidden" : "flex"} items-center gap-2 px-1 text-[13px] text-white/75 whitespace-nowrap overflow-hidden`}>
                 <span>
                   ❤️ <b className="text-white">{floorStartHero.hp}</b>
                   <span className="text-white/50">/{floorStartHero.maxHp}</span>
@@ -3999,8 +4007,23 @@ export default function OneStrokeTacticianPage() {
                   <b className="text-white">{runGarden.strokesLeft}</b> {runGarden.strokesLeft === 1 ? "line" : "lines"} left
                 </span>
               </div>
-              {/* The meter takes the card's remaining height exactly (no fixed 78px here) */}
-              <div className="relative mt-1 min-h-0 flex-1 [&>[aria-live=polite]]:!h-full [&>[aria-live=polite]]:!py-1">{meterInner}</div>
+              {noticeInCard ? (
+                <div
+                  role="status"
+                  onClick={noticeSticky && retractNotice ? () => (setRetractNotice(null), setNoticeSticky(false)) : undefined}
+                  className={`min-h-0 flex-1 rounded-lg px-3 py-2 flex flex-col justify-center gap-1.5 text-[12.5px] leading-snug font-bold border overflow-hidden ${
+                    retractNotice ? "bg-[#1F1A10] border-amber-300/50 text-amber-50" : "bg-[#2A1018] border-rose-300/50 text-rose-50"
+                  } ${noticeSticky && retractNotice ? "cursor-pointer" : ""}`}
+                >
+                  <span className="min-h-0">{artify(runNoticeText)}</span>
+                  {noticeSticky && retractNotice && (
+                    <span className="self-end shrink-0 rounded-lg bg-amber-300 px-3 py-1 text-[12px] font-black text-slate-950">Got it</span>
+                  )}
+                </div>
+              ) : (
+                /* The meter takes the card's remaining height exactly (no fixed 78px here) */
+                <div className="relative mt-1 min-h-0 flex-1 [&>[aria-live=polite]]:!h-full [&>[aria-live=polite]]:!py-1">{meterInner}</div>
+              )}
             </>
           ) : null
         }
@@ -4168,7 +4191,11 @@ export default function OneStrokeTacticianPage() {
       {/* Spacer: on tall screens the leftover height is shared between here
           and above the buttons, so the top card stays at the top and the
           buttons at the bottom (collapses when content overflows) */}
-      <div aria-hidden="true" data-area="spacer" className="grow basis-0 !shrink min-h-0" />
+      <div
+        aria-hidden="true"
+        data-area="spacer"
+        className={`grow basis-0 !shrink min-h-0${meterOn && !lesson && !showTutorial ? " hidden" : ""}`}
+      />
 
       {showTutorial ? (
         <div className="my-2 flex-1">
@@ -4337,7 +4364,9 @@ export default function OneStrokeTacticianPage() {
             </div>
           )}
           {meterOn && !lesson && (
-            <p data-area="hint" className="ui-zoom w-full max-w-game text-center text-[14px] leading-snug text-amber-200/90 min-h-[20px]">
+            // Takes the top spacer's place: it grows like the spacer under the
+            // board, so the board sits centred between the top card and the buttons
+            <p data-area="hint" className="ui-zoom w-full max-w-game grow basis-0 !shrink min-h-[20px] flex items-end justify-center text-center text-[14px] leading-snug text-amber-200/90">
               {phase === "RESOLVING"
                 ? "Tap the board to skip ⏩"
                 : runNoSafeLine
@@ -4573,7 +4602,7 @@ export default function OneStrokeTacticianPage() {
 
 
             {/* Run notices float over the board so nothing below it moves */}
-            {RUN_ONLY && (retractNotice || (runNoSafeLine && !weedOutMode)) && (
+            {runNoticeText && !runCardShown && (
               <div className={`${noticeSticky && retractNotice ? "" : "pointer-events-none "}absolute top-2 inset-x-2 z-40 flex justify-center`}>
                 <div
                   role="status"
@@ -4696,7 +4725,7 @@ export default function OneStrokeTacticianPage() {
 
           {/* Spacer: spare height on tall phones is shared with the one under the
               top card, so the buttons stay at the bottom in thumb reach */}
-          <div aria-hidden="true" data-area="spacer" className="grow basis-0 !shrink min-h-0" />
+          <div aria-hidden="true" data-area="spacer" className="grow basis-0 !shrink min-h-0 [@media(max-height:700px)]:min-h-[12px]" />
 
           {/* Bottom Legend & Controls */}
           {lesson && lessonIndex !== null ? (

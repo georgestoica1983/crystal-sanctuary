@@ -115,9 +115,10 @@ export default function LineHeadFeedback({
   if (!active || !head || path.length < 2 || !live) return null;
 
   const p = pos(head);
-  // The bubble sits above the head (below it on the top row), away from the finger
+  // The bubble sits on the head tile's top edge (bottom edge on the top row):
+  // above the finger, but never over the next tile's number
   const above = head.row > 0;
-  const bubbleY = above ? p.y - 15.5 : p.y + 15.5;
+  const bubbleY = above ? p.y - 7 : p.y + 7;
   const bubbleX = Math.max(11, Math.min(89, p.x));
 
   return artify(

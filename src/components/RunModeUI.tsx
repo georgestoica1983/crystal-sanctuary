@@ -163,7 +163,7 @@ export function RunHudStrip({
         </button>
       )}
 
-      {/* Score progress: short numbers on the left, what's left on the right */}
+      {/* Score progress: the score in the bar, the roses on it, what's left under it */}
       <div className="relative h-6 [@media(max-height:640px)]:h-5 rounded-full bg-black/30 overflow-hidden">
         <motion.div
           className="absolute inset-y-0 left-0 bg-amber-300/80"
@@ -177,13 +177,8 @@ export function RunHudStrip({
             style={{ left: `${pct}%`, width: `${previewPct}%` }}
           />
         )}
-        <div className="absolute inset-0 flex items-center justify-between px-2.5 text-[15px] [@media(max-height:640px)]:text-[13px] font-mono font-black text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">
-          <span>
-            {shortScore(garden.score)} / {shortScore(garden.target)}
-          </span>
-          <span className="text-[13px] [@media(max-height:640px)]:text-[12px] font-bold text-white/85">
-            {garden.score >= garden.target ? "Bloomed ✓" : `${shortScore(garden.target - garden.score)} to go`}
-          </span>
+        <div className="absolute inset-0 flex items-center px-2.5 text-[15px] [@media(max-height:640px)]:text-[13px] font-mono font-black text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">
+          {shortScore(garden.score)} / {shortScore(garden.target)}
         </div>
       </div>
       {/* Bloom bar: buds at half, three quarters and full open as the bed fills (the line you draw previews it) */}
@@ -205,6 +200,9 @@ export function RunHudStrip({
             />
           );
         })}
+      </div>
+      <div className="!mt-1 text-right text-[12px] leading-none font-semibold text-white/70">
+        {garden.score >= garden.target ? "Bloomed ✓" : `${shortScore(garden.target - garden.score)} to go`}
       </div>
 
       {weedOutActive && (

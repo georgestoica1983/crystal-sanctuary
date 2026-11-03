@@ -971,8 +971,12 @@ export default function GridCanvas({
                       aria-label={`${EDITION_LOOK[cell.bagTile.ed].label} tile: ${EDITION_LOOK[cell.bagTile.ed].tag}`}
                       className={`edition-shimmer edition-${cell.bagTile.ed.toLowerCase()} absolute inset-0 rounded-xl pointer-events-none z-[5]`}
                     >
-                      <span className="absolute top-0.5 left-1 text-[9px] font-black leading-none" aria-hidden="true">
-                        ✦
+                      {/* What it adds, so a special tile never reads as the Exit or YOU */}
+                      <span
+                        className="tile-tag absolute top-0.5 left-0.5 rounded-full bg-black/55 px-1 text-[9.5px] font-black leading-[14px] whitespace-nowrap"
+                        aria-hidden="true"
+                      >
+                        ✦ {EDITION_LOOK[cell.bagTile.ed].short}
                       </span>
                     </span>
                   )}
@@ -1227,7 +1231,8 @@ export default function GridCanvas({
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -4, scale: 0.8 }}
                         transition={{ duration: 0.16, ease: "easeOut" }}
-                        className="absolute -bottom-1.5 inset-x-0 flex justify-center pointer-events-none z-30 animate-float-drift"
+                        // Bottom-left corner: the tile's own number sits bottom-right
+                        className="absolute bottom-0.5 left-0.5 flex justify-start pointer-events-none z-30 animate-float-drift"
                       >
                         <StepFloatingBadge
                           step={stepSim}
@@ -1620,8 +1625,11 @@ function StepFloatingBadge({
     if (isSanctuary) {
       const needed = Math.max(1, 1 - step.hpAfter);
       return artify(
-        <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-amber-300 text-slate-950 border border-white/60 shadow-[0_0_12px_rgba(251,191,36,0.95)] tracking-tight whitespace-nowrap">
-          ❤️ Needs +{needed}
+        <span
+          aria-label={`Needs ${needed} more Life`}
+          className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-amber-300 text-slate-950 border border-white/60 shadow-[0_0_12px_rgba(251,191,36,0.95)] tracking-tight whitespace-nowrap"
+        >
+          ❤️ +{needed}
         </span>
       );
     }
@@ -1807,10 +1815,10 @@ function calmPlateClass(t: {
  */
 /** Board tile glyph: themed icon with its number in a small badge */
 /** Special tiles (rules v14+): a shimmer that says what they add */
-const EDITION_LOOK: Record<string, { label: string; tag: string }> = {
-  GOLDEN: { label: "Golden", tag: "+30 Value" },
-  IRIDESCENT: { label: "Iridescent", tag: "+2 Length" },
-  RADIANT: { label: "Radiant", tag: "×1.25" },
+const EDITION_LOOK: Record<string, { label: string; tag: string; short: string }> = {
+  GOLDEN: { label: "Golden", tag: "+30 Value", short: "+30" },
+  IRIDESCENT: { label: "Iridescent", tag: "+2 Length", short: "+2 Len" },
+  RADIANT: { label: "Radiant", tag: "×1.25", short: "×1.25" },
 };
 
 /** The garden board is a lawn: tile objects sit in grass (set by GridCanvas) */
@@ -2353,14 +2361,15 @@ function GuideHand({ path }: { path: GridCoord[] }) {
   const start = path[0];
   return (
     <div className="absolute board-inset z-40 pointer-events-none" aria-hidden="true">
+      {/* Inside the start tile's lower part, so it never covers another tile's number */}
       <div
-        className="absolute -translate-x-1/2 whitespace-nowrap rounded-full bg-amber-300 px-2 py-0.5 text-[11px] font-black text-slate-950 shadow-lg"
+        className="absolute -translate-x-1/2 -translate-y-full whitespace-nowrap rounded-full bg-amber-300 px-1.5 py-px text-[10px] leading-[13px] font-black text-slate-950 shadow-lg"
         style={{
-          left: `${Math.max(12, Math.min(88, (start.col + 0.5) * 20))}%`,
-          top: start.row > 0 ? `${start.row * 20 - 8.5}%` : `${(start.row + 1) * 20 + 1}%`,
+          left: `${(start.col + 0.5) * 20}%`,
+          top: `${(start.row + 1) * 20 - 1}%`,
         }}
       >
-        Drag from here
+        Start here
       </div>
       <motion.div
         className="absolute text-[30px] leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
