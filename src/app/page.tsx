@@ -171,6 +171,7 @@ import {
   dryDewAfterStroke,
   getSkipTag,
   runRulesAllowSkip,
+  shopUnlocks,
   RUN_SKIP_TARGET_MULT,
   SKIP_TAGS,
   getRunBloomResult,
@@ -1831,6 +1832,7 @@ export default function OneStrokeTacticianPage() {
               gardenIndex: runGarden.gardenIndex,
               owned: gardenUpgrades,
               boughtThisSeason: upgradeSeasons.includes(Math.floor(runGarden.gardenIndex / 3)),
+              logVersion: runLogRef.current?.v ?? RUN_LOG_VERSION,
             })
           : reroll.offers;
       logRunAction({ k: "r" });
@@ -2459,6 +2461,7 @@ export default function OneStrokeTacticianPage() {
             gardenIndex: garden.gardenIndex,
             owned: gardenUpgrades,
             boughtThisSeason: upgradeSeasons.includes(Math.floor(garden.gardenIndex / 3)),
+            logVersion: runLogRef.current?.v ?? RUN_LOG_VERSION,
           })
         : tagged,
     };
@@ -2621,6 +2624,7 @@ export default function OneStrokeTacticianPage() {
     phase === "PLANNING" &&
     runRulesAllowSkip(runLogRef.current?.v ?? 0) &&
     runGarden?.kind === "SMALL" &&
+    shopUnlocks(runLogRef.current?.v ?? 0, runGarden.season).skip &&
     runGarden.score === 0 &&
     runGarden.strokesLeft === (runGarden.strokesTotal ?? runGarden.strokesLeft);
   const skipTag = canSkipBed && runGarden ? getSkipTag(dungeon.seedKey, runGarden.gardenIndex) : null;

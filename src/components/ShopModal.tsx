@@ -97,6 +97,9 @@ interface ShopModalProps {
   onLeave: () => void;
 }
 
+/** Kinds of Shop offer this device has seen (for the "New" label) */
+const SHOP_KINDS_SEEN_KEY = "ost_shop_kinds_seen_v1";
+
 const RARITY_LABEL: Record<RelicRarity, { label: string; className: string }> = {
   COMMON: { label: "Common", className: "bg-white/10 text-zinc-300" },
   UNCOMMON: { label: "Uncommon", className: "bg-emerald-400/20 text-emerald-200" },
@@ -316,6 +319,21 @@ export default function ShopModal({
   useEffect(() => {
     if (isOpen && showIntro) setCoach(0);
   }, [isOpen, showIntro]);
+  // Kinds of offer this device hasn't seen in a Shop yet get a "New" label
+  // (rules v21 opens them up by Season); worked out once, when the Shop opens
+  const [newKinds, setNewKinds] = useState<string[] | null>(null);
+  useEffect(() => {
+    if (!isOpen || newKinds !== null || offers.length === 0) return;
+    try {
+      const seen: string[] = JSON.parse(window.localStorage.getItem(SHOP_KINDS_SEEN_KEY) ?? "[]");
+      const fresh = Array.from(new Set(offers.map((o) => o.kind))).filter((k) => k !== "RELIC" && k !== "STAT" && !seen.includes(k));
+      setNewKinds(fresh);
+      if (fresh.length > 0) window.localStorage.setItem(SHOP_KINDS_SEEN_KEY, JSON.stringify([...seen, ...fresh]));
+    } catch {
+      setNewKinds([]);
+    }
+  }, [isOpen, newKinds, offers]);
+
   if (!isOpen) return null;
 
   const commonOwned = ownedRelics.filter((id) => RELIC_REGISTRY[id]?.rarity !== "LEGENDARY");
@@ -559,6 +577,9 @@ export default function ShopModal({
               >
                 {offerIcon(offer, 30)}
                 <span className="w-full text-center text-[11px] font-bold leading-tight line-clamp-2">{name}</span>
+                {newKinds?.includes(offer.kind) && !sold && (
+                  <span className="absolute bottom-1 right-1 rounded-md bg-lime-300 px-1 text-[9px] font-black uppercase text-slate-950">New</span>
+                )}
                 {/* What it would add to your best line, to compare offers at a glance */}
                 {!sold && gainPct(scorePreview?.[offer.id] ?? 0) > 0 && (
                   <span className="absolute top-1 left-1 rounded-md bg-emerald-400/20 px-1 text-[10px] font-mono font-black text-emerald-200">

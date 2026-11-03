@@ -39,7 +39,7 @@ Everything below this section is parked until this is done.
 - [x] 18. Show Fertilizer on the board (level badge on the tile).
 - [x] 19. The Shop shows how a relic works with yours ("about +X on your best line", "2 of 3 Thorns set").
 - [x] 20. The Life-out explanation stays until read.
-- [ ] 21. Bring in upgrade types gradually across the first Seasons.
+- [x] 21. Bring in upgrade types gradually across the first Seasons.
 
 **Coming back and sharing**
 - [ ] 22. The end screen points forward: one next goal first.

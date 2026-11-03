@@ -23,6 +23,7 @@ import {
   simulatePath,
 } from "@/lib/engine";
 import {
+  getRunBloomResult,
   applyGardenerGift,
   createNextRunGarden,
   applyGardenTool,
@@ -1013,6 +1014,37 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
     if (b === "SPRING_RAIN" || b === "FIREFLY_NIGHT") early++;
   }
   check(`Spring Rain and Firefly Night only from Season 4 (${late} of 300 late beds, ${early} early)`, late > 0 && early === 0);
+}
+
+// 20. Rules v21: the Shop opens up Season by Season (v20 Shops unchanged)
+{
+  const bed = (gardenIndex: number) => ({
+    ...createRunReplayer("gradual-check", "KNIGHT", 21).state.garden,
+    gardenIndex,
+    kind: (["SMALL", "BIG", "BOSS"] as const)[gardenIndex % 3],
+    season: Math.floor(gardenIndex / 3) + 1,
+  });
+  const kinds = (gardenIndex: number, v: number) => {
+    const out = new Set<string>();
+    for (let i = 0; i < 40; i++) {
+      const r = getRunBloomResult({ garden: bed(gardenIndex), stats: { hp: 10, maxHp: 10, shield: 0, weapon: 0, gold: 40 }, runSeed: `gradual-${i}`, relics: [], logVersion: v });
+      r.offers.forEach((o) => out.add(o.kind));
+      finishShopOffers(r.offers, { runSeed: `gradual-${i}`, gardenIndex, owned: [], boughtThisSeason: false, logVersion: v }).forEach((o) => out.add(o.kind));
+    }
+    return out;
+  };
+  const s1 = kinds(1, 21);
+  const s2 = kinds(4, 21);
+  const s3 = kinds(7, 21);
+  const old = kinds(1, 20);
+  check(`v21 Season 1 Shop: no Fertilizer, tools, special tiles or upgrades (${[...s1].join(", ")})`, !s1.has("FERT") && !s1.has("TOOL") && !s1.has("TILE") && !s1.has("UPGRADE"));
+  check(`v21 Season 2 Shop adds Fertilizer and tools (${[...s2].join(", ")})`, s2.has("FERT") && s2.has("TOOL") && !s2.has("UPGRADE") && !s2.has("TILE"));
+  check(`v21 Season 3 Shop has everything (${[...s3].join(", ")})`, s3.has("FERT") && s3.has("TOOL") && s3.has("UPGRADE") && s3.has("TILE"));
+  check(`v20 Season 1 Shop unchanged (${[...old].join(", ")})`, old.has("FERT") && old.has("TOOL") && old.has("UPGRADE"));
+  const r21 = createRunReplayer("gradual-skip", "KNIGHT", 21);
+  check("v21: a Season 1 bed can't be skipped yet", r21.apply({ k: "k" }) === "skipping opens in Season 2");
+  const r20 = createRunReplayer("gradual-skip", "KNIGHT", 20);
+  check("v20: a Season 1 Small bed can still be skipped", r20.apply({ k: "k" }) === null);
 }
 
 console.log(failures ? `\n${failures} check(s) failed` : "\nAll replay checks passed");

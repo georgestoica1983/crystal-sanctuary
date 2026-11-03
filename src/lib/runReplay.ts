@@ -263,6 +263,7 @@ export function getRunBloomResult(params: {
   const legendary =
     garden.kind === "BOSS" ? pickLegendaryRelic(runSeed, garden.gardenIndex + 1, relics) : null;
   const relicsAfter = legendary ? [...relics, legendary] : relics;
+  const unlocked = shopUnlocks(params.logVersion ?? RUN_LOG_VERSION, getRunGardenPosition(garden.gardenIndex).season);
   return {
     payout,
     legendary,
@@ -274,9 +275,9 @@ export function getRunBloomResult(params: {
       garden.gardenIndex + 1,
       0,
       relicsAfter,
-      runFertilizerCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
-      runToolExtraCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
-      runEditionTileCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
+      unlocked.fertilizer ? runFertilizerCost(params.logVersion ?? RUN_LOG_VERSION, params.asc) : 0,
+      unlocked.tools ? runToolExtraCost(params.logVersion ?? RUN_LOG_VERSION, params.asc) : null,
+      unlocked.tiles ? runEditionTileCost(params.logVersion ?? RUN_LOG_VERSION, params.asc) : null,
       runRulesUseEcho(params.logVersion ?? RUN_LOG_VERSION),
       runRulesUseV16Relics(params.logVersion ?? RUN_LOG_VERSION),
       runRulesUseV20Relics(params.logVersion ?? RUN_LOG_VERSION),
@@ -406,6 +407,7 @@ export function applyRunSkip(params: {
     } {
   const { runSeed, garden } = params;
   if (garden.kind !== "SMALL") return "only a Small bed can be skipped";
+  if (!shopUnlocks(params.logVersion ?? RUN_LOG_VERSION, garden.season).skip) return "skipping opens in Season 2";
   if (garden.strokesLeft !== (garden.strokesTotal ?? garden.strokesLeft) || garden.score > 0) {
     return "a bed can only be skipped before its first line";
   }
@@ -465,6 +467,19 @@ export const runRulesUseV16Relics = (logVersion: number) => logVersion >= 16;
 export const runRulesUseV20Relics = (logVersion: number) => logVersion >= 20;
 /** v20: the Spike King walls, the Drought dries Berries, the Toll charges per tile */
 export const runRulesUseV20Bosses = (logVersion: number) => logVersion >= 20;
+/** v21: the Shop opens up Season by Season instead of all at once */
+export const runRulesUseGradualShop = (logVersion: number) => logVersion >= 21;
+/** What a Shop (or a skip) may offer during `season` under these rules */
+export function shopUnlocks(logVersion: number, season: number) {
+  const gradual = runRulesUseGradualShop(logVersion);
+  return {
+    fertilizer: !gradual || season >= 2,
+    tools: !gradual || season >= 2,
+    skip: !gradual || season >= 2,
+    tiles: !gradual || season >= 3,
+    upgrades: !gradual || season >= 3,
+  };
+}
 /** v20: from Season 4 every Shop has at least one Rare relic */
 export const runRulesUseRareShops = (logVersion: number) => logVersion >= 20;
 /** v20: targets grow ×1.4 from Season 4 (the Gardener and Rare Shops make Runs stronger) */
@@ -507,7 +522,14 @@ export const upgradeInterestBonus = (owned: GardenUpgradeId[]) =>
  */
 export function finishShopOffers(
   offers: ShopOffer[],
-  params: { runSeed: string; gardenIndex: number; owned: GardenUpgradeId[]; boughtThisSeason: boolean }
+  params: {
+    runSeed: string;
+    gardenIndex: number;
+    owned: GardenUpgradeId[];
+    boughtThisSeason: boolean;
+    /** The Run's rules version: from v21 upgrades only appear from Season 3 */
+    logVersion?: number;
+  }
 ): ShopOffer[] {
   const { owned } = params;
   const discount = owned.includes("HARVEST_FAIR") ? 0.5 : owned.includes("MARKET_DAY") ? 0.75 : 1;
@@ -518,6 +540,7 @@ export function finishShopOffers(
     return cost === o.cost ? o : { ...o, cost };
   });
   if (params.boughtThisSeason) return priced;
+  if (!shopUnlocks(params.logVersion ?? 0, getRunGardenPosition(params.gardenIndex).season).upgrades) return priced;
   const season = Math.floor(params.gardenIndex / 3);
   const available = UPGRADE_IDS.filter((id) => !owned.includes(id) && (!GARDEN_UPGRADES[id].needs || owned.includes(GARDEN_UPGRADES[id].needs!)));
   if (available.length === 0) return priced;
@@ -634,6 +657,7 @@ export function applyRunShopReroll(params: {
   const cost = getRunRerollCost(params.rerolls, params.relics);
   if (params.stats.gold < cost) return null;
   const rerolls = params.rerolls + 1;
+  const unlocked = shopUnlocks(params.logVersion ?? RUN_LOG_VERSION, getRunGardenPosition(params.floorNumber - 1).season);
   return {
     stats: { ...params.stats, gold: params.stats.gold - cost },
     rerolls,
@@ -642,9 +666,9 @@ export function applyRunShopReroll(params: {
       params.floorNumber,
       rerolls,
       params.relics,
-      runFertilizerCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
-      runToolExtraCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
-      runEditionTileCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
+      unlocked.fertilizer ? runFertilizerCost(params.logVersion ?? RUN_LOG_VERSION, params.asc) : 0,
+      unlocked.tools ? runToolExtraCost(params.logVersion ?? RUN_LOG_VERSION, params.asc) : null,
+      unlocked.tiles ? runEditionTileCost(params.logVersion ?? RUN_LOG_VERSION, params.asc) : null,
       runRulesUseEcho(params.logVersion ?? RUN_LOG_VERSION),
       runRulesUseV16Relics(params.logVersion ?? RUN_LOG_VERSION),
       runRulesUseV20Relics(params.logVersion ?? RUN_LOG_VERSION),
@@ -818,11 +842,14 @@ export function getRunPathError(
  * v9: ✂️ Pruning Shears in the Shop remove a tile from the bag (action "p").
  * v10: relic sets — 3 relics with one theme tag score every line ×1.25.
  * v11: a gentler first Season (targets 800 / 1,500 / 2,500).
+ * v21: the Shop opens up by Season (Season 1: relics, boosts, Prune; Season
+ *      2: + Fertilizer, garden tools and skipping a bed; Season 3: + special
+ *      tiles and garden upgrades).
  * v20: six relics for exact and careful lines (Seven Stones, Short Cut,
  *      Straight Furrow, Light Step, Thornless Path, Even Rows) join the Shop.
  * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 20;
+export const RUN_LOG_VERSION = 21;
 export const RUN_LOG_MIN_VERSION = 2;
 /** Rule set of new Runs (the current version) */
 export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);
@@ -1103,6 +1130,7 @@ export function createRunReplayer(
               gardenIndex: scored.gardenIndex,
               owned: s.gardenUpgrades,
               boughtThisSeason: s.upgradeSeasons.includes(Math.floor(scored.gardenIndex / 3)),
+              logVersion,
             })
           : tagged;
         s.shop = { stats: bloom.statsWithPayout, offers, soldIds: [], rerolls: 0, pruned: false };
@@ -1202,6 +1230,7 @@ export function createRunReplayer(
             gardenIndex: s.garden.gardenIndex,
             owned: s.gardenUpgrades,
             boughtThisSeason: s.upgradeSeasons.includes(Math.floor(s.garden.gardenIndex / 3)),
+            logVersion,
           })
         : reroll.offers;
       s.shop = { ...s.shop, stats: reroll.stats, offers: rerolled, soldIds: [], rerolls: reroll.rerolls };
