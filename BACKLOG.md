@@ -32,7 +32,7 @@ Everything below this section is parked until this is done.
 **Feel**
 - [x] 14. Long lines feel huge: burst, sound and pause grow with length.
 - [x] 15. Haptics while drawing: a tick per tile, stronger on Thorns and at the gate.
-- [ ] 16. Readable score versus target: bigger bar, a notch at the target, short numbers.
+- [x] 16. Readable score versus target: bigger bar, a notch at the target, short numbers.
 
 **Teaching**
 - [ ] 17. Teach Spikes when they first appear (ghost arrow crossing diagonally).

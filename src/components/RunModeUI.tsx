@@ -160,8 +160,8 @@ export function RunHudStrip({
         </button>
       )}
 
-      {/* Score progress */}
-      <div className="relative h-5 rounded-full bg-black/30 overflow-hidden">
+      {/* Score progress: short numbers on the left, what's left on the right */}
+      <div className="relative h-6 [@media(max-height:640px)]:h-5 rounded-full bg-black/30 overflow-hidden">
         <motion.div
           className="absolute inset-y-0 left-0 bg-amber-300/80"
           initial={false}
@@ -174,9 +174,13 @@ export function RunHudStrip({
             style={{ left: `${pct}%`, width: `${previewPct}%` }}
           />
         )}
-        <div className="absolute inset-0 flex items-center justify-start pl-2.5 text-[13px] font-mono font-black text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">
-          {fmt(garden.score)} / {fmt(garden.target)}
-          {garden.score >= garden.target && " · Bloomed ✓"}
+        <div className="absolute inset-0 flex items-center justify-between px-2.5 text-[15px] [@media(max-height:640px)]:text-[13px] font-mono font-black text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">
+          <span>
+            {shortScore(garden.score)} / {shortScore(garden.target)}
+          </span>
+          <span className="text-[13px] [@media(max-height:640px)]:text-[12px] font-bold text-white/85">
+            {garden.score >= garden.target ? "Bloomed ✓" : `${shortScore(garden.target - garden.score)} to go`}
+          </span>
         </div>
       </div>
       {/* Bloom bar: buds at half, three quarters and full open as the bed fills (the line you draw previews it) */}
@@ -218,6 +222,14 @@ export function RunHudStrip({
 
     </div>
   );
+}
+
+/** Scores in the bar: full digits below 10,000, then 48.2K, 1.25M… */
+function shortScore(n: number): string {
+  const v = Math.max(0, Math.round(n));
+  if (v < 10_000) return v.toLocaleString("en-US");
+  if (v < 1_000_000) return `${(v / 1000).toFixed(v < 100_000 ? 1 : 0).replace(/\.0$/, "")}K`;
+  return fmt(v);
 }
 
 /** Tap up to 3 tiles on the board to swap them for new ones from the Tile Bag */
