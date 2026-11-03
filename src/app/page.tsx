@@ -2,7 +2,7 @@
 
 import Badge from "@/components/Badge";
 import SupplyIcon from "@/components/SupplyIcon";
-import { bossArt, relicArt, tileArt, toolArt } from "@/lib/art";
+import { badgeArt, bossArt, relicArt, tileArt, toolArt } from "@/lib/art";
 import { bossAdvice } from "@/lib/bossAdvice";
 import GardenerCard from "@/components/GardenerCard";
 import { applyGardenerGift, GARDENER_GIFTS, gardenerRelic } from "@/lib/runReplay";
@@ -2387,6 +2387,16 @@ export default function OneStrokeTacticianPage() {
     !seenTileIntros.includes(START_GLOVES_INTRO) &&
     !seenTileIntros.includes("SHIELD") &&
     floorStartHero.shield > 0;
+  // The first Fertilized tile on the board is explained once
+  const FERTILIZED_INTRO = "FERTILIZED";
+  const fertilizedHere =
+    mode === "RUN" && !lesson
+      ? Object.entries(relicCounters)
+          .filter(([k, n]) => k.startsWith("FERT_") && (n ?? 0) > 0)
+          .map(([k, n]) => ({ type: k.slice(5) as keyof typeof FERTILIZER, level: n ?? 0 }))
+          .find((f) => activeGrid.some((row) => row.some((c) => c.type === f.type)))
+      : undefined;
+  const showFertilizedIntro = Boolean(fertilizedHere && seenTileIntros && !seenTileIntros.includes(FERTILIZED_INTRO));
   const dismissTileIntro = (type: string) => {
     const next = [...(seenTileIntros ?? []), type];
     setSeenTileIntros(next);
@@ -3598,7 +3608,7 @@ export default function OneStrokeTacticianPage() {
     (!!lesson || (!!runGarden && !(phase === "DEFEAT" && runOver === null)));
   const meterBusy =
     drawnPath.length >= 2 ||
-    (phase === "PLANNING" && (tileIntroQueue.length > 0 || showStartGlovesIntro)) ||
+    (phase === "PLANNING" && (tileIntroQueue.length > 0 || showStartGlovesIntro || showFertilizedIntro)) ||
     !!lineShow ||
     !!lineToast ||
     !!lineCallout;
@@ -3648,6 +3658,19 @@ export default function OneStrokeTacticianPage() {
                           index: 0,
                           total: 1,
                           onNext: () => dismissTileIntro(START_GLOVES_INTRO),
+                        }
+                      : showFertilizedIntro && fertilizedHere
+                      ? {
+                          icon: (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={badgeArt("seed")} alt="" aria-hidden="true" draggable={false} className="h-[30px] w-[30px] object-contain" />
+                          ),
+                          label: "Good to know",
+                          name: `Fertilized ${FERTILIZER[fertilizedHere.type].name}`,
+                          text: `the green +${fertilizedHere.level * FERTILIZER[fertilizedHere.type].perLevel} is extra Value each one adds to a line, all Run.`,
+                          index: 0,
+                          total: 1,
+                          onNext: () => dismissTileIntro(FERTILIZED_INTRO),
                         }
                       : null
                   }

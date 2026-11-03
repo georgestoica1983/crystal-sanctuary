@@ -1,7 +1,7 @@
 "use client";
 
 import SupplyIcon from "@/components/SupplyIcon";
-import { tileArt } from "@/lib/art";
+import { badgeArt, tileArt } from "@/lib/art";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Cat, Crown, Sparkles, Compass } from "lucide-react";
@@ -25,6 +25,7 @@ import {
   isValidStep,
   TRAIL_SKINS,
   explainWilt,
+  FERTILIZER,
 } from "@/lib/engine";
 import { soundEngine } from "@/lib/audio";
 import { SANCTUARY_COMPANIONS } from "@/components/SanctuaryModal";
@@ -987,14 +988,19 @@ export default function GridCanvas({
                       {cell.bagTile.echo && <SupplyIcon kind="tool" id="ECHO" size={13} />}
                     </span>
                   )}
-                  {(tileLevels?.[cell.type] ?? 0) > 0 && (
-                    <span
-                      aria-label={`Fertilized: level ${(tileLevels?.[cell.type] ?? 0) + 1}`}
-                      className="tile-tag absolute top-0.5 right-0.5 z-20 rounded-full bg-lime-300/90 px-1 text-[9px] font-black leading-[13px] text-slate-950 pointer-events-none select-none"
-                    >
-                      🌱{(tileLevels?.[cell.type] ?? 0) + 1}
-                    </span>
-                  )}
+                  {/* Fertilized (rules v12+): the extra Value this tile adds to a line */}
+                  {(tileLevels?.[cell.type] ?? 0) > 0 && cell.type in FERTILIZER && (() => {
+                    const extra = (tileLevels?.[cell.type] ?? 0) * FERTILIZER[cell.type as keyof typeof FERTILIZER].perLevel;
+                    return (
+                      <span
+                        aria-label={`Fertilized: +${extra} Value on a line`}
+                        className="tile-tag absolute top-0.5 right-0.5 z-20 flex items-center gap-px rounded-full bg-lime-300/90 pl-0.5 pr-1 text-[10px] font-black leading-[14px] text-slate-950 pointer-events-none select-none"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={badgeArt("seed")} alt="" aria-hidden="true" draggable={false} className="h-[11px] w-[11px] object-contain" />+{extra}
+                      </span>
+                    );
+                  })()}
                   {/* Harmful tiles (Thorn, Spike) carry faint diagonal stripes, so they
                       differ by pattern as well as colour (colour-blind friendly) */}
                   {!isSanctuary && !stepSim && (cell.type === "ENEMY" || cell.type === "TRAP") && (
