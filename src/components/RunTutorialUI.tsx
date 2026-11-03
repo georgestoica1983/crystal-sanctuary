@@ -345,7 +345,7 @@ export function RunHelpMenu({
           <div className="text-[22px] font-display font-semibold">
             {isFirstVisit ? "Welcome to Bloomline" : "Help"}
           </div>
-          <p className="text-[12px] text-indigo-100/80">
+          <p className="text-[12px] text-indigo-100/80 [text-wrap:balance]">
             {isFirstVisit
               ? "Draw lines, clear gardens, and see how far your Run can go. How would you like to start?"
               : "Learn by playing, or read every rule. Your Run will wait."}
@@ -370,7 +370,7 @@ export function RunHelpMenu({
             <GraduationCap className="w-4 h-4 mr-1 inline-block align-[-3px]" aria-hidden="true" />Learn by playing {isFirstVisit && <span className="text-emerald-300">(recommended)</span>}
           </div>
           <div className="text-[11px] text-emerald-100/80">
-            {totalLessons} quick steps and a practice garden. About 2 minutes.
+            {totalLessons} quick steps and a practice garden. About{"\u00a0"}2{"\u00a0"}minutes.
           </div>
           {!isFirstVisit && (
             <div className="text-[11px] text-amber-200/80">This ends the Run you&apos;re playing.</div>

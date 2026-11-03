@@ -426,7 +426,7 @@ export default function RunGuide({
         )}
 
         {/* Body */}
-        {/* Short pages sit in the middle of a tall screen; long ones scroll from the top */}
+        {/* Every page starts at the top, under the header, like the other screens */}
         <div className="flex-1 overflow-y-auto px-4 py-3 flex flex-col">
           <AnimatePresence mode="wait">
             <motion.div
@@ -435,7 +435,7 @@ export default function RunGuide({
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -16 }}
               transition={{ duration: 0.18 }}
-              className="my-auto space-y-3"
+              className="space-y-3"
             >
               <h2 className="text-lg font-black text-emerald-100 flex items-center gap-2">
                 <span className="text-2xl">{current.icon}</span>

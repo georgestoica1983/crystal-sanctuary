@@ -527,3 +527,10 @@ svg text,
   -webkit-mask-image: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 16px), transparent);
   mask-image: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 16px), transparent);
 }
+
+/* Titles never leave one word alone on their last line */
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}

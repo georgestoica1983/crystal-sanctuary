@@ -312,14 +312,15 @@ export default function LineScoreShow({
     >
       {fire > 0 && <Petals level={fire} />}
       {total !== null && tierLevel > 0 && !still && <LengthBurst level={tierLevel} color={tierColor ?? "#FCD34D"} />}
-      <div className="flex items-center gap-1.5 min-w-0">
+      {/* Bottom-aligned, so × sits on the numbers' line, not between label and number */}
+      <div className="flex items-end gap-1.5 min-w-0">
         <div className="flex flex-col items-center min-w-[40px]">
           <span className="text-[11px] font-semibold uppercase tracking-wide text-sky-300/80">Value</span>
           <motion.span key={`v${pulse?.box === "value" ? pulse.key : 0}`} animate={pop("value")} className="text-[22px] font-display font-semibold tabular-nums leading-none text-sky-100">
             {fmt(value)}
           </motion.span>
         </div>
-        <span className="text-white/35 font-black">×</span>
+        <span className="pb-[3px] text-[15px] leading-none text-white/35 font-black">×</span>
         <div className="flex flex-col items-center min-w-[36px]">
           <span className="text-[11px] font-semibold uppercase tracking-wide text-emerald-300/80">Length</span>
           <motion.span key={`l${pulse?.box === "length" ? pulse.key : 0}`} animate={pop("length")} className="text-[22px] font-display font-semibold tabular-nums leading-none text-emerald-100">

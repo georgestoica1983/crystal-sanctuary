@@ -92,4 +92,12 @@ Also, the browser pane often lagged while animating, so a few states were judged
    - Stars: the painted star art everywhere in the Run (season track, score tally); text ★ only remains in old Daily-mode screens that Run-only mode never shows.
    - Emoji in headings and buttons became the menu's line icons (trophy, pencil, book, cap, eye, sun, sparkles), relic rows use relic art, and podium ranks are gold, silver and bronze rounds.
    - Unlock names keep their own emoji (🎨, 🌙), since those come from the unlock data.
-7. **Polish:** C1–C10, then a second pass over the "Not covered yet" list.
+7. **Polish:** C1–C10, then a second pass over the "Not covered yet" list. ✅ Done.
+   - C3: "0 tiles left" was correct; the bag empties as lines refill the board.
+   - C9 needed no change: a global rule already gives every pop-up the same 12px gutter.
+   - C10: /tutorial now redirects to the game.
+   - Second pass (weather, the Gardener, skipping a bed, tools, the Boss-beaten card, full relic slots and selling) found and fixed:
+     - with Skip showing, the four action buttons wrapped their labels; they now drop their icons and stay on one line;
+     - the sell view now matches the buy view;
+     - the Gardener's gift lines now end the same way.
+   - Still open: the Gardener card's picture is an emoji (🧑‍🌾), because there is no gardener illustration yet. I didn't look at the sound prompt or Endless and high-Ascension states.

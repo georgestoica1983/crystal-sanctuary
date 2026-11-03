@@ -750,7 +750,7 @@ export function RunSavedRest({
         initial={{ y: 16, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ type: "spring", stiffness: 200, damping: 22 }}
-        className="w-full max-w-[340px] text-center text-white space-y-3"
+        className="w-full max-w-[300px] text-center text-white space-y-3"
       >
         <img src={BLOOM_ART} alt="" aria-hidden="true" draggable={false} className="mx-auto h-14 w-14 object-contain" />
         <div className="font-display text-[26px] font-semibold text-amber-100">Saved for later</div>

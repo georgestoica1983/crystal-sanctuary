@@ -241,7 +241,7 @@ export default function LineMeter({
             initial={{ scale: 0.6, opacity: 0, y: 4 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="pointer-events-none absolute -top-3 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full text-[11px] font-black text-slate-950"
+            className="pointer-events-none absolute top-1.5 right-2 px-2.5 py-0.5 rounded-full text-[11px] font-black text-slate-950"
             style={{ backgroundColor: getLineTier(tiles).color }}
           >
             {tierUp}!

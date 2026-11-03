@@ -68,7 +68,7 @@ export default function GardenerCard({
           {gifts.map((g, i) => {
             const info = GARDENER_GIFTS[g];
             const name = g === "RARE_RELIC" && relic ? RELIC_REGISTRY[relic].name : info.name;
-            const text = g === "RARE_RELIC" && relic ? `Rare relic, free: ${RELIC_REGISTRY[relic].shortTag}` : info.text;
+            const text = g === "RARE_RELIC" && relic ? `Rare relic, free: ${RELIC_REGISTRY[relic].shortTag.replace(/\.?$/, ".")}` : info.text;
             return (
               <button
                 key={g}

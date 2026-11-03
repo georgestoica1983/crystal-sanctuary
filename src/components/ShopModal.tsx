@@ -428,15 +428,23 @@ export default function ShopModal({
           </button>
         );
       }
+      // Same layout as an offer: framed picture, chips, name, text
+      const rarity = RARITY_LABEL[info.rarity ?? "COMMON"];
       return (
         <div className="flex gap-3">
-          <RelicIcon id={id} size={44} />
+          <div
+            className="h-12 w-12 shrink-0 rounded-xl border flex items-center justify-center"
+            style={{ backgroundColor: `${info.accentColor}22`, borderColor: `${info.accentColor}66` }}
+          >
+            <RelicIcon id={id} size={38} />
+          </div>
           <div className="min-w-0 flex-1">
-            <div className="text-[15px] font-black leading-tight flex flex-wrap items-center gap-1">
-              {info.name}
+            <div className="flex flex-wrap items-center gap-1">
+              <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded ${rarity.className}`}>Yours · {rarity.label}</span>
               {getRelicTags(id).map((t) => <TagChip key={t} tag={t} />)}
             </div>
-            <div className="mt-1 text-[13px] leading-snug text-white/80">
+            <div className="mt-0.5 text-[15px] font-black leading-tight">{info.name}</div>
+            <div className="text-[13px] leading-snug text-white/80">
               {info.description}
               {growth && <span className="text-emerald-300 font-semibold"> ({growth})</span>}
             </div>

@@ -4027,7 +4027,7 @@ export function explainWilt(
     const dmg = Math.max(0, step.hpBefore - step.hpAfter);
     const hits = Math.max(dmg, Math.max(0, v - sun - dew));
     return {
-      short: `🌺${v} hits ${hits} ❤️${dew > 0 ? ` (🧤 blocked ${Math.min(dew, v)})` : ""} · you have ${have}`,
+      short: `🌺${v} hits ${hits} ❤️${dew > 0 ? ` (🧤 blocked ${Math.min(dew, v)})` : ""} · only ${have} left by then`,
       long: `That Thorn 🌺${v} would take ${hits} ❤️${dew > 0 ? ` after your 🧤${dew} Gloves` : ""}, but you only have ${have}. Grab ✂️ Shears (cuts it completely) or 🧤 Gloves before it, or go around.`,
     };
   }

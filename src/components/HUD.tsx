@@ -960,7 +960,10 @@ export function TopHUD({
                             </span>
                           )}
                         </span>
-                        <span className="shrink-0 text-[16px] font-mono font-black text-amber-200"><Badge id="star" /> {totalStars}</span>
+                        <span className="shrink-0 flex flex-col items-end leading-none" aria-label={`${totalStars} stars`}>
+                          <span className="text-[16px] font-mono font-black text-amber-200"><Badge id="star" /> {totalStars}</span>
+                          <span className="mt-0.5 text-[10.5px] text-white/50">stars</span>
+                        </span>
                       </div>
                     );
                   })()}
@@ -980,7 +983,13 @@ export function TopHUD({
                       <button type="button" className={`${menuTile} col-span-2`} onClick={() => { setShowRunMenu(false); onOpenJournal(); }}>
                         <span className={menuTileTop}><BookOpen className="w-4 h-4 text-white/75" /> Journal</span>
                         <span className={menuTileSub}>
-                          {journalNew > 0 ? <span className="rounded-full bg-lime-300 px-1.5 font-black text-slate-950">{journalNew} new</span> : "Your collection"}
+                          Your collection
+                          {journalNew > 0 && (
+                            <span className="ml-1.5 inline-flex items-center gap-1 font-semibold text-lime-200">
+                              <span className="h-1.5 w-1.5 rounded-full bg-lime-300" aria-hidden="true" />
+                              {journalNew} new
+                            </span>
+                          )}
                         </span>
                       </button>
                     )}
@@ -1041,7 +1050,7 @@ export function TopHUD({
                     </div>
                   )}
                 </div>
-                <div className={`grid grid-cols-2 content-start gap-2 ${menuTab === "SETTINGS" ? "" : "invisible"}`} aria-hidden={menuTab !== "SETTINGS"}>
+                <div className={`grid grid-cols-2 content-start gap-2 [&>*:last-child:nth-child(odd)]:col-span-2 ${menuTab === "SETTINGS" ? "" : "invisible"}`} aria-hidden={menuTab !== "SETTINGS"}>
                   <button type="button" className={menuTile} onClick={onToggleSound} aria-pressed={soundEnabled}>
                     <span className={menuTileTop}>
                       {soundEnabled ? <Volume2 className="w-4 h-4 text-white/80" /> : <VolumeX className="w-4 h-4 text-white/50" />} Sound
@@ -1056,8 +1065,8 @@ export function TopHUD({
                   )}
                   {onToggleMusic && onToggleMusicLayers && (
                     <button type="button" className={menuTile} onClick={onToggleMusicLayers} aria-pressed={musicLayersOn}>
-                      <span className={menuTileTop}><Music2 className="w-4 h-4 text-white/75" /> Set music</span>
-                      <span className={menuTileSub}>{musicLayersOn ? "On" : "Off"}</span>
+                      <span className={menuTileTop}><Music2 className="w-4 h-4 text-white/75" /> Extra music</span>
+                      <span className={menuTileSub}>From relic sets · {musicLayersOn ? "On" : "Off"}</span>
                     </button>
                   )}
                   {onToggleTips && (
@@ -1090,7 +1099,7 @@ export function TopHUD({
                   )}
                   {onToggleReduceMotion && (
                     <button type="button" className={menuTile} onClick={onToggleReduceMotion} aria-pressed={reduceMotion}>
-                      <span className={menuTileTop}><Leaf className="w-4 h-4 text-white/75" /> Reduce motion</span>
+                      <span className={menuTileTop}><Leaf className="w-4 h-4 text-white/75" /> Less motion</span>
                       <span className={menuTileSub}>{reduceMotion ? "On" : "Off"}</span>
                     </button>
                   )}
@@ -1821,7 +1830,10 @@ export function BottomControls({
       <div
         className={
           mode === "RUN"
-            ? `grid ${["grid-cols-2", "grid-cols-3", "grid-cols-4"][(swap ? 1 : 0) + (skip ? 1 : 0)]} gap-2 [&>button]:w-full [&>button]:min-w-0 [&>button]:flex [&>button]:items-center [&>button]:justify-center [&>button]:px-1`
+            ? `grid ${["grid-cols-2", "grid-cols-3", "grid-cols-4"][(swap ? 1 : 0) + (skip ? 1 : 0)]} gap-2 [&>button]:w-full [&>button]:min-w-0 [&>button]:flex [&>button]:items-center [&>button]:justify-center [&>button]:px-1 [&>button]:whitespace-nowrap ${
+                // Four buttons: labels only, so each one stays on a single line
+                swap && skip ? "[&_svg]:hidden" : ""
+              }`
             : "flex items-center justify-between gap-1.5"
         }
       >
