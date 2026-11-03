@@ -1,6 +1,6 @@
 // Tip cards between beds: one short game tip or gardening tip, with a picture.
 // No tip repeats until every tip of its kind has been shown on this device.
-import { badgeArt, decorArt, gardenArt, tileArt, toolArt, visitorArt } from "@/lib/art";
+import { badgeArt, bossArt, companionArt, decorArt, gardenArt, icon, relicArt, tagArt, tileArt, toolArt, visitorArt } from "@/lib/art";
 import {
   EDITIONS,
   MAX_COMMON_RELICS,
@@ -28,7 +28,6 @@ export interface Tip {
 }
 
 const tile = (t: Parameters<typeof tileArt>[0]) => tileArt(t) ?? "";
-const bloom = tileArt("ENEMY", { bloomed: true }) ?? "";
 
 /** Where the player is when a tip could show: tips only appear when they fit */
 export interface TipContext {
@@ -58,14 +57,14 @@ const FIRST_TIP_ID = "plan-long";
 
 // Numbers come from the game's own rules, so a rule change can't leave a tip wrong
 const GAME_TIP_LIST: Array<{ id: string; text: Text; art: string; when?: When }> = [
-  { id: "long-lines", text: "Longer lines score far more: twice the tiles scores about four times the points.", art: bloom },
+  { id: "long-lines", text: "Longer lines score far more: twice the tiles scores about four times the points.", art: icon("theme-long-lines")},
   {
     id: "life-carries",
     text: (c) =>
       c.clearLife > 0
         ? `Reach the gate with Life to spare: it carries into the next bed, plus ${c.clearLife} ❤️ for clearing.`
         : "Reach the gate with Life to spare: it carries into the next bed.",
-    art: tile("POTION"),
+    art: icon("stat-life"),
   },
   { id: "thorn-number", text: "A Thorn's number is points for your line and Life off your companion. Big ones are worth it while you're healthy.", art: tile("ENEMY") },
   { id: "spike-diagonal", text: "Come at a Spike diagonally and it can't hurt you.", art: tile("TRAP") },
@@ -73,73 +72,73 @@ const GAME_TIP_LIST: Array<{ id: string; text: Text; art: string; when?: When }>
   { id: "shears", text: "Shears cut the next Thorn clean: no Life lost, and you still get its points.", art: tile("WEAPON") },
   { id: "berries", text: "Save Berries for when you're hurt. They heal up to your maximum, never past it.", art: tile("POTION") },
   { id: "acorns", text: "Acorns are free points. Bend your line to pick them up.", art: tile("GOLD") },
-  { id: "spare-lines", text: `You get ${RUN_STROKES_PER_GARDEN} lines a bed. Clear it early and every spare line pays 1 🌱.`, art: bloom },
+  { id: "spare-lines", text: `You get ${RUN_STROKES_PER_GARDEN} lines a bed. Clear it early and every spare line pays 1 🌱.`, art: icon("stat-seeds")},
   {
     id: "swap",
     text: `Don't like a corner of the board? Swap changes up to ${RUN_WEEDOUT_MAX_TILES} tiles, ${RUN_WEEDOUTS_PER_GARDEN} times a bed.`,
-    art: bloom,
+    art: icon("theme-growing"),
   },
-  { id: "hint", text: "Stuck? Hint lights up a good route once per bed. No shame in it.", art: bloom },
-  { id: "stars", text: "Clear with a line to spare for ⭐⭐. Reach 1.5× the target too for ⭐⭐⭐.", art: bloom },
+  { id: "hint", text: "Stuck? Hint lights up a good route once per bed. No shame in it.", art: relicArt("STARLIGHT_COMPASS")},
+  { id: "stars", text: "Clear with a line to spare for ⭐⭐. Reach 1.5× the target too for ⭐⭐⭐.", art: badgeArt("star")},
   {
     id: "interest",
     text: (c) => `Seeds you keep earn interest: +1 for every ${RUN_INTEREST_STEP} 🌱, up to +${c.interestCap} after each bed.`,
-    art: tile("GOLD"),
+    art: badgeArt("seed"),
     when: fromBed(1),
   },
-  { id: "big-shows-boss", text: "The Big bed shows which Boss comes next. Shop with that Boss in mind.", art: bloom, when: (c) => c.runs <= 2 },
+  { id: "big-shows-boss", text: "The Big bed shows which Boss comes next. Shop with that Boss in mind.", art: bossArt("BRIAR_QUEEN"), when: (c) => c.runs <= 2 },
   {
     id: "boss-legendary",
     text: `Beat a Boss bed to win a Legendary relic. It doesn't take one of your ${MAX_COMMON_RELICS} relic slots.`,
-    art: bloom,
+    art: badgeArt("crown"),
     when: (c) => c.gardenIndex < 9,
   },
-  { id: "season-dots", text: "Tap the Boss icon in the Season dots to read its rule before you get there.", art: bloom },
+  { id: "season-dots", text: "Tap the Boss icon in the Season dots to read its rule before you get there.", art: bossArt("ECLIPSE")},
   {
     id: "sets",
     text: `Three relics with the same tag make a set: every line scores ×${RELIC_SET_X}. Look for matching tags in the Shop.`,
-    art: bloom,
+    art: icon("theme-any"),
     when: fromBed(2),
   },
   {
     id: "relic-slots",
     text: `You can hold ${MAX_COMMON_RELICS} relics. Full? Sell your weakest in the Shop for half its price.`,
-    art: bloom,
+    art: relicArt("MAGPIE_NEST"),
     when: fromBed(3),
   },
   {
     id: "reroll",
     text: `Nothing good in the Shop? A reroll costs ${RUN_REROLL_BASE_COST} 🌱, then 1 more each time in the same Shop.`,
-    art: tile("GOLD"),
+    art: relicArt("WISHING_WELL"),
     when: fromBed(1),
   },
-  { id: "fertilizer", text: "Fertilizer makes one kind of tile worth more for the rest of the Run. Pick the kind your bag has most of.", art: tile("GOLD"), when: fromBed(4) },
+  { id: "fertilizer", text: "Fertilizer makes one kind of tile worth more for the rest of the Run. Pick the kind your bag has most of.", art: tagArt("FERTILE"), when: fromBed(4) },
   {
     id: "tools",
     text: `Garden tools upgrade one tile on the board. You can carry ${MAX_TOOLS}, and they only score once you use them.`,
-    art: tile("WEAPON"),
+    art: toolArt("RICH_SOIL"),
     when: fromBed(4),
   },
   {
     id: "editions",
     text: `Golden tiles add ${EDITIONS.GOLDEN.tag} and Iridescent ones ${EDITIONS.IRIDESCENT.tag}. Route through them when you can.`,
-    art: bloom,
+    art: badgeArt("golden"),
     when: fromBed(7),
   },
-  { id: "echo", text: "Echo tiles score twice. Bend your line to pass through them.", art: bloom, when: fromBed(7) },
+  { id: "echo", text: "Echo tiles score twice. Bend your line to pass through them.", art: toolArt("ECHO"), when: fromBed(7) },
   { id: "prune", text: "Prune weak tiles from your bag in the Shop, and the good ones come up more often.", art: tile("WEAPON"), when: fromBed(2) },
   {
     id: "skip",
     text: `Skip a Small bed for a Tag, but the Big bed's target grows ×${RUN_SKIP_TARGET_MULT}. Skip when you feel strong.`,
-    art: bloom,
+    art: tagArt("GOLDEN"),
     when: (c) => c.gardenIndex >= 3 && c.gardenIndex % 3 === 0,
   },
-  { id: "otter", text: "The Otter can cross its own line once. Try a loop around a Thorn cluster.", art: bloom, when: has("ROGUE") },
-  { id: "fox", text: "The Fox can hop over one tile per line. Jump a big Thorn instead of walking around it.", art: bloom, when: has("MAGE") },
-  { id: "sprite", text: "The Sprite has no Gloves, but cut Thorns heal it. Shears are its best friend.", art: bloom, when: has("VAMPIRE") },
-  { id: "pulls-back", text: "If a line would run out of Life, it pulls back and shows you why. Try it: you lose nothing.", art: tile("ENEMY"), when: (c) => c.runs <= 3 },
-  { id: FIRST_TIP_ID, text: "Plan the long way first, then trim the risky bits.", art: bloom },
-  { id: "endless", text: "Finish Season 8 and the garden goes on forever in Endless.", art: bloom, when: (c) => c.highestBed >= 15 },
+  { id: "otter", text: "The Otter can cross its own line once. Try a loop around a Thorn cluster.", art: companionArt("ROGUE"), when: has("ROGUE") },
+  { id: "fox", text: "The Fox can hop over one tile per line. Jump a big Thorn instead of walking around it.", art: companionArt("MAGE"), when: has("MAGE") },
+  { id: "sprite", text: "The Sprite has no Gloves, but cut Thorns heal it. Shears are its best friend.", art: companionArt("VAMPIRE"), when: has("VAMPIRE") },
+  { id: "pulls-back", text: "If a line would run out of Life, it pulls back and shows you why. Try it: you lose nothing.", art: icon("theme-careful"), when: (c) => c.runs <= 3 },
+  { id: FIRST_TIP_ID, text: "Plan the long way first, then trim the risky bits.", art: relicArt("LONG_STRIDE")},
+  { id: "endless", text: "Finish Season 8 and the garden goes on forever in Endless.", art: relicArt("ETERNAL_SPRING"), when: (c) => c.highestBed >= 15 },
 ];
 
 export const GAME_TIPS = GAME_TIP_LIST.map((t) => ({ ...t, when: t.when ?? always }));

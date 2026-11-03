@@ -6,7 +6,7 @@ import type { RelicTag } from "@/lib/relicTags";
  * scripts/cut-icon-sheet.cjs). Each helper returns the image path, or null
  * when the thing has no illustration yet and keeps its drawn SVG.
  */
-const icon = (name: string) => `/art/icons/${name}.webp`;
+export const icon = (name: string) => `/art/icons/${name}.webp`;
 
 const TILE_ART: Partial<Record<EntityType, string>> = {
   ENEMY: "tile-thorn",
