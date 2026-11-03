@@ -183,6 +183,7 @@ export function startRunGarden(
     newBosses: runRulesUseNewBosses(logVersion),
     bossV20: runRulesUseV20Bosses(logVersion),
     weather: runRulesUseWeather(logVersion),
+    lateTargets: runRulesUseLateTargets(logVersion),
     ...ascensionGardenParams(rules),
   });
   return { bag, hero, ...first };
@@ -466,6 +467,8 @@ export const runRulesUseV20Relics = (logVersion: number) => logVersion >= 20;
 export const runRulesUseV20Bosses = (logVersion: number) => logVersion >= 20;
 /** v20: from Season 4 every Shop has at least one Rare relic */
 export const runRulesUseRareShops = (logVersion: number) => logVersion >= 20;
+/** v20: targets grow ×1.4 from Season 4 (the Gardener and Rare Shops make Runs stronger) */
+export const runRulesUseLateTargets = (logVersion: number) => logVersion >= 20;
 export const RARE_SHOP_SEASON = 4;
 /** v20: Golden Hour and Thick Brambles on some Small and Big beds from Season 2 */
 export const runRulesUseWeather = (logVersion: number) => logVersion >= 20;
@@ -691,6 +694,7 @@ export function createNextRunGarden(params: {
     newBosses: runRulesUseNewBosses(v),
     bossV20: runRulesUseV20Bosses(v),
     weather: runRulesUseWeather(v),
+    lateTargets: runRulesUseLateTargets(v),
     ...ascensionGardenParams(rules),
   });
   // Rules v20: the Wandering Gardener waits at the start of Seasons 4 and 6

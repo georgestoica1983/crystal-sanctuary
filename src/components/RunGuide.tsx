@@ -8,6 +8,8 @@ import EntityIcon, { ENTITY_COLORS } from "@/components/EntityIcon";
 import {
   BOSS_RULE_REGISTRY,
   getRunGardenTarget,
+  runLateTargetMult,
+  scaleRunTarget,
   getRunSeasonGrowth,
   HERO_CLASS_LIST,
   getRelicSellValue,
@@ -290,9 +292,9 @@ function buildPages(): GuidePage[] {
             {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
               <div key={n} className="grid grid-cols-4 odd:bg-white/[0.03] text-white/80">
                 <span className="px-2 py-0.5">{n}</span>
-                <span className="px-2 py-0.5">{fmt(getRunGardenTarget(n, "SMALL"))}</span>
-                <span className="px-2 py-0.5">{fmt(getRunGardenTarget(n, "BIG"))}</span>
-                <span className="px-2 py-0.5">{fmt(getRunGardenTarget(n, "BOSS"))}</span>
+                <span className="px-2 py-0.5">{fmt(scaleRunTarget(getRunGardenTarget(n, "SMALL"), runLateTargetMult(n, true)))}</span>
+                <span className="px-2 py-0.5">{fmt(scaleRunTarget(getRunGardenTarget(n, "BIG"), runLateTargetMult(n, true)))}</span>
+                <span className="px-2 py-0.5">{fmt(scaleRunTarget(getRunGardenTarget(n, "BOSS"), runLateTargetMult(n, true)))}</span>
               </div>
             ))}
           </div>

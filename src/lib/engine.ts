@@ -3568,6 +3568,15 @@ export function getRunSeasonGrowth(season: number): { briar: number; thistle: nu
 }
 
 /** A score target scaled for Ascension, kept on a round number */
+/**
+ * Rules v20: the Wandering Gardener, Rare Shops and late weather make the
+ * Run stronger from Season 4, so its targets grow by this much from there
+ */
+export const RUN_LATE_TARGET_MULT = 1.4;
+export const RUN_LATE_TARGET_SEASON = 4;
+export const runLateTargetMult = (season: number, lateTargets: boolean) =>
+  lateTargets && season >= RUN_LATE_TARGET_SEASON ? RUN_LATE_TARGET_MULT : 1;
+
 export function scaleRunTarget(target: number, mult: number): number {
   if (mult === 1) return target;
   const step = target >= 10000 ? 500 : 50;
@@ -3791,6 +3800,8 @@ export function createRunGarden(params: {
   bossV20?: boolean;
   /** Rules v20+: some Small and Big beds have weather */
   weather?: boolean;
+  /** Rules v20+: higher targets from Season 4 (RUN_LATE_TARGET_MULT) */
+  lateTargets?: boolean;
   /** Rules v11+: gentler Season 1 targets */
   gentleStart?: boolean;
   /** Ascension (rules v8+): harder targets, stronger Thorns, fewer Swaps / Boss lines */
@@ -3850,7 +3861,10 @@ export function createRunGarden(params: {
         gardenIndex,
         season,
         kind,
-        target: scaleRunTarget(getRunGardenTarget(season, kind, params.gentleStart ?? false), params.targetMult ?? 1),
+        target: scaleRunTarget(
+          getRunGardenTarget(season, kind, params.gentleStart ?? false),
+          (params.targetMult ?? 1) * runLateTargetMult(season, Boolean(params.lateTargets))
+        ),
         score: 0,
         strokesLeft: kind === "BOSS" && params.bossLines ? params.bossLines : RUN_STROKES_PER_GARDEN,
         strokesTotal: kind === "BOSS" && params.bossLines ? params.bossLines : RUN_STROKES_PER_GARDEN,

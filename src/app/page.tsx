@@ -84,6 +84,8 @@ import {
   saveRunBestRecord,
   getRunGardenPosition,
   getRunGardenTarget,
+  runLateTargetMult,
+  scaleRunTarget,
   getRunRerollCost,
   explainWilt,
 } from "@/lib/engine";
@@ -180,6 +182,7 @@ import {
   runRulesAllowPrune,
   runRulesUseRelicSets,
   runRulesUseGentleStart,
+  runRulesUseLateTargets,
   runRulesUseTools,
   runRulesUseAllBosses,
   runRulesUseNewBosses,
@@ -4673,10 +4676,10 @@ export default function OneStrokeTacticianPage() {
           mode === "RUN"
             ? (() => {
                 const next = getRunGardenPosition(currentFloorIndex + 1);
-                return `${getRunGardenLabel(currentFloorIndex + 1)} · target ${getRunGardenTarget(
-                  next.season,
-                  next.kind,
-                  runRulesUseGentleStart(runLogRef.current?.v ?? RUN_LOG_VERSION)
+                const v = runLogRef.current?.v ?? RUN_LOG_VERSION;
+                return `${getRunGardenLabel(currentFloorIndex + 1)} · target ${scaleRunTarget(
+                  getRunGardenTarget(next.season, next.kind, runRulesUseGentleStart(v)),
+                  runLateTargetMult(next.season, runRulesUseLateTargets(v))
                 ).toLocaleString()}`;
               })()
             : dungeon.floors[currentFloorIndex + 1]
