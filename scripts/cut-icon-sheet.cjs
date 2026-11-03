@@ -12,6 +12,7 @@
 //      or:  node scripts/cut-icon-sheet.cjs design/gemini-moments.webp moments        (4 × 2 Gardener, Swap, Journal…)
 //      or:  node scripts/cut-icon-sheet.cjs design/gemini-weather-daily.webp weatherdaily  (4 × 2 weather, Daily flowers)
 //      or:  node scripts/cut-icon-sheet.cjs design/gemini-ranks-looks.webp rankslooks  (5 × 3 ranks, board looks, Botanist)
+//      or:  node scripts/cut-icon-sheet.cjs design/gemini-tiles-after.webp tilesafter (4 × 2 tiles after the line passed)
 const sharp = require("sharp");
 const path = require("path");
 
@@ -76,6 +77,11 @@ const RANKS_LOOKS_NAMES = [
   "rank-master-of-seasons", "rank-endless-gardener", "board-moss", "board-autumn", "board-night",
   "board-winter", "board-golden", "board-royal", "board-herbarium", "title-botanist",
 ];
+// Tiles after the line passed: 4 × 2 (what each tile looks like once used)
+const TILES_AFTER_NAMES = [
+  "tile-acorn-gathered", "tile-berry-eaten", "tile-gloves-used", "tile-shears-used",
+  "tile-spike-crossed", "tile-exit-open", "tile-thorn-cut", "tile-thorn-wilted",
+];
 // Small badges: 4 × 2, in the order of the badges prompt
 const BADGE_NAMES = ["star", "crown", "flame", "lock", "golden", "iridescent", "radiant", "seed"].map((n) => `badge-${n}`);
 // Lawn board pieces: 4 × 2. Each cell has its own background shade, and pieces keep their own shape
@@ -90,7 +96,7 @@ const SOFT = 46; // up to this (and reachable from the edge): partly transparent
 const WIDE_GLOW = new Set([
   "relic-long-shadow", "boss-eclipse", "boss-frost", "boss-long-road", "boss-fog",
   "tool-sunlit", "upgrade-observatory", "tag-golden", "badge-radiant", "relic-seven-stones",
-  "misc-daily", "misc-hint", "rank-endless-gardener",
+  "misc-daily", "misc-hint", "rank-endless-gardener", "tile-exit-open",
 ]);
 const GLOW_SOFT = 120;
 const OUT = 256;
@@ -112,8 +118,9 @@ const OUT = 256;
     : mode === "moments" ? MOMENT_NAMES
     : mode === "weatherdaily" ? WEATHER_DAILY_NAMES
     : mode === "rankslooks" ? RANKS_LOOKS_NAMES
+    : mode === "tilesafter" ? TILES_AFTER_NAMES
     : ICON_NAMES;
-  const COLS = mode === "relics2" || mode === "decor" || mode === "bosses" || mode === "badges" || mode === "lawn" || mode === "moments" || mode === "weatherdaily" ? 4 : mode === "relics3" ? 3 : mode === "supplies" || mode === "rankslooks" ? 5 : Math.round(Math.sqrt(NAMES.length));
+  const COLS = mode === "relics2" || mode === "decor" || mode === "bosses" || mode === "badges" || mode === "lawn" || mode === "moments" || mode === "weatherdaily" || mode === "tilesafter" ? 4 : mode === "relics3" ? 3 : mode === "supplies" || mode === "rankslooks" ? 5 : Math.round(Math.sqrt(NAMES.length));
   const ROWS = Math.ceil(NAMES.length / COLS);
   const { data, info } = await sharp(src).raw().toBuffer({ resolveWithObject: true });
   const { width: W, height: H, channels: C } = info;
@@ -122,7 +129,7 @@ const OUT = 256;
   for (let n = 0; n < NAMES.length; n++) {
     const col = n % COLS, row = Math.floor(n / COLS);
     // The garden sheet has faint grid lines: step a few pixels inside each cell
-    const inset = mode === "garden" ? 6 : mode === "relics3" || mode === "moments" || mode === "weatherdaily" ? 10 : mode === "rankslooks" ? 4 : 0;
+    const inset = mode === "garden" ? 6 : mode === "relics3" || mode === "moments" || mode === "weatherdaily" || mode === "tilesafter" ? 10 : mode === "rankslooks" ? 4 : 0;
     // Some sheets have unevenly spaced rows: cut them at the empty gaps instead
     const edges = ROW_EDGES[mode] ? [...ROW_EDGES[mode].map((f) => Math.round(f * H)), H] : null;
     const x0 = Math.round(col * cellW) + inset;
@@ -130,7 +137,7 @@ const OUT = 256;
     const w = Math.round((col + 1) * cellW) - inset - x0;
     const h = (edges ? edges[row] : Math.round((row + 1) * cellH)) - inset - y0;
     // The lawn sheet's cells each have their own shade: read it from the cell's corner
-    const perCell = mode === "lawn" || mode === "relics3" || mode === "moments" || mode === "weatherdaily";
+    const perCell = mode === "lawn" || mode === "relics3" || mode === "moments" || mode === "weatherdaily" || mode === "tilesafter";
     const at = (perCell ? (y0 + 4) * W + x0 + 4 : 2) * C;
     const bg = perCell ? [data[at], data[at + 1], data[at + 2]] : sheetBg;
     const rgba = Buffer.alloc(w * h * 4);

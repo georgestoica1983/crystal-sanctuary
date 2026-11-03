@@ -106,5 +106,10 @@ const UNLOCK_ART: Record<string, string> = {
   "c-fox": "companion-fox",
 };
 export const unlockArt = (id: string): string | null => (UNLOCK_ART[id] ? icon(UNLOCK_ART[id]) : null);
+/** A tile once the line has passed it (an opened acorn, eaten berries, a cut or wilted Thorn…) */
+export type TileAfterId =
+  | "acorn-gathered" | "berry-eaten" | "gloves-used" | "shears-used"
+  | "spike-crossed" | "exit-open" | "thorn-cut" | "thorn-wilted";
+export const tileAfterArt = (id: TileAfterId) => icon(`tile-${id}`);
 /** The Daily grid's flowers: 3, 2 or 1 star(s), or the bed where the try stopped */
 export const dailyArt = (cell: 3 | 2 | 1 | "stopped") => icon(cell === "stopped" ? "daily-stopped" : `daily-bloom-${cell}`);

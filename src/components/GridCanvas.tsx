@@ -1,7 +1,7 @@
 "use client";
 
 import SupplyIcon from "@/components/SupplyIcon";
-import { badgeArt, tileArt } from "@/lib/art";
+import { badgeArt, tileAfterArt, tileArt, type TileAfterId } from "@/lib/art";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Cat, Crown, Sparkles, Compass } from "lucide-react";
@@ -1215,6 +1215,9 @@ export default function GridCanvas({
                         )
                       }
                           isPortalReady={isExitCell && simulation.canCommit}
+                          used={isVisited && !isFirstDeathCell && !isDeadAfter && !retractingPath}
+                          thornCut={cell.type === "ENEMY" && (stepSim?.weaponBefore ?? 0) > 0}
+                          spikeDodged={cell.type === "TRAP" && !!stepSim && stepSim.hpAfter >= stepSim.hpBefore}
                         />
                           </motion.span>
                           {bloomPop && <PollenPuff />}
@@ -1916,7 +1919,10 @@ function TileIconWithValue({
   dry = false,
   wet = false,
   harm = 0,
+  after,
 }: {
+  /** The line has passed this tile: draw what it looks like now */
+  after?: TileAfterId | null;
   /** Spring Rain (rules v20): Berries that heal double */
   wet?: boolean;
   /** Thick Brambles (rules v20): extra Life this Thorn costs */
@@ -1959,19 +1965,24 @@ function TileIconWithValue({
       <span
         className="relative w-full h-full flex items-center justify-center transition-[filter,transform] duration-300"
         style={
-          wilted
+          wilted && !after
             ? { filter: "grayscale(1) brightness(0.7)", transform: "rotate(14deg) translateY(6%) scale(0.92)" }
             : dry
             ? { filter: "sepia(0.7) saturate(0.55) brightness(0.85)" }
             : undefined
         }
       >
-        <EntityIcon
-          type={type}
-          size="100%"
-          isCorrupted={isCorrupted}
-          isBloomed={isBloomed}
-        />
+        {after ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={tileAfterArt(after)} alt="" aria-hidden="true" draggable={false} className="h-full w-full object-contain tile-after-in" />
+        ) : (
+          <EntityIcon
+            type={type}
+            size="100%"
+            isCorrupted={isCorrupted}
+            isBloomed={isBloomed}
+          />
+        )}
       </span>
       {wet && (
         <span
@@ -2028,7 +2039,17 @@ export function CellGeometricNode({
   companionEmoji,
   hideHero,
   hideValue = false,
+  isPortalReady = false,
+  used = false,
+  thornCut = false,
+  spikeDodged = false,
 }: {
+  /** The line passes this tile (and it counts): it shows its "after" picture */
+  used?: boolean;
+  /** A Thorn cut by Shears */
+  thornCut?: boolean;
+  /** A Spike crossed diagonally, costing nothing */
+  spikeDodged?: boolean;
   cell: GridCell;
   modifierId: ModifierId;
   heroClassId?: HeroClassId;
@@ -2126,7 +2147,12 @@ export function CellGeometricNode({
         // The door fills its tile's frame (a little lower, clear of the EXIT label)
         <div className="relative w-[96%] h-[96%] mt-[6%] flex items-center justify-center">
           <span className="absolute inset-[12%] rounded-full bg-amber-300/25 blur-md" />
-          <EntityIcon type="EXIT" size="100%" className="relative" />
+          {isPortalReady ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={tileAfterArt("exit-open")} alt="" aria-hidden="true" draggable={false} className="relative h-full w-full object-contain tile-after-in" />
+          ) : (
+            <EntityIcon type="EXIT" size="100%" className="relative" />
+          )}
         </div>
       );
     }
@@ -2141,6 +2167,7 @@ export function CellGeometricNode({
           struck={bloomed}
           wilted={isThornWilted}
           harm={cell.harm}
+          after={isThornWilted ? "thorn-wilted" : used && thornCut ? "thorn-cut" : null}
         />
       );
     }
@@ -2152,11 +2179,11 @@ export function CellGeometricNode({
         : modifierId === "GLASS_ARMOR"
         ? cell.value * 2
         : cell.value;
-      return <TileIconWithValue type="SHIELD" value={v(displayVal)} />;
+      return <TileIconWithValue type="SHIELD" value={v(displayVal)} after={used ? "gloves-used" : null} />;
     }
 
     case "WEAPON":
-      return <TileIconWithValue type="WEAPON" value={v(cell.value)} />;
+      return <TileIconWithValue type="WEAPON" value={v(cell.value)} after={used ? "shears-used" : null} />;
 
     case "POTION": {
       const isCorrupted = modifierId === "BLOOD_GOLD";
@@ -2167,15 +2194,16 @@ export function CellGeometricNode({
           isCorrupted={isCorrupted}
           dry={cell.dry}
           wet={cell.wet}
+          after={used && !isCorrupted ? "berry-eaten" : null}
         />
       );
     }
 
     case "GOLD":
-      return <TileIconWithValue type="GOLD" value={v(cell.value)} />;
+      return <TileIconWithValue type="GOLD" value={v(cell.value)} after={used ? "acorn-gathered" : null} />;
 
     case "TRAP":
-      return <TileIconWithValue type="TRAP" value={v(cell.value)} />;
+      return <TileIconWithValue type="TRAP" value={v(cell.value)} after={used && spikeDodged ? "spike-crossed" : null} />;
 
     case "VOID":
       return null;
