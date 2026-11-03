@@ -1,12 +1,13 @@
 /**
- * Score numbers that stay readable at any size: full digits below 100,000,
- * then 124.5K, 3.12M, 2.05B, 1.20T, and e-notation (1.2e15) beyond that.
+ * Score numbers that stay readable at any size: full digits below a million
+ * (999,999 is no wider than 999.99K), then 3.12M, 2.05B, 1.20T, and
+ * e-notation (1.2e15) beyond that.
  */
 export function formatScore(n: number): string {
   const v = Math.round(n);
   const a = Math.abs(v);
   if (!Number.isFinite(v)) return "∞";
-  if (a < 100_000) return v.toLocaleString("en-US");
+  if (a < 1_000_000) return v.toLocaleString("en-US");
   if (a >= 1e15) return v.toExponential(1).replace("e+", "e");
   const units: Array<[number, string]> = [
     [1e12, "T"],

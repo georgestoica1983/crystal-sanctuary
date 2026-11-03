@@ -78,7 +78,9 @@ Also, the browser pane often lagged while animating, so a few states were judged
    - A8 and A9 were already handled: touch phones held sideways get a "Turn your phone upright" screen, and the buttons sit above the home bar.
    - B2 was a misread: the gold ✦ tile is a Golden special tile, not the hint. It now carries a "✦ +30" tag.
    - Also fixed: the "why" chips on a stopped line ("❤️ +1", "−3 ❤️") now sit in the tile's free bottom-left corner.
-2. **End screens:** A6, A7, A10, B17, B18, B19, C8, C11.
+2. **End screens:** A6, A7, A10, B17, B18, B19, C8, C11. ✅ Done.
+   - A10 was already handled: every full-screen pop-up gets the notch inset.
+   - B17: scores show full digits up to a million everywhere. The score bar keeps its short form (23.5K) because it has to fit beside the roses.
 3. **Shop:** A5, B9, B10, B11, B12.
 4. **Sheets:** B4, B5, B6, B7, B8, B14, B15, B16.
 5. **Journal, Boss, tablet and leaderboard:** B20, B21, B22, B23, B24.

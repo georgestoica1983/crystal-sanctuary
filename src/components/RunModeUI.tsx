@@ -373,7 +373,8 @@ function SeasonMap({
   const order = ["SMALL", "BIG", "BOSS"] as const;
   const done = order.indexOf(clearedKind as (typeof order)[number]);
   return artify(
-    <div className="mt-2.5 flex items-center justify-center gap-1" aria-label={`Season ${season} map`}>
+    <div className="mt-2.5" aria-label={`Season ${season} map`}>
+    <div className="flex items-center justify-center gap-1">
       {order.map((k, i) => (
         <React.Fragment key={k}>
           {i > 0 && <span className={`h-0.5 w-6 rounded-full ${i <= done ? "bg-emerald-300" : "bg-white/15"}`} />}
@@ -402,9 +403,8 @@ function SeasonMap({
           </span>
         </React.Fragment>
       ))}
-      <span className="ml-2 text-[9px] font-mono text-white/45">
-        {done === 2 ? `→ Season ${season + 1}` : `Season ${season}`}
-      </span>
+    </div>
+      {done === 2 && <div className="mt-1 text-center text-[10.5px] text-white/50">Next: Season {season + 1}</div>}
     </div>
   );
 }
@@ -615,9 +615,10 @@ export function RunGardenClearModal({
               </motion.span>
             ))}
           </div>
-          <div className="text-[13px] text-emerald-100/75 mt-1">
-            <span className="font-mono font-bold text-emerald-100">{fmt(info.score)} / {fmt(info.target)}</span>
-            {" · "}
+          <div className="mt-1 font-mono text-[13px] font-bold text-emerald-100">
+            {fmt(info.score)} / {fmt(info.target)}
+          </div>
+          <div className="text-[12.5px] leading-snug text-emerald-100/75">
             {info.newBestStars ? "✨ New best! " : ""}
             {STAR_HINT[stars]}
           </div>
@@ -821,21 +822,29 @@ function GardenCodeRow({ code, fromCode, reached, score }: { code: string; fromC
     }
   };
   return (
-    <div className="flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2">
-      <div className="min-w-0 flex-1">
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2">
+      <div className="flex-1">
         <div className="text-[11px] text-white/45">{fromCode ? "Garden code (a friend's)" : "Garden code"}</div>
-        <div className="font-mono text-[15px] font-bold tracking-wider text-teal-100">{code}</div>
+        <div className="whitespace-nowrap font-mono text-[14px] font-bold text-teal-100">{code}</div>
       </div>
       <button
         type="button"
         onClick={share}
-        className="shrink-0 rounded-lg border border-teal-300/40 bg-teal-300/10 px-3 py-1.5 text-[12.5px] font-bold text-teal-100 active:scale-[0.97]"
+        className="ml-auto shrink-0 rounded-lg border border-teal-300/40 bg-teal-300/10 px-2.5 py-1.5 text-[12.5px] font-bold text-teal-100 active:scale-[0.97]"
       >
         {copied ? "Copied!" : "Challenge a friend"}
       </button>
     </div>
   );
 }
+
+/** The grid's cells, as the legend under it names them (only the ones that show) */
+const DAILY_LEGEND: Array<[string, string]> = [
+  ["🌸", "3 stars"],
+  ["🌼", "2 stars"],
+  ["🌱", "1 star"],
+  ["🥀", "stopped here"],
+];
 
 /** The Daily Garden's flower grid with a Share button (a replay shows it's practice) */
 function DailyResultCard({ dateKey, record, streak }: { dateKey: string; record: DailyRecord | null; streak: number }) {
@@ -865,7 +874,11 @@ function DailyResultCard({ dateKey, record, streak }: { dateKey: string; record:
           <div key={i}>{row}</div>
         ))}
       </div>
-      <div className="mt-1 text-[11px] text-white/50">🌸 3 stars · 🌼 2 · 🌱 1 · 🥀 stopped here</div>
+      <div className="mt-1 text-[11px] text-white/50">
+        {DAILY_LEGEND.filter(([cell]) => dailyGridRows(record).some((row) => row.includes(cell)))
+          .map(([cell, text]) => `${cell} ${text}`)
+          .join(" · ")}
+      </div>
       <button
         type="button"
         onClick={share}
@@ -974,6 +987,13 @@ export function RunOverModal({
           <p className="text-[13px] text-white/70 leading-snug mt-1">{why}</p>
         </div>
 
+        {info.isNewBest && (
+          <div className="rounded-xl border-2 border-amber-300 bg-amber-400/15 px-3 py-2 text-center text-amber-100">
+            <div className="text-[13px] font-black">✨ Your best Garden Run yet!</div>
+            <div className="text-[12px] font-semibold text-amber-100/80">{getRunGardenLabel(info.best.gardenIndex)}</div>
+          </div>
+        )}
+
         {info.daily && (
           <DailyResultCard dateKey={info.daily.dateKey} record={dailyRec} streak={info.daily.streak} />
         )}
@@ -1028,13 +1048,19 @@ export function RunOverModal({
               <span className={`font-black tabular-nums ${h.tone ?? ""}`}>{h.value}</span>
             </motion.div>
           ))}
-          <div className="flex justify-between text-white/50 text-[11.5px]">
-            <span>Reached</span>
-            <span>
+          <div className="flex justify-between gap-2">
+            <span className="text-white/65">Reached</span>
+            <span className="text-right font-semibold text-white/85">
               {getRunGardenLabel(info.gardenIndex)}
               {!!info.asc && <span className="ml-1 text-orange-200">· <Badge id="flame" />A{info.asc}</span>}
             </span>
           </div>
+          {!info.isNewBest && (
+            <div className="flex justify-between gap-2">
+              <span className="text-white/65">Best ever</span>
+              <span className="text-right font-semibold text-white/85">{getRunGardenLabel(info.best.gardenIndex)}</span>
+            </div>
+          )}
           {relicCounts.size > 0 && (
             <div className="pt-1">
               <div className="text-[11px] text-white/45 mb-1">
@@ -1076,16 +1102,6 @@ export function RunOverModal({
           />
         )}
 
-        <div
-          className={`rounded-xl px-3 py-2 text-center text-[12.5px] ${
-            info.isNewBest
-              ? "border-2 border-amber-300 bg-amber-400/15 text-amber-100 font-black"
-              : "border border-white/10 bg-white/5 text-white/65"
-          }`}
-        >
-          {info.isNewBest ? "✨ Your best Garden Run yet! " : "Best Garden Run: "}
-          {getRunGardenLabel(info.best.gardenIndex)}
-        </div>
 
         {feedbackAsk && (
           <a
