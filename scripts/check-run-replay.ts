@@ -5,6 +5,8 @@ import { readdirSync, readFileSync } from "fs";
 import path from "path";
 import {
   calculateFloorScoreBreakdown,
+  bakeBossTile,
+  openSpikeWalls,
   previewSeasonBoss,
   countCommonRelics,
   findEntityCoord,
@@ -46,7 +48,7 @@ import { verifyRunSubmission } from "@/lib/server/runLeaderboard";
 import { completedRelicSets, RELIC_SET_X } from "@/lib/relicTags";
 import { setChaserShopMove } from "./botSets";
 import { PRACTICE_GARDEN_SEED } from "@/lib/runLessons";
-import type { HeroClassId } from "@/types/game";
+import type { GridCell, HeroClassId } from "@/types/game";
 
 let failures = 0;
 function check(label: string, ok: boolean, detail = "") {
@@ -864,6 +866,57 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
     );
     const toll = scoreRunStroke(best.sim, { ...start, gold: 7 }, best.path, [], {}, 4, true, "TOLL");
     check(`The Toll: a line costs 2 Seeds (7 → ${toll.afterStroke.gold})`, toll.afterStroke.gold === 5);
+  }
+}
+
+// 17. Rules v20 Bosses: Spike walls, dry Berries, the Toll per tile (v19 beds unchanged)
+{
+  const spike = { id: "t", row: 1, col: 1, type: "TRAP" as const, value: 3, bagTile: { type: "TRAP" as const, value: 3 } };
+  check("v19 Spike King: Spikes hit 2× (3 → 6)", bakeBossTile(spike, "THISTLE_KING").value === 6);
+  check("v20 Spike King: Spikes become walls", bakeBossTile(spike, "THISTLE_KING", true).type === "VOID");
+  // A row of walls across the board must open again so the gate stays reachable
+  const cell = (row: number, col: number, type: GridCell["type"], value = 1): GridCell => ({
+    id: `c${row}${col}`, row, col, type, value, bagTile: type === "VOID" ? { type: "TRAP", value: 2 } : undefined,
+  });
+  const walled: GridCell[][] = Array.from({ length: 5 }, (_, r) =>
+    Array.from({ length: 5 }, (__, c) =>
+      r === 4 && c === 2 ? cell(r, c, "HERO", 10) : r === 0 && c === 2 ? cell(r, c, "EXIT", 0) : r === 2 ? cell(r, c, "VOID", 2) : cell(r, c, "GOLD")
+    )
+  );
+  const opened = openSpikeWalls(walled);
+  const stillWalls = opened.flat().filter((x) => x.type === "VOID").length;
+  check(`Spike walls never shut the gate off (5 walls → ${stillWalls})`, stillWalls === 4);
+  // Dry Berries: they score but heal nothing
+  const berryGrid = (dry: boolean): GridCell[][] =>
+    Array.from({ length: 5 }, (_, r) =>
+      Array.from({ length: 5 }, (__, c) =>
+        r === 4 && c === 0
+          ? cell(r, c, "HERO", 10)
+          : r === 2 && c === 0
+          ? cell(r, c, "EXIT", 0)
+          : r === 3 && c === 0
+          ? { ...cell(r, c, "POTION", 3), ...(dry ? { dry: true } : {}) }
+          : cell(r, c, "GOLD")
+      )
+    );
+  const hurt = { hp: 5, maxHp: 10, shield: 0, weapon: 0, gold: 0 };
+  const berryPath = [{ row: 4, col: 0 }, { row: 3, col: 0 }, { row: 2, col: 0 }];
+  const wet = simulatePath(berryGrid(false), berryPath, hurt, RUN_MODIFIER, "KNIGHT", []);
+  const dried = simulatePath(berryGrid(true), berryPath, hurt, RUN_MODIFIER, "KNIGHT", []);
+  check(`v20 Drought: dry Berries heal nothing (${wet.finalStats.hp} vs ${dried.finalStats.hp} Life)`, wet.finalStats.hp === 8 && dried.finalStats.hp === 5);
+  const wetScore = calculateFloorScoreBreakdown(wet, hurt, 3, [], {}).total;
+  const dryScore = calculateFloorScoreBreakdown(dried, hurt, 3, [], {}).total;
+  check(`v20 Drought: dry Berries still score (${wetScore} vs ${dryScore})`, wetScore === dryScore && dryScore > 0);
+  // The Toll per tile: free up to Length 10, then 1 Seed a tile
+  const r20 = createRunReplayer("boss20-toll", "KNIGHT", 20);
+  const best = searchBestFloorLine(r20.state.grid, r20.state.startHero, RUN_MODIFIER, "KNIGHT", [], 20000, {});
+  if (best) {
+    const start = { ...r20.state.startHero, gold: 30 };
+    const toll20 = scoreRunStroke(best.sim, start, best.path, [], {}, 4, true, "TOLL", true);
+    const want = 30 - Math.max(0, best.path.length - 10);
+    check(`v20 Toll: a Length ${best.path.length} line costs ${30 - want} Seeds (30 → ${toll20.afterStroke.gold})`, toll20.afterStroke.gold === want);
+    const toll19 = scoreRunStroke(best.sim, start, best.path, [], {}, 4, true, "TOLL", false);
+    check(`v19 Toll still costs 2 Seeds a line (30 → ${toll19.afterStroke.gold})`, toll19.afterStroke.gold === 28);
   }
 }
 

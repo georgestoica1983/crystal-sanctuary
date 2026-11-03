@@ -1,6 +1,7 @@
 "use client";
 
 import SupplyIcon from "@/components/SupplyIcon";
+import { tileArt } from "@/lib/art";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Cat, Crown, Sparkles, Compass } from "lucide-react";
@@ -754,6 +755,23 @@ export default function GridCanvas({
           {grid.map((rowCells, r) =>
             rowCells.map((cell, c) => {
               // Locked/Inactive VOID tile for Floor 0 Interactive Tutorial
+              // The Spike King (rules v20): a Spike wall, on the lawn but closed off
+              if (cell.type === "VOID" && isSanctuary && cell.bagTile?.type === "TRAP") {
+                return (
+                  <div
+                    key={cell.id}
+                    data-row={r}
+                    data-col={c}
+                    aria-label="Spike wall: your line can't pass"
+                    className="relative rounded-xl pointer-events-none flex items-center justify-center"
+                  >
+                    <span aria-hidden="true" className="lawn-ground" />
+                    <span aria-hidden="true" className="absolute inset-0 rounded-xl bg-[#1a120c]/55 border-2 border-stone-400/35 shadow-[inset_0_0_14px_rgba(0,0,0,0.6)]" />
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={tileArt("TRAP") ?? ""} alt="" aria-hidden="true" draggable={false} className="relative w-[70%] h-[70%] object-contain brightness-[0.8] saturate-[0.7] drop-shadow-[0_3px_3px_rgba(0,0,0,0.6)]" />
+                  </div>
+                );
+              }
               if (cell.type === "VOID") {
                 return (
                   <div
@@ -1832,9 +1850,12 @@ function TileIconWithValue({
   isBloomed = false,
   struck = false,
   wilted = false,
+  dry = false,
 }: {
   type: EntityType;
   value: number | string;
+  /** The Drought (rules v20): Berries that score but give no Life back */
+  dry?: boolean;
   isCorrupted?: boolean;
   isBloomed?: boolean;
   struck?: boolean;
@@ -1857,7 +1878,7 @@ function TileIconWithValue({
       ? { backgroundColor: "#B4374A", borderColor: "rgba(247,161,176,0.55)", color: "#FFFFFF" }
       : type === "TRAP"
       ? { backgroundColor: "#4F6155", borderColor: "rgba(203,213,225,0.5)", color: "#FFFFFF" }
-      : type === "POTION"
+      : type === "POTION" && !dry
       ? { backgroundColor: "#101913", borderColor: "rgba(52,211,153,0.6)", color: "#6EE7B7" }
       : { backgroundColor: "#101913", borderColor: "rgba(237,230,211,0.35)", color: "#EDE6D3" };
   const lawn = React.useContext(LawnCtx);
@@ -1868,7 +1889,13 @@ function TileIconWithValue({
       {lawn && <span aria-hidden="true" className="lawn-shadow" />}
       <span
         className="relative w-full h-full flex items-center justify-center transition-[filter,transform] duration-300"
-        style={wilted ? { filter: "grayscale(1) brightness(0.7)", transform: "rotate(14deg) translateY(6%) scale(0.92)" } : undefined}
+        style={
+          wilted
+            ? { filter: "grayscale(1) brightness(0.7)", transform: "rotate(14deg) translateY(6%) scale(0.92)" }
+            : dry
+            ? { filter: "sepia(0.7) saturate(0.55) brightness(0.85)" }
+            : undefined
+        }
       >
         <EntityIcon
           type={type}
@@ -1897,7 +1924,7 @@ function TileIconWithValue({
         {/* A shape as well as a colour (colour-blind friendly): a thorn on
             numbers that cost Life, a leaf on numbers that give it back */}
         {(costsLife || type === "TRAP") && <ThornMark />}
-        {type === "POTION" && !isCorrupted && <LeafMark />}
+        {type === "POTION" && !isCorrupted && !dry && <LeafMark />}
         {n}
       </span>
     </div>
@@ -2051,6 +2078,7 @@ export function CellGeometricNode({
           type="POTION"
           value={v(isCorrupted ? "-1" : cell.value)}
           isCorrupted={isCorrupted}
+          dry={cell.dry}
         />
       );
     }

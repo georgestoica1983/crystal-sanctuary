@@ -234,6 +234,8 @@ export interface GridCell {
   value: number;
   label?: string;
   bagTile?: SeedTile; // Run mode: the Seed Bag tile before any boss twist
+  /** The Drought (rules v20): these Berries still score but give no Life back */
+  dry?: boolean;
 }
 
 export interface HeroStats {
@@ -372,6 +374,8 @@ export type ToolId = "RICH_SOIL" | "LONG_ROOT" | "SUNLIT" | "DEW" | "ECHO";
 
 /** Live state of the garden being played in Run mode */
 export interface RunGardenState {
+  /** Rules v20+: this bed's Boss uses the route-changing rules (Spike walls, dry Berries, the Toll per tile) */
+  bossV20?: boolean;
   gardenIndex: number; // 0-based across the whole run
   season: number; // 1-based; > RUN_FINAL_SEASON is Endless
   kind: RunGardenKind;

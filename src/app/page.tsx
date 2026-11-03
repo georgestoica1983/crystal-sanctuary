@@ -2079,7 +2079,8 @@ export default function OneStrokeTacticianPage() {
       relicCounters,
       garden.strokesLeft,
       !!strokeCtx.relicSets,
-      garden.bossRuleId
+      garden.bossRuleId,
+      Boolean(garden.bossV20)
     );
     setRelicCounters(countersAfter);
     logRunAction({ k: "s", p: packCoords(path) });

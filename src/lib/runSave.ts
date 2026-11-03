@@ -196,7 +196,8 @@ export function rebuildRunFromSave(raw: unknown): { ok: true; run: RestoredRun }
           s.counters,
           s.garden.strokesLeft,
           runRulesUseRelicSets(log.v),
-          s.garden.bossRuleId
+          s.garden.bossRuleId,
+          Boolean(s.garden.bossV20)
         );
         const error = run.apply(action);
         if (error) return { ok: false, error: `action ${i}: ${error}` };

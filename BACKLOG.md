@@ -23,7 +23,7 @@ Everything below this section is parked until this is done.
 
 **Core game depth**
 - [x] 8. More ways to win than "longer": relics for exact or careful lines (e.g. exactly 7 tiles scores ×2).
-- [ ] 9. Bosses change where you draw (Toll, Drought, Thistle King), not only the target.
+- [x] 9. Bosses change where you draw (Toll, Drought, Thistle King), not only the target.
 - [ ] 10. Beds where the longest line is a trap.
 - [ ] 11. A livelier middle game (Seasons 4–6): new Boss rules, rarer relics, a mid-Run event.
 - [ ] 12. Interest isn't the only right answer: spending and saving both good.

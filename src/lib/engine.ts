@@ -1126,7 +1126,7 @@ export const BOSS_RULE_REGISTRY: Record<BossRuleId, BossRuleDefinition> = {
     id: "THISTLE_KING",
     name: "The Spike King",
     icon: "⚙️",
-    description: "Spikes hit 2×. Step on them diagonally ↗.",
+    description: "Spikes are walls: your line can't pass them.",
   },
   BRIAR_QUEEN: {
     id: "BRIAR_QUEEN",
@@ -1138,7 +1138,7 @@ export const BOSS_RULE_REGISTRY: Record<BossRuleId, BossRuleDefinition> = {
     id: "DROUGHT",
     name: "The Drought",
     icon: "🏜️",
-    description: "🧤 Gloves tiles give half.",
+    description: "🍓 Berries are dry: they score, but give no Life back.",
   },
   ECLIPSE: {
     id: "ECLIPSE",
@@ -1192,7 +1192,7 @@ export const BOSS_RULE_REGISTRY: Record<BossRuleId, BossRuleDefinition> = {
     id: "TOLL",
     name: "The Toll",
     icon: "🪙",
-    description: "Every line costs 2 🌱 Seeds.",
+    description: "Every tile past Length 10 costs 1 🌱 Seed.",
   },
 };
 /** The eight Bosses before rules v19 (their order decides which a Season gets) */
@@ -1236,7 +1236,10 @@ const BOSS_RULE_TARGET: Record<BossRuleId, EntityType | "ALL" | "NONE"> = {
 };
 
 /** One tile with a boss twist baked into its value (unchanged if unaffected) */
-export function bakeBossTile(cell: GridCell, rule: BossRuleId): GridCell {
+export function bakeBossTile(cell: GridCell, rule: BossRuleId, v20 = false): GridCell {
+  // Rules v20: the Spike King's Spikes are walls, the Drought's Berries are dry
+  if (v20 && rule === "THISTLE_KING") return cell.type === "TRAP" ? { ...cell, type: "VOID" } : cell;
+  if (v20 && rule === "DROUGHT") return cell.type === "POTION" ? { ...cell, dry: true } : cell;
   const target = BOSS_RULE_TARGET[rule];
   if (target === "NONE") return cell;
   if (target === "ALL") {
@@ -1944,7 +1947,8 @@ export function simulatePath(
           } else {
             const cap = effectiveMaxHp;
             const extraFoxHeal = heroClassId === "MAGE" ? 2 : 0;
-            const potionValue = cell.value + extraFoxHeal;
+            // The Drought (rules v20): dry Berries still score, but heal nothing
+            const potionValue = cell.dry ? 0 : cell.value + extraFoxHeal;
             const healed = Math.min(cap - hp, potionValue);
             hp = Math.min(cap, hp + potionValue);
             note =
@@ -3570,7 +3574,8 @@ function runTileToCell(
   id: string,
   season: number,
   bossRuleId?: BossRuleId,
-  thornBonus = 0
+  thornBonus = 0,
+  bossV20 = false
 ): GridCell {
   const growth = getRunSeasonGrowth(season);
   const bonus =
@@ -3583,7 +3588,45 @@ function runTileToCell(
     value: tile.value + bonus,
     bagTile: tile,
   };
-  return bossRuleId ? bakeBossTile(cell, bossRuleId) : cell;
+  return bossRuleId ? bakeBossTile(cell, bossRuleId, bossV20) : cell;
+}
+
+/** The tile behind a Spike wall (rules v20 Spike King) */
+const isSpikeWall = (cell: GridCell) => cell.type === "VOID" && cell.bagTile?.type === "TRAP";
+
+/**
+ * The Spike King's walls (rules v20) never shut the Companion in: while no
+ * way leads from the Companion to the gate, walls turn back into plain
+ * Spikes (in reading order) until one does.
+ */
+export function openSpikeWalls(grid: GridCell[][]): GridCell[][] {
+  const reaches = (g: GridCell[][]) => {
+    const start = findEntityCoord(g, "HERO");
+    if (!start) return true;
+    const seen = new Set([`${start.row},${start.col}`]);
+    const queue = [start];
+    while (queue.length) {
+      const { row, col } = queue.shift()!;
+      if (g[row][col].type === "EXIT") return true;
+      for (let dr = -1; dr <= 1; dr++)
+        for (let dc = -1; dc <= 1; dc++) {
+          const r = row + dr, c = col + dc, key = `${r},${c}`;
+          if (r < 0 || r > 4 || c < 0 || c > 4 || seen.has(key) || g[r][c].type === "VOID") continue;
+          seen.add(key);
+          queue.push({ row: r, col: c });
+        }
+    }
+    return false;
+  };
+  if (reaches(grid)) return grid;
+  const next = grid.map((row) => [...row]);
+  for (const row of next)
+    for (const cell of row) {
+      if (!isSpikeWall(cell)) continue;
+      next[cell.row][cell.col] = { ...cell, type: "TRAP" };
+      if (reaches(next)) return next;
+    }
+  return next;
 }
 
 /** Draws `count` tiles, reshuffling the used tiles back in when the bag runs dry */
@@ -3669,6 +3712,8 @@ export function createRunGarden(params: {
   allBossRules?: boolean;
   /** Rules v19+: plus the four that change drawing, sight or cost */
   newBosses?: boolean;
+  /** Rules v20+: Spike walls, dry Berries and the Toll per tile */
+  bossV20?: boolean;
   /** Rules v11+: gentler Season 1 targets */
   gentleStart?: boolean;
   /** Ascension (rules v8+): harder targets, stronger Thorns, fewer Swaps / Boss lines */
@@ -3714,10 +3759,15 @@ export function createRunGarden(params: {
           if (r === exitCoord.row && c === exitCoord.col) {
             return { id, row: r, col: c, type: "EXIT", value: 0 };
           }
-          return runTileToCell(pile[next++], r, c, id, season, bossRuleId, params.thornBonus ?? 0);
+          return runTileToCell(pile[next++], r, c, id, season, bossRuleId, params.thornBonus ?? 0, Boolean(params.bossV20));
         })
       );
+      if (params.bossV20 && bossRuleId === "THISTLE_KING") {
+        const opened = openSpikeWalls(grid);
+        opened.forEach((row, r) => (grid[r] = row));
+      }
       const state: RunGardenState = {
+        ...(params.bossV20 && bossRuleId ? { bossV20: true } : {}),
         gardenIndex,
         season,
         kind,
@@ -3804,10 +3854,13 @@ export function refillRunGarden(
       `run-g${state.gardenIndex}-t${serial++}`,
       state.season,
       state.bossRuleId,
-      state.thornBonus ?? 0
+      state.thornBonus ?? 0,
+      Boolean(state.bossV20)
     );
   });
-  return { grid: nextGrid, state: { ...drawn.state, tileSerial: serial } };
+  // New Spikes can wall the way in too: keep a way to the gate open
+  const finalGrid = state.bossV20 && state.bossRuleId === "THISTLE_KING" ? openSpikeWalls(nextGrid) : nextGrid;
+  return { grid: finalGrid, state: { ...drawn.state, tileSerial: serial } };
 }
 
 /** Whether the Companion still has any surviving line on this board */
