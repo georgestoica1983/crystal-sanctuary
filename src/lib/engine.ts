@@ -55,8 +55,8 @@ export const INITIAL_HERO_STATS: HeroStats = {
 export const HERO_CLASS_REGISTRY: Record<HeroClassId, HeroClassDefinition> = {
   KNIGHT: {
     id: "KNIGHT",
-    name: "The Cozy Keeper",
-    shortName: "Keeper",
+    name: "The Cozy Cat",
+    shortName: "Cat",
     title: "Gloves Guardian",
     emblem: "🐱",
     accentColor: "#FBBF24",
@@ -70,8 +70,8 @@ export const HERO_CLASS_REGISTRY: Record<HeroClassId, HeroClassDefinition> = {
     ruleOverrideDesc:
       "Standard 8-directional unbroken line, no self-intersection. Starts with +2 Gloves.",
     isFreeDefault: true,
-    sanctuaryName: "The Cozy Keeper",
-    sanctuaryShortName: "Keeper",
+    sanctuaryName: "The Cozy Cat",
+    sanctuaryShortName: "Cat",
     sanctuaryTitle: "Gloves Guardian",
     sanctuaryEmblem: "🐱",
     sanctuaryPassiveName: "Sturdy Fur",
@@ -130,8 +130,8 @@ export const HERO_CLASS_REGISTRY: Record<HeroClassId, HeroClassDefinition> = {
   },
   VAMPIRE: {
     id: "VAMPIRE",
-    name: "The Bloom Sprite",
-    shortName: "Sprite",
+    name: "The Crystal Butterfly",
+    shortName: "Butterfly",
     title: "Nature's Alchemist",
     emblem: "🦋",
     accentColor: "#34D399",
@@ -145,8 +145,8 @@ export const HERO_CLASS_REGISTRY: Record<HeroClassId, HeroClassDefinition> = {
     ruleOverrideDesc:
       "Nature's friend! Slaying Enemies restores +2 HP; stepping on Seed (Gold) tiles restores +1 Life/HP.",
     isFreeDefault: false,
-    sanctuaryName: "The Bloom Sprite",
-    sanctuaryShortName: "Sprite",
+    sanctuaryName: "The Crystal Butterfly",
+    sanctuaryShortName: "Butterfly",
     sanctuaryTitle: "Friend of the Flowers",
     sanctuaryEmblem: "🦋",
     sanctuaryPassiveName: "Acorn Harmony",
@@ -2055,7 +2055,7 @@ export function simulatePath(
             const healed = Math.min(cap - hp, totalHeal);
             hp = Math.min(cap, hp + totalHeal);
             if (healed > 0) {
-              notes.push(heroClassId === "VAMPIRE" ? `+${healed} Life (Bloom Sprite)` : `+${healed} HP`);
+              notes.push(heroClassId === "VAMPIRE" ? `+${healed} Life (Butterfly)` : `+${healed} HP`);
             }
           }
 

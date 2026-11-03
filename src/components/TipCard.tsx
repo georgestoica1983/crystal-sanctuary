@@ -1,42 +1,32 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import type { Tip } from "@/lib/tips";
 import { artify } from "@/components/ArtText";
 
-/** How long a tip stays before it closes by itself: longer for longer text */
-const tipMs = (text: string) => Math.min(6000, Math.max(3000, 1000 + text.split(/\s+/).length * 250));
-
 /**
  * A short card between beds: a picture, "Game tip" or "Gardening tip", and one
- * line in handwriting. It closes by itself (a thin bar shows the time left) or
- * on a tap anywhere.
+ * line in handwriting. It stays until the player taps Continue, so there's
+ * always time to read it.
  */
 export default function TipCard({ tip, onDone }: { tip: Tip; onDone: () => void }) {
   const still = useReducedMotion();
-  const ms = tipMs(tip.text);
-
-  useEffect(() => {
-    const id = window.setTimeout(onDone, ms);
-    return () => window.clearTimeout(id);
-  }, [onDone, ms]);
 
   return (
-    <motion.button
-      type="button"
-      aria-label={`${tip.label ?? (tip.kind === "GAME" ? "Game tip" : "Gardening tip")}: ${tip.text} Tap to continue`}
-      onClick={onDone}
+    <motion.div
+      role="dialog"
+      aria-label={tip.label ?? (tip.kind === "GAME" ? "Game tip" : "Gardening tip")}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="ui-zoom fixed inset-0 z-[66] flex items-center justify-center bg-black/55 p-6 cursor-pointer select-none"
+      className="ui-zoom fixed inset-0 z-[66] flex items-center justify-center bg-black/55 p-6 select-none"
     >
       <motion.div
         initial={{ y: 16, scale: 0.96 }}
         animate={{ y: 0, scale: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 22 }}
-        className="relative w-full max-w-[340px] overflow-hidden rounded-2xl border border-white/10 bg-[#1B281F] px-5 pt-5 pb-6 text-center text-white shadow-2xl"
+        className="relative w-full max-w-[340px] overflow-hidden rounded-2xl border border-white/10 bg-[#1B281F] px-5 pt-5 pb-5 text-center text-white shadow-2xl"
       >
         <motion.img
           src={tip.art}
@@ -51,16 +41,15 @@ export default function TipCard({ tip, onDone }: { tip: Tip; onDone: () => void 
           {tip.label ?? (tip.kind === "GAME" ? "Game tip" : "Gardening tip")}
         </div>
         <p className="mt-1 font-hand text-[18px] leading-snug text-white/90">{artify(tip.text)}</p>
-        <div className="mt-3 text-[12px] text-white/45">Tap to continue</div>
-        {/* Time left */}
-        <motion.span
-          aria-hidden="true"
-          className="absolute bottom-0 left-0 h-1 bg-amber-300/70"
-          initial={{ width: "100%" }}
-          animate={{ width: "0%" }}
-          transition={{ duration: ms / 1000, ease: "linear" }}
-        />
+        <button
+          type="button"
+          onClick={onDone}
+          autoFocus
+          className="mt-4 h-11 w-full rounded-xl bg-teal-300 text-[15px] font-bold text-slate-950 active:scale-[0.98] transition"
+        >
+          Continue
+        </button>
       </motion.div>
-    </motion.button>
+    </motion.div>
   );
 }

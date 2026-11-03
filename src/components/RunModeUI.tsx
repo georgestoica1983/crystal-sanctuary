@@ -84,6 +84,8 @@ export function RunHudStrip({
   const [bossOpen, setBossOpen] = useState(false);
   // A weak board is told in the line meter and by the glowing Swap button now
   void noSafeLine;
+  // The Swap button under the board confirms a swap now
+  void onConfirmWeedOut;
   void suggestSwap;
   return artify(
     <div
@@ -199,7 +201,8 @@ export function RunHudStrip({
               initial={false}
               animate={open ? { scale: [1.5, 1], opacity: 1, filter: "grayscale(0)" } : { scale: soon ? 0.85 : 0.6, opacity: soon ? 0.9 : 0.45, filter: "grayscale(1)" }}
               transition={{ type: "spring", stiffness: 260, damping: 14 }}
-              className="absolute -top-[26px] h-[22px] w-[22px] object-contain pointer-events-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]"
+              // Centred on the bar: half the bar (12px, 10px on short screens) plus half the rose (11px)
+              className="absolute -top-[23px] [@media(max-height:640px)]:-top-[21px] h-[22px] w-[22px] object-contain pointer-events-none drop-shadow-[0_1px_2px_rgba(0,0,0,0.6)]"
               style={{ left: `calc(${mark}% - ${mark === 100 ? 23 : 11}px)` }}
             />
           );
@@ -210,18 +213,20 @@ export function RunHudStrip({
       </div>
 
       {weedOutActive && (
+        // Swapping: what to do here, and Cancel; the Swap button below confirms
         <div className="flex items-center gap-1.5 h-8">
           <div className="flex-1 text-[12.5px] text-lime-100 leading-tight">
             Tap up to {RUN_WEEDOUT_MAX_TILES} tiles to swap ({weedOutCount}/{RUN_WEEDOUT_MAX_TILES})
           </div>
-          <button
-            type="button"
-            disabled={weedOutCount === 0}
-            onClick={onConfirmWeedOut}
-            className="h-8 px-3 rounded-lg bg-lime-300 text-slate-950 text-[12px] font-bold disabled:opacity-40"
-          >
-            Swap {weedOutCount > 0 ? weedOutCount : ""}
-          </button>
+          {(weedOutCount ?? 0) > 0 && (
+            <button
+              type="button"
+              onClick={onToggleWeedOut}
+              className="h-8 px-3 rounded-lg border border-white/15 bg-white/[0.06] text-[12px] font-semibold text-white/80"
+            >
+              Cancel
+            </button>
+          )}
         </div>
       )}
 

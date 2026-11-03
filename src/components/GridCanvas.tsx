@@ -2123,7 +2123,8 @@ export function CellGeometricNode({
 
     case "EXIT": {
       return (
-        <div className="relative w-[80%] h-[80%] flex items-center justify-center">
+        // The door fills its tile's frame (a little lower, clear of the EXIT label)
+        <div className="relative w-[96%] h-[96%] mt-[6%] flex items-center justify-center">
           <span className="absolute inset-[12%] rounded-full bg-amber-300/25 blur-md" />
           <EntityIcon type="EXIT" size="100%" className="relative" />
         </div>

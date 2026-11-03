@@ -328,15 +328,22 @@ export default function LineScoreShow({
           </motion.span>
         </div>
         {xMult !== 1 && (
-          <motion.span
-            key={`x${pulse?.box === "x" ? pulse.key : 0}`}
-            initial={{ scale: 1.6, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 420, damping: 16 }}
-            className="shrink-0 whitespace-nowrap text-[17px] font-display font-semibold tabular-nums text-fuchsia-200"
-          >
-            ×{Math.round(xMult * 100) / 100}
-          </motion.span>
+          // A column like Value and Length: label on top, the number the same size and on the same line
+          <>
+            <span className="pb-[3px] text-[15px] leading-none text-white/35 font-black">×</span>
+            <div className="flex flex-col items-center min-w-[36px]">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-fuchsia-300/80">Bonus</span>
+              <motion.span
+                key={`x${pulse?.box === "x" ? pulse.key : 0}`}
+                initial={{ scale: 1.6, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 420, damping: 16 }}
+                className="whitespace-nowrap text-[22px] font-display font-semibold tabular-nums leading-none text-fuchsia-100"
+              >
+                {Math.round(xMult * 100) / 100}
+              </motion.span>
+            </div>
+          </>
         )}
         <div className="flex-1" />
         <AnimatePresence>

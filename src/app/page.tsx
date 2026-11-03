@@ -1696,7 +1696,7 @@ export default function OneStrokeTacticianPage() {
         );
         resetRunWithDungeon(sandboxDungeon, "SANDBOX", nextClassId, isFreeTrial);
         handleNotice(
-          `Today's Daily is played with the Keeper so everyone's on equal terms: ${clsDef.emblem} ${
+          `Today's Daily is played with the Cat so everyone's on equal terms: ${clsDef.emblem} ${
             clsDef.sanctuaryShortName ?? clsDef.shortName
           } is with you in Free Play.`
         );
@@ -3994,10 +3994,30 @@ export default function OneStrokeTacticianPage() {
             <>
               {/* What the card hides while scoring, in one slim row (a notice takes the whole card) */}
               <div className={`${noticeInCard ? "hidden" : "flex"} items-center gap-2 px-1 text-[13px] text-white/75 whitespace-nowrap overflow-hidden`}>
-                <span>
-                  ❤️ <b className="text-white">{floorStartHero.hp}</b>
-                  <span className="text-white/50">/{floorStartHero.maxHp}</span>
-                </span>
+                {/* Life follows the line: where it ends while you draw, tile by tile while it scores */}
+                {(() => {
+                  const start = floorStartHero.hp;
+                  const live =
+                    phase === "PLANNING" && drawnPath.length >= 2
+                      ? simulation.survives
+                        ? simulation.finalStats.hp
+                        : 0
+                      : phase === "RESOLVING" && activeResolutionStep !== null
+                      ? simulation.steps[activeResolutionStep]?.hpAfter ?? start
+                      : start;
+                  const tone = live < start ? "text-rose-300" : live > start ? "text-lime-300" : "text-white";
+                  return (
+                    <span aria-label={`Life ${live} of ${floorStartHero.maxHp}`}>
+                      ❤️{" "}
+                      {live !== start && <span className="text-white/45 line-through">{start}</span>}
+                      {live !== start && <span className="text-white/45"> → </span>}
+                      <motion.b key={live} initial={{ scale: 1.35 }} animate={{ scale: 1 }} className={`inline-block ${tone}`}>
+                        {live}
+                      </motion.b>
+                      <span className="text-white/50">/{floorStartHero.maxHp}</span>
+                    </span>
+                  );
+                })()}
                 <span className="truncate text-white/60">
                   · Season {runGarden.season} · {runGarden.kind === "BOSS" ? "Boss bed" : runGarden.kind === "BIG" ? "Big bed" : "Small bed"}
                 </span>
@@ -4772,6 +4792,8 @@ phase === "RESOLVING"
                     disabled: phase !== "PLANNING",
                     urge: runNoSafeLine ? "strong" : swapSuggested ? "soft" : "none",
                     onToggle: handleToggleWeedOut,
+                    picked: weedOutSelection.length,
+                    onConfirm: handleConfirmWeedOut,
                   }
                 : undefined
             }

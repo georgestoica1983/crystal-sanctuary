@@ -743,7 +743,7 @@ export function TopHUD({
     const lowMagic = hero.hp <= Math.max(2, Math.floor(hero.maxHp * 0.3));
     const statIcon = (id: StatArtId) => (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={statArt(id)} alt="" aria-hidden="true" draggable={false} className="h-4 w-4 object-contain" />
+      <img src={statArt(id)} alt="" aria-hidden="true" draggable={false} className="h-6 w-6 object-contain" />
     );
     // Only what matters right now: Life always, Gloves and Shears once you hold
     // some (Seeds live in the Shop)
@@ -811,14 +811,12 @@ export function TopHUD({
                 layout
                 initial={{ opacity: 0, scale: 0.7 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="min-w-0 flex flex-col items-start justify-center"
+                className="min-w-0 flex items-center gap-1 leading-none"
                 aria-label={st.label}
               >
-                <div className="flex items-center gap-1 leading-none">
-                  {st.icon}
-                  <span className={`text-[16px] font-extrabold tabular-nums leading-none ${st.color}`}>{st.value}</span>
-                </div>
-                <div className="mt-1 text-[11px] leading-none text-white/60">{st.label}</div>
+                {/* The picture says what it is: no word under it */}
+                {st.icon}
+                <span className={`text-[18px] font-extrabold tabular-nums leading-none ${st.color}`}>{st.value}</span>
               </motion.div>
             ))}
           </div>
@@ -1801,6 +1799,10 @@ interface BottomControlsProps {
     disabled: boolean;
     urge: "none" | "soft" | "strong";
     onToggle: () => void;
+    /** Tiles picked so far while swapping */
+    picked?: number;
+    /** Swap the picked tiles (the same button, in the same place) */
+    onConfirm?: () => void;
   };
   /** Garden Run: skip this Small bed for a Tag (opens the confirm card) */
   skip?: {
@@ -1857,7 +1859,7 @@ export function BottomControls({
           <button
             type="button"
             disabled={swap.disabled || (swap.left <= 0 && !swap.active)}
-            onClick={swap.onToggle}
+            onClick={swap.active && (swap.picked ?? 0) > 0 && swap.onConfirm ? swap.onConfirm : swap.onToggle}
             aria-pressed={swap.active}
             className={`h-11 [@media(min-height:800px)]:h-14 rounded-xl border text-[13px] font-semibold transition active:scale-95 disabled:opacity-35 ${
               swap.active
@@ -1870,7 +1872,13 @@ export function BottomControls({
             }`}
           >
             {swap.active ? (
-              "Cancel swap"
+              (swap.picked ?? 0) > 0 ? (
+                <span className="inline-flex items-center gap-1.5">
+                  <ArrowLeftRight className="w-4 h-4" /> Swap {swap.picked}
+                </span>
+              ) : (
+                "Cancel swap"
+              )
             ) : (
               <span className="inline-flex items-center gap-1.5">
                 <ArrowLeftRight className="w-4 h-4 text-lime-300" /> Swap · {swap.left}
