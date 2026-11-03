@@ -2629,13 +2629,13 @@ export default function OneStrokeTacticianPage() {
       recordAscensionCleared(runLogRef.current?.asc ?? 0);
       ascLevel = unlockAscensionAfter(runLogRef.current?.asc ?? 0);
     }
-    const unlocked = save ? takeNewUnlocks().map((u) => ({ icon: u.icon, name: u.name })) : [];
-    if (ascLevel !== null) unlocked.push({ icon: "🔥", name: `Ascension ${ascLevel}` });
+    const unlocked = save ? takeNewUnlocks().map((u) => ({ id: u.id, icon: u.icon, name: u.name })) : [];
+    if (ascLevel !== null) unlocked.push({ id: "", icon: "🔥", name: `Ascension ${ascLevel}` });
     const progress = loadUnlockProgress();
     const deepestSeason = Math.floor(progress.highestBed / 3) + 1;
     const next = getNextStarUnlocks(progress);
     const nextUnlock = next
-      ? { stars: next.stars, have: progress.stars, text: next.items.map((u) => `${u.icon} ${u.name}`).join(" · ") }
+      ? { stars: next.stars, have: progress.stars, id: next.items[0].id, icon: next.items[0].icon, text: next.items.map((u) => u.name).join(" · ") }
       : null;
     return { seasonBestStars, newBestStars: saved.improved, unlocked, deepestSeason, nextUnlock };
   };

@@ -29,6 +29,7 @@ import RelicIcon from "@/components/RelicIcon";
 import { MUSIC_LAYERS, MusicLayer } from "@/lib/audio";
 import EntityIcon from "@/components/EntityIcon";
 import { COMPANION_RULES } from "@/components/AscensionPicker";
+import UnlockIcon from "@/components/UnlockIcon";
 
 interface Entry {
   id: string;
@@ -273,7 +274,7 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
             <h2 className="text-[24px] font-display font-semibold text-amber-50 leading-tight">Garden Journal</h2>
             <div className="text-[12.5px] text-white/60">
               {total} of {all.length} found · {pct}%
-              {pct >= 25 && <span className="ml-1.5 rounded-full bg-amber-300/15 px-1.5 py-px text-[11px] font-semibold text-amber-100">📖 Botanist</span>}
+              {pct >= 25 && <span className="ml-1.5 inline-flex items-center gap-1 rounded-full bg-amber-300/15 px-1.5 py-px text-[11px] font-semibold text-amber-100"><UnlockIcon item={{ id: "j-botanist", icon: "📖" }} size={14} /> Botanist</span>}
               {pct >= 100 && <span className="ml-1 text-amber-200">✨ complete</span>}
             </div>
             {pct < 100 && (

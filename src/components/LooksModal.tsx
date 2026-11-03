@@ -22,8 +22,8 @@ import {
 import { loadBestClearedAscension } from "@/lib/ascension";
 import { HERO_CLASS_REGISTRY } from "@/lib/engine";
 import { COMPANION_RULES, companionStartText } from "@/components/AscensionPicker";
-import { getBoardTheme } from "@/lib/boardThemes";
 import EntityIcon from "@/components/EntityIcon";
+import UnlockIcon from "@/components/UnlockIcon";
 
 /** Companions (each plays differently) and line colours (looks only), earned by playing */
 export default function LooksModal({
@@ -71,7 +71,7 @@ export default function LooksModal({
         <div className="flex items-baseline justify-between gap-2">
           <div className="text-[16px] font-bold">Companions &amp; looks</div>
           <div className="min-w-0 truncate text-[13px] text-amber-100">
-            {rank.icon} {rank.name} · <Badge id="star" /> {progress.stars}
+            <UnlockIcon item={rank} /> {rank.name} · <Badge id="star" /> {progress.stars}
             {loadBestClearedAscension() > 0 && <span className="text-orange-200"> · <Badge id="flame" />A{loadBestClearedAscension()}</span>}
           </div>
         </div>
@@ -175,7 +175,6 @@ export default function LooksModal({
               if (u.kind !== "BOARD") return null;
               const unlocked = isUnlocked(u, progress);
               const selected = currentBoard === u.target;
-              const theme = getBoardTheme(u.target);
               return (
                 <button
                   key={u.id}
@@ -185,22 +184,8 @@ export default function LooksModal({
                   onClick={() => onSelect({ ...cosmetics, boardThemeId: u.target })}
                   className={tile(selected, unlocked)}
                 >
-                  <span
-                    className="mt-0.5 grid grid-cols-3 gap-[3px] rounded-md p-[4px] border"
-                    style={{ backgroundColor: theme.frame, borderColor: theme.border, boxShadow: theme.glow }}
-                    aria-hidden="true"
-                  >
-                    {Array.from({ length: 6 }, (_, i) => (
-                      <span
-                        key={i}
-                        className="h-3 w-3 rounded-[3px]"
-                        style={{ backgroundImage: `linear-gradient(${theme.plateTop}, ${theme.plateBottom})` }}
-                      />
-                    ))}
-                  </span>
-                  <span className="text-[10.5px] font-bold leading-tight mt-0.5">
-                    {u.icon} {u.name.replace(" board", "")}
-                  </span>
+                  <UnlockIcon item={u} size={44} />
+                  <span className="text-[10.5px] font-bold leading-tight mt-0.5">{u.name.replace(" board", "")}</span>
                   {!unlocked && <LockLine full={u.needText} short={shortNeedText(u)} />}
                 </button>
               );

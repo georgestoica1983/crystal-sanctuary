@@ -33,6 +33,7 @@ import { soundEngine } from "@/lib/audio";
 import { artify } from "@/components/ArtText";
 import { formatScore } from "@/lib/formatScore";
 import { FEEDBACK_URL, markFeedbackAsked, shouldAskFeedback, track } from "@/lib/analytics";
+import UnlockIcon from "@/components/UnlockIcon";
 
 const fmt = formatScore;
 
@@ -314,9 +315,9 @@ export interface RunClearInfo {
   /** These stars beat the best ever on this bed */
   newBestStars?: boolean;
   /** Looks unlocked by this clear (companions, line colours, ranks) */
-  unlocked?: Array<{ icon: string; name: string }>;
+  unlocked?: Array<{ id?: string; icon: string; name: string }>;
   /** The next star reward, e.g. 🌙 Night Garden board at 30 ⭐ */
-  nextUnlock?: { stars: number; have: number; text: string } | null;
+  nextUnlock?: { stars: number; have: number; text: string; id?: string; icon?: string } | null;
   /** Deepest Season ever reached on this device (shown in Endless) */
   deepestSeason?: number;
   /** Ascension level of this Garden Run */
@@ -690,8 +691,13 @@ export function RunGardenClearModal({
             <div className="flex items-center justify-center gap-1 text-[12px] font-semibold text-violet-200">
               <PartyPopper className="w-3.5 h-3.5" /> Unlocked
             </div>
-            <div className="mt-0.5 text-[14px] font-black text-white leading-snug">
-              {info.unlocked.map((u) => `${u.icon} ${u.name}`).join(" · ")}
+            <div className="mt-0.5 flex flex-wrap items-center justify-center text-[14px] font-black text-white leading-snug">
+              {info.unlocked.map((u, i) => (
+                <span key={u.name} className="inline-flex items-center gap-1">
+                  {i > 0 && <span className="mx-1 text-white/40">·</span>}
+                  {u.id ? <UnlockIcon item={{ id: u.id, icon: u.icon }} size={22} /> : u.icon} {u.name}
+                </span>
+              ))}
             </div>
             <div className="text-[10.5px] text-white/60">See it in ☰ → Companions &amp; looks</div>
           </motion.div>
@@ -699,7 +705,9 @@ export function RunGardenClearModal({
 
         {info.nextUnlock && (
           <div className="text-center text-[11.5px] text-white/60">
-            <Badge id="star" /> {info.nextUnlock.have} · next: <span className="font-semibold text-white/85">{info.nextUnlock.text}</span> at{" "}
+            <Badge id="star" /> {info.nextUnlock.have} · next: <span className="font-semibold text-white/85">
+              {info.nextUnlock.id && <UnlockIcon item={{ id: info.nextUnlock.id, icon: info.nextUnlock.icon ?? "" }} />} {info.nextUnlock.text}
+            </span> at{" "}
             {info.nextUnlock.stars} <Badge id="star" />
           </div>
         )}
@@ -1056,7 +1064,12 @@ export function RunOverModal({
           >
             <div className="text-[11px] font-semibold text-teal-200/80">Next goal</div>
             <div className="mt-0.5 flex items-center gap-2">
-              <span className="text-[22px] leading-none">{goal.icon}</span>
+              {goal.art ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={goal.art} alt="" aria-hidden="true" draggable={false} className="h-8 w-8 shrink-0 object-contain" />
+              ) : (
+                <span className="text-[22px] leading-none">{goal.icon}</span>
+              )}
               <span className="text-[15px] font-bold text-white leading-tight">{goal.title}</span>
             </div>
             <p className="mt-1 text-[12px] text-white/65 leading-snug">{goal.detail}</p>

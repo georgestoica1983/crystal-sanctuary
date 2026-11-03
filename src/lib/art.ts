@@ -83,5 +83,28 @@ export type MiscArtId = "gardener" | "swap" | "no-safe-line" | "journal" | "dail
 export const miscArt = (id: MiscArtId) => icon(`misc-${id}`);
 /** Bed weather (public/art/icons/weather-*.webp), e.g. GOLDEN_HOUR → weather-golden-hour */
 export const weatherArt = (id: string) => icon(`weather-${kebab(id)}`);
+/** Painted art for an unlock (ranks, board looks, the Botanist title, companions); null for line colours */
+const UNLOCK_ART: Record<string, string> = {
+  "r-seedling": "rank-seedling",
+  "r-sprout": "rank-sprout",
+  "r-gardener": "rank-gardener",
+  "r-head": "rank-head-gardener",
+  "r-star": "rank-star-gardener",
+  "r-master": "rank-master-of-seasons",
+  "r-endless": "rank-endless-gardener",
+  "b-spring": "board-moss",
+  "b-autumn": "board-autumn",
+  "b-night": "board-night",
+  "b-winter": "board-winter",
+  "b-golden": "board-golden",
+  "b-royal": "board-royal",
+  "j-herbarium": "board-herbarium",
+  "j-botanist": "title-botanist",
+  "c-cat": "companion-keeper",
+  "c-otter": "companion-otter",
+  "c-butterfly": "companion-sprite",
+  "c-fox": "companion-fox",
+};
+export const unlockArt = (id: string): string | null => (UNLOCK_ART[id] ? icon(UNLOCK_ART[id]) : null);
 /** The Daily grid's flowers: 3, 2 or 1 star(s), or the bed where the try stopped */
 export const dailyArt = (cell: 3 | 2 | 1 | "stopped") => icon(cell === "stopped" ? "daily-stopped" : `daily-bloom-${cell}`);

@@ -3,6 +3,7 @@ import { loadBestStars, totalBestStars } from "@/lib/runStars";
 import { getRunGardenLabel } from "@/lib/engine";
 import { ASCENSION_UNLOCK_BED, loadBestClearedAscension, loadUnlockedAscension } from "@/lib/ascension";
 import { journalPercent } from "@/lib/journalProgress";
+import { dailyArt, unlockArt } from "@/lib/art";
 
 /**
  * Earned by playing (never by paying): companions (each with its own rule),
@@ -157,6 +158,8 @@ export function getNextStarUnlocks(p: UnlockProgress = loadUnlockProgress()): { 
 /** The one goal the end screen points at: the nearest reward still ahead */
 export interface NextGoal {
   icon: string;
+  /** Painted art for the icon, when there is one */
+  art?: string | null;
   title: string;
   detail: string;
   /** Filled bar for star goals */
@@ -181,6 +184,7 @@ export function pickNextGoal(asc = 0, p: UnlockProgress = loadUnlockProgress()):
   const starGoal = (): NextGoal | null =>
     stars && {
       icon: stars.items[0].icon,
+      art: unlockArt(stars.items[0].id),
       title: `${stars.stars - p.stars} more ⭐ for ${stars.items.map((u) => u.name).join(" and ")}`,
       detail: "Bloom a bed with a line to spare for ⭐⭐, and reach 1.5× its target too for ⭐⭐⭐.",
       have: p.stars,
@@ -189,13 +193,14 @@ export function pickNextGoal(asc = 0, p: UnlockProgress = loadUnlockProgress()):
   if (stars && stars.stars - p.stars <= NEAR_STARS) return starGoal();
 
   // Seasons that wake something, and beating the Season 3 Boss for Ascension
-  const seasonGoals: Array<{ bed: number; icon: string; title: string; detail: string }> = UNLOCKS.filter(
+  const seasonGoals: Array<{ bed: number; icon: string; art?: string | null; title: string; detail: string }> = UNLOCKS.filter(
     (u) => u.need.season !== undefined && !isUnlocked(u, p)
   ).map((u) => ({
     bed: (u.need.season! - 1) * 3,
     icon: u.icon,
+    art: unlockArt(u.id),
     title: `Reach Season ${u.need.season}`,
-    detail: `Wakes ${u.icon} ${u.name}.`,
+    detail: `Wakes ${u.name}.`,
   }));
   if (loadUnlockedAscension() === 0)
     seasonGoals.push({
@@ -217,7 +222,8 @@ export function pickNextGoal(asc = 0, p: UnlockProgress = loadUnlockProgress()):
   }
   if (reached > 0) {
     return {
-      icon: "🌱",
+      icon: "🌸",
+      art: dailyArt(3),
       title: `Bloom past ${getRunGardenLabel(reached)}`,
       detail: "That's the furthest bed you've reached. One more bed beats it.",
     };

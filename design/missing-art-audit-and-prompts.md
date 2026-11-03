@@ -133,7 +133,14 @@ Constraints:
 
 ---
 
-## Sheet C: Ranks, board looks and the Botanist title (5 × 3, 15 icons)
+## Sheet C: Ranks, board looks and the Botanist title (5 × 3, 15 icons) ✅ In the game
+
+Cut with `node scripts/cut-icon-sheet.cjs design/gemini-ranks-looks.webp rankslooks`. Where they now appear:
+- **Ranks:** the menu rank card and its "Next" line, the Looks header, the unlock card and Next goal.
+- **Board looks:** the Looks Board tab, replacing the mini boards and the emoji, plus "next unlock" lines.
+- **Botanist:** the Journal header chip.
+
+`unlockArt()` in `src/lib/art.ts` maps each unlock to its art; companions use their existing portraits.
 
 **File:** `design/gemini-ranks-looks.webp` · **set:** `rankslooks`
 

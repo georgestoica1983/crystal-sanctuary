@@ -78,6 +78,7 @@ import EntityIcon from "@/components/EntityIcon";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import { completedRelicSets, getRelicTags, RELIC_SET_X, RELIC_TAG_INFO } from "@/lib/relicTags";
 import { statArt, StatArtId, themeArt } from "@/lib/art";
+import UnlockIcon from "@/components/UnlockIcon";
 import SupplyIcon from "@/components/SupplyIcon";
 import RelicIcon from "@/components/RelicIcon";
 import { artify } from "@/components/ArtText";
@@ -948,15 +949,15 @@ export function TopHUD({
                     return (
                       <div className="rounded-xl bg-amber-400/[0.07] border border-amber-300/20 px-3 py-2 flex items-center justify-between gap-2">
                         <span className="min-w-0">
-                          <span className="block text-[14px] font-bold text-amber-100">
-                            {rank.icon} {rank.name}
+                          <span className="flex items-center gap-1.5 text-[14px] font-bold text-amber-100">
+                            <UnlockIcon item={rank} size={26} /> {rank.name}
                             {flame > 0 && (
                               <span className="ml-1.5 rounded bg-orange-400/15 px-1 text-[11px] text-orange-200"><Badge id="flame" />A{flame}</span>
                             )}
                           </span>
                           {next && (
                             <span className="block truncate text-[12px] text-white/55">
-                              Next: {next.icon} {next.name} · {next.needText}
+                              Next: <UnlockIcon item={next} /> {next.name} · {next.needText}
                             </span>
                           )}
                         </span>
