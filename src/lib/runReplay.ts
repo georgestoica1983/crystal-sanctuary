@@ -881,15 +881,23 @@ export interface RunActionLog {
   hero: HeroClassId;
   /** Ascension level (rules v8+); missing = 0 */
   asc?: number;
+  /** Daily Garden for this date (YYYY-MM-DD): seed `daily-<date>`, the Keeper, Ascension 0, ends after Season 3 */
+  d?: string;
   a: RunLogAction[];
 }
+
+/** The Daily Garden ends once this bed (the Season 3 Boss) blooms */
+export const RUN_DAILY_LAST_BED = 8;
+export const dailyRunSeed = (dateKey: string) => `daily-${dateKey}`;
+const DATE_KEY = /^\d{4}-\d{2}-\d{2}$/;
 
 export const packCoord = (c: GridCoord): number => c.row * 5 + c.col;
 export const packCoords = (coords: GridCoord[]): number[] => coords.map(packCoord);
 const unpackCoord = (n: number): GridCoord => ({ row: Math.floor(n / 5), col: n % 5 });
 
-export function createRunLog(seed: string, hero: HeroClassId, asc = 0): RunActionLog {
-  return asc > 0 ? { v: RUN_LOG_VERSION, seed, hero, asc, a: [] } : { v: RUN_LOG_VERSION, seed, hero, a: [] };
+export function createRunLog(seed: string, hero: HeroClassId, asc = 0, daily?: string): RunActionLog {
+  const log: RunActionLog = asc > 0 ? { v: RUN_LOG_VERSION, seed, hero, asc, a: [] } : { v: RUN_LOG_VERSION, seed, hero, a: [] };
+  return daily ? { ...log, d: daily } : log;
 }
 
 // ── Replay ──────────────────────────────────────────────────────────────────
@@ -942,6 +950,12 @@ export function parseRunLog(raw: unknown): RunActionLog | null {
   if (
     log.asc !== undefined &&
     (typeof log.asc !== "number" || !Number.isInteger(log.asc) || log.asc < 0 || log.asc > RUN_MAX_ASCENSION || log.v < 8)
+  ) {
+    return null;
+  }
+  if (
+    log.d !== undefined &&
+    (typeof log.d !== "string" || !DATE_KEY.test(log.d) || log.seed !== dailyRunSeed(log.d) || log.hero !== "KNIGHT" || log.asc)
   ) {
     return null;
   }
@@ -1013,7 +1027,9 @@ export function createRunReplayer(
   runSeed: string,
   heroClassId: HeroClassId,
   logVersion: number = RUN_LOG_VERSION,
-  asc = 0
+  asc = 0,
+  /** A Daily Garden: nothing more can happen once the Season 3 Boss blooms */
+  daily = false
 ) {
   const first = startRunGarden(runSeed, heroClassId, logVersion, asc);
   const modifier = runModifierFor(logVersion);
@@ -1050,6 +1066,7 @@ export function createRunReplayer(
 
   const apply = (action: RunLogAction): string | null => {
     if (s.phase === "OVER") return "action after the Run ended";
+    if (daily && s.gardensBloomed > RUN_DAILY_LAST_BED) return "the Daily Garden ends after Season 3";
 
     // The Wandering Gardener (rules v20): a gift is picked before anything else
     if (action.k === "g") {
@@ -1326,7 +1343,7 @@ export function createRunReplayer(
 export function replayRun(raw: unknown): RunReplayResult {
   const log = parseRunLog(raw);
   if (!log) return { ok: false, error: "malformed log", actionIndex: null };
-  const run = createRunReplayer(log.seed, log.hero, log.v, log.asc ?? 0);
+  const run = createRunReplayer(log.seed, log.hero, log.v, log.asc ?? 0, Boolean(log.d));
   for (let i = 0; i < log.a.length; i++) {
     const error = run.apply(log.a[i]);
     if (error) return { ok: false, error, actionIndex: i };

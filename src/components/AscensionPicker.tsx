@@ -11,6 +11,7 @@ import { ASCENSION_LEVELS } from "@/lib/runReplay";
 import { companionUnlockFor, RUN_COMPANION_ORDER } from "@/lib/unlocks";
 import EntityIcon from "@/components/EntityIcon";
 import { artify } from "@/components/ArtText";
+import { TodaysGardenButton } from "@/components/RunModeUI";
 
 /** Each companion's rule in a Garden Run, in plain words */
 export const COMPANION_RULES: Record<HeroClassId, string> = {
@@ -38,8 +39,13 @@ export default function AscensionPicker({
   initialCompanion,
   onStart,
   onClose,
+  onPlayDaily,
+  dailyToday,
 }: {
   isOpen: boolean;
+  /** Start today's Daily Garden instead */
+  onPlayDaily?: () => void;
+  dailyToday?: { played: boolean; streak: number };
   /** Highest Ascension level unlocked on this device */
   unlocked: number;
   initial: number;
@@ -76,6 +82,10 @@ export default function AscensionPicker({
             <div className="text-[11.5px] text-white/55">Pick a companion. Each one plays differently.</div>
           </div>
         </div>
+
+        {onPlayDaily && dailyToday && (
+          <TodaysGardenButton played={dailyToday.played} streak={dailyToday.streak} onClick={onPlayDaily} />
+        )}
 
         <div className="grid grid-cols-2 gap-1.5">
           {RUN_COMPANION_ORDER.map((id) => {

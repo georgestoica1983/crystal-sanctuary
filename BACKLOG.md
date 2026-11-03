@@ -44,7 +44,7 @@ Everything below this section is parked until this is done.
 **Coming back and sharing**
 - [x] 22. The end screen points forward: one next goal first.
 - [x] 23. A good place to stop: "Stop here, resume later" after each Boss. (Quick mode, a shorter Run, not built yet: it would need new rules.)
-- [ ] 24. Shareable daily result grid, and the daily easier to find.
+- [x] 24. Daily Garden (same seed for everyone, Seasons 1 to 3, first try counts) with a shareable flower grid, a day streak, and a Today's garden button on the New Run sheet and the end screen.
 - [ ] 25. Shareable seeded Runs (a code like MOSS-4821) using the replay system.
 
 ## Waiting on setup (your part, parked for now: do this before the tester round)

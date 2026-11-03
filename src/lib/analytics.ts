@@ -64,6 +64,7 @@ export type TrackEvent =
   | "bed_skipped"
   | "run_over"
   | "run_paused"
+  | "daily_share"
   | "feedback_open"
   | "run_start"
   | "bed_start"

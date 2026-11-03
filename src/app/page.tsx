@@ -168,6 +168,8 @@ import {
   GARDEN_UPGRADES,
   runRulesUseUpgrades,
   createRunLog,
+  dailyRunSeed,
+  RUN_DAILY_LAST_BED,
   dryDewAfterStroke,
   getSkipTag,
   runRulesAllowSkip,
@@ -193,6 +195,7 @@ import {
   scoreRunStroke,
   startRunGarden,
 } from "@/lib/runReplay";
+import { dailyRecord, dailyStatus, finishDaily, noteRunStarted, recordDailyBed } from "@/lib/daily";
 import { askToKeepStorage, clearRunSave, keepUnreadableRunSave, readRunSave, rebuildRunFromSave, writeRunSave } from "@/lib/runSave";
 import {
   LessonResultInfo,
@@ -1383,10 +1386,12 @@ export default function OneStrokeTacticianPage() {
    * Starts a fresh Run: a new seed, a new Tile Bag and Season 1's Small Garden.
    */
   const startRun = useCallback(
-    (overrideClassId?: HeroClassId, _isTrial?: boolean, options?: { practice?: boolean; asc?: number }) => {
+    (overrideClassId?: HeroClassId, _isTrial?: boolean, options?: { practice?: boolean; asc?: number; daily?: boolean }) => {
       const practice = Boolean(options?.practice);
+      // Daily Garden: today's seed for everyone, the Keeper, Ascension 0
+      const daily = !practice && options?.daily ? getTodayDateKey() : null;
       // Ascension level: the one passed in, or the last one chosen
-      const asc = practice ? 0 : options?.asc ?? runAscensionRef.current;
+      const asc = practice || daily ? 0 : options?.asc ?? runAscensionRef.current;
       // A new Run replaces the saved one; the Practice Garden leaves it alone
       if (!practice) {
         clearRunSave();
@@ -1395,12 +1400,14 @@ export default function OneStrokeTacticianPage() {
       }
       const runSeed = practice
         ? PRACTICE_GARDEN_SEED
-        : `run-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
+        : daily
+          ? dailyRunSeed(daily)
+          : `run-${Date.now()}-${Math.floor(Math.random() * 1e6)}`;
       // Each Run gets its own musical phrases
       soundEngine.setMusicSeed(runSeed);
       // Companions are earned by playing (no free trials): a locked one falls back to the Keeper
       const wanted = overrideClassId ?? runCompanionRef.current;
-      const classId: HeroClassId = practice || !isCompanionUnlocked(wanted) ? "KNIGHT" : wanted;
+      const classId: HeroClassId = practice || daily || !isCompanionUnlocked(wanted) ? "KNIGHT" : wanted;
       const { bag, ...first } = startRunGarden(runSeed, classId, RUN_LOG_VERSION, asc);
       // Morning dew on the first board of the day's first morning Run (looks and sound only)
       if (!practice && takeMorningDew()) {
@@ -1412,7 +1419,7 @@ export default function OneStrokeTacticianPage() {
       const runDungeon: DungeonTheme = {
         seedKey: runSeed,
         dateKey: getTodayDateKey(),
-        title: "Garden Run",
+        title: daily ? "Daily Garden" : "Garden Run",
         lore: "Season after season the gardens grow wilder. Clear each one before your lines run out.",
         modifierId: runModifierFor(RUN_LOG_VERSION),
         source: "deterministic-fallback",
@@ -1426,10 +1433,18 @@ export default function OneStrokeTacticianPage() {
       setSkipOpen(false);
       setGardenUpgrades([]);
       setUpgradeSeasons([]);
-      runLogRef.current = practice ? null : createRunLog(runSeed, classId, asc);
+      runLogRef.current = practice ? null : createRunLog(runSeed, classId, asc, daily ?? undefined);
       if (!practice) {
         countRunStarted();
-        track("run_start", { companion: classId, asc: asc ?? 0, runs: runsStarted() });
+        const official = noteRunStarted(daily);
+        track("run_start", { companion: classId, asc: asc ?? 0, runs: runsStarted(), daily: Boolean(daily), official });
+        if (daily) {
+          handleNotice(
+            official
+              ? "🌞 Today's Daily Garden: the same beds for everyone, Seasons 1 to 3. Your first try counts."
+              : "🌞 Today's Daily Garden again, as practice. Your first try is already on the books."
+          );
+        }
       }
       runBloomRef.current = null;
       setLessonIndex(null);
@@ -1456,8 +1471,16 @@ export default function OneStrokeTacticianPage() {
 
   /** A new Garden Run: pick the companion (and Ascension level) once there's a choice */
   const requestNewRun = () => {
-    if (loadUnlockedAscension() > 0 || unlockedRunCompanions().length > 1) setAscPickerOpen(true);
+    // After the first Run the sheet always opens: it also holds today's Daily Garden
+    if (runsStarted() > 0 || loadUnlockedAscension() > 0 || unlockedRunCompanions().length > 1) setAscPickerOpen(true);
     else startRun();
+  };
+
+  /** Today's Daily Garden (from the New Run sheet or the end screen) */
+  const startDailyGarden = () => {
+    setAscPickerOpen(false);
+    setRunOver(null);
+    startRun(undefined, false, { daily: true });
   };
 
   /** Opens hands-on lesson `index` on a fresh board */
@@ -2057,6 +2080,9 @@ export default function OneStrokeTacticianPage() {
     }
     const runScore = calculateRunScore(history);
     setFinalScore(runScore);
+    const dailyDate = practiceStep ? undefined : runLogRef.current?.d;
+    const bestLine = bestLineOf(history);
+    if (dailyDate) finishDaily(dailyDate, runScore, bestLine?.tiles ?? 0);
     if (!practiceStep) {
       track("run_over", { reason, bed: garden.gardenIndex, season: garden.season, run_score: runScore });
       // Garden Journal: this companion's record, the relics and special tiles of this Run
@@ -2081,18 +2107,21 @@ export default function OneStrokeTacticianPage() {
       gold: finalStats.gold + spent,
     });
     setRunRankLine(null);
-    sendRunToLeaderboard(runScore, garden.gardenIndex);
+    // The Daily Garden is shorter than a Run, so it stays off the Run leaderboard
+    if (!dailyDate) sendRunToLeaderboard(runScore, garden.gardenIndex);
+    const dailyRec = dailyDate ? dailyRecord(dailyDate) : null;
     setRunOver({
       reason,
       gardenIndex: garden.gardenIndex,
       gardenScore: garden.score,
       target: garden.target,
       runScore,
-      gardensCleared: garden.gardenIndex,
+      gardensCleared: garden.gardenIndex + (reason === "DAILY_DONE" ? 1 : 0),
+      daily: dailyDate ? { dateKey: dailyDate, record: dailyRec, streak: dailyStatus(dailyDate).streak } : undefined,
       best: record,
       isNewBest: isNew,
       asc: practiceStep ? 0 : runLogRef.current?.asc ?? 0,
-      bestLine: bestLineOf(history),
+      bestLine,
       relics: activeRelics,
       newRelics: practiceStep ? [] : rememberFoundRelics(activeRelics),
     });
@@ -2476,6 +2505,10 @@ export default function OneStrokeTacticianPage() {
     setHero(stats);
     soundEngine.playVictoryChord();
     if (beatenBoss) setBossBeaten({ id: beatenBoss, legendary });
+    const dailyDate = practiceStep ? undefined : runLogRef.current?.d;
+    if (dailyDate) {
+      recordDailyBed(dailyDate, garden.gardenIndex, getRunBedStars(garden.score, garden.target, garden.strokesLeft));
+    }
     // The collection grows quietly (never in practice); a visitor arrives at its milestones
     if (!practiceStep) {
       const before = loadMyGarden().plants.length;
@@ -2548,6 +2581,14 @@ export default function OneStrokeTacticianPage() {
     const bloom = runBloomRef.current;
     runBloomRef.current = null;
     const withPayout = bloom?.statsWithPayout ?? { ...hero, gold: info.gemsBefore + info.total };
+    // Again here: a payout card reopened from a save never went through the bloom
+    const dailyDate = practiceStep ? undefined : runLogRef.current?.d;
+    if (dailyDate) recordDailyBed(dailyDate, info.gardenIndex, getRunBedStars(info.score, info.target, info.strokesLeft));
+    // The Daily Garden is done once the Season 3 Boss blooms
+    if (!practiceStep && runLogRef.current?.d && info.gardenIndex >= RUN_DAILY_LAST_BED && runGarden) {
+      endRunMode("DAILY_DONE", runGarden, floorHistory, withPayout);
+      return;
+    }
     setPendingPostFloorStats(withPayout);
     setHero(withPayout);
     setShopOffers(
@@ -4894,6 +4935,11 @@ export default function OneStrokeTacticianPage() {
         info={runClear}
         onContinue={handleRunClearContinue}
         onStop={practiceStep || lesson ? undefined : handleStopAfterBoss}
+        finishLabel={
+          !practiceStep && runLogRef.current?.d && runClear && runClear.gardenIndex >= RUN_DAILY_LAST_BED
+            ? "See today's garden →"
+            : undefined
+        }
       />
       <RunSavedRest
         open={runResting}
@@ -4957,6 +5003,8 @@ export default function OneStrokeTacticianPage() {
           setRunOver(null);
           startRun(companion, false, { asc: level });
         }}
+        onPlayDaily={startDailyGarden}
+        dailyToday={ascPickerOpen ? dailyStatus() : undefined}
         onClose={() => setAscPickerOpen(false)}
       />
       <LooksModal
@@ -4976,6 +5024,8 @@ export default function OneStrokeTacticianPage() {
         rankLine={practiceStep ? null : runRankLine}
         onOpenLeaderboard={practiceStep ? undefined : () => setIsRunLeaderboardOpen(true)}
         askFeedback={!practiceStep}
+        onPlayDaily={practiceStep ? undefined : startDailyGarden}
+        dailyToday={runOver && !practiceStep ? dailyStatus() : undefined}
         newRunLabel={practiceStep ? "Try the practice again" : undefined}
         onNewRun={() =>
           practiceStep ? startRun(undefined, undefined, { practice: true }) : requestNewRun()

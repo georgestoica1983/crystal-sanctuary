@@ -23,6 +23,7 @@ import {
 import RelicIcon from "@/components/RelicIcon";
 import { tileArt } from "@/lib/art";
 import { pickNextGoal } from "@/lib/unlocks";
+import { DailyRecord, dailyGridRows, dailyShareText } from "@/lib/daily";
 
 const BLOOM_ART = tileArt("ENEMY", { bloomed: true }) ?? "";
 import { soundEngine } from "@/lib/audio";
@@ -549,9 +550,12 @@ export function RunGardenClearModal({
   info,
   onContinue,
   onStop,
+  finishLabel,
 }: {
   info: RunClearInfo | null;
   onContinue: () => void;
+  /** The last bed of a Daily Garden: the button finishes the day instead of opening the Shop */
+  finishLabel?: string;
   /** After a Boss: a natural place to stop, the Run waits in its save */
   onStop?: () => void;
 }) {
@@ -694,9 +698,9 @@ export function RunGardenClearModal({
             onClick={onContinue}
             className="w-full rounded-xl py-3 font-bold text-[15px] bg-teal-300 text-slate-950 active:scale-95"
           >
-            Enter the Shop · {info.gemsBefore + info.total} 🌱 to spend →
+            {finishLabel ?? <>Enter the Shop · {info.gemsBefore + info.total} 🌱 to spend →</>}
           </button>
-          {onStop && kind === "BOSS" && (
+          {onStop && !finishLabel && kind === "BOSS" && (
             <button
               type="button"
               onClick={onStop}
@@ -750,7 +754,7 @@ export function RunSavedRest({
   );
 }
 
-export type RunEndReason = "MISSED_TARGET" | "NO_SAFE_LINE" | "WILTED" | "ENDED";
+export type RunEndReason = "MISSED_TARGET" | "NO_SAFE_LINE" | "WILTED" | "ENDED" | "DAILY_DONE";
 
 export interface RunOverInfo {
   reason: RunEndReason;
@@ -768,6 +772,8 @@ export interface RunOverInfo {
   /** Relics gathered this Run, and which were found for the first time ever */
   relics?: RelicId[];
   newRelics?: RelicId[];
+  /** A Daily Garden: its date, the official try's record (null if this was a replay) and the day streak */
+  daily?: { dateKey: string; record: DailyRecord | null; streak: number };
 }
 
 /** Why the garden rests: said gently, never as a failure */
@@ -776,7 +782,77 @@ const REST_COPY: Record<RunEndReason, string> = {
   NO_SAFE_LINE: "No path was left through this bed. It will grow back next time.",
   WILTED: "Your companion gave everything on that line and is resting now.",
   ENDED: "You let the garden rest for now.",
+  DAILY_DONE: "All three Seasons bloomed. Come back tomorrow for a new garden.",
 };
+
+/** The Daily Garden's flower grid with a Share button (a replay shows it's practice) */
+function DailyResultCard({ dateKey, record, streak }: { dateKey: string; record: DailyRecord | null; streak: number }) {
+  const [copied, setCopied] = useState(false);
+  if (!record) {
+    return (
+      <div className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-center text-[12.5px] text-white/65">
+        This was a practice replay. Today&apos;s first try is the one you can share.
+      </div>
+    );
+  }
+  const text = dailyShareText(dateKey, record, streak);
+  const share = async () => {
+    track("daily_share");
+    try {
+      if (navigator.share) {
+        await navigator.share({ text });
+        return;
+      }
+    } catch {
+      // Cancelled or unavailable: fall back to copying
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Nothing more to try
+    }
+  };
+  return (
+    <div className="rounded-xl border-2 border-amber-300/50 bg-amber-400/10 px-3 py-2.5 text-center">
+      <div className="text-[11px] font-semibold text-amber-200/85">
+        Daily Garden{streak > 1 ? ` · 🔥 ${streak} days in a row` : ""}
+      </div>
+      <div className="mt-1 space-y-0.5 text-[22px] leading-tight tracking-[0.1em]" aria-label="Your Daily Garden flowers">
+        {dailyGridRows(record).map((row, i) => (
+          <div key={i}>{row}</div>
+        ))}
+      </div>
+      <div className="mt-1 text-[11px] text-white/50">🌸 3 stars · 🌼 2 · 🌱 1 · 🥀 stopped here</div>
+      <button
+        type="button"
+        onClick={share}
+        className="mt-2 w-full rounded-lg py-2 text-[13.5px] font-bold border border-amber-300/50 bg-amber-300/15 text-amber-50 active:scale-[0.98]"
+      >
+        {copied ? "Copied! Paste it anywhere" : "Share your garden"}
+      </button>
+    </div>
+  );
+}
+
+/** Today's Daily Garden: a dot until it's played, and the streak */
+export function TodaysGardenButton({ played, streak, onClick }: { played: boolean; streak: number; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="relative w-full rounded-xl border border-amber-300/50 bg-amber-400/10 px-3 py-2.5 text-left active:scale-[0.98] transition"
+    >
+      {!played && <span className="absolute right-3 top-3 h-2.5 w-2.5 rounded-full bg-amber-300 animate-pulse" aria-label="Not played today" />}
+      <span className="block text-[14px] font-bold text-amber-50">🌞 Today&apos;s garden</span>
+      <span className="block text-[12px] text-white/60">
+        {played ? "Played today. Replay it as practice" : "Same beds for everyone · Seasons 1 to 3"}
+        {streak > 0 ? ` · 🔥 ${streak} day${streak > 1 ? "s" : ""}` : ""}
+      </span>
+    </button>
+  );
+}
 
 /** Run summary: how far the run reached and the best record on this device */
 export function RunOverModal({
@@ -787,9 +863,15 @@ export function RunOverModal({
   onNewRun,
   onClose,
   askFeedback = false,
+  onPlayDaily,
+  dailyToday,
 }: {
   info: RunOverInfo | null;
   newRunLabel?: string;
+  /** Start today's Daily Garden (left out in practice) */
+  onPlayDaily?: () => void;
+  /** Whether today's Daily Garden was played, and the streak */
+  dailyToday?: { played: boolean; streak: number };
   rankLine?: string | null;
   onOpenLeaderboard?: () => void;
   /** Ask for feedback here (once ever, after a real Run) */
@@ -806,8 +888,9 @@ export function RunOverModal({
     track("feedback_prompt");
   }, [info, askFeedback]);
   if (!info) return null;
-  // One thing for the next Run to aim at, shown before the harvest
-  const goal = pickNextGoal(info.asc ?? 0);
+  // One thing for the next Run to aim at, shown before the harvest (a daily shows its grid instead)
+  const goal = info.daily ? null : pickNextGoal(info.asc ?? 0);
+  const dailyRec = info.daily?.record ?? null;
   const shortBy = Math.max(0, info.target - info.gardenScore);
   const why =
     info.reason === "MISSED_TARGET"
@@ -844,9 +927,15 @@ export function RunOverModal({
             transition={{ type: "spring", stiffness: 180, damping: 12, delay: 0.1 }}
             className="mx-auto h-12 w-12 object-contain"
           />
-          <div className="mt-1 text-[22px] font-display font-semibold text-amber-100">The garden rests</div>
+          <div className="mt-1 text-[22px] font-display font-semibold text-amber-100">
+            {info.reason === "DAILY_DONE" ? "Today's garden bloomed!" : info.daily ? "Today's garden rests" : "The garden rests"}
+          </div>
           <p className="text-[13px] text-white/70 leading-snug mt-1">{why}</p>
         </div>
+
+        {info.daily && (
+          <DailyResultCard dateKey={info.daily.dateKey} record={dailyRec} streak={info.daily.streak} />
+        )}
 
         {goal && (
           <motion.div
@@ -947,6 +1036,10 @@ export function RunOverModal({
             <span className="block text-[14px] font-bold text-lime-100">Tell us what you thought</span>
             <span className="block text-[12px] text-white/60">One minute, it really helps</span>
           </a>
+        )}
+
+        {onPlayDaily && !info.daily && dailyToday && (
+          <TodaysGardenButton played={dailyToday.played} streak={dailyToday.streak} onClick={onPlayDaily} />
         )}
 
         <div className="card-footer bg-[#1A271E] space-y-2">

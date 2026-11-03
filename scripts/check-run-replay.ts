@@ -34,6 +34,8 @@ import {
   RUN_PRUNE_COST,
   packCoords,
   parseRunLog,
+  dailyRunSeed,
+  RUN_DAILY_LAST_BED,
   replayRun,
   RUN_LOG_VERSION,
   RUN_MODIFIER,
@@ -1045,6 +1047,34 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
   check("v21: a Season 1 bed can't be skipped yet", r21.apply({ k: "k" }) === "skipping opens in Season 2");
   const r20 = createRunReplayer("gradual-skip", "KNIGHT", 20);
   check("v20: a Season 1 Small bed can still be skipped", r20.apply({ k: "k" }) === null);
+}
+
+// Daily Garden: today's seed, the Keeper, Ascension 0, and nothing after the Season 3 Boss
+{
+  const d = "2026-11-03";
+  const seed = dailyRunSeed(d);
+  check("daily log is accepted", Boolean(parseRunLog({ v: RUN_LOG_VERSION, seed, hero: "KNIGHT", d, a: [] })));
+  check("refused: daily with another seed", !parseRunLog({ v: RUN_LOG_VERSION, seed: "run-1", hero: "KNIGHT", d, a: [] }));
+  check("refused: daily with another companion", !parseRunLog({ v: RUN_LOG_VERSION, seed, hero: "MAGE", d, a: [] }));
+  check("refused: daily on Ascension", !parseRunLog({ v: RUN_LOG_VERSION, seed, hero: "KNIGHT", asc: 2, d, a: [] }));
+  check("refused: malformed daily date", !parseRunLog({ v: RUN_LOG_VERSION, seed: "daily-tomorrow", hero: "KNIGHT", d: "tomorrow", a: [] }));
+  // A bot that clears all three Seasons on some day's garden
+  let cleared: { log: RunActionLog; score: number } | null = null;
+  for (let day = 1; day <= 28 && !cleared; day++) {
+    const date = `2026-11-${String(day).padStart(2, "0")}`;
+    const bot = playBotRun(dailyRunSeed(date), "KNIGHT", RUN_DAILY_LAST_BED + 1);
+    const r = replayRun({ ...bot.log, d: date });
+    if (r.ok && r.gardenIndex > RUN_DAILY_LAST_BED) cleared = { log: { ...bot.log, d: date }, score: r.score };
+  }
+  check("a bot clears a whole Daily Garden", Boolean(cleared));
+  if (cleared) {
+    const daily = createRunReplayer(cleared.log.seed, "KNIGHT", cleared.log.v, 0, true);
+    for (const a of cleared.log.a) daily.apply(a);
+    check("refused: an action after the Daily Garden's last bed", daily.apply({ k: "r" }) === "the Daily Garden ends after Season 3");
+    const plain = createRunReplayer(cleared.log.seed, "KNIGHT", cleared.log.v);
+    for (const a of cleared.log.a) plain.apply(a);
+    check("the same garden as a normal Run goes on to the Shop", plain.apply({ k: "r" }) !== "the Daily Garden ends after Season 3");
+  }
 }
 
 console.log(failures ? `\n${failures} check(s) failed` : "\nAll replay checks passed");
