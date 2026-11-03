@@ -2,13 +2,14 @@
 
 import Badge from "@/components/Badge";
 import SupplyIcon from "@/components/SupplyIcon";
-import { badgeArt, bossArt, miscArt, relicArt, tileArt, toolArt, weatherArt } from "@/lib/art";
+import { badgeArt, bossArt, miscArt, packetArt, relicArt, tileArt, toolArt, weatherArt } from "@/lib/art";
 import { bossAdvice } from "@/lib/bossAdvice";
 import GardenerCard from "@/components/GardenerCard";
 import { applyGardenerGift, GARDENER_GIFTS, gardenerRelic } from "@/lib/runReplay";
 import { useBackClose } from "@/lib/backClose";
 import { BossBeaten, BossIntro, BOSS_LOOK } from "@/components/BossMoments";
 import TipCard from "@/components/TipCard";
+import { DoneButton } from "@/components/SheetBits";
 import { loadTipsOn, markTipSeen, takeCloser, saveTipsOn, SPIKE_TIP, takeNextTip, tipDueThisBed, toolReminderTip, type Tip } from "@/lib/tips";
 import { countRunStarted, runsStarted, TEACHING_RUNS } from "@/lib/playCount";
 import IntroSplash from "@/components/IntroSplash";
@@ -33,6 +34,7 @@ import {
   FloorScoreBreakdown,
   RelicCounters,
   ToolId,
+  PacketId,
   GardenUpgradeId,
   RelicId,
   RelicScoreContext,
@@ -159,6 +161,8 @@ import {
 import EntityIcon from "@/components/EntityIcon";
 import {
   applyGardenTool,
+  applySeedPacket,
+  SEED_PACKETS,
   applyRunShopPrune,
   applyRunShopPurchase,
   applyRunShopReroll,
@@ -393,6 +397,10 @@ export default function OneStrokeTacticianPage() {
   /** Garden tools held (rules v13+), and the one waiting for a tile tap */
   const [runTools, setRunTools] = useState<ToolId[]>([]);
   const [toolArmed, setToolArmed] = useState<number | null>(null);
+  // Rules v22+: Seed packets held, the one armed for the next line, and the one being asked about
+  const [runPackets, setRunPackets] = useState<PacketId[]>([]);
+  const [armedPacket, setArmedPacket] = useState<PacketId | null>(null);
+  const [packetAsk, setPacketAsk] = useState<number | null>(null);
   /** Rules v17+: a Relic Tag's free Rare relic waits for the next Shop */
   const [freeRelicNext, setFreeRelicNext] = useState(false);
   const [skipOpen, setSkipOpen] = useState(false);
@@ -873,8 +881,9 @@ export default function OneStrokeTacticianPage() {
             relicSets: runRulesUseRelicSets(runLogRef.current?.v ?? RUN_LOG_VERSION),
             bossRuleId: runGarden?.bossRuleId,
             weather: runGarden?.weather,
+            packet: armedPacket ?? undefined,
           },
-    [isInteractiveTutorial, lesson, mode, relicCounters, runGarden?.strokesLeft, runGarden?.bossRuleId, runGarden?.weather]
+    [isInteractiveTutorial, lesson, mode, relicCounters, runGarden?.strokesLeft, runGarden?.bossRuleId, runGarden?.weather, armedPacket]
   );
 
   // Live Ghost Preview deterministic calculation with Hero Class & Active Relics
@@ -1482,6 +1491,8 @@ export default function OneStrokeTacticianPage() {
       setRunBag(bag);
       setRunTools([]);
       setToolArmed(null);
+      setRunPackets([]);
+      setArmedPacket(null);
       setFreeRelicNext(false);
       setSkipOpen(false);
       setGardenUpgrades([]);
@@ -1791,8 +1802,10 @@ export default function OneStrokeTacticianPage() {
         counters: relicCounters,
         tools: runTools,
         bag: runBag,
+        packets: runPackets,
       });
       if (!bought) return;
+      if (bought.packets) setRunPackets(bought.packets);
       if (bought.bag) setRunBag(bought.bag);
       if (offer.kind === "FERT" && offer.fert && gardenUpgrades.includes("OBSERVATORY") && bought.counters) {
         // Observatory (v18+): each Fertilizer gives a second level, as in the replay
@@ -2247,9 +2260,11 @@ export default function OneStrokeTacticianPage() {
       !!strokeCtx.relicSets,
       garden.bossRuleId,
       Boolean(garden.bossV20),
-      garden.weather
+      garden.weather,
+      armedPacket
     );
     setRelicCounters(countersAfter);
+    setArmedPacket(null);
     logRunAction({ k: "s", p: packCoords(path) });
     if (garden.bossRuleId === "TOLL" && floorStartHero.gold > afterStroke.gold) {
       handleNotice(`🎟 The Toll took ${floorStartHero.gold - afterStroke.gold} Seeds for that line.`);
@@ -2803,6 +2818,44 @@ export default function OneStrokeTacticianPage() {
     checkRunSafeLine(skip.next.floor.grid, skip.next.hero, skip.next.state, floorHistory);
   };
 
+  /** Seed packets (rules v22+): use held packet `i` (now, or armed for the next line) */
+  const handleUsePacket = (i: number) => {
+    setPacketAsk(null);
+    if (!runGarden || phase !== "PLANNING") return;
+    const packet = runPackets[i];
+    if (!packet) return;
+    const used = applySeedPacket({
+      packet,
+      runSeed: dungeon.seedKey,
+      grid: currentFloor.grid,
+      garden: runGarden,
+      hero: floorStartHero,
+      bag: runBag,
+      armed: armedPacket,
+    });
+    if (typeof used === "string") {
+      handleNotice(`${SEED_PACKETS[packet].name} can't be used now: ${used}.`);
+      return;
+    }
+    logRunAction({ k: "c", i });
+    setDrawnPath([]);
+    setRunGrid(runGarden.gardenIndex, used.grid);
+    setRunGarden(used.garden);
+    setFloorStartHero(used.hero);
+    setHero(used.hero);
+    setRunBag(used.bag);
+    setArmedPacket(used.armed);
+    setRunPackets((prev) => [...prev.slice(0, i), ...prev.slice(i + 1)]);
+    soundEngine.playSetComplete();
+    track("packet_used", { packet, bed: runGarden.gardenIndex });
+    handleNotice(
+      SEED_PACKETS[packet].nextLine
+        ? `${SEED_PACKETS[packet].name} is ready: ${SEED_PACKETS[packet].text}`
+        : `${SEED_PACKETS[packet].name}: ${SEED_PACKETS[packet].text}`
+    );
+    if (packet === "CLEAN_SWEEP") checkRunSafeLine(used.grid, used.hero, used.garden, floorHistory);
+  };
+
   /** Garden tools (rules v13+): the armed tool goes onto the tapped tile, and stays on it in the bag */
   const handleUseTool = (coord: GridCoord) => {
     if (toolArmed === null || !runGarden || phase !== "PLANNING") return;
@@ -2910,6 +2963,8 @@ export default function OneStrokeTacticianPage() {
     setRunBag(r.bag);
     setRunTools(r.tools);
     setToolArmed(null);
+    setRunPackets(r.packets ?? []);
+    setArmedPacket(r.armedPacket ?? null);
     setFreeRelicNext(r.freeRelicNext);
     setSkipOpen(false);
     setGardenUpgrades(r.gardenUpgrades);
@@ -4763,6 +4818,59 @@ phase === "RESOLVING"
             </div>
           )}
 
+          {/* Seed packets (rules v22+): tap one to use it; a next-line packet waits, marked */}
+          {mode === "RUN" && !lesson && !isInteractiveTutorial && (runPackets.length > 0 || armedPacket) && phase === "PLANNING" && (
+            <div className="ui-zoom w-full max-w-game flex flex-wrap items-center gap-1.5 px-1">
+              <span className="text-[11px] font-semibold text-white/45">Packets</span>
+              {armedPacket && (
+                <span className="h-8 pl-1 pr-2.5 rounded-lg border border-lime-300/60 bg-lime-300/15 text-[12px] font-semibold text-lime-100 inline-flex items-center gap-1">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={packetArt(armedPacket)} alt="" aria-hidden="true" draggable={false} className="h-6 w-6 object-contain" />
+                  ✓ {SEED_PACKETS[armedPacket].name} on your next line
+                </span>
+              )}
+              {runPackets.map((p, i) => (
+                <button
+                  key={`${p}-${i}`}
+                  type="button"
+                  disabled={drawnPath.length > 1}
+                  onClick={() => setPacketAsk(i)}
+                  className="h-8 pl-1 pr-2.5 rounded-lg border border-fuchsia-300/40 bg-fuchsia-400/10 text-[12px] font-semibold text-fuchsia-50 active:scale-95 disabled:opacity-40 inline-flex items-center gap-1"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={packetArt(p)} alt="" aria-hidden="true" draggable={false} className="h-6 w-6 object-contain" />
+                  {SEED_PACKETS[p].name}
+                </button>
+              ))}
+            </div>
+          )}
+          {packetAsk !== null && runPackets[packetAsk] && (
+            <div className="ui-zoom fixed inset-0 z-[60] bg-black/70 flex items-center justify-center p-6" onClick={() => setPacketAsk(null)}>
+              <div
+                role="dialog"
+                aria-label={SEED_PACKETS[runPackets[packetAsk]].name}
+                onClick={(e) => e.stopPropagation()}
+                className="w-full max-w-[320px] rounded-2xl border border-fuchsia-300/30 bg-[#1B281F] p-4 text-center text-white space-y-3"
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={packetArt(runPackets[packetAsk])} alt="" aria-hidden="true" draggable={false} className="mx-auto h-20 w-20 object-contain" />
+                <div className="text-[18px] font-display font-semibold">{SEED_PACKETS[runPackets[packetAsk]].name}</div>
+                <p className="text-[14px] leading-snug text-white/80">{artify(SEED_PACKETS[runPackets[packetAsk]].text)}</p>
+                <p className="text-[11.5px] text-white/50">
+                  {SEED_PACKETS[runPackets[packetAsk]].nextLine ? "It waits for your next line." : "It works right away."} One use.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => handleUsePacket(packetAsk)}
+                  className="w-full h-11 rounded-xl bg-fuchsia-300 text-slate-950 text-[15px] font-bold active:scale-[0.98]"
+                >
+                  Use it
+                </button>
+                <DoneButton onClick={() => setPacketAsk(null)} label="Keep it" />
+              </div>
+            </div>
+          )}
+
           {/* Spacer: spare height on tall phones is shared with the one under the
               top card, so the buttons stay at the bottom in thumb reach */}
           <div aria-hidden="true" data-area="spacer" className="grow basis-0 !shrink min-h-0 [@media(max-height:700px)]:min-h-[12px]" />
@@ -4927,6 +5035,7 @@ phase === "RESOLVING"
         relicSets={mode === "RUN" && runRulesUseRelicSets(runLogRef.current?.v ?? RUN_LOG_VERSION)}
         relicCounters={relicCounters}
         toolsHeld={runTools.length}
+        packetsHeld={runPackets.length}
         onSell={mode === "RUN" ? handleSellRelic : undefined}
         bag={canPrune ? runBag : undefined}
         pruned={shopPruned}

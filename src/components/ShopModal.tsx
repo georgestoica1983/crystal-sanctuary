@@ -32,7 +32,7 @@ import {
 } from "@/lib/engine";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import PruneSheet from "@/components/PruneCard";
-import { statArt, themeArt, tileArt } from "@/lib/art";
+import { packetArt, statArt, themeArt, tileArt } from "@/lib/art";
 import SupplyIcon from "@/components/SupplyIcon";
 import {
   getRelicTags,
@@ -43,7 +43,7 @@ import {
   setProgressFor,
 } from "@/lib/relicTags";
 import RelicIcon from "@/components/RelicIcon";
-import { GARDEN_UPGRADES, RUN_PRUNE_COST } from "@/lib/runReplay";
+import { GARDEN_UPGRADES, MAX_PACKETS, RUN_PRUNE_COST, SEED_PACKETS } from "@/lib/runReplay";
 import { artify } from "@/components/ArtText";
 
 /** Small build-theme chip (🌺 Thorns) */
@@ -86,6 +86,8 @@ interface ShopModalProps {
   relicCounters?: RelicCounters;
   /** Garden tools held (rules v13+): a full pair blocks buying another */
   toolsHeld?: number;
+  /** Seed packets held (rules v22+): two at most */
+  packetsHeld?: number;
   /** Selling relics (Run); hidden when omitted */
   onSell?: (relicId: RelicId) => void;
   /** Pruning Shears (Run, rules v9+): the Tile Bag; hidden when omitted */
@@ -146,6 +148,7 @@ const TILE_NAMES: Record<string, string> = {
 /** What an offer does, in a few words for its tile (the panel below has the full text) */
 function glanceOf(offer: ShopOffer, info: { tag: string }): string {
   if (offer.kind === "TOOL" && offer.tool) return `Tool: ${GARDEN_TOOLS[offer.tool].tag}`;
+  if (offer.kind === "PACKET" && offer.packet) return SEED_PACKETS[offer.packet].short;
   if (offer.kind === "TILE" && offer.tile?.ed) return `${EDITIONS[offer.tile.ed].tag} tile`;
   if (offer.kind === "FERT" && offer.fert) {
     const f = FERTILIZER[offer.fert];
@@ -156,6 +159,18 @@ function glanceOf(offer: ShopOffer, info: { tag: string }): string {
 }
 
 function describeOffer(offer: ShopOffer, isSanctuary: boolean, counters?: RelicCounters) {
+  if (offer.kind === "PACKET" && offer.packet) {
+    const p = SEED_PACKETS[offer.packet];
+    return {
+      icon: "🌱",
+      name: p.name,
+      tag: p.short,
+      description: `${p.text} ${p.nextLine ? "It waits for your next line." : "It works the moment you use it."} One use; hold up to ${MAX_PACKETS}.`,
+      accent: "#F0ABFC",
+      kindLabel: "Seed packet",
+      kindClass: "bg-fuchsia-400/15 text-fuchsia-200",
+    };
+  }
   if (offer.kind === "UPGRADE" && offer.upgrade) {
     const u = GARDEN_UPGRADES[offer.upgrade];
     return {
@@ -329,6 +344,7 @@ export default function ShopModal({
   isSanctuary,
   relicCounters,
   toolsHeld = 0,
+  packetsHeld = 0,
   onSell,
   bag,
   pruned = false,
@@ -389,11 +405,15 @@ export default function ShopModal({
     const base = scorePreview?.__base ?? 0;
     return base > 0 && gain > 0 ? Math.max(1, Math.round((gain / base) * 100)) : 0;
   };
-  const blockedOf = (o: ShopOffer) => (o.kind === "RELIC" && slotsFull) || (o.kind === "TOOL" && toolsHeld >= MAX_TOOLS);
+  const blockedOf = (o: ShopOffer) =>
+    (o.kind === "RELIC" && slotsFull) || (o.kind === "TOOL" && toolsHeld >= MAX_TOOLS) || (o.kind === "PACKET" && packetsHeld >= MAX_PACKETS);
 
   const offerIcon = (offer: ShopOffer, size: number) =>
     offer.relicId ? (
       <RelicIcon id={offer.relicId} size={size} />
+    ) : offer.kind === "PACKET" && offer.packet ? (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={packetArt(offer.packet)} alt="" aria-hidden="true" draggable={false} style={{ width: size, height: size }} className="object-contain" />
     ) : offer.kind === "UPGRADE" && offer.upgrade ? (
       <SupplyIcon kind="upgrade" id={offer.upgrade} size={size} />
     ) : offer.kind === "TOOL" && offer.tool ? (
@@ -548,6 +568,8 @@ export default function ShopModal({
             <div className="text-[12.5px] font-semibold text-amber-200">
               {offer.kind === "TOOL"
                 ? `You already hold ${MAX_TOOLS} tools. Use one on a tile first.`
+                : offer.kind === "PACKET"
+                ? `You already hold ${MAX_PACKETS} Seed packets. Use one first.`
                 : `Slots full (${MAX_COMMON_RELICS}/${MAX_COMMON_RELICS}). ${onSell ? "Tap one of your relics below to sell it." : "No room."}`}
             </div>
           )}
@@ -623,7 +645,10 @@ export default function ShopModal({
                 {/* Top row, above the art: what it adds to your best line (or New) on the left, the price on the right */}
                 {!sold && gainPct(scorePreview?.[offer.id] ?? 0) > 0 ? (
                   <span className="absolute top-1 left-1 rounded-md bg-emerald-400/20 px-1 text-[10px] leading-[15px] font-mono font-black text-emerald-200">
-                    +{gainPct(scorePreview?.[offer.id] ?? 0)}%
+                    {/* Short enough to sit beside the price: +45%, or ×2.9 from double up */}
+                    {gainPct(scorePreview?.[offer.id] ?? 0) >= 100
+                      ? `×${(1 + gainPct(scorePreview?.[offer.id] ?? 0) / 100).toFixed(1)}`
+                      : `+${gainPct(scorePreview?.[offer.id] ?? 0)}%`}
                   </span>
                 ) : (
                   newKinds?.includes(offer.kind) &&

@@ -111,5 +111,7 @@ export type TileAfterId =
   | "acorn-gathered" | "berry-eaten" | "gloves-used" | "shears-used"
   | "spike-crossed" | "exit-open" | "thorn-cut" | "thorn-wilted";
 export const tileAfterArt = (id: TileAfterId) => icon(`tile-${id}`);
+/** Seed packets (rules v22+), e.g. LONG_ROOT → packet-long-root */
+export const packetArt = (id: string) => icon(`packet-${kebab(id)}`);
 /** The Daily grid's flowers: 3, 2 or 1 star(s), or the bed where the try stopped */
 export const dailyArt = (cell: 3 | 2 | 1 | "stopped") => icon(cell === "stopped" ? "daily-stopped" : `daily-bloom-${cell}`);

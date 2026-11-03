@@ -61,6 +61,7 @@ export type TrackEvent =
   | "goal_card_seen"
   | "goal_card_off"
   | "tool_used"
+  | "packet_used"
   | "bed_skipped"
   | "run_over"
   | "run_paused"

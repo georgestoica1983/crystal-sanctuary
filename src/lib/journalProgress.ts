@@ -49,9 +49,9 @@ export function journalFound(): Set<string> {
   return found;
 }
 
-/** How much of the Journal is filled, 0–100 */
-export function journalPercent(): number {
-  const ids = Object.values(journalEntryIds()).flat();
+/** How much of the Journal is filled, 0–100 (optionally leaving some entries out) */
+export function journalPercent(leaveOut: readonly string[] = []): number {
+  const ids = Object.values(journalEntryIds()).flat().filter((id) => !leaveOut.includes(id));
   const found = journalFound();
   const n = ids.filter((id) => found.has(id)).length;
   return ids.length ? Math.floor((n / ids.length) * 100) : 0;

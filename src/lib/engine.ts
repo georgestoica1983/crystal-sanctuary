@@ -42,7 +42,7 @@ import {
   SHARE_TILE_EMOJI,
 } from "@/lib/sanctuaryCopy";
 import { completedRelicSets, RELIC_SET_X, RELIC_TAG_INFO } from "@/lib/relicTags";
-import { relicArt, relicHasArt, themeArt, tileArt } from "@/lib/art";
+import { icon, relicArt, relicHasArt, themeArt, tileArt } from "@/lib/art";
 
 export const INITIAL_HERO_STATS: HeroStats = {
   hp: 10,
@@ -787,6 +787,94 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     cost: 4,
     category: "MULT",
   },
+  // Rules v22: relic families. Each family has a builder and a payoff, so a
+  // Run can be planned around one tile and snowball
+  ACORN_POUCH: {
+    id: "ACORN_POUCH",
+    name: "Acorn Pouch",
+    icon: "🌰",
+    shortTag: "+6 Value per 🌰 on your line",
+    description: "Every Acorn on your line adds +6 Value.",
+    accentColor: "#D9A066",
+    cost: 5,
+    category: "CHIPS",
+  },
+  TWIN_ACORNS: {
+    id: "TWIN_ACORNS",
+    name: "Twin Acorns",
+    icon: "🌰",
+    shortTag: "🌰 Acorns score their number twice",
+    description: "Every Acorn on your line counts its number twice.",
+    accentColor: "#D9A066",
+    cost: 6,
+    rarity: "UNCOMMON",
+    category: "CHIPS",
+  },
+  ACORN_HOARD: {
+    id: "ACORN_HOARD",
+    name: "Acorn Hoard",
+    icon: "🌰",
+    shortTag: "×2 if your line takes 5+ 🌰",
+    description: "A line that takes 5 or more Acorns scores ×2.",
+    accentColor: "#D9A066",
+    cost: 8,
+    rarity: "RARE",
+    category: "XMULT",
+  },
+  BERRY_JAM: {
+    id: "BERRY_JAM",
+    name: "Berry Jam",
+    icon: "🍓",
+    shortTag: "+8 Value per ❤️ your line heals",
+    description: "Every ❤️ Life your line heals adds +8 Value.",
+    accentColor: "#A855F7",
+    cost: 6,
+    rarity: "UNCOMMON",
+    category: "CHIPS",
+  },
+  BRAMBLE_WINE: {
+    id: "BRAMBLE_WINE",
+    name: "Bramble Wine",
+    icon: "🍷",
+    shortTag: "×1.5 if your line heals",
+    description: "A line that heals any ❤️ Life scores ×1.5.",
+    accentColor: "#BE185D",
+    cost: 8,
+    rarity: "RARE",
+    category: "XMULT",
+  },
+  IRON_MOSS: {
+    id: "IRON_MOSS",
+    name: "Iron Moss",
+    icon: "🪨",
+    shortTag: "+12 Value per Spike crossed ↗",
+    description: "Every Spike your line crosses diagonally (taking no Life) adds +12 Value.",
+    accentColor: "#94A3B8",
+    cost: 5,
+    category: "CHIPS",
+  },
+  LODESTONE: {
+    id: "LODESTONE",
+    name: "Lodestone",
+    icon: "🧲",
+    shortTag: "×1.5 if you cross 2+ Spikes ↗",
+    description: "A line that crosses 2 or more Spikes diagonally scores ×1.5.",
+    accentColor: "#64748B",
+    cost: 7,
+    rarity: "UNCOMMON",
+    category: "XMULT",
+  },
+  GARDEN_PATH_MAP: {
+    id: "GARDEN_PATH_MAP",
+    name: "Garden Path Map",
+    icon: "🗺️",
+    shortTag: "+1 Length per tile past 12",
+    description: "Every tile of your line after the 12th adds +1 Length.",
+    accentColor: "#C4B5FD",
+    cost: 6,
+    rarity: "UNCOMMON",
+    category: "MULT",
+  },
 };
 
 export const RELIC_LIST: RelicDefinition[] = Object.values(RELIC_REGISTRY);
@@ -811,6 +899,18 @@ export const V20_RELICS: RelicId[] = [
   "EVEN_ROWS",
 ];
 
+/** Relics that only exist from rules v22: the families (older Runs never see them anywhere) */
+export const V22_RELICS: RelicId[] = [
+  "ACORN_POUCH",
+  "TWIN_ACORNS",
+  "ACORN_HOARD",
+  "BERRY_JAM",
+  "BRAMBLE_WINE",
+  "IRON_MOSS",
+  "LODESTONE",
+  "GARDEN_PATH_MAP",
+];
+
 /**
  * Deterministically selects 3 distinct Tactical Relics for the between-floor draft modal
  */
@@ -823,7 +923,8 @@ export function getRelicDraftChoices(
     hashStringToSeed(`relic-draft-${seedKey}-f${floorNumber}-${ownedRelics.length}`)
   );
   const commons = RELIC_LIST.filter(
-    (r) => r.rarity !== "LEGENDARY" && !V16_RELICS.includes(r.id) && !V20_RELICS.includes(r.id)
+    (r) =>
+      r.rarity !== "LEGENDARY" && !V16_RELICS.includes(r.id) && !V20_RELICS.includes(r.id) && !V22_RELICS.includes(r.id)
   );
   const unowned = commons.filter((r) => !ownedRelics.includes(r.id));
   const owned = commons.filter((r) => ownedRelics.includes(r.id));
@@ -1034,7 +1135,9 @@ export function generateShopOffers(
   /** Rules v20+: the exact and careful line relics join the pool */
   v20Relics = false,
   /** Rules v20+, Season 4 on: at least one of the relics on offer is Rare */
-  rareGuarantee = false
+  rareGuarantee = false,
+  /** Rules v22+: the relic families join the pool */
+  v22Relics = false
 ): ShopOffer[] {
   const rng = mulberry32(
     hashStringToSeed(`shop-${seedKey}-f${floorNumber}-r${rerollIndex}`)
@@ -1055,7 +1158,8 @@ export function generateShopOffers(
       r.rarity !== "LEGENDARY" &&
       !ownedRelics.includes(r.id) &&
       (v16Relics || !V16_RELICS.includes(r.id)) &&
-      (v20Relics || !V20_RELICS.includes(r.id))
+      (v20Relics || !V20_RELICS.includes(r.id)) &&
+      (v22Relics || !V22_RELICS.includes(r.id))
   )
     .map((r) => ({
       r,
@@ -2350,6 +2454,18 @@ export function calculateFloorScoreBreakdown(
   addX("SHORT_CUT", 5, pathLength <= 8);
   addX("STRAIGHT_FURROW", 2, diagonalSteps === 0);
   addX("THORNLESS_PATH", 3, countOf("ENEMY") === 0);
+  // Rules v22 relic families
+  const acornsTaken = relicCountOf("GOLD");
+  const healed = visited.reduce((n, s) => n + Math.max(0, s.hpAfter - s.hpBefore), 0);
+  const spikesCrossed = visited.filter((s) => s.trapDodgedDiagonally).length;
+  addChips("ACORN_POUCH", acornsTaken * 6);
+  addChips("TWIN_ACORNS", visited.filter((s) => s.cell.type === "GOLD").reduce((n, s) => n + tileNumber(s), 0));
+  addX("ACORN_HOARD", 2, acornsTaken >= 5);
+  addChips("BERRY_JAM", healed * 8);
+  addX("BRAMBLE_WINE", 1.5, healed > 0);
+  addChips("IRON_MOSS", spikesCrossed * 12);
+  addX("LODESTONE", 1.5, spikesCrossed >= 2);
+  addMult("GARDEN_PATH_MAP", Math.max(0, pathLength - 12));
   // ×Length
   addX("STARLIGHT_COMPASS", 1.5, pathLength >= 12);
   addX("SUN_PRISM", 2, sim.boardSunbeams >= 2 && sunbeamsOnLine >= sim.boardSunbeams);
@@ -2382,6 +2498,17 @@ export function calculateFloorScoreBreakdown(
     xMultSources.push({ label: "The Long Road", value: 0.5 });
   }
   const narrowCut = ctx.bossRuleId === "NARROW_PATH" ? diagonalSteps : 0;
+  // Rules v22 Seed packets armed for this line
+  if (ctx.packet === "LONG_ROOT") {
+    const base = Math.max(0, pathLength - narrowCut);
+    if (base > 0) multSources.push({ label: "Long Root packet", value: base, art: icon("packet-long-root") });
+  } else if (ctx.packet === "ACORN_ECHO") {
+    const acorns = visited.filter((s) => s.cell.type === "GOLD").reduce((n, s) => n + tileNumber(s), 0);
+    if (acorns > 0) chipSources.push({ label: "Acorn Echo packet", value: acorns * 2, art: icon("packet-acorn-echo") });
+  } else if (ctx.packet === "CUTTING") {
+    const best = visited.reduce((m, s) => Math.max(m, tileNumber(s)), 0);
+    if (best > 0) chipSources.push({ label: "Cutting packet", value: best, art: icon("packet-cutting") });
+  }
   const chips =
     gemChips + tileChips + chipSources.reduce((sum, c) => sum + c.value, 0);
   const pathMult = Math.max(0, pathLength - narrowCut);

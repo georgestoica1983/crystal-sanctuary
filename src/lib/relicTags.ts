@@ -79,6 +79,14 @@ export const RELIC_TAGS: Record<RelicId, RelicTag[]> = {
   LIGHT_STEP: ["CARE", "CAREFUL"],
   THORNLESS_PATH: ["CAREFUL"],
   EVEN_ROWS: ["ANY"],
+  ACORN_POUCH: ["ACORNS"],
+  TWIN_ACORNS: ["ACORNS"],
+  ACORN_HOARD: ["ACORNS"],
+  BERRY_JAM: ["CARE"],
+  BRAMBLE_WINE: ["CARE"],
+  IRON_MOSS: ["CAREFUL"],
+  LODESTONE: ["CAREFUL"],
+  GARDEN_PATH_MAP: ["LONG"],
 };
 
 export const getRelicTags = (id: RelicId): RelicTag[] => RELIC_TAGS[id] ?? ["ANY"];

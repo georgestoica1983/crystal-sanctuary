@@ -111,7 +111,16 @@ export type RelicId =
   | "STRAIGHT_FURROW"
   | "LIGHT_STEP"
   | "THORNLESS_PATH"
-  | "EVEN_ROWS";
+  | "EVEN_ROWS"
+  // Rules v22+: relic families that build on each other (Acorns, Berries, Spikes, long lines)
+  | "ACORN_POUCH"
+  | "TWIN_ACORNS"
+  | "ACORN_HOARD"
+  | "BERRY_JAM"
+  | "BRAMBLE_WINE"
+  | "IRON_MOSS"
+  | "LODESTONE"
+  | "GARDEN_PATH_MAP";
 
 /** COMMON / UNCOMMON / RARE weight how often a relic shows up in the Shop */
 export type RelicRarity = "COMMON" | "UNCOMMON" | "RARE" | "LEGENDARY";
@@ -136,7 +145,20 @@ export interface RelicScoreContext {
   bossRuleId?: BossRuleId;
   /** Rules v20+: the bed's weather (Golden Hour doubles safe lines) */
   weather?: RunWeather;
+  /** Rules v22+: a Seed packet armed for this line (Long Root, Acorn Echo, Cutting) */
+  packet?: PacketId;
 }
+
+/** Rules v22+: Seed packets, one-use items (some act at once, some on the next line) */
+export type PacketId =
+  | "LONG_ROOT"
+  | "ROSE_CHARM"
+  | "ACORN_ECHO"
+  | "CUTTING"
+  | "RAIN_DANCE"
+  | "GOLDEN_TOUCH"
+  | "SECOND_WIND"
+  | "CLEAN_SWEEP";
 
 /** Rules v20+: the Wandering Gardener's gifts (Seasons 4 and 6) */
 export type GardenerGiftId = "RARE_RELIC" | "GOLDEN_TILES" | "MAX_LIFE" | "SEEDS";
@@ -191,7 +213,9 @@ export type ShopStatId = "MAX_MAGIC" | "START_DEW";
 
 export interface ShopOffer {
   id: string;
-  kind: "RELIC" | "STAT" | "FERT" | "TOOL" | "TILE" | "UPGRADE";
+  kind: "RELIC" | "STAT" | "FERT" | "TOOL" | "TILE" | "UPGRADE" | "PACKET";
+  /** Seed packet (rules v22+): a one-use item, held two at a time */
+  packet?: PacketId;
   /** Garden upgrade (rules v18+): lasts the whole Run */
   upgrade?: GardenUpgradeId;
   /** Special tile for sale (rules v14+): added to the Tile Bag */

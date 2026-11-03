@@ -21,6 +21,7 @@ import {
   RELIC_REGISTRY,
   searchBestFloorLine,
   simulatePath,
+  V22_RELICS,
 } from "@/lib/engine";
 import {
   getRunBloomResult,
@@ -51,6 +52,8 @@ import {
   scoreRunStroke,
   RunActionLog,
   RunLogAction,
+  applySeedPacket,
+  SEED_PACKETS,
 } from "@/lib/runReplay";
 import { verifyRunSubmission } from "@/lib/server/runLeaderboard";
 import { completedRelicSets, RELIC_SET_X } from "@/lib/relicTags";
@@ -72,7 +75,7 @@ function check(label: string, ok: boolean, detail = "") {
  * With `chaseSets` it first buys a relic that shares a tag with its own.
  * Returns its log and the score it expects from the searched lines' scores.
  */
-function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0, chaseSets = false, v = RUN_LOG_VERSION, fertFirst = false) {
+function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0, chaseSets = false, v = RUN_LOG_VERSION, fertFirst = false, usePackets = false) {
   const run = createRunReplayer(seed, hero, v, asc);
   const log: RunActionLog = asc ? { v, seed, hero, asc, a: [] } : { v, seed, hero, a: [] };
   let expected = 0;
@@ -86,6 +89,16 @@ function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0
     if (s.phase === "SHOP") {
       if (s.gardensBloomed >= maxGardens) break;
       if (!chaseSets && s.shop.rerolls === 0 && s.shop.stats.gold >= 20) act({ k: "r" });
+      // The packet bot buys the Seed packet first
+      if (usePackets) {
+        const packet = run.state.shop.offers.find(
+          (o) => o.kind === "PACKET" && !run.state.shop.soldIds.includes(o.id) && run.state.shop.stats.gold >= o.cost && run.state.packets.length < 2
+        );
+        if (packet) {
+          act({ k: "b", o: packet.id });
+          continue;
+        }
+      }
       // Prune a Spike (or the weakest Thorn) when Seeds are plentiful
       if (!run.state.shop.pruned && run.state.shop.stats.gold >= 6 && run.state.bag.length > RUN_BAG_MIN_SIZE) {
         const bag = run.state.bag;
@@ -138,12 +151,24 @@ function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0
       act({ k: "g", i: 0 });
       continue;
     }
+    // Seed packets (v22): use a held one before the line, if it can be used now
+    if (usePackets && s.packets.length > 0) {
+      let usedOne = false;
+      for (let i = 0; i < s.packets.length && !usedOne; i++) {
+        if (run.apply({ k: "c", i }) === null) {
+          log.a.push({ k: "c", i });
+          usedOne = true;
+        }
+      }
+      if (usedOne) continue;
+    }
     const best = searchBestFloorLine(s.grid, s.startHero, RUN_MODIFIER, s.classId, s.relics, 20000, {
       counters: s.counters,
       strokesLeft: s.garden.strokesLeft,
       relicSets: true,
       bossRuleId: s.garden.bossRuleId,
       weather: s.garden.weather,
+      packet: s.armedPacket ?? undefined,
     });
     if (best && best.score > 0) {
       expected += best.score;
@@ -1047,6 +1072,85 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
   check("v21: a Season 1 bed can't be skipped yet", r21.apply({ k: "k" }) === "skipping opens in Season 2");
   const r20 = createRunReplayer("gradual-skip", "KNIGHT", 20);
   check("v20: a Season 1 Small bed can still be skipped", r20.apply({ k: "k" }) === null);
+}
+
+// Rules v22: relic families and Seed packets
+{
+  // Older Shops never offer the families; v22 Shops do
+  let seenOld = 0;
+  let seenNew = 0;
+  for (let f = 1; f <= 60; f++) {
+    const old = generateShopOffers(`fam-${f}`, f, 0, [], 0, null, null, true, true, true, false, false);
+    const neu = generateShopOffers(`fam-${f}`, f, 0, [], 0, null, null, true, true, true, false, true);
+    seenOld += old.filter((o) => o.relicId && V22_RELICS.includes(o.relicId)).length;
+    seenNew += neu.filter((o) => o.relicId && V22_RELICS.includes(o.relicId)).length;
+  }
+  check(`families only in v22 Shops (v21: ${seenOld}, v22: ${seenNew} in 60 Shops)`, seenOld === 0 && seenNew > 0);
+
+  // Each family relic adds what it says on a real line
+  const r = createRunReplayer("families-score", "KNIGHT", 22);
+  const s = r.state;
+  const line = searchBestFloorLine(s.grid, s.startHero, RUN_MODIFIER, s.classId, [], 20000, {});
+  if (line) {
+    const sim = line.sim;
+    const len = line.path.length;
+    const steps = sim.steps.slice(1);
+    const acorns = steps.filter((x) => x.cell.type === "GOLD");
+    const without = calculateFloorScoreBreakdown(sim, s.startHero, len, [], {});
+    const pouch = calculateFloorScoreBreakdown(sim, s.startHero, len, ["ACORN_POUCH"], {});
+    const twin = calculateFloorScoreBreakdown(sim, s.startHero, len, ["TWIN_ACORNS"], {});
+    const map = calculateFloorScoreBreakdown(sim, s.startHero, len, ["GARDEN_PATH_MAP"], {});
+    const acornValue = acorns.reduce((n, x) => n + Math.max(0, x.cell.value), 0);
+    check(`Acorn Pouch: +6 Value per Acorn (${acorns.length} on the line)`, pouch.chips - without.chips === acorns.length * 6);
+    check(`Twin Acorns: Acorns count their number again (+${acornValue})`, twin.chips - without.chips === acornValue);
+    check(`Garden Path Map: +1 Length per tile past 12 (Length ${len})`, map.mult - without.mult === Math.max(0, len - 12));
+    const hoard = calculateFloorScoreBreakdown(sim, s.startHero, len, ["ACORN_HOARD"], {});
+    check(`Acorn Hoard: ×2 only with 5+ Acorns (${acorns.length})`, hoard.xMult === (acorns.length >= 5 ? 2 : 1));
+    // Next-line Seed packets change the score as they say
+    const longRoot = scoreRunStroke(sim, s.startHero, line.path, [], {}, 4, true, undefined, false, undefined, "LONG_ROOT").breakdown;
+    check(`Long Root packet: Length counts double (${without.mult} → ${longRoot.mult})`, longRoot.mult === without.mult + without.pathMult);
+    const echo = scoreRunStroke(sim, s.startHero, line.path, [], {}, 4, true, undefined, false, undefined, "ACORN_ECHO").breakdown;
+    check(`Acorn Echo packet: Acorns count 3 times (+${acornValue * 2})`, echo.chips - without.chips === acornValue * 2);
+  } else {
+    check("families: a scoring line exists", false);
+  }
+
+  // Immediate Seed packets do exactly their job
+  const base = { runSeed: "packets", grid: s.grid, garden: s.garden, hero: s.startHero, bag: s.bag, armed: null };
+  const rose = applySeedPacket({ ...base, packet: "ROSE_CHARM" });
+  check("Rose Charm: +3 Shears", typeof rose !== "string" && rose.hero.weapon === s.startHero.weapon + 3);
+  const hurt = { ...s.startHero, hp: s.startHero.maxHp - 7 };
+  const rain = applySeedPacket({ ...base, hero: hurt, packet: "RAIN_DANCE" });
+  check("Rain Dance: +5 Life", typeof rain !== "string" && rain.hero.hp === hurt.hp + 5);
+  check("Rain Dance can't be used at full Life", typeof applySeedPacket({ ...base, packet: "RAIN_DANCE" }) === "string");
+  const wind = applySeedPacket({ ...base, packet: "SECOND_WIND" });
+  check("Second Wind: +1 line", typeof wind !== "string" && wind.garden.strokesLeft === s.garden.strokesLeft + 1);
+  const gold = applySeedPacket({ ...base, packet: "GOLDEN_TOUCH" });
+  const goldens = (bag: typeof s.bag) => bag.filter((t) => t.ed === "GOLDEN").length;
+  check("Golden Touch: 2 bag tiles turn Golden", typeof gold !== "string" && goldens(gold.bag) === goldens(s.bag) + 2);
+  const hasSpikes = s.grid.flat().some((c) => c.type === "TRAP");
+  const sweep = applySeedPacket({ ...base, packet: "CLEAN_SWEEP" });
+  check(
+    `Clean Sweep: ${hasSpikes ? "the Spikes are swapped" : "refused with no Spikes"}`,
+    hasSpikes ? typeof sweep !== "string" && sweep.grid !== s.grid : typeof sweep === "string"
+  );
+  const armed = applySeedPacket({ ...base, packet: "LONG_ROOT" });
+  check("a next-line packet is armed", typeof armed !== "string" && armed.armed === "LONG_ROOT");
+  check("only one packet waits at a time", typeof applySeedPacket({ ...base, armed: "CUTTING", packet: "LONG_ROOT" }) === "string");
+  check("8 Seed packets", Object.keys(SEED_PACKETS).length === 8);
+
+  // Packets in a whole Run: v22 Shops sell them, a bot uses them, the replay agrees
+  const bot = playBotRun("packets-run-1", "KNIGHT", 6, 0, false, 22, false, true);
+  const used = bot.log.a.filter((a) => a.k === "c").length;
+  const replay = replayRun(JSON.parse(JSON.stringify(bot.log)));
+  check(
+    `v22 bot Run using Seed packets replays (${used} used, ${bot.state.gardensBloomed} gardens)`,
+    used > 0 && replay.ok && replay.score === bot.expected,
+    replay.ok ? `${replay.score} vs ${bot.expected}` : replay.error
+  );
+  const old = createRunReplayer("packets-v21", "KNIGHT", 21);
+  check("a packet use is refused under rules v21", old.apply({ k: "c", i: 0 }) === "no Seed packets in these rules");
+  check("refused: a packet action in a v21 log", !parseRunLog({ v: 21, seed: "x", hero: "KNIGHT", a: [{ k: "c", i: 0 }] }));
 }
 
 // Daily Garden: today's seed, the Keeper, Ascension 0, and nothing after the Season 3 Boss

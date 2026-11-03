@@ -1,6 +1,6 @@
 import { BoardThemeId, HeroClassId, SanctuaryCompanionId, TrailSkinId } from "@/types/game";
 import { loadBestStars, totalBestStars } from "@/lib/runStars";
-import { getRunGardenLabel } from "@/lib/engine";
+import { getRunGardenLabel, V22_RELICS } from "@/lib/engine";
 import { ASCENSION_UNLOCK_BED, loadBestClearedAscension, loadUnlockedAscension } from "@/lib/ascension";
 import { journalPercent } from "@/lib/journalProgress";
 import { dailyArt, unlockArt } from "@/lib/art";
@@ -111,8 +111,25 @@ export function loadUnlockProgress(): UnlockProgress {
     highestBed,
     hasThreeStar: Object.values(best).some((n) => n >= 3),
     bestAsc: loadBestClearedAscension(),
-    journalPct: journalPercent(),
+    journalPct: bestJournalPercent(),
   };
+}
+
+/**
+ * The highest Journal fill ever reached: new entries (new relics in a later
+ * update) lower today's percentage, but a reward once earned stays earned
+ */
+const JOURNAL_BEST_KEY = "ost_journal_best_pct_v1";
+function bestJournalPercent(): number {
+  // As it was before the rules-v22 relics joined the Journal, so their arrival never takes a reward away
+  const now = Math.max(journalPercent(), journalPercent(V22_RELICS));
+  try {
+    const best = Number(window.localStorage.getItem(JOURNAL_BEST_KEY)) || 0;
+    if (now > best) window.localStorage.setItem(JOURNAL_BEST_KEY, String(now));
+    return Math.max(now, best);
+  } catch {
+    return now;
+  }
 }
 
 /** A Garden Bed was cleared: the next one (gardenIndex + 1) has been reached */

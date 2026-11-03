@@ -16,6 +16,7 @@ import {
   mulberry32,
   RELIC_LIST,
   V20_RELICS,
+  V22_RELICS,
   DEW_LINES,
   MAX_TOOLS,
   FERTILIZER_COST,
@@ -63,6 +64,7 @@ import type {
   ShopOffer,
   ToolId,
   GardenUpgradeId,
+  PacketId,
 } from "@/types/game";
 
 /**
@@ -208,7 +210,9 @@ export function scoreRunStroke(
   /** Rules v20 Bosses (RunGardenState.bossV20): the Toll charges per tile */
   bossV20 = false,
   /** Rules v20 weather (RunGardenState.weather) */
-  weather?: RunWeather
+  weather?: RunWeather,
+  /** Rules v22: the Seed packet armed for this line */
+  packet?: PacketId | null
 ): { breakdown: FloorScoreBreakdown; afterStroke: HeroStats; countersAfter: RelicCounters } {
   const breakdown = calculateFloorScoreBreakdown(sim, startHero, path.length, relics, {
     counters,
@@ -216,6 +220,7 @@ export function scoreRunStroke(
     relicSets,
     bossRuleId,
     weather,
+    packet: packet ?? undefined,
   });
   // The Toll: every line on its bed costs Seeds (rules v20: 1 for every tile past Length 10)
   const toll = bossRuleId !== "TOLL" ? 0 : bossV20 ? Math.max(0, path.length - TOLL_FREE_LENGTH) : TOLL_SEEDS;
@@ -281,7 +286,8 @@ export function getRunBloomResult(params: {
       runRulesUseEcho(params.logVersion ?? RUN_LOG_VERSION),
       runRulesUseV16Relics(params.logVersion ?? RUN_LOG_VERSION),
       runRulesUseV20Relics(params.logVersion ?? RUN_LOG_VERSION),
-      runRulesUseRareShops(params.logVersion ?? RUN_LOG_VERSION) && getRunGardenPosition(garden.gardenIndex).season >= RARE_SHOP_SEASON
+      runRulesUseRareShops(params.logVersion ?? RUN_LOG_VERSION) && getRunGardenPosition(garden.gardenIndex).season >= RARE_SHOP_SEASON,
+      runRulesUseV22Relics(params.logVersion ?? RUN_LOG_VERSION)
     ),
   };
 }
@@ -299,6 +305,8 @@ export function applyRunShopPurchase(params: {
   tools?: ToolId[];
   /** The Tile Bag (a special tile bought in v14+ joins it) */
   bag?: SeedTile[];
+  /** Seed packets held (rules v22+) */
+  packets?: PacketId[];
 }): {
   stats: HeroStats;
   relics: RelicId[];
@@ -306,6 +314,7 @@ export function applyRunShopPurchase(params: {
   counters?: RelicCounters;
   tools?: ToolId[];
   bag?: SeedTile[];
+  packets?: PacketId[];
 } | null {
   const { stats, offer, relics, upgrades, soldIds } = params;
   if (soldIds.includes(offer.id) || stats.gold < offer.cost) return null;
@@ -322,6 +331,10 @@ export function applyRunShopPurchase(params: {
   if (offer.kind === "TOOL" && offer.tool) {
     if ((params.tools ?? []).length >= MAX_TOOLS) return null;
     return { stats: next, relics, upgrades, tools: [...(params.tools ?? []), offer.tool] };
+  }
+  if (offer.kind === "PACKET" && offer.packet) {
+    if ((params.packets ?? []).length >= MAX_PACKETS) return null;
+    return { stats: next, relics, upgrades, packets: [...(params.packets ?? []), offer.packet] };
   }
   if (offer.kind === "FERT" && offer.fert) {
     const key = `FERT_${offer.fert}` as const;
@@ -449,7 +462,9 @@ export function applyRunSkip(params: {
 /** Relic Tag: a seeded Rare relic you don't own yet (null if none left) */
 function pickTagRelic(runSeed: string, gardenIndex: number, owned: RelicId[]): RelicId | null {
   // (never the v20 relics: older Runs must keep drawing the same Rare relic)
-  const pool = RELIC_LIST.filter((r) => r.rarity === "RARE" && !owned.includes(r.id) && !V20_RELICS.includes(r.id));
+  const pool = RELIC_LIST.filter(
+    (r) => r.rarity === "RARE" && !owned.includes(r.id) && !V20_RELICS.includes(r.id) && !V22_RELICS.includes(r.id)
+  );
   if (pool.length === 0) return null;
   const rng = mulberry32(hashStringToSeed(`tag-relic-${runSeed}-g${gardenIndex}`));
   return pool[Math.floor(rng() * pool.length)].id;
@@ -465,6 +480,8 @@ export const runRulesUseEcho = (logVersion: number) => logVersion >= 15;
 export const runRulesUseV16Relics = (logVersion: number) => logVersion >= 16;
 /** v20: relics for exact and careful lines join the Shop */
 export const runRulesUseV20Relics = (logVersion: number) => logVersion >= 20;
+/** Rules v22+: the relic families (Acorns, Berries, Spikes, long lines) join the Shop */
+export const runRulesUseV22Relics = (logVersion: number) => logVersion >= 22;
 /** v20: the Spike King walls, the Drought dries Berries, the Toll charges per tile */
 export const runRulesUseV20Bosses = (logVersion: number) => logVersion >= 20;
 /** v21: the Shop opens up Season by Season instead of all at once */
@@ -532,8 +549,12 @@ export function finishShopOffers(
   }
 ): ShopOffer[] {
   const { owned } = params;
+  // Rules v22+: one Seed packet in every Shop
+  const withPacket = runRulesUsePackets(params.logVersion ?? 0)
+    ? [...offers, packetOffer(params.runSeed, params.gardenIndex, offers)]
+    : offers;
   const discount = owned.includes("HARVEST_FAIR") ? 0.5 : owned.includes("MARKET_DAY") ? 0.75 : 1;
-  const priced = offers.map((o) => {
+  const priced = withPacket.map((o) => {
     let cost = o.cost;
     if (o.kind === "FERT" && owned.includes("ALMANAC")) cost = Math.max(1, cost - 3);
     if (discount < 1 && cost > 0) cost = Math.max(1, Math.floor(cost * discount));
@@ -547,6 +568,84 @@ export function finishShopOffers(
   const rng = mulberry32(hashStringToSeed(`upgrade-${params.runSeed}-s${season}-${owned.length}`));
   const upgrade = available[Math.floor(rng() * available.length)];
   return [...priced, { id: `s${season}-upgrade-${upgrade}`, kind: "UPGRADE", upgrade, cost: GARDEN_UPGRADE_COST }];
+}
+
+// ── Seed packets (rules v22+): one-use items, held two at a time ─────────────
+
+export const runRulesUsePackets = (logVersion: number) => logVersion >= 22;
+export const MAX_PACKETS = 2;
+export const PACKET_COST = 4;
+/** Clean Sweep and Golden Touch sizes */
+const GOLDEN_TOUCH_TILES = 2;
+const RAIN_DANCE_LIFE = 5;
+const ROSE_CHARM_SHEARS = 3;
+
+export const SEED_PACKETS: Record<PacketId, { name: string; short: string; text: string; nextLine: boolean }> = {
+  LONG_ROOT: { name: "Long Root", short: "Length ×2 on your next line", text: "Your next line's Length counts double.", nextLine: true },
+  ROSE_CHARM: { name: "Rose Charm", short: "+3 ✂️ Shears now", text: `Gives you ${ROSE_CHARM_SHEARS} ✂️ Shears: your next ${ROSE_CHARM_SHEARS} Thorns are cut free.`, nextLine: false },
+  ACORN_ECHO: { name: "Acorn Echo", short: "🌰 score 3× on your next line", text: "On your next line every Acorn counts its number three times.", nextLine: true },
+  CUTTING: { name: "Cutting", short: "Best tile scores twice next line", text: "On your next line, its highest-number tile counts twice.", nextLine: true },
+  RAIN_DANCE: { name: "Rain Dance", short: `+${RAIN_DANCE_LIFE} ❤️ Life now`, text: `Gives back ${RAIN_DANCE_LIFE} ❤️ Life, up to your maximum.`, nextLine: false },
+  GOLDEN_TOUCH: { name: "Golden Touch", short: `${GOLDEN_TOUCH_TILES} bag tiles turn Golden`, text: `${GOLDEN_TOUCH_TILES} tiles in your bag turn Golden (+30 Value each, for the rest of the Run).`, nextLine: false },
+  SECOND_WIND: { name: "Second Wind", short: "+1 line in this bed", text: "This Garden Bed gets one more line.", nextLine: false },
+  CLEAN_SWEEP: { name: "Clean Sweep", short: "Swap every Spike now", text: "Every Spike on the board is swapped for a new tile from your bag.", nextLine: false },
+};
+export const PACKET_IDS = Object.keys(SEED_PACKETS) as PacketId[];
+
+/** The Shop's Seed packet (one per Shop and reroll, seeded) */
+function packetOffer(runSeed: string, gardenIndex: number, offers: ShopOffer[]): ShopOffer {
+  const key = offers.map((o) => o.id).join(",");
+  const rng = mulberry32(hashStringToSeed(`packet-${runSeed}-g${gardenIndex}-${key}`));
+  const packet = PACKET_IDS[Math.floor(rng() * PACKET_IDS.length)];
+  return { id: `${offers[0]?.id ?? `g${gardenIndex}`}-packet`, kind: "PACKET", packet, cost: PACKET_COST };
+}
+
+/**
+ * Uses held Seed packet `packet`. Immediate packets change the board, the bag
+ * or your stats now; the others are armed for the next line (one at a time).
+ * Returns why it can't be used, or the new state. The same for live play,
+ * saves and replays.
+ */
+export function applySeedPacket(params: {
+  packet: PacketId;
+  runSeed: string;
+  grid: GridCell[][];
+  garden: RunGardenState;
+  hero: HeroStats;
+  bag: SeedTile[];
+  armed: PacketId | null;
+}): { grid: GridCell[][]; garden: RunGardenState; hero: HeroStats; bag: SeedTile[]; armed: PacketId | null } | string {
+  const { packet, runSeed } = params;
+  let { grid, garden, hero, bag, armed } = params;
+  if (SEED_PACKETS[packet].nextLine) {
+    if (armed) return "a packet is already waiting for the next line";
+    armed = packet;
+  } else if (packet === "ROSE_CHARM") {
+    hero = { ...hero, weapon: hero.weapon + ROSE_CHARM_SHEARS };
+  } else if (packet === "RAIN_DANCE") {
+    if (hero.hp >= hero.maxHp) return "Life is already full";
+    hero = { ...hero, hp: Math.min(hero.maxHp, hero.hp + RAIN_DANCE_LIFE) };
+  } else if (packet === "GOLDEN_TOUCH") {
+    const rng = mulberry32(hashStringToSeed(`packet-gold-${runSeed}-g${garden.gardenIndex}-${garden.strokesLeft}`));
+    const plain = bag.map((t, i) => ({ t, i })).filter(({ t }) => !t.ed);
+    if (plain.length === 0) return "no plain tiles left in the bag";
+    const chosen = plain
+      .map((x) => ({ ...x, k: rng() }))
+      .sort((a, b) => a.k - b.k)
+      .slice(0, GOLDEN_TOUCH_TILES)
+      .map((x) => x.i);
+    bag = bag.map((t, i) => (chosen.includes(i) ? { ...t, ed: "GOLDEN" as const } : t));
+  } else if (packet === "SECOND_WIND") {
+    garden = { ...garden, strokesLeft: garden.strokesLeft + 1, strokesTotal: (garden.strokesTotal ?? garden.strokesLeft) + 1 };
+  } else if (packet === "CLEAN_SWEEP") {
+    const spikes: GridCoord[] = [];
+    grid.forEach((row) => row.forEach((c) => c.type === "TRAP" && spikes.push({ row: c.row, col: c.col })));
+    if (spikes.length === 0) return "no Spikes on the board";
+    const refill = refillRunGarden(grid, spikes, garden, runSeed);
+    grid = refill.grid;
+    garden = refill.state;
+  }
+  return { grid, garden, hero, bag, armed };
 }
 
 export type SkipTag = "FERTILE" | "GOLDEN" | "PURSE" | "RELIC";
@@ -672,7 +771,8 @@ export function applyRunShopReroll(params: {
       runRulesUseEcho(params.logVersion ?? RUN_LOG_VERSION),
       runRulesUseV16Relics(params.logVersion ?? RUN_LOG_VERSION),
       runRulesUseV20Relics(params.logVersion ?? RUN_LOG_VERSION),
-      runRulesUseRareShops(params.logVersion ?? RUN_LOG_VERSION) && getRunGardenPosition(params.floorNumber - 1).season >= RARE_SHOP_SEASON
+      runRulesUseRareShops(params.logVersion ?? RUN_LOG_VERSION) && getRunGardenPosition(params.floorNumber - 1).season >= RARE_SHOP_SEASON,
+      runRulesUseV22Relics(params.logVersion ?? RUN_LOG_VERSION)
     ),
     cost,
   };
@@ -746,7 +846,8 @@ export const GARDENER_GIFTS: Record<GardenerGiftId, { name: string; icon: string
 
 /** A seeded Rare relic for the Gardener (null if none left) */
 export function gardenerRelic(runSeed: string, gardenIndex: number, owned: RelicId[]): RelicId | null {
-  const pool = RELIC_LIST.filter((r) => r.rarity === "RARE" && !owned.includes(r.id));
+  // The v22 families stay out, so older Runs keep the same gift
+  const pool = RELIC_LIST.filter((r) => r.rarity === "RARE" && !owned.includes(r.id) && !V22_RELICS.includes(r.id));
   if (pool.length === 0) return null;
   const rng = mulberry32(hashStringToSeed(`gardener-relic-${runSeed}-g${gardenIndex}`));
   return pool[Math.floor(rng() * pool.length)].id;
@@ -847,9 +948,12 @@ export function getRunPathError(
  *      tiles and garden upgrades).
  * v20: six relics for exact and careful lines (Seven Stones, Short Cut,
  *      Straight Furrow, Light Step, Thornless Path, Even Rows) join the Shop.
+ * v22: relic families (Acorn Pouch, Twin Acorns, Acorn Hoard, Berry Jam,
+ *      Bramble Wine, Iron Moss, Lodestone, Garden Path Map) join the Shop, and
+ *      Seed packets: one-use items bought in the Shop, held two at a time.
  * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 21;
+export const RUN_LOG_VERSION = 22;
 export const RUN_LOG_MIN_VERSION = 2;
 /** Rule set of new Runs (the current version) */
 export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);
@@ -873,6 +977,8 @@ export type RunLogAction =
   | { k: "k" }
   /** Rules v20+: take the Wandering Gardener's gift `i` */
   | { k: "g"; i: number }
+  /** Rules v22+: use held Seed packet `i` */
+  | { k: "c"; i: number }
   | { k: "l"; h: HeroClassId };
 
 export interface RunActionLog {
@@ -974,6 +1080,7 @@ export function parseRunLog(raw: unknown): RunActionLog | null {
     if (a.k === "l" && isHeroClass(a.h)) continue;
     if (a.k === "k" && log.v >= 17) continue;
     if (a.k === "g" && log.v >= 20 && typeof a.i === "number" && Number.isInteger(a.i) && a.i >= 0 && a.i < 3) continue;
+    if (a.k === "c" && log.v >= 22 && typeof a.i === "number" && Number.isInteger(a.i) && a.i >= 0 && a.i < MAX_PACKETS) continue;
     if (
       a.k === "u" &&
       log.v >= 13 &&
@@ -1006,6 +1113,9 @@ export interface RunReplayState {
   upgrades: RunUpgrades;
   /** Garden tools held (rules v13+) */
   tools: ToolId[];
+  /** Rules v22+: Seed packets held, and the one armed for the next line */
+  packets: PacketId[];
+  armedPacket: PacketId | null;
   /** Rules v17+: Tags taken by skipping beds, and a free Rare relic waiting for the next Shop */
   tags: SkipTag[];
   freeRelicNext: boolean;
@@ -1046,6 +1156,8 @@ export function createRunReplayer(
     counters: {},
     upgrades: NO_RUN_UPGRADES,
     tools: [],
+    packets: [],
+    armedPacket: null,
     tags: [],
     freeRelicNext: false,
     gardenUpgrades: [],
@@ -1108,9 +1220,11 @@ export function createRunReplayer(
         runRulesUseRelicSets(logVersion),
         s.garden.bossRuleId,
         Boolean(s.garden.bossV20),
-        s.garden.weather
+        s.garden.weather,
+        s.armedPacket
       );
       s.counters = countersAfter;
+      s.armedPacket = null;
       if (runRulesUseTools(logVersion)) {
         const dried = dryDewAfterStroke(s.grid, s.bag, path);
         s.grid = dried.grid;
@@ -1198,9 +1312,11 @@ export function createRunReplayer(
         counters: s.counters,
         tools: s.tools,
         bag: s.bag,
+        packets: s.packets,
       });
       if (!bought) return "purchase not allowed";
       if (bought.tools) s.tools = bought.tools;
+      if (bought.packets) s.packets = bought.packets;
       if (offer.kind === "FERT" && offer.fert && s.gardenUpgrades.includes("OBSERVATORY") && bought.counters) {
         // Observatory: each Fertilizer gives a second level
         const key = `FERT_${offer.fert}` as const;
@@ -1279,6 +1395,31 @@ export function createRunReplayer(
       s.grid = used.grid;
       s.bag = used.bag;
       s.tools = [...s.tools.slice(0, action.i), ...s.tools.slice(action.i + 1)];
+      return null;
+    }
+
+    if (action.k === "c") {
+      if (!runRulesUsePackets(logVersion)) return "no Seed packets in these rules";
+      if (s.phase !== "PLAY") return "packet used outside a garden";
+      const packet = s.packets[action.i];
+      if (!packet) return "no such packet";
+      const used = applySeedPacket({
+        packet,
+        runSeed,
+        grid: s.grid,
+        garden: s.garden,
+        hero: s.startHero,
+        bag: s.bag,
+        armed: s.armedPacket,
+      });
+      if (typeof used === "string") return used;
+      s.grid = used.grid;
+      s.garden = used.garden;
+      s.startHero = used.hero;
+      s.bag = used.bag;
+      s.armedPacket = used.armed;
+      s.packets = [...s.packets.slice(0, action.i), ...s.packets.slice(action.i + 1)];
+      if (packet === "CLEAN_SWEEP") checkSafeLine();
       return null;
     }
 
