@@ -2428,10 +2428,10 @@ export default function OneStrokeTacticianPage() {
           : null,
         target: garden.target,
         continueLabel: bloomed
-          ? "Garden Bed cleared! →"
+          ? "Garden Bed cleared!"
           : outOfStrokes
-          ? "See the run →"
-          : "Next line →",
+          ? "See the run"
+          : "Next line",
       },
     };
     if (!compactTally) setTally(tallyInfo);
@@ -5047,7 +5047,7 @@ export default function OneStrokeTacticianPage() {
         onStop={practiceStep || lesson ? undefined : handleStopAfterBoss}
         finishLabel={
           !practiceStep && runLogRef.current?.d && runClear && runClear.gardenIndex >= RUN_DAILY_LAST_BED
-            ? "See today's garden →"
+            ? "See today's garden"
             : undefined
         }
       />

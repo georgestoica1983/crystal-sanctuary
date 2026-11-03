@@ -1,6 +1,8 @@
 "use client";
 
 import { useBackClose } from "@/lib/backClose";
+import { DoneButton } from "@/components/SheetBits";
+import { ArrowRight } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { LessonGoalStatus, PRACTICE_GARDEN_GEMS, PRACTICE_GARDEN_TARGET, RunLesson } from "@/lib/runLessons";
@@ -148,9 +150,10 @@ export function RunLessonResult({
             <button
               type="button"
               onClick={onNext}
-              className="py-2.5 rounded-xl bg-emerald-300 text-slate-950 text-xs font-mono font-black"
+              className="py-2.5 rounded-xl bg-emerald-300 text-slate-950 text-xs font-mono font-black flex items-center justify-center gap-1.5"
             >
-              {info.isLast ? "Practice garden →" : "Next →"}
+              {info.isLast ? "Practice garden" : "Next"}
+              <ArrowRight className="w-4 h-4 shrink-0" />
             </button>
           </div>
         ) : (
@@ -377,11 +380,7 @@ export function RunHelpMenu({
           <div className="text-sm font-black">📖 Rules at a glance</div>
           <div className="text-[11px] text-indigo-100/75">Every tile, rule and relic in short.</div>
         </button>
-        <button type="button" onClick={onClose} className={`${option} border-white/10 bg-transparent`}>
-          <div className="text-sm font-black">
-            {isFirstVisit ? "⏭ Skip and start a Run" : "← Back to my Run"}
-          </div>
-        </button>
+        <DoneButton onClick={onClose} label={isFirstVisit ? "Skip and start a Run" : "Back to my Run"} />
       </motion.div>
     </div>
   );

@@ -938,8 +938,10 @@ export function TopHUD({
                 </div>
               </div>
 
-              {menuTab === "PLAY" ? (
-                <>
+              {/* Both tabs share one grid cell: the sheet keeps the taller one's
+                  height, so switching tabs never makes it jump */}
+              <div className="grid [&>*]:[grid-area:1/1]">
+                <div className={`space-y-2.5 ${menuTab === "PLAY" ? "" : "invisible"}`} aria-hidden={menuTab !== "PLAY"}>
                   {totalStars !== undefined && (() => {
                     const { rank, next } = getGardenerRank();
                     const flame = loadBestClearedAscension();
@@ -1038,9 +1040,8 @@ export function TopHUD({
                       )}
                     </div>
                   )}
-                </>
-              ) : (
-                <div className="grid grid-cols-2 gap-2">
+                </div>
+                <div className={`grid grid-cols-2 content-start gap-2 ${menuTab === "SETTINGS" ? "" : "invisible"}`} aria-hidden={menuTab !== "SETTINGS"}>
                   <button type="button" className={menuTile} onClick={onToggleSound} aria-pressed={soundEnabled}>
                     <span className={menuTileTop}>
                       {soundEnabled ? <Volume2 className="w-4 h-4 text-white/80" /> : <VolumeX className="w-4 h-4 text-white/50" />} Sound
@@ -1094,7 +1095,7 @@ export function TopHUD({
                     </button>
                   )}
                 </div>
-              )}
+              </div>
               {/* Pinned, so Done is always in reach */}
               <div className="sticky -bottom-3 -mx-3 -mb-3 bg-[#19271E] px-3 pt-1 pb-3">
                 <DoneButton onClick={() => setShowRunMenu(false)} />

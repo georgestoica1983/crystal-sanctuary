@@ -4,6 +4,7 @@ import Badge from "@/components/Badge";
 import BossIcon from "@/components/BossIcon";
 import React, { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import EntityIcon from "@/components/EntityIcon";
 import { BossRuleId, GridCell, GridCoord, RelicId, RunGardenState } from "@/types/game";
 import {
@@ -697,9 +698,10 @@ export function RunGardenClearModal({
           <button
             type="button"
             onClick={onContinue}
-            className="w-full rounded-xl py-3 font-bold text-[15px] bg-teal-300 text-slate-950 active:scale-95"
+            className="w-full rounded-xl py-3 font-bold text-[15px] bg-teal-300 text-slate-950 active:scale-95 flex items-center justify-center gap-1.5"
           >
-            {finishLabel ?? <>Enter the Shop · {info.gemsBefore + info.total} 🌱 to spend →</>}
+            {finishLabel ?? <>Enter the Shop · {info.gemsBefore + info.total} 🌱 to spend</>}
+            <ArrowRight className="w-4 h-4 shrink-0" />
           </button>
           {onStop && !finishLabel && kind === "BOSS" && (
             <button
@@ -896,10 +898,16 @@ export function TodaysGardenButton({ played, streak, onClick }: { played: boolea
     <button
       type="button"
       onClick={onClick}
-      className="relative w-full rounded-xl border border-amber-300/50 bg-amber-400/10 px-3 py-2.5 text-left active:scale-[0.98] transition"
+      className="w-full rounded-xl border border-amber-300/50 bg-amber-400/10 px-3 py-2.5 text-left active:scale-[0.98] transition"
     >
-      {!played && <span className="absolute right-3 top-3 h-2.5 w-2.5 rounded-full bg-amber-300 animate-pulse" aria-label="Not played today" />}
-      <span className="block text-[14px] font-bold text-amber-50">🌞 Today&apos;s garden</span>
+      <span className="flex items-center gap-1.5 text-[14px] font-bold text-amber-50">
+        🌞 Today&apos;s garden
+        {!played && (
+          <span className="rounded-full bg-amber-300 px-1.5 text-[10px] leading-[16px] font-black text-slate-950" aria-label="Not played today">
+            New today
+          </span>
+        )}
+      </span>
       <span className="block text-[12px] text-white/60">
         {played ? "Played today. Replay it as practice" : "Same beds for everyone · Seasons 1 to 3"}
         {streak > 0 ? ` · 🔥 ${streak} day${streak > 1 ? "s" : ""}` : ""}

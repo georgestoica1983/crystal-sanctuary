@@ -2,10 +2,9 @@
 
 import BossIcon from "@/components/BossIcon";
 import { useBackClose } from "@/lib/backClose";
-import { BackButton } from "@/components/SheetBits";
+import { BackButton, Pager } from "@/components/SheetBits";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { HeroClassId } from "@/types/game";
 import {
   BOSS_RULE_REGISTRY,
@@ -355,32 +354,7 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
       </div>
 
       {/* Screens of this page: arrows, dots, or swipe the grid */}
-      <div className={`w-full max-w-[430px] mx-auto h-14 px-4 flex items-center justify-between ${screens > 1 ? "" : "invisible"}`}>
-        <button
-          type="button"
-          onClick={() => go(-1)}
-          disabled={at === 0}
-          aria-label="Previous"
-          className="h-11 w-11 rounded-full bg-white/[0.06] flex items-center justify-center disabled:opacity-25"
-        >
-          <ChevronLeft className="w-5 h-5" />
-        </button>
-        <div className="flex items-center gap-1.5" aria-label={`Screen ${at + 1} of ${screens}`}>
-          {screens > 1 &&
-            Array.from({ length: screens }, (_, i) => (
-              <span key={i} className={`h-2 rounded-full transition-all ${i === at ? "w-5 bg-amber-300" : "w-2 bg-white/25"}`} />
-            ))}
-        </div>
-        <button
-          type="button"
-          onClick={() => go(1)}
-          disabled={at >= screens - 1}
-          aria-label="Next"
-          className="h-11 w-11 rounded-full bg-white/[0.06] flex items-center justify-center disabled:opacity-25"
-        >
-          <ChevronRight className="w-5 h-5" />
-        </button>
-      </div>
+      <Pager at={at} count={screens} onGo={go} className="w-full max-w-[430px] mx-auto h-14 px-4" />
 
       <AnimatePresence>
         {picked && (

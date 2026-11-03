@@ -1,6 +1,8 @@
 "use client";
 
 import { useBackClose } from "@/lib/backClose";
+import { BackButton } from "@/components/SheetBits";
+import { ArrowLeft, ArrowRight } from "lucide-react";
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { EntityType, RelicCategory } from "@/types/game";
@@ -369,24 +371,17 @@ export default function RunGuide({
     <div className="ui-zoom fixed inset-0 z-[60] bg-black/85 backdrop-blur-sm flex items-stretch sm:items-center justify-center sm:p-3">
       <div className="relative w-full max-w-[440px] sm:max-h-[calc(92dvh/var(--ui-zoom,1))] flex flex-col bg-gradient-to-b from-[#1F3125] via-[#1A281F] to-[#111A14] rounded-2xl border border-emerald-300/40 shadow-[0_0_40px_rgba(52,211,153,0.25)] text-white overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between gap-2 px-3 pt-3 pb-2 border-b border-white/10">
+        {/* Back on the left like every full screen; the page list on the right */}
+        <div className="flex items-center justify-between gap-2 px-3 pt-2 pb-1.5 border-b border-white/10">
+          <BackButton onClick={close} label="Back to the game" />
           <button
             type="button"
             onClick={() => setShowIndex((v) => !v)}
-            className="h-9 text-[11px] font-mono font-black uppercase tracking-wider text-emerald-200 px-3 rounded-lg bg-white/5 border border-white/10"
+            className="h-9 text-[12px] font-mono font-bold text-emerald-200 px-3 rounded-lg bg-white/5 border border-white/10"
             aria-expanded={showIndex}
+            aria-label={`Rules page ${page + 1} of ${pages.length}: all pages`}
           >
             ☰ {page + 1}/{pages.length}
-          </button>
-          <div className="text-[10px] font-mono font-black uppercase tracking-[0.2em] text-emerald-300">
-            Rules
-          </div>
-          <button
-            type="button"
-            onClick={close}
-            className="h-9 text-[12px] font-mono font-bold px-3 rounded-lg bg-white/10 text-zinc-200"
-          >
-            {isLast ? "Close" : "Skip"}
           </button>
         </div>
 
@@ -463,16 +458,17 @@ export default function RunGuide({
               type="button"
               disabled={page === 0}
               onClick={() => setPage((p) => Math.max(0, p - 1))}
-              className="h-11 rounded-xl bg-white/10 border border-white/15 text-xs font-mono font-bold disabled:opacity-30"
+              className="h-11 rounded-xl bg-white/10 border border-white/15 text-xs font-mono font-bold disabled:opacity-30 flex items-center justify-center gap-1.5"
             >
-              ← Back
+              <ArrowLeft className="w-4 h-4 shrink-0" />
+              Back
             </button>
             <button
               type="button"
               onClick={() => (isLast ? close() : setPage((p) => p + 1))}
-              className="h-11 rounded-xl bg-emerald-300 text-slate-950 text-xs font-mono font-black"
+              className="h-11 rounded-xl bg-emerald-300 text-slate-950 text-xs font-mono font-black flex items-center justify-center gap-1.5"
             >
-              {isLast ? "Start playing 🌸" : "Next →"}
+              {isLast ? "Start playing 🌸" : <>Next<ArrowRight className="w-4 h-4 shrink-0" /></>}
             </button>
           </div>
         </div>

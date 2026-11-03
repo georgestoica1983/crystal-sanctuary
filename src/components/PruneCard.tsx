@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useBackClose } from "@/lib/backClose";
-import { DoneButton, GrabBar, sheetDrag } from "@/components/SheetBits";
+import { DoneButton, GrabBar, Pager, sheetDrag } from "@/components/SheetBits";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { EntityType, SeedTile } from "@/types/game";
 import EntityIcon from "@/components/EntityIcon";
@@ -142,29 +142,7 @@ export default function PruneSheet({
           </div>
         </div>
 
-        {screens > 1 && (
-          <div className="flex items-center justify-between">
-            <button
-              type="button"
-              disabled={at === 0}
-              onClick={() => setScreen(at - 1)}
-              className="h-10 px-4 rounded-xl bg-white/[0.06] text-[14px] font-semibold disabled:opacity-30"
-            >
-              ← Back
-            </button>
-            <span className="text-[13px] text-white/60">
-              {at + 1} of {screens}
-            </span>
-            <button
-              type="button"
-              disabled={at >= screens - 1}
-              onClick={() => setScreen(at + 1)}
-              className="h-10 px-4 rounded-xl bg-white/[0.06] text-[14px] font-semibold disabled:opacity-30"
-            >
-              More →
-            </button>
-          </div>
-        )}
+        {screens > 1 && <Pager at={at} count={screens} onGo={(d) => setScreen(at + d)} />}
 
         <p className="text-[13px] leading-snug text-white/55">Numbers are base values. Thorns and Spikes grow each Season.</p>
 

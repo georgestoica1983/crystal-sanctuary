@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 /**
  * Bottom sheets close the way phones do: pull the sheet down by its top, tap
@@ -86,5 +87,37 @@ export function BackButton({ onClick, label = "Back" }: { onClick: () => void; l
       <span aria-hidden="true" className="text-[22px] leading-none">‹</span>
       {label}
     </button>
+  );
+}
+
+/** Screens of a long list (Journal pages, Prune): round arrows and dots, the same everywhere */
+export function Pager({ at, count, onGo, className = "" }: { at: number; count: number; onGo: (delta: -1 | 1) => void; className?: string }) {
+  return (
+    <div className={`flex items-center justify-between ${count > 1 ? "" : "invisible"} ${className}`}>
+      <button
+        type="button"
+        onClick={() => onGo(-1)}
+        disabled={at === 0}
+        aria-label="Previous"
+        className="h-11 w-11 rounded-full bg-white/[0.06] flex items-center justify-center disabled:opacity-25"
+      >
+        <ChevronLeft className="w-5 h-5" />
+      </button>
+      <div className="flex items-center gap-1.5" aria-label={`Screen ${at + 1} of ${count}`}>
+        {count > 1 &&
+          Array.from({ length: count }, (_, i) => (
+            <span key={i} className={`h-2 rounded-full transition-all ${i === at ? "w-5 bg-amber-300" : "w-2 bg-white/25"}`} />
+          ))}
+      </div>
+      <button
+        type="button"
+        onClick={() => onGo(1)}
+        disabled={at >= count - 1}
+        aria-label="Next"
+        className="h-11 w-11 rounded-full bg-white/[0.06] flex items-center justify-center disabled:opacity-25"
+      >
+        <ChevronRight className="w-5 h-5" />
+      </button>
+    </div>
   );
 }

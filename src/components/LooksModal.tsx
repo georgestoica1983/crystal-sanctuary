@@ -16,6 +16,7 @@ import {
   loadChosenCompanion,
   loadUnlockProgress,
   RUN_COMPANION_ORDER,
+  shortNeedText,
   UNLOCKS,
 } from "@/lib/unlocks";
 import { loadBestClearedAscension } from "@/lib/ascension";
@@ -97,8 +98,10 @@ export default function LooksModal({
           ))}
         </div>
 
-        {tab === "COMPANIONS" && (
-        <section>
+        {/* All three sections share one grid cell: the sheet keeps the tallest
+            one's height, so switching tabs never makes it jump */}
+        <div className="grid [&>*]:[grid-area:1/1]">
+        <section className={tab === "COMPANIONS" ? "" : "invisible"} aria-hidden={tab !== "COMPANIONS"}>
           <div className="text-[12px] font-semibold text-white/60 mb-1.5">
             Pick one when you start a Run
           </div>
@@ -135,12 +138,10 @@ export default function LooksModal({
             })}
           </div>
         </section>
-        )}
 
-        {tab === "LINE" && (
-        <section>
+        <section className={tab === "LINE" ? "" : "invisible"} aria-hidden={tab !== "LINE"}>
           <div className="text-[12px] text-white/60 mb-1.5">Just looks: pick the colour of your line.</div>
-          <div className="grid grid-cols-4 gap-1.5">
+          <div className="grid grid-cols-4 auto-rows-fr gap-1.5">
             {trails.map((u) => {
               if (u.kind !== "TRAIL") return null;
               const unlocked = isUnlocked(u, progress);
@@ -161,17 +162,15 @@ export default function LooksModal({
                     aria-hidden="true"
                   />
                   <span className="text-[10.5px] font-bold leading-tight mt-1">{u.name.replace(" line", "")}</span>
-                  {!unlocked && <span className="w-full text-[11px] text-white/60 leading-tight line-clamp-2" title={u.needText}><Badge id="lock" /> {u.needText}</span>}
+                  {!unlocked && <LockLine full={u.needText} short={shortNeedText(u)} />}
                 </button>
               );
             })}
           </div>
         </section>
-        )}
 
-        {tab === "BOARD" && (
-        <section>
-          <div className="grid grid-cols-4 gap-1.5">
+        <section className={tab === "BOARD" ? "" : "invisible"} aria-hidden={tab !== "BOARD"}>
+          <div className="grid grid-cols-4 auto-rows-fr gap-1.5">
             {boards.map((u) => {
               if (u.kind !== "BOARD") return null;
               const unlocked = isUnlocked(u, progress);
@@ -202,18 +201,27 @@ export default function LooksModal({
                   <span className="text-[10.5px] font-bold leading-tight mt-0.5">
                     {u.icon} {u.name.replace(" board", "")}
                   </span>
-                  {!unlocked && <span className="w-full text-[11px] text-white/60 leading-tight line-clamp-2" title={u.needText}><Badge id="lock" /> {u.needText}</span>}
+                  {!unlocked && <LockLine full={u.needText} short={shortNeedText(u)} />}
                 </button>
               );
             })}
           </div>
         </section>
-        )}
+        </div>
         {/* Pinned, so Done is always in reach */}
         <div className="sticky -bottom-3 -mx-3 -mb-3 bg-[#19271E] px-3 pt-1 pb-3">
           <DoneButton onClick={onClose} />
         </div>
       </motion.div>
     </div>
+  );
+}
+
+/** A locked tile's requirement (the tile is dimmed): a short label, the full sentence on hover and for screen readers */
+function LockLine({ full, short }: { full: string; short: string }) {
+  return (
+    <span className="w-full text-[10.5px] leading-tight text-white/60" title={full} aria-label={`Locked: ${full}`}>
+      {short}
+    </span>
   );
 }

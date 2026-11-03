@@ -1,6 +1,7 @@
 "use client";
 
 import Badge from "@/components/Badge";
+import { BackButton } from "@/components/SheetBits";
 import { useBackClose } from "@/lib/backClose";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
@@ -121,17 +122,9 @@ export default function RunLeaderboardModal({
         className="w-full max-w-[440px] sm:max-h-[calc(90dvh/var(--ui-zoom,1))] flex flex-col bg-gradient-to-b from-[#203025] via-[#17241B] to-[#0D1510] rounded-2xl border border-amber-300/40 text-white overflow-hidden"
       >
         {/* Header */}
-        <div className="px-3 pt-3 pb-2 border-b border-white/10 space-y-1">
-          <div className="flex items-center justify-between gap-2">
-            <div className="text-lg font-black">🏆 Leaderboard</div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="h-9 text-[12px] font-mono font-bold px-3 rounded-lg bg-white/10"
-            >
-              Close
-            </button>
-          </div>
+        <div className="px-3 pt-2 pb-2 border-b border-white/10 space-y-1">
+          <BackButton onClick={onClose} label="Back to the game" />
+          <div className="text-lg font-black">🏆 Leaderboard</div>
           <div className="text-[11px] text-indigo-100/80">
             {board && !board.configured
               ? "The online leaderboard opens soon. Until then, this shows your best Run on this phone."

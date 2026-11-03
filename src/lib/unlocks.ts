@@ -32,6 +32,17 @@ interface Need {
   journal?: number;
 }
 
+/** The requirement in two words, for small tiles (the full needText says it in a sentence) */
+export function shortNeedText(item: { need: Need; needText: string }): string {
+  const n = item.need;
+  if (n.stars) return `${n.stars}\u00a0⭐`;
+  if (n.asc) return `Ascension ${n.asc}`;
+  if (n.journal) return `Journal ${n.journal}%`;
+  if (n.threeStar) return "⭐⭐⭐\u00a0bed";
+  if (n.season) return n.season >= 9 ? "Endless" : `Season ${n.season}`;
+  return item.needText;
+}
+
 export type UnlockItem =
   | { id: string; kind: "COMPANION"; target: SanctuaryCompanionId; icon: string; name: string; need: Need; needText: string }
   | { id: string; kind: "TRAIL"; target: TrailSkinId; icon: string; name: string; need: Need; needText: string }

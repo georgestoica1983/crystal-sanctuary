@@ -83,7 +83,8 @@ Also, the browser pane often lagged while animating, so a few states were judged
    - B17: scores show full digits up to a million everywhere. The score bar keeps its short form (23.5K) because it has to fit beside the roses.
 3. **Shop:** A5, B9, B10, B11, B12. ✅ Done.
    - The eyebrow and "Up next" use the short bed names ("Season 1 · Small bed ✓", "Season 1 · Big bed · target 1,500").
-4. **Sheets:** B4, B5, B6, B7, B8, B14, B15, B16.
+4. **Sheets:** B4, B5, B6, B7, B8, B14, B15, B16. ✅ Done.
+   - Locked Looks tiles are dimmed with a short requirement ("40 ⭐", "Ascension 6", "Journal 50%"). The full sentence is the tooltip and the screen-reader label.
 5. **Journal, Boss, tablet and leaderboard:** B20, B21, B22, B23, B24.
 6. **Icons and stars:** B13, B25.
 7. **Polish:** C1–C10, then a second pass over the "Not covered yet" list.

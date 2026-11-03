@@ -1,6 +1,7 @@
 "use client";
 
 import BossIcon from "@/components/BossIcon";
+import { ArrowRight } from "lucide-react";
 import React, { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { BossRuleId, FloorScoreBreakdown, FloorStarBreakdown, RelicId, ScoreSource } from "@/types/game";
@@ -379,11 +380,18 @@ export default function ScoreTally({
               e.stopPropagation();
               skip();
             }}
-            className={`w-full h-12 rounded-xl font-bold text-[16px] transition active:scale-95 ${
+            className={`w-full h-12 rounded-xl font-bold text-[16px] transition active:scale-95 flex items-center justify-center gap-1.5 ${
               stage >= 5 ? "bg-teal-300 text-slate-950" : "border border-white/15 bg-white/[0.05] text-white/70"
             }`}
           >
-            {stage < 5 ? "Tap to skip" : continueLabel ?? (isFinalFloor ? "See results →" : "Enter the Shop →")}
+            {stage < 5 ? (
+              "Tap to skip"
+            ) : (
+              <>
+                {continueLabel ?? (isFinalFloor ? "See results" : "Enter the Shop")}
+                <ArrowRight className="w-4 h-4 shrink-0" />
+              </>
+            )}
           </button>
         </div>
       </motion.div>

@@ -2,6 +2,7 @@
 
 import Badge from "@/components/Badge";
 import { motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import { useBackClose } from "@/lib/backClose";
 import { DoneButton, GrabBar, sheetDrag } from "@/components/SheetBits";
 import React, { useEffect, useState } from "react";
@@ -18,7 +19,7 @@ import { normalizeSeedCode } from "@/lib/seedCode";
 export const COMPANION_RULES: Record<HeroClassId, string> = {
   KNIGHT: "+2 🧤 each bed · keeps half its spare Gloves",
   ROGUE: "Each line may cross itself once · Thorns 2 softer from a diagonal",
-  VAMPIRE: "🌰 heal +1 · cut Thorns heal +2 · no Gloves (they give ✂️)",
+  VAMPIRE: "🌰 heal +1 · cut Thorns heal +2 · 🧤 turn into ✂️",
   MAGE: "Each line may hop over one tile · 🍓 heal +2 more",
 };
 
@@ -156,7 +157,7 @@ export default function AscensionPicker({
                 disabled={locked}
                 aria-pressed={selected}
                 onClick={() => setCompanion(id)}
-                className={`text-left rounded-xl border px-2.5 py-2 transition active:scale-[0.98] ${
+                className={`flex flex-col justify-start text-left rounded-xl border px-2.5 py-2 transition active:scale-[0.98] ${
                   selected
                     ? "border-amber-300 bg-amber-400/15"
                     : locked
@@ -171,9 +172,12 @@ export default function AscensionPicker({
                     <span className="block text-[10.5px] text-white/55 font-mono">{companionStartText(id)}</span>
                   </span>
                 </span>
-                <span className="block mt-1 text-[11px] leading-snug text-white/70">
-                  {locked ? <><Badge id="lock" /> {companionUnlockFor(id).needText}</> : COMPANION_RULES[id]}
-                </span>
+                <span className="block mt-1 text-[11px] leading-snug text-white/70">{COMPANION_RULES[id]}</span>
+                {locked && (
+                  <span className="block mt-0.5 text-[11px] font-semibold text-white/60">
+                    <Badge id="lock" /> {companionUnlockFor(id).needText}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -217,18 +221,22 @@ export default function AscensionPicker({
         </div>
         )}
 
-        {runInProgress && <div className="text-center text-[11.5px] text-amber-200/80">Starting ends the Run in progress.</div>}
-        <button
-          type="button"
-          disabled={codeTyped && !code}
-          onClick={() => onStart(level, companion, code)}
-          className="w-full rounded-xl py-3 font-bold text-[14px] bg-teal-300 text-slate-950 active:scale-95 disabled:opacity-40"
-        >
-          {code ? `Plant ${code} with ` : "Start with "}
-          {pickedDef.sanctuaryShortName ?? pickedDef.shortName}
-          {level > 0 ? ` · Ascension ${level}` : ""} →
-        </button>
-        <DoneButton onClick={onClose} label="Not now" />
+        {/* Pinned, so Start stays in reach while the code field or the levels are open */}
+        <div className="card-footer space-y-2 bg-[#1B281F]" style={{ bottom: "-0.75rem", marginBottom: "-0.75rem", paddingBottom: "0.75rem" }}>
+          {runInProgress && <div className="text-center text-[11.5px] text-amber-200/80">Starting ends the Run in progress.</div>}
+          <button
+            type="button"
+            disabled={codeTyped && !code}
+            onClick={() => onStart(level, companion, code)}
+            className="w-full rounded-xl py-3 font-bold text-[14px] bg-teal-300 text-slate-950 active:scale-95 disabled:opacity-40 flex items-center justify-center gap-1.5"
+          >
+            {code ? `Plant ${code} with ` : "Start with "}
+            {pickedDef.sanctuaryShortName ?? pickedDef.shortName}
+            {level > 0 ? ` · Ascension ${level}` : ""}
+            <ArrowRight className="w-4 h-4 shrink-0" />
+          </button>
+          <DoneButton onClick={onClose} label="Not now" />
+        </div>
       </motion.div>
     </div>
   );
