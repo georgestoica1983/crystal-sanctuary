@@ -138,8 +138,11 @@ export interface RelicScoreContext {
   weather?: RunWeather;
 }
 
+/** Rules v20+: the Wandering Gardener's gifts (Seasons 4 and 6) */
+export type GardenerGiftId = "RARE_RELIC" | "GOLDEN_TILES" | "MAX_LIFE" | "SEEDS";
+
 /** Rules v20+: weather on some Small and Big beds from Season 2 */
-export type RunWeather = "GOLDEN_HOUR" | "THICK_BRAMBLES";
+export type RunWeather = "GOLDEN_HOUR" | "THICK_BRAMBLES" | "SPRING_RAIN" | "FIREFLY_NIGHT";
 
 export interface RelicDefinition {
   id: RelicId;
@@ -243,6 +246,8 @@ export interface GridCell {
   dry?: boolean;
   /** Thick Brambles (rules v20): extra Life this Thorn costs (its points stay the same) */
   harm?: number;
+  /** Spring Rain (rules v20): these Berries heal double */
+  wet?: boolean;
 }
 
 export interface HeroStats {
@@ -385,6 +390,8 @@ export interface RunGardenState {
   bossV20?: boolean;
   /** Rules v20+: this bed's weather, if any */
   weather?: RunWeather;
+  /** Rules v20+: the Wandering Gardener is waiting with these gifts (pick one before the first line) */
+  gift?: GardenerGiftId[];
   gardenIndex: number; // 0-based across the whole run
   season: number; // 1-based; > RUN_FINAL_SEASON is Endless
   kind: RunGardenKind;

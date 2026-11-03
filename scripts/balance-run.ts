@@ -104,6 +104,11 @@ for (const budget of BUDGETS) {
           run.apply({ k: "l", h: s.classId });
           continue;
         }
+        // Rules v20: the Wandering Gardener's gift (GIFT=0..2 picks which, default the first)
+        if (s.garden.gift) {
+          run.apply({ k: "g", i: Number(process.env.GIFT ?? 0) });
+          continue;
+        }
         const g = s.garden.gardenIndex;
         if (g !== lastGarden && g < MAX_GARDENS) {
           lifeAtStart[g].push(s.startHero.hp);

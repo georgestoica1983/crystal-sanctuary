@@ -137,7 +137,9 @@ export function RunHudStrip({
       )}
       {/* Garden weather (rules v20) */}
       {garden.weather && (
-        <div className={`text-[13px] leading-snug ${garden.weather === "GOLDEN_HOUR" ? "text-amber-100" : "text-lime-100"}`}>
+        <div className={`text-[13px] leading-snug ${
+            garden.weather === "GOLDEN_HOUR" ? "text-amber-100" : garden.weather === "SPRING_RAIN" || garden.weather === "FIREFLY_NIGHT" ? "text-sky-100" : "text-lime-100"
+          }`}>
           <b>
             {WEATHER_INFO[garden.weather].icon} {WEATHER_INFO[garden.weather].name}:
           </b>{" "}

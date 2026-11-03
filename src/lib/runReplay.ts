@@ -23,6 +23,7 @@ import {
   findEntityCoord,
   generateRunSeedBag,
   generateShopOffers,
+  getRunGardenPosition,
   getInitialHeroStatsForClass,
   getNextFloorHeroStats,
   getRunClearPayout,
@@ -51,6 +52,7 @@ import type {
   GridCoord,
   HeroClassId,
   HeroStats,
+  GardenerGiftId,
   ModifierId,
   PathSimulationResult,
   RelicCounters,
@@ -276,7 +278,8 @@ export function getRunBloomResult(params: {
       runEditionTileCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
       runRulesUseEcho(params.logVersion ?? RUN_LOG_VERSION),
       runRulesUseV16Relics(params.logVersion ?? RUN_LOG_VERSION),
-      runRulesUseV20Relics(params.logVersion ?? RUN_LOG_VERSION)
+      runRulesUseV20Relics(params.logVersion ?? RUN_LOG_VERSION),
+      runRulesUseRareShops(params.logVersion ?? RUN_LOG_VERSION) && getRunGardenPosition(garden.gardenIndex).season >= RARE_SHOP_SEASON
     ),
   };
 }
@@ -461,6 +464,9 @@ export const runRulesUseV16Relics = (logVersion: number) => logVersion >= 16;
 export const runRulesUseV20Relics = (logVersion: number) => logVersion >= 20;
 /** v20: the Spike King walls, the Drought dries Berries, the Toll charges per tile */
 export const runRulesUseV20Bosses = (logVersion: number) => logVersion >= 20;
+/** v20: from Season 4 every Shop has at least one Rare relic */
+export const runRulesUseRareShops = (logVersion: number) => logVersion >= 20;
+export const RARE_SHOP_SEASON = 4;
 /** v20: Golden Hour and Thick Brambles on some Small and Big beds from Season 2 */
 export const runRulesUseWeather = (logVersion: number) => logVersion >= 20;
 /** The Toll (rules v20): tiles up to this Length are free, each one past it costs 1 Seed */
@@ -638,7 +644,8 @@ export function applyRunShopReroll(params: {
       runEditionTileCost(params.logVersion ?? RUN_LOG_VERSION, params.asc),
       runRulesUseEcho(params.logVersion ?? RUN_LOG_VERSION),
       runRulesUseV16Relics(params.logVersion ?? RUN_LOG_VERSION),
-      runRulesUseV20Relics(params.logVersion ?? RUN_LOG_VERSION)
+      runRulesUseV20Relics(params.logVersion ?? RUN_LOG_VERSION),
+      runRulesUseRareShops(params.logVersion ?? RUN_LOG_VERSION) && getRunGardenPosition(params.floorNumber - 1).season >= RARE_SHOP_SEASON
     ),
     cost,
   };
@@ -686,7 +693,80 @@ export function createNextRunGarden(params: {
     weather: runRulesUseWeather(v),
     ...ascensionGardenParams(rules),
   });
+  // Rules v20: the Wandering Gardener waits at the start of Seasons 4 and 6
+  if (runRulesUseGardener(v) && GARDENER_BEDS.includes(params.gardenIndex)) {
+    const gift = gardenerOffers(params.runSeed, params.gardenIndex, params.relics);
+    return { hero, ...next, state: { ...next.state, gift } };
+  }
   return { hero, ...next };
+}
+
+// ── The Wandering Gardener (rules v20): one gift at the start of Seasons 4 and 6 ──
+
+export const runRulesUseGardener = (logVersion: number) => logVersion >= 20;
+/** First beds of Season 4 and Season 6 */
+export const GARDENER_BEDS = [9, 15];
+export const GARDENER_SEEDS = 15;
+export const GARDENER_LIFE = 2;
+export const GARDENER_GOLDEN = 3;
+export const GARDENER_GIFTS: Record<GardenerGiftId, { name: string; icon: string; text: string }> = {
+  RARE_RELIC: { name: "A Rare relic", icon: "🎁", text: "A Rare relic you don't have yet, free." },
+  GOLDEN_TILES: { name: "Golden tiles", icon: "✨", text: `${GARDENER_GOLDEN} tiles in your bag turn Golden (+30 Value each).` },
+  MAX_LIFE: { name: "Stronger roots", icon: "❤️", text: `+${GARDENER_LIFE} max ❤️ Life for the rest of the Run.` },
+  SEEDS: { name: "A purse of Seeds", icon: "🌱", text: `+${GARDENER_SEEDS} 🌱 Seeds right now.` },
+};
+
+/** A seeded Rare relic for the Gardener (null if none left) */
+export function gardenerRelic(runSeed: string, gardenIndex: number, owned: RelicId[]): RelicId | null {
+  const pool = RELIC_LIST.filter((r) => r.rarity === "RARE" && !owned.includes(r.id));
+  if (pool.length === 0) return null;
+  const rng = mulberry32(hashStringToSeed(`gardener-relic-${runSeed}-g${gardenIndex}`));
+  return pool[Math.floor(rng() * pool.length)].id;
+}
+
+/** The three gifts on offer (a relic only when there is room for one) */
+export function gardenerOffers(runSeed: string, gardenIndex: number, relics: RelicId[]): GardenerGiftId[] {
+  const roomForRelic =
+    countCommonRelics(relics) < MAX_COMMON_RELICS && gardenerRelic(runSeed, gardenIndex, relics) !== null;
+  const pool: GardenerGiftId[] = ["GOLDEN_TILES", "MAX_LIFE", "SEEDS", ...(roomForRelic ? (["RARE_RELIC"] as const) : [])];
+  const rng = mulberry32(hashStringToSeed(`gardener-${runSeed}-g${gardenIndex}`));
+  return pool
+    .map((id) => ({ id, k: rng() }))
+    .sort((a, b) => a.k - b.k)
+    .slice(0, 3)
+    .map((x) => x.id);
+}
+
+/** What one gift does: the same for live play, saves and replays */
+export function applyGardenerGift(params: {
+  gift: GardenerGiftId;
+  runSeed: string;
+  gardenIndex: number;
+  relics: RelicId[];
+  bag: SeedTile[];
+  hero: HeroStats;
+}): { relics: RelicId[]; bag: SeedTile[]; hero: HeroStats; relic: RelicId | null } {
+  const { gift, runSeed, gardenIndex } = params;
+  let { relics, bag, hero } = params;
+  let relic: RelicId | null = null;
+  if (gift === "RARE_RELIC") {
+    relic = gardenerRelic(runSeed, gardenIndex, relics);
+    if (relic) relics = [...relics, relic];
+  } else if (gift === "GOLDEN_TILES") {
+    const rng = mulberry32(hashStringToSeed(`gardener-gold-${runSeed}-g${gardenIndex}`));
+    const plain = bag.map((t, i) => ({ t, i })).filter(({ t }) => !t.ed);
+    const chosen = plain
+      .map((x) => ({ ...x, k: rng() }))
+      .sort((a, b) => a.k - b.k)
+      .slice(0, GARDENER_GOLDEN)
+      .map((x) => x.i);
+    bag = bag.map((t, i) => (chosen.includes(i) ? { ...t, ed: "GOLDEN" as const } : t));
+  } else if (gift === "MAX_LIFE") {
+    hero = { ...hero, maxHp: hero.maxHp + GARDENER_LIFE, hp: hero.hp + GARDENER_LIFE };
+  } else if (gift === "SEEDS") {
+    hero = { ...hero, gold: hero.gold + GARDENER_SEEDS };
+  }
+  return { relics, bag, hero, relic };
 }
 
 /**
@@ -760,6 +840,8 @@ export type RunLogAction =
   | { k: "u"; i: number; c: number }
   /** Rules v17+: skip this Small or Big bed for its Tag */
   | { k: "k" }
+  /** Rules v20+: take the Wandering Gardener's gift `i` */
+  | { k: "g"; i: number }
   | { k: "l"; h: HeroClassId };
 
 export interface RunActionLog {
@@ -846,6 +928,7 @@ export function parseRunLog(raw: unknown): RunActionLog | null {
     }
     if (a.k === "l" && isHeroClass(a.h)) continue;
     if (a.k === "k" && log.v >= 17) continue;
+    if (a.k === "g" && log.v >= 20 && typeof a.i === "number" && Number.isInteger(a.i) && a.i >= 0 && a.i < 3) continue;
     if (
       a.k === "u" &&
       log.v >= 13 &&
@@ -936,6 +1019,28 @@ export function createRunReplayer(
 
   const apply = (action: RunLogAction): string | null => {
     if (s.phase === "OVER") return "action after the Run ended";
+
+    // The Wandering Gardener (rules v20): a gift is picked before anything else
+    if (action.k === "g") {
+      const gifts = s.garden.gift;
+      if (s.phase !== "PLAY" || !gifts) return "no gift waiting";
+      const gift = gifts[action.i];
+      if (!gift) return "unknown gift";
+      const got = applyGardenerGift({
+        gift,
+        runSeed,
+        gardenIndex: s.garden.gardenIndex,
+        relics: s.relics,
+        bag: s.bag,
+        hero: s.startHero,
+      });
+      s.relics = got.relics;
+      s.bag = got.bag;
+      s.startHero = got.hero;
+      s.garden = { ...s.garden, gift: undefined };
+      return null;
+    }
+    if (s.garden.gift && s.phase === "PLAY") return "pick the Gardener's gift first";
 
     if (action.k === "s") {
       if (s.phase !== "PLAY") return "stroke outside a garden";

@@ -2,7 +2,9 @@
 
 import Badge from "@/components/Badge";
 import SupplyIcon from "@/components/SupplyIcon";
-import { tileArt, toolArt } from "@/lib/art";
+import { relicArt, tileArt, toolArt } from "@/lib/art";
+import GardenerCard from "@/components/GardenerCard";
+import { applyGardenerGift, GARDENER_GIFTS, gardenerRelic } from "@/lib/runReplay";
 import { useBackClose } from "@/lib/backClose";
 import { BossBeaten, BossIntro, BOSS_LOOK } from "@/components/BossMoments";
 import TipCard from "@/components/TipCard";
@@ -910,6 +912,7 @@ export default function OneStrokeTacticianPage() {
   // weather opens with its weather instead (even with tips switched off)
   useEffect(() => {
     if (mode !== "RUN" || lesson || practiceStep || !runGarden) return;
+    if (runGarden.gift) return; // the Wandering Gardener comes first
     if (!tipsOn && !runGarden.weather) return;
     if (runGarden.gardenIndex === 0 || runGarden.score > 0 || phase !== "PLANNING" || runClear || tally) return;
     if (runGarden.kind === "BOSS") return; // a Boss bed opens with its own intro instead
@@ -922,7 +925,13 @@ export default function OneStrokeTacticianPage() {
         kind: "GAME",
         label: `Weather: ${w.name}`,
         text: w.text.replace(/[❤️🌺]\uFE0F?\s?/gu, ""),
-        art: (runGarden.weather === "GOLDEN_HOUR" ? toolArt("SUNLIT") : tileArt("ENEMY")) ?? "",
+        art:
+          {
+            GOLDEN_HOUR: toolArt("SUNLIT"),
+            THICK_BRAMBLES: tileArt("ENEMY") ?? "",
+            SPRING_RAIN: toolArt("DEW"),
+            FIREFLY_NIGHT: relicArt("LONG_SHADOW"),
+          }[runGarden.weather] ?? "",
       });
       return;
     }
@@ -2496,6 +2505,34 @@ export default function OneStrokeTacticianPage() {
     setShopPruned(false);
     setShopPurchases(0);
     setPhase("SHOP");
+  };
+
+  /** The Wandering Gardener's gift (rules v20): the same rules as the replay */
+  const handlePickGift = (index: number) => {
+    if (!runGarden?.gift) return;
+    const gift = runGarden.gift[index];
+    if (!gift) return;
+    const got = applyGardenerGift({
+      gift,
+      runSeed: dungeon.seedKey,
+      gardenIndex: runGarden.gardenIndex,
+      relics: activeRelics,
+      bag: runBag,
+      hero,
+    });
+    logRunAction({ k: "g", i: index });
+    setActiveRelics(got.relics);
+    setRunBag(got.bag);
+    setHero(got.hero);
+    setFloorStartHero(got.hero);
+    setRunGarden({ ...runGarden, gift: undefined });
+    track("gardener_gift", { gift, bed: runGarden.gardenIndex });
+    soundEngine.playVictoryChord();
+    handleNotice(
+      got.relic
+        ? `🎁 ${RELIC_REGISTRY[got.relic].name} joins your relics.`
+        : `${GARDENER_GIFTS[gift].icon} ${GARDENER_GIFTS[gift].name}: ${GARDENER_GIFTS[gift].text}`
+    );
   };
 
   const handleToggleWeedOut = () => {
@@ -4774,6 +4811,17 @@ export default function OneStrokeTacticianPage() {
       <AnimatePresence>
         {bossIntro && (
           <BossIntro key={`${bossIntro.id}-${bossIntro.preview}`} id={bossIntro.id} preview={bossIntro.preview} onDone={() => setBossIntro(null)} />
+        )}
+      </AnimatePresence>
+      {/* The Wandering Gardener (rules v20): pick one gift before the bed starts */}
+      <AnimatePresence>
+        {mode === "RUN" && !lesson && !practiceStep && runGarden?.gift && phase === "PLANNING" && !bossBeaten && (
+          <GardenerCard
+            gifts={runGarden.gift}
+            relic={gardenerRelic(dungeon.seedKey, runGarden.gardenIndex, activeRelics)}
+            season={runGarden.season}
+            onPick={handlePickGift}
+          />
         )}
       </AnimatePresence>
       <AnimatePresence>

@@ -8,6 +8,8 @@ import {
   bakeBossTile,
   openSpikeWalls,
   runBedWeather,
+  generateRunSeedBag,
+  NO_RUN_UPGRADES,
   previewSeasonBoss,
   countCommonRelics,
   findEntityCoord,
@@ -21,6 +23,8 @@ import {
   simulatePath,
 } from "@/lib/engine";
 import {
+  applyGardenerGift,
+  createNextRunGarden,
   applyGardenTool,
   applyRunShopPrune,
   createRunReplayer,
@@ -125,6 +129,10 @@ function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0
         continue;
       }
       act({ k: "l", h: s.classId });
+      continue;
+    }
+    if (s.garden.gift) {
+      act({ k: "g", i: 0 });
       continue;
     }
     const best = searchBestFloorLine(s.grid, s.startHero, RUN_MODIFIER, s.classId, s.relics, 20000, {
@@ -963,6 +971,48 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
   const lowPlain = calculateFloorScoreBreakdown(lowSim, low, 3, [], {}).total;
   const lowGolden = calculateFloorScoreBreakdown(lowSim, low, 3, [], { weather: "GOLDEN_HOUR" }).total;
   check(`Golden Hour: under half Life scores normally (${lowSim.finalStats.hp} Life left)`, lowSim.finalStats.hp * 2 < 10 && lowGolden === lowPlain);
+}
+
+// 19. The middle game (rules v20): the Wandering Gardener, Rare Shops, late weather
+{
+  // The Gardener waits at the first bed of Seasons 4 and 6, only in v20 Runs
+  const base = { stats: { hp: 10, maxHp: 10, shield: 0, weapon: 0, gold: 12 }, classId: "KNIGHT" as const, relics: [], upgrades: NO_RUN_UPGRADES, runSeed: "gardener-check", bag: generateRunSeedBag("gardener-check") };
+  const at = (gardenIndex: number, v: number) => createNextRunGarden({ ...base, gardenIndex, logVersion: v }).state.gift;
+  check(
+    `the Gardener visits Seasons 4 and 6 in v20 only (bed 9: ${at(9, 20)?.join("/")}, bed 15: ${at(15, 20)?.length} gifts)`,
+    at(9, 20)?.length === 3 && at(15, 20)?.length === 3 && !at(9, 19) && !at(10, 20) && !at(3, 20)
+  );
+  const hero = { hp: 8, maxHp: 10, shield: 0, weapon: 0, gold: 5 };
+  const bag = generateRunSeedBag("gardener-check");
+  const g = (gift: Parameters<typeof applyGardenerGift>[0]["gift"]) =>
+    applyGardenerGift({ gift, runSeed: "gardener-check", gardenIndex: 9, relics: [], bag, hero });
+  check("Gardener: Seeds gift adds 15", g("SEEDS").hero.gold === 20);
+  check("Gardener: Stronger roots adds 2 max Life", g("MAX_LIFE").hero.maxHp === 12 && g("MAX_LIFE").hero.hp === 10);
+  const golden = g("GOLDEN_TILES").bag.filter((t) => t.ed === "GOLDEN").length - bag.filter((t) => t.ed === "GOLDEN").length;
+  check(`Gardener: Golden tiles turns 3 bag tiles Golden (+${golden})`, golden === 3);
+  const rare = g("RARE_RELIC");
+  check(`Gardener: a free Rare relic (${rare.relic})`, Boolean(rare.relic) && RELIC_REGISTRY[rare.relic!].rarity === "RARE");
+  // Rare Shops from Season 4 (v20): every Shop with a relic has a Rare one; v19 Shops unchanged
+  let withRare = 0;
+  let same = 0;
+  for (let f = 1; f <= 60; f++) {
+    const on = generateShopOffers(`rare-${f}`, 10, 0, [], 6, 0, 8, true, true, true, true);
+    const off = generateShopOffers(`rare-${f}`, 10, 0, [], 6, 0, 8, true, true, true, false);
+    const relicsOn = on.filter((o) => o.relicId);
+    if (relicsOn.length === 0 || relicsOn.some((o) => RELIC_REGISTRY[o.relicId!].rarity === "RARE")) withRare++;
+    if (JSON.stringify(off.filter((o) => !o.relicId)) === JSON.stringify(on.filter((o) => !o.relicId))) same++;
+  }
+  check(`Rare Shops: every Shop offers a Rare relic (${withRare} of 60), the rest of the Shop is unchanged (${same} of 60)`, withRare === 60 && same === 60);
+  // Late weather: Spring Rain and Firefly Night only from Season 4
+  let late = 0;
+  let early = 0;
+  for (let i = 0; i < 300; i++) {
+    const a = runBedWeather(`late-${i}`, 10, 4, "SMALL");
+    const b = runBedWeather(`late-${i}`, 4, 2, "BIG");
+    if (a === "SPRING_RAIN" || a === "FIREFLY_NIGHT") late++;
+    if (b === "SPRING_RAIN" || b === "FIREFLY_NIGHT") early++;
+  }
+  check(`Spring Rain and Firefly Night only from Season 4 (${late} of 300 late beds, ${early} early)`, late > 0 && early === 0);
 }
 
 console.log(failures ? `\n${failures} check(s) failed` : "\nAll replay checks passed");

@@ -1851,8 +1851,11 @@ function TileIconWithValue({
   struck = false,
   wilted = false,
   dry = false,
+  wet = false,
   harm = 0,
 }: {
+  /** Spring Rain (rules v20): Berries that heal double */
+  wet?: boolean;
   /** Thick Brambles (rules v20): extra Life this Thorn costs */
   harm?: number;
   type: EntityType;
@@ -1907,6 +1910,14 @@ function TileIconWithValue({
           isBloomed={isBloomed}
         />
       </span>
+      {wet && (
+        <span
+          className="tile-tag absolute -top-1.5 -left-2 z-[3] rounded-full bg-sky-500 px-1 text-[10px] font-black leading-[14px] text-white select-none pointer-events-none"
+          aria-label="Heals double"
+        >
+          ×2
+        </span>
+      )}
       {harm > 0 && !struck && (
         <span
           className="tile-tag absolute -top-1.5 -left-2 z-[3] rounded-full bg-[#B4374A] px-1 text-[10px] font-black leading-[14px] text-white select-none pointer-events-none"
@@ -2091,6 +2102,7 @@ export function CellGeometricNode({
           value={v(isCorrupted ? "-1" : cell.value)}
           isCorrupted={isCorrupted}
           dry={cell.dry}
+          wet={cell.wet}
         />
       );
     }

@@ -1032,7 +1032,9 @@ export function generateShopOffers(
   /** Rules v16+: the new score-again and rule-bending relics join the pool */
   v16Relics = false,
   /** Rules v20+: the exact and careful line relics join the pool */
-  v20Relics = false
+  v20Relics = false,
+  /** Rules v20+, Season 4 on: at least one of the relics on offer is Rare */
+  rareGuarantee = false
 ): ShopOffer[] {
   const rng = mulberry32(
     hashStringToSeed(`shop-${seedKey}-f${floorNumber}-r${rerollIndex}`)
@@ -1062,7 +1064,13 @@ export function generateShopOffers(
     .sort((a, b) => b.key - a.key)
     .map((x) => x.r);
   const relicCount = Math.min(relicPool.length, rng() < 0.35 ? 1 : 2);
-  const offers: ShopOffer[] = relicPool.slice(0, relicCount).map((r, i) => ({
+  const picked = relicPool.slice(0, relicCount);
+  // (no extra random draws, so everything after this stays the same)
+  if (rareGuarantee && picked.length > 0 && !picked.some((r) => r.rarity === "RARE")) {
+    const rare = relicPool.find((r) => r.rarity === "RARE" && !picked.includes(r));
+    if (rare) picked[picked.length - 1] = rare;
+  }
+  const offers: ShopOffer[] = picked.map((r, i) => ({
     id: `f${floorNumber}-r${rerollIndex}-relic${i}`,
     kind: "RELIC",
     relicId: r.id,
@@ -1228,19 +1236,36 @@ export const WEATHER_INFO: Record<RunWeather, { name: string; icon: string; text
     text: "🌺 Thorns cost 2 more ❤️ Life. Their points stay the same.",
     short: "Thorns cost +2 Life",
   },
+  // From Season 4
+  SPRING_RAIN: {
+    name: "Spring Rain",
+    icon: "🌧️",
+    text: "🍓 Berries heal double.",
+    short: "Berries heal double",
+  },
+  FIREFLY_NIGHT: {
+    name: "Firefly Night",
+    icon: "✨",
+    text: "Every 4th tile of your line counts its number twice.",
+    short: "Every 4th tile scores twice",
+  },
 };
-/** Chance a Small or Big bed from Season 2 on has weather */
+/** Chance a Small or Big bed has weather (Seasons 2–3, then from Season 4) */
 export const WEATHER_CHANCE = 1 / 3;
+export const WEATHER_CHANCE_LATE = 1 / 2;
 /** Thick Brambles: extra Life each Thorn costs */
 export const BRAMBLE_HARM = 2;
 const WEATHERS: RunWeather[] = ["GOLDEN_HOUR", "THICK_BRAMBLES"];
+const WEATHERS_LATE: RunWeather[] = ["GOLDEN_HOUR", "THICK_BRAMBLES", "SPRING_RAIN", "FIREFLY_NIGHT"];
 
 /** The weather a bed gets (rules v20), the same every time for its Run seed */
 export function runBedWeather(runSeed: string, gardenIndex: number, season: number, kind: RunGardenKind): RunWeather | undefined {
   if (kind === "BOSS" || season < 2) return undefined;
   const rng = mulberry32(hashStringToSeed(`weather-${runSeed}-g${gardenIndex}`));
-  if (rng() >= WEATHER_CHANCE) return undefined;
-  return WEATHERS[Math.floor(rng() * WEATHERS.length)];
+  const late = season >= 4;
+  if (rng() >= (late ? WEATHER_CHANCE_LATE : WEATHER_CHANCE)) return undefined;
+  const pool = late ? WEATHERS_LATE : WEATHERS;
+  return pool[Math.floor(rng() * pool.length)];
 }
 
 /** The Even Garden sets every tile to these numbers (Thorns and Spikes lower) */
@@ -1979,7 +2004,8 @@ export function simulatePath(
             const cap = effectiveMaxHp;
             const extraFoxHeal = heroClassId === "MAGE" ? 2 : 0;
             // The Drought (rules v20): dry Berries still score, but heal nothing
-            const potionValue = cell.dry ? 0 : cell.value + extraFoxHeal;
+            // (Spring Rain, rules v20: wet Berries heal double)
+            const potionValue = cell.dry ? 0 : (cell.value + extraFoxHeal) * (cell.wet ? 2 : 1);
             const healed = Math.min(cap - hp, potionValue);
             hp = Math.min(cap, hp + potionValue);
             note =
@@ -2304,6 +2330,11 @@ export function calculateFloorScoreBreakdown(
   addChips("BELL_TOWER", echoValue);
   addChips("ACORN_GATE", sim.endsOnExit ? 8 : 0);
   addChips("LONG_SHADOW", visited.filter((_, i) => (i + 1) % 5 === 0).reduce((n, s) => n + tileNumber(s), 0));
+  // Firefly Night (rules v20 weather): every 4th tile counts its number again
+  if (ctx.weather === "FIREFLY_NIGHT") {
+    const fireflies = visited.filter((_, i) => (i + 1) % 4 === 0).reduce((n, s) => n + tileNumber(s), 0);
+    if (fireflies > 0) chipSources.push({ label: WEATHER_INFO.FIREFLY_NIGHT.name, value: fireflies });
+  }
   // Special tiles on this line (rules v14+); Sunbeam Lens counts them twice
   const lens = has("SUNBEAM_LENS") ? 2 : 1;
   const shimmer = (ed: Edition) => lens * scoringSteps.filter((s) => s.cell.bagTile?.ed === ed).length;
@@ -3631,6 +3662,7 @@ function runTileToCell(
     bagTile: tile,
   };
   if (weather === "THICK_BRAMBLES" && cell.type === "ENEMY") cell.harm = BRAMBLE_HARM;
+  if (weather === "SPRING_RAIN" && cell.type === "POTION") cell.wet = true;
   return bossRuleId ? bakeBossTile(cell, bossRuleId, bossV20) : cell;
 }
 
