@@ -521,3 +521,9 @@ svg text,
 @media (prefers-reduced-motion: reduce) {
   .lawn-fringe { animation: none; }
 }
+
+/* Journal page chips: fade at both screen edges while the row scrolls */
+.journal-chips {
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 16px), transparent);
+  mask-image: linear-gradient(to right, transparent, #000 16px, #000 calc(100% - 16px), transparent);
+}

@@ -287,7 +287,8 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
           <div className="h-full bg-amber-300/80" style={{ width: `${pct}%` }} />
         </div>
         {/* Pages */}
-        <div className="mt-3 flex gap-1.5 overflow-x-auto no-scrollbar">
+        {/* Runs to the screen edges and fades there, so it reads as "more this way" */}
+        <div className="journal-chips mt-3 -mx-4 px-4 flex gap-1.5 overflow-x-auto no-scrollbar">
           {PAGES.map((p) => {
             const list = pages[p.id];
             const n = list.filter((e) => e.found).length;
@@ -295,10 +296,11 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
               <button
                 key={p.id}
                 type="button"
-                onClick={() => {
+                onClick={(ev) => {
                   setPage(p.id);
                   setScreen(0);
                   setPicked(null);
+                  ev.currentTarget.scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
                 }}
                 aria-pressed={page === p.id}
                 className={`shrink-0 h-8 px-3 rounded-full border text-[12px] font-semibold ${
@@ -340,12 +342,9 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
               <span style={e.found ? undefined : { filter: "brightness(0) opacity(0.35)" }} className="flex items-center justify-center">
                 {e.art}
               </span>
-              {isNew(e) && (
-                <span className="absolute top-1 right-1 rounded-full bg-lime-300 px-1 text-[8px] font-black leading-[12px] text-slate-950">
-                  NEW
-                </span>
-              )}
-              <span className={`w-full truncate text-center text-[9.5px] leading-tight ${e.found ? "text-white/75" : "text-white/30"}`}>
+              {/* New since last visit: the same small dot as on the page chips, in the corner clear of the art */}
+              {isNew(e) && <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-lime-300" aria-label="new" />}
+              <span className={`w-full line-clamp-2 text-center text-[9.5px] leading-tight ${e.found ? "text-white/75" : "text-white/30"}`}>
                 {e.found ? e.name : "?"}
               </span>
             </motion.button>

@@ -4384,8 +4384,9 @@ export default function OneStrokeTacticianPage() {
           )}
 
           {/* Interactive 5x5 Path-Drawing Board: a square that fills the space
-              left on screen (smaller on short phones, up to 520px) */}
-          <div data-area="board" className="relative w-full max-w-game min-h-[220px] max-h-[min(calc((100vw-1rem)*1.2),624px)] grow-[1000] basis-0 !shrink flex items-center justify-center [container-type:size]">
+              left on screen (smaller on short phones, up to 520px, scaled like
+              the top card and the buttons so the column lines up on tablets) */}
+          <div data-area="board" className="relative w-full max-w-[calc(520px*var(--ui-zoom,1))] min-h-[220px] max-h-[min(calc((100vw-1rem)*1.2),calc(624px*var(--ui-zoom,1)))] grow-[1000] basis-0 !shrink flex items-center justify-center [container-type:size]">
           <div
             className="relative w-[min(100cqw,100cqh)] h-[min(100cqh,calc(min(100cqw,100cqh)*1.2))] rounded-2xl"
             style={

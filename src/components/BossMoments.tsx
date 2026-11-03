@@ -147,6 +147,7 @@ export function BossIntro({ id, preview = false, onDone }: { id: BossRuleId; pre
     return () => window.clearTimeout(t);
   }, [preview, onDone]);
 
+  // The Boss's colour glows over a near-solid ground, so the board never shows through the text
   return (
     <motion.button
       type="button"
@@ -156,7 +157,7 @@ export function BossIntro({ id, preview = false, onDone }: { id: BossRuleId; pre
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="ui-zoom fixed inset-0 z-[68] overflow-hidden flex flex-col items-center justify-center px-6 text-center text-white cursor-pointer select-none"
-      style={{ background: `radial-gradient(ellipse at 50% 40%, ${look.color}33 0%, #101813 70%)` }}
+      style={{ background: `radial-gradient(ellipse at 50% 40%, ${look.color}33 0%, transparent 70%), rgba(16, 24, 19, 0.95)` }}
     >
       {!still && <EffectLayer id={id} />}
       <motion.div
