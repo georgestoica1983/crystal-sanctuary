@@ -2,6 +2,7 @@
 
 import Badge from "@/components/Badge";
 import { Pencil, Trophy } from "lucide-react";
+import { companionArt } from "@/lib/art";
 import { BackButton } from "@/components/SheetBits";
 import { useBackClose } from "@/lib/backClose";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -42,9 +43,13 @@ function Row({ row }: { row: RunLeaderboardRow }) {
       <div className="min-w-0">
         <div className="text-[13px] font-bold text-white truncate">
           {row.hero && HERO_CLASS_REGISTRY[row.hero as HeroClassId] && (
-            <span className="mr-1" aria-label={HERO_CLASS_REGISTRY[row.hero as HeroClassId].sanctuaryShortName}>
-              {HERO_CLASS_REGISTRY[row.hero as HeroClassId].sanctuaryEmblem ?? HERO_CLASS_REGISTRY[row.hero as HeroClassId].emblem}
-            </span>
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={companionArt(row.hero as HeroClassId)}
+              alt={HERO_CLASS_REGISTRY[row.hero as HeroClassId].sanctuaryShortName ?? ""}
+              draggable={false}
+              className="mr-1 inline-block h-[1.3em] w-[1.3em] align-[-0.3em] object-contain"
+            />
           )}
           {row.name}
           {!!row.asc && (

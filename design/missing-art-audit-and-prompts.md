@@ -201,5 +201,5 @@ Constraints:
    - music → set notice and Journal Sets page;
    - Hint → rules;
    - rotate phone → the upright screen.
-4. **Code-only fixes from the audit (rows 12–15):** companion art in leaderboard rows, a colour swatch on line-colour unlocks, the Golden badge in the Golden tile notice, the Toll Boss art in the Toll notice.
+4. **Code-only fixes from the audit (rows 12–15):** ✅ done. Leaderboard rows show companion portraits, and line-colour unlocks show a swatch. The special-tile notice shows that tile's badge (💛 🔮 💠 markers), and the Toll notice shows the Toll Boss (🎟 marker).
 5. Check every swapped spot at 375 and 320 phone widths.

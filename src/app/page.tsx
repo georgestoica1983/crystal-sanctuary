@@ -1856,7 +1856,7 @@ export default function OneStrokeTacticianPage() {
       } else if (offer.stat === "START_DEW") {
         handleNotice(`${SHOP_STAT_BOOSTS.START_DEW.icon} +1 Gloves at the start of every garden!`);
       } else if (offer.kind === "TILE" && offer.tile?.ed) {
-        handleNotice(`✨ A ${EDITIONS[offer.tile.ed].name} tile (${EDITIONS[offer.tile.ed].tag}) joins your bag. It shimmers when it's on the board.`);
+        handleNotice(`${{ GOLDEN: "💛", IRIDESCENT: "🔮", RADIANT: "💠" }[offer.tile.ed] ?? ""} A ${EDITIONS[offer.tile.ed].name} tile (${EDITIONS[offer.tile.ed].tag}) joins your bag. It shimmers when it's on the board.`);
       } else if (offer.kind === "TOOL" && offer.tool) {
         handleNotice(`${GARDEN_TOOLS[offer.tool].icon} ${GARDEN_TOOLS[offer.tool].name} is in your tools. Tap it under the board, then a tile.`);
       } else if (offer.kind === "FERT" && offer.fert) {
@@ -2252,7 +2252,7 @@ export default function OneStrokeTacticianPage() {
     setRelicCounters(countersAfter);
     logRunAction({ k: "s", p: packCoords(path) });
     if (garden.bossRuleId === "TOLL" && floorStartHero.gold > afterStroke.gold) {
-      handleNotice(`🪙 The Toll took ${floorStartHero.gold - afterStroke.gold} Seeds for that line.`);
+      handleNotice(`🎟 The Toll took ${floorStartHero.gold - afterStroke.gold} Seeds for that line.`);
     }
     // Rules v13+: each Dewy tile this line passed loses a line of Dew (as the replay does)
     let strokeGrid = currentFloor.grid;
