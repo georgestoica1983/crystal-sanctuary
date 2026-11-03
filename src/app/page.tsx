@@ -9,7 +9,7 @@ import { applyGardenerGift, GARDENER_GIFTS, gardenerRelic } from "@/lib/runRepla
 import { useBackClose } from "@/lib/backClose";
 import { BossBeaten, BossIntro, BOSS_LOOK } from "@/components/BossMoments";
 import TipCard from "@/components/TipCard";
-import { loadTipsOn, markTipSeen, saveTipsOn, SPIKE_TIP, takeNextTip, tipDueThisBed, toolReminderTip, type Tip } from "@/lib/tips";
+import { loadTipsOn, markTipSeen, takeCloser, saveTipsOn, SPIKE_TIP, takeNextTip, tipDueThisBed, toolReminderTip, type Tip } from "@/lib/tips";
 import { countRunStarted, runsStarted, TEACHING_RUNS } from "@/lib/playCount";
 import IntroSplash from "@/components/IntroSplash";
 import { watchUiScale } from "@/lib/uiScale";
@@ -2190,6 +2190,7 @@ export default function OneStrokeTacticianPage() {
       daily: dailyDate ? { dateKey: dailyDate, record: dailyRec, streak: dailyStatus(dailyDate).streak } : undefined,
       seedCode: practiceStep ? null : seedCodeOf(dungeon.seedKey),
       fromCode: !practiceStep && isRunFromCode(dungeon.seedKey),
+      closer: !practiceStep && takeCloser(),
       best: record,
       isNewBest: isNew,
       asc: practiceStep ? 0 : runLogRef.current?.asc ?? 0,

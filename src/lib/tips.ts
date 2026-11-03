@@ -5,13 +5,14 @@ import {
   EDITIONS,
   MAX_COMMON_RELICS,
   MAX_TOOLS,
+  RUN_INTEREST_MAX,
   RUN_INTEREST_STEP,
   RUN_REROLL_BASE_COST,
   RUN_STROKES_PER_GARDEN,
   RUN_WEEDOUT_MAX_TILES,
   RUN_WEEDOUTS_PER_GARDEN,
 } from "@/lib/engine";
-import { RUN_SKIP_TARGET_MULT } from "@/lib/runReplay";
+import { RUN_CLEAR_LIFE, RUN_SKIP_TARGET_MULT } from "@/lib/runReplay";
 import { RELIC_SET_X } from "@/lib/relicTags";
 import type { HeroClassId } from "@/types/game";
 
@@ -191,7 +192,6 @@ export const GARDEN_TIPS: Tip[] = [
   ["Many oaks grow from acorns that squirrels buried and forgot to dig up.", tile("GOLD")],
   ["Birds eat berries and drop the seeds far away, planting new bushes.", tile("POTION")],
   ["Dew forms on cool, clear nights, and small plants sip it at dawn.", toolArt("DEW")],
-  ["A garden is never finished. That's the best part.", decorArt("gate")],
 ].map(([text, art]) => ({ kind: "GARDEN" as const, text, art }));
 
 // Seen tips are kept by id (game) or text (gardening)
@@ -209,6 +209,49 @@ function loadSeen(): Record<TipKind, string[]> {
   }
 }
 
+/** The closer: shown once, on the end screen of the first finished Run */
+export const CLOSER_TIP: Tip = { kind: "GARDEN", id: "closer", text: "A garden is never finished. That's the best part.", art: decorArt("gate") };
+
+// Every tip ever shown, kept for the Journal's Tips page (never reset)
+const BOOK_KEY = "ost_tips_book_v1";
+
+export function loadTipBook(): Set<string> {
+  try {
+    const raw = JSON.parse(window.localStorage.getItem(BOOK_KEY) ?? "[]");
+    return new Set(Array.isArray(raw) ? raw : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function addToBook(key: string): void {
+  const book = loadTipBook();
+  if (book.has(key)) return;
+  book.add(key);
+  try {
+    window.localStorage.setItem(BOOK_KEY, JSON.stringify([...book]));
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+/** True once: the first finished Run gets the closer (and it goes in the book) */
+export function takeCloser(): boolean {
+  if (loadTipBook().has("closer")) return false;
+  addToBook("closer");
+  return true;
+}
+
+/** Every tip for the Journal, its numbers filled in from the base rules */
+export function allTipsForBook(): Array<{ key: string; kind: TipKind; text: string; art: string }> {
+  const base: TipContext = { runs: 1, gardenIndex: 0, highestBed: 0, companions: [], interestCap: RUN_INTEREST_MAX, clearLife: RUN_CLEAR_LIFE };
+  return [
+    ...GAME_TIPS.map((t) => ({ key: t.id, kind: "GAME" as const, text: tipText(t.text, base), art: t.art })),
+    ...GARDEN_TIPS.map((t) => ({ key: t.text, kind: "GARDEN" as const, text: t.text, art: t.art })),
+    { key: "closer", kind: "GARDEN" as const, text: CLOSER_TIP.text, art: CLOSER_TIP.art },
+  ];
+}
+
 function saveSeen(seen: Record<TipKind, string[]>, kind?: TipKind): void {
   try {
     window.localStorage.setItem(SEEN_KEY, JSON.stringify(seen));
@@ -222,6 +265,7 @@ function saveSeen(seen: Record<TipKind, string[]>, kind?: TipKind): void {
 export function markTipSeen(tip: Tip): void {
   const seen = loadSeen();
   if (!seen[tip.kind].includes(seenKey(tip))) saveSeen({ ...seen, [tip.kind]: [...seen[tip.kind], seenKey(tip)] });
+  addToBook(seenKey(tip));
 }
 
 /**
@@ -263,6 +307,7 @@ export function takeNextTip(ctx: TipContext): Tip {
     unseen[Math.floor(Math.random() * unseen.length)];
   seen[kind] = [...seen[kind], key(pick)];
   saveSeen(seen, kind);
+  addToBook(key(pick));
   return { kind, id: pick.id, text: tipText(pick.text, ctx), art: pick.art, label: pick.label };
 }
 

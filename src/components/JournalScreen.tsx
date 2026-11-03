@@ -24,6 +24,8 @@ import { loadJournal, markJournalSeen } from "@/lib/journal";
 import { journalFound } from "@/lib/journalProgress";
 import { badgeArt, type BadgeId, decorArt, gardenArt, relicArt, relicHasArt, tagArt, themeArt, tileArt, toolArt, upgradeArt, visitorArt } from "@/lib/art";
 import { formatScore } from "@/lib/formatScore";
+import { allTipsForBook, loadTipBook } from "@/lib/tips";
+import { artify } from "@/components/ArtText";
 import RelicIcon from "@/components/RelicIcon";
 import { MUSIC_LAYERS, MusicLayer } from "@/lib/audio";
 import EntityIcon from "@/components/EntityIcon";
@@ -42,7 +44,9 @@ interface Entry {
   record?: string;
 }
 
-type PageId = "RELICS" | "SETS" | "GARDEN" | "BOSSES" | "SUPPLIES" | "VISITORS" | "COMPANIONS";
+type PageId = "RELICS" | "SETS" | "GARDEN" | "BOSSES" | "SUPPLIES" | "VISITORS" | "COMPANIONS" | "TIPS";
+/** Pages that don't count toward the Journal's percent (and its rewards) */
+const UNCOUNTED: PageId[] = ["TIPS"];
 const PAGES: Array<{ id: PageId; label: string }> = [
   { id: "RELICS", label: "Relics" },
   { id: "SETS", label: "Sets" },
@@ -51,6 +55,7 @@ const PAGES: Array<{ id: PageId; label: string }> = [
   { id: "SUPPLIES", label: "Supplies" },
   { id: "VISITORS", label: "Visitors" },
   { id: "COMPANIONS", label: "Companions" },
+  { id: "TIPS", label: "Tips" },
 ];
 
 const img = (src: string | null | undefined, size = 40) =>
@@ -197,7 +202,18 @@ function buildPages(): Record<PageId, Entry[]> {
     hint: `Arrives when you have grown ${at} plants.`,
   }));
 
-  return { RELICS: relics, SETS: sets, GARDEN: [...plants, ...decor], BOSSES: bosses, SUPPLIES: supplies, VISITORS: visitors, COMPANIONS: companions };
+  // Tips fill in as they're shown between beds
+  const book = loadTipBook();
+  const tips: Entry[] = allTipsForBook().map((t, i) => ({
+    id: `tip-${i}`,
+    name: t.text.split(/\s+/).slice(0, 4).join(" ").replace(/[.,:]$/, "") + "…",
+    found: book.has(t.key),
+    art: img(t.art, 40),
+    text: `${t.kind === "GAME" ? "Game tip" : "Gardening tip"}: ${t.text}`,
+    hint: "Tips show between beds. This one hasn't come up yet.",
+  }));
+
+  return { RELICS: relics, SETS: sets, GARDEN: [...plants, ...decor], BOSSES: bosses, SUPPLIES: supplies, VISITORS: visitors, COMPANIONS: companions, TIPS: tips };
 }
 
 /** The Garden Journal: a collection book, with hints for what's still missing */
@@ -236,7 +252,7 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
   if (!open || !pages) return null;
   const isNew = (e: Entry) => e.found && !seenAtOpen.has(e.id);
 
-  const all = Object.values(pages).flat();
+  const all = (Object.keys(pages) as PageId[]).filter((id) => !UNCOUNTED.includes(id)).flatMap((id) => pages[id]);
   const total = all.filter((e) => e.found).length;
   const pct = Math.round((total / all.length) * 100);
   const screens = Math.max(1, Math.ceil(pages[page].length / fit.perScreen));
@@ -377,7 +393,7 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
             className="absolute inset-x-0 bottom-16 mx-auto w-[calc(100%-2rem)] max-w-[398px] rounded-2xl border border-white/10 bg-[#1F2E24] px-4 py-3 text-white shadow-2xl"
           >
             <div className="font-display text-[16px] font-bold">{picked.found ? picked.name : "Not found yet"}</div>
-            <div className="font-hand text-[13px] leading-snug text-white/75">{picked.found ? picked.text : picked.hint}</div>
+            <div className="font-hand text-[13px] leading-snug text-white/75">{artify(picked.found ? picked.text : picked.hint)}</div>
             {picked.found && picked.record && <div className="mt-0.5 text-[12px] font-semibold text-amber-200">{picked.record}</div>}
           </motion.div>
         )}

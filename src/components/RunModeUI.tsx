@@ -25,6 +25,7 @@ import { tileArt } from "@/lib/art";
 import { pickNextGoal } from "@/lib/unlocks";
 import { DailyRecord, dailyGridRows, dailyShareText } from "@/lib/daily";
 import { seedCodeLink } from "@/lib/seedCode";
+import { CLOSER_TIP } from "@/lib/tips";
 
 const BLOOM_ART = tileArt("ENEMY", { bloomed: true }) ?? "";
 import { soundEngine } from "@/lib/audio";
@@ -779,6 +780,8 @@ export interface RunOverInfo {
   seedCode?: string | null;
   /** Planted from someone else's code */
   fromCode?: boolean;
+  /** The first finished Run: the closing line is shown, once ever */
+  closer?: boolean;
 }
 
 /** Why the garden rests: said gently, never as a failure */
@@ -998,6 +1001,18 @@ export function RunOverModal({
                 />
               </div>
             )}
+          </motion.div>
+        )}
+
+        {info.closer && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 1 }}
+            className="flex items-center gap-2.5 px-1"
+          >
+            <img src={CLOSER_TIP.art} alt="" aria-hidden="true" draggable={false} className="h-10 w-10 shrink-0 object-contain" />
+            <p className="font-hand text-[16px] leading-snug text-amber-50/90">{CLOSER_TIP.text}</p>
           </motion.div>
         )}
 
