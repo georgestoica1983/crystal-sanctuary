@@ -22,7 +22,7 @@ import {
 } from "@/lib/engine";
 import RelicIcon from "@/components/RelicIcon";
 import { tileArt } from "@/lib/art";
-import { getNextStarUnlocks, loadUnlockProgress } from "@/lib/unlocks";
+import { pickNextGoal } from "@/lib/unlocks";
 
 const BLOOM_ART = tileArt("ENEMY", { bloomed: true }) ?? "";
 import { soundEngine } from "@/lib/audio";
@@ -755,12 +755,8 @@ export function RunOverModal({
     track("feedback_prompt");
   }, [info, askFeedback]);
   if (!info) return null;
-  // What the next Run can earn: the nearest star unlock
-  const progress = loadUnlockProgress();
-  const next = getNextStarUnlocks(progress);
-  const nextUnlock = next
-    ? { stars: next.stars, have: progress.stars, text: next.items.map((u) => `${u.icon} ${u.name}`).join(" · ") }
-    : null;
+  // One thing for the next Run to aim at, shown before the harvest
+  const goal = pickNextGoal(info.asc ?? 0);
   const shortBy = Math.max(0, info.target - info.gardenScore);
   const why =
     info.reason === "MISSED_TARGET"
@@ -800,6 +796,30 @@ export function RunOverModal({
           <div className="mt-1 text-[22px] font-display font-semibold text-amber-100">The garden rests</div>
           <p className="text-[13px] text-white/70 leading-snug mt-1">{why}</p>
         </div>
+
+        {goal && (
+          <motion.div
+            initial={{ scale: 0.94, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 260, damping: 18, delay: 0.2 }}
+            className="rounded-xl border-2 border-teal-300/60 bg-teal-300/10 px-3 py-2.5"
+          >
+            <div className="text-[11px] font-semibold text-teal-200/80">Next goal</div>
+            <div className="mt-0.5 flex items-center gap-2">
+              <span className="text-[22px] leading-none">{goal.icon}</span>
+              <span className="text-[15px] font-bold text-white leading-tight">{goal.title}</span>
+            </div>
+            <p className="mt-1 text-[12px] text-white/65 leading-snug">{goal.detail}</p>
+            {goal.need !== undefined && goal.have !== undefined && (
+              <div className="mt-1.5 h-1.5 rounded-full bg-white/10 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-amber-300"
+                  style={{ width: `${Math.min(100, (goal.have / goal.need) * 100)}%` }}
+                />
+              </div>
+            )}
+          </motion.div>
+        )}
 
         <div className="rounded-xl border border-white/10 bg-white/[0.04] p-2.5 space-y-1.5 text-[12.5px]">
           <div className="text-[11px] font-semibold text-white/45">Your harvest</div>
@@ -864,12 +884,6 @@ export function RunOverModal({
           {info.isNewBest ? "✨ Your best Garden Run yet! " : "Best Garden Run: "}
           {getRunGardenLabel(info.best.gardenIndex)}
         </div>
-        {nextUnlock && (
-          <div className="text-center text-[12px] text-white/60 -mt-1">
-            <Badge id="star" /> {nextUnlock.have} · next: <span className="font-semibold text-white/85">{nextUnlock.text}</span> in{" "}
-            {nextUnlock.stars - nextUnlock.have} <Badge id="star" />
-          </div>
-        )}
 
         {feedbackAsk && (
           <a

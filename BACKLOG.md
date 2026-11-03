@@ -42,7 +42,7 @@ Everything below this section is parked until this is done.
 - [x] 21. Bring in upgrade types gradually across the first Seasons.
 
 **Coming back and sharing**
-- [ ] 22. The end screen points forward: one next goal first.
+- [x] 22. The end screen points forward: one next goal first.
 - [ ] 23. A good place to stop: "Stop here, resume later" after each Boss (quick mode fits here).
 - [ ] 24. Shareable daily result grid, and the daily easier to find.
 - [ ] 25. Shareable seeded Runs (a code like MOSS-4821) using the replay system.

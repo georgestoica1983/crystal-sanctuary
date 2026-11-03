@@ -1,6 +1,7 @@
 import { BoardThemeId, HeroClassId, SanctuaryCompanionId, TrailSkinId } from "@/types/game";
 import { loadBestStars, totalBestStars } from "@/lib/runStars";
-import { loadBestClearedAscension } from "@/lib/ascension";
+import { getRunGardenLabel } from "@/lib/engine";
+import { ASCENSION_UNLOCK_BED, loadBestClearedAscension, loadUnlockedAscension } from "@/lib/ascension";
 import { journalPercent } from "@/lib/journalProgress";
 
 /**
@@ -140,6 +141,77 @@ export function getNextStarUnlocks(p: UnlockProgress = loadUnlockProgress()): { 
   if (ahead.length === 0) return null;
   const stars = Math.min(...ahead.map((u) => u.need.stars!));
   return { stars, items: ahead.filter((u) => u.need.stars === stars) };
+}
+
+/** The one goal the end screen points at: the nearest reward still ahead */
+export interface NextGoal {
+  icon: string;
+  title: string;
+  detail: string;
+  /** Filled bar for star goals */
+  have?: number;
+  need?: number;
+}
+
+/** Stars this close count as "nearly there" and win over a far Season goal */
+const NEAR_STARS = 3;
+/** A Season goal this many beds past the furthest reached still feels close */
+const NEAR_BEDS = 3;
+
+/**
+ * Picks one next goal after a Run: a star reward that's nearly earned, then the
+ * next Season that wakes something, then a higher Ascension, then beating the
+ * furthest bed reached (a far-off Season is too distant to aim at), and
+ * finally the next star reward however far.
+ */
+export function pickNextGoal(asc = 0, p: UnlockProgress = loadUnlockProgress()): NextGoal | null {
+  const reached = p.highestBed;
+  const stars = getNextStarUnlocks(p);
+  const starGoal = (): NextGoal | null =>
+    stars && {
+      icon: stars.items[0].icon,
+      title: `${stars.stars - p.stars} more ⭐ for ${stars.items.map((u) => u.name).join(" and ")}`,
+      detail: "Bloom a bed with a line to spare for ⭐⭐, and reach 1.5× its target too for ⭐⭐⭐.",
+      have: p.stars,
+      need: stars.stars,
+    };
+  if (stars && stars.stars - p.stars <= NEAR_STARS) return starGoal();
+
+  // Seasons that wake something, and beating the Season 3 Boss for Ascension
+  const seasonGoals: Array<{ bed: number; icon: string; title: string; detail: string }> = UNLOCKS.filter(
+    (u) => u.need.season !== undefined && !isUnlocked(u, p)
+  ).map((u) => ({
+    bed: (u.need.season! - 1) * 3,
+    icon: u.icon,
+    title: `Reach Season ${u.need.season}`,
+    detail: `Wakes ${u.icon} ${u.name}.`,
+  }));
+  if (loadUnlockedAscension() === 0)
+    seasonGoals.push({
+      bed: ASCENSION_UNLOCK_BED + 1,
+      icon: "🔥",
+      title: "Beat the Season 3 Boss",
+      detail: "Opens Ascension: harder Runs with bigger rewards.",
+    });
+  const season = seasonGoals.filter((g) => g.bed > reached).sort((a, b) => a.bed - b.bed)[0];
+  if (season && season.bed - reached <= NEAR_BEDS) return season;
+
+  const openAsc = loadUnlockedAscension();
+  if (openAsc > asc) {
+    return {
+      icon: "🔥",
+      title: `Try Ascension ${openAsc}`,
+      detail: "You've opened it. Pick it when you plant your next Run.",
+    };
+  }
+  if (reached > 0) {
+    return {
+      icon: "🌱",
+      title: `Bloom past ${getRunGardenLabel(reached)}`,
+      detail: "That's the furthest bed you've reached. One more bed beats it.",
+    };
+  }
+  return starGoal();
 }
 
 /** Current Gardener rank and the next one to aim for */
