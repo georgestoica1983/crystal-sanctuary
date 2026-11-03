@@ -150,6 +150,12 @@ export interface RelicScoreContext {
 }
 
 /** Rules v22+: Seed packets, one-use items (some act at once, some on the next line) */
+/** Rules v24+: a starting Tile Bag picked for the Run (none = the usual Garden bag) */
+export type BagId = "THORNY" | "ACORN" | "BERRY" | "LEAN";
+
+/** Rules v24+: a rare Shop moment (a Sale, a free reroll, or two relics for one) */
+export type ShopMomentId = "SALE" | "FREE_REROLL" | "TWO_FOR_ONE";
+
 export type PacketId =
   | "LONG_ROOT"
   | "ROSE_CHARM"
@@ -227,6 +233,8 @@ export interface ShopOffer {
   /** Fertilizer: the tile type it levels up for the rest of the Run */
   fert?: FertTile;
   cost: number;
+  /** Rules v24+: the price before a Shop moment (Sale or Two for one) */
+  wasCost?: number;
 }
 
 /** Chips × Mult breakdown of one garden's score */

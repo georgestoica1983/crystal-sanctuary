@@ -13,6 +13,7 @@ import {
   RunUpgrades,
   SeedTile,
   ShopOffer,
+  ShopMomentId,
 } from "@/types/game";
 import {
   BOSS_RULE_REGISTRY,
@@ -32,7 +33,7 @@ import {
 } from "@/lib/engine";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import PruneSheet from "@/components/PruneCard";
-import { miscArt, packetArt, statArt, themeArt, tileArt } from "@/lib/art";
+import { miscArt, packetArt, shopMomentArt, statArt, themeArt, tileArt } from "@/lib/art";
 import SupplyIcon from "@/components/SupplyIcon";
 import {
   getRelicTags,
@@ -43,7 +44,7 @@ import {
   setProgressFor,
 } from "@/lib/relicTags";
 import RelicIcon from "@/components/RelicIcon";
-import { GARDEN_UPGRADES, MAX_PACKETS, RUN_PRUNE_COST, SEED_PACKETS } from "@/lib/runReplay";
+import { GARDEN_UPGRADES, MAX_PACKETS, RUN_PRUNE_COST, SEED_PACKETS, SHOP_MOMENTS } from "@/lib/runReplay";
 import { artify } from "@/components/ArtText";
 
 /** Small build-theme chip (🌺 Thorns) */
@@ -88,6 +89,8 @@ interface ShopModalProps {
   toolsHeld?: number;
   /** Seed packets held (rules v22+): two at most */
   packetsHeld?: number;
+  /** Rules v24+: this Shop's rare moment, while it still applies */
+  moment?: ShopMomentId | null;
   /** Rules v23+: the coming Boss (this Season's, or next Season's after a Boss bed) and its reroll */
   bossReroll?: { id: BossRuleId; season: number; isNext: boolean; cost: number; done: boolean; onReroll: () => void } | null;
   /** Selling relics (Run); hidden when omitted */
@@ -102,11 +105,17 @@ interface ShopModalProps {
 }
 
 /** An offer tile's price, the same chip on every tile: seed and number, ✓ once bought, a lock when there's no room */
-function PriceChip({ sold, blocked, affordable, cost }: { sold: boolean; blocked: boolean; affordable: boolean; cost: number }) {
+function PriceChip({ sold, blocked, affordable, cost, deal = false }: { sold: boolean; blocked: boolean; affordable: boolean; cost: number; deal?: boolean }) {
   return (
     <span
       className={`absolute top-1 right-1 flex items-center gap-0.5 rounded-md px-1 text-[10.5px] leading-[15px] font-mono font-black ${
-        sold ? "text-white/50" : affordable && !blocked ? "bg-amber-400/20 text-amber-200" : "bg-white/[0.06] text-white/40"
+        sold
+          ? "text-white/50"
+          : deal && !blocked
+          ? "bg-rose-400/30 text-rose-50 ring-1 ring-rose-300/60"
+          : affordable && !blocked
+          ? "bg-amber-400/20 text-amber-200"
+          : "bg-white/[0.06] text-white/40"
       }`}
     >
       {sold ? "✓" : blocked ? <Lock className="w-3 h-3" /> : (
@@ -348,6 +357,7 @@ export default function ShopModal({
   toolsHeld = 0,
   packetsHeld = 0,
   bossReroll = null,
+  moment = null,
   onSell,
   bag,
   pruned = false,
@@ -522,7 +532,15 @@ export default function ShopModal({
         onClick={() => onBuy(offer)}
         className="h-11 w-full rounded-xl bg-amber-300 text-slate-950 font-bold text-[15px] active:scale-95 transition disabled:bg-white/10 disabled:text-white/45"
       >
-        {sold ? "Bought" : blocked ? "No room" : affordable ? `Buy for ${offer.cost} 🌱` : `Needs ${offer.cost} 🌱`}
+        {sold
+          ? "Bought"
+          : blocked
+          ? "No room"
+          : offer.wasCost !== undefined && offer.cost === 0
+          ? "Take it, free"
+          : affordable
+          ? `Buy for ${offer.cost} 🌱${offer.wasCost !== undefined ? ` (was ${offer.wasCost})` : ""}`
+          : `Needs ${offer.cost} 🌱`}
       </button>
     );
     const completes = relicSets ? progress.filter((p) => p.have < RELIC_SET_SIZE && p.after >= RELIC_SET_SIZE) : [];
@@ -620,6 +638,21 @@ export default function ShopModal({
           </div>
         </div>
 
+        {/* A rare Shop moment (rules v24+) */}
+        {moment && (
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="flex items-center gap-2.5 rounded-xl border border-rose-300/40 bg-rose-500/[0.12] px-2.5 py-2"
+          >
+            <img src={shopMomentArt(moment)} alt="" aria-hidden="true" draggable={false} className="h-9 w-9 shrink-0 object-contain" />
+            <div className="min-w-0 leading-tight">
+              <div className="text-[14px] font-semibold text-rose-50">Rare Shop: {SHOP_MOMENTS[moment].name}</div>
+              <div className="text-[12px] text-rose-100/80">{SHOP_MOMENTS[moment].text}</div>
+            </div>
+          </motion.div>
+        )}
+
         {/* Every offer as a tile: tap to see it below */}
         <div ref={offersRef} className="grid grid-cols-[repeat(4,minmax(0,1fr))] gap-1.5">
           {ordered.map((offer) => {
@@ -659,7 +692,7 @@ export default function ShopModal({
                     <span className="absolute top-1 left-1 rounded-md bg-lime-300 px-1 text-[9px] leading-[15px] font-black uppercase text-slate-950">New</span>
                   )
                 )}
-                <PriceChip sold={sold} blocked={blocked} affordable={affordable} cost={offer.cost} />
+                <PriceChip sold={sold} blocked={blocked} affordable={affordable} cost={offer.cost} deal={offer.wasCost !== undefined} />
               </button>
             );
           })}

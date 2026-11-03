@@ -2,14 +2,15 @@
 
 import Badge from "@/components/Badge";
 import { motion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Backpack } from "lucide-react";
 import { useBackClose } from "@/lib/backClose";
 import { DoneButton, GrabBar, sheetDrag } from "@/components/SheetBits";
 import React, { useEffect, useState } from "react";
-import { HeroClassId } from "@/types/game";
+import { BagId, HeroClassId } from "@/types/game";
 import { HERO_CLASS_REGISTRY } from "@/lib/engine";
-import { ASCENSION_LEVELS } from "@/lib/runReplay";
-import { companionUnlockFor, RUN_COMPANION_ORDER } from "@/lib/unlocks";
+import { ASCENSION_LEVELS, STARTING_BAGS } from "@/lib/runReplay";
+import { bagUnlockFor, companionUnlockFor, RUN_BAG_ORDER, RUN_COMPANION_ORDER } from "@/lib/unlocks";
+import { bagArt } from "@/lib/art";
 import EntityIcon from "@/components/EntityIcon";
 import { artify } from "@/components/ArtText";
 import { TodaysGardenButton } from "@/components/RunModeUI";
@@ -39,6 +40,8 @@ export default function AscensionPicker({
   initial,
   companions,
   initialCompanion,
+  bags = [],
+  initialBag = null,
   onStart,
   onClose,
   onPlayDaily,
@@ -60,20 +63,29 @@ export default function AscensionPicker({
   /** Companions earned on this device */
   companions: HeroClassId[];
   initialCompanion: HeroClassId;
-  /** `code`: a friend's garden code to plant instead of a fresh garden */
-  onStart: (level: number, companion: HeroClassId, code: string | null) => void;
+  /** Starting bags earned on this device (rules v24+), and the last one picked */
+  bags?: BagId[];
+  initialBag?: BagId | null;
+  /** `code`: a friend's garden code to plant instead of a fresh garden; `bag`: null = the usual Garden bag */
+  onStart: (level: number, companion: HeroClassId, code: string | null, bag: BagId | null) => void;
   onClose: () => void;
 }) {
   const [level, setLevel] = useState(initial);
   const [companion, setCompanion] = useState<HeroClassId>(initialCompanion);
   const [codeOpen, setCodeOpen] = useState(false);
   const [codeText, setCodeText] = useState("");
+  const [bag, setBag] = useState<BagId | null>(initialBag);
+  /** A locked bag tapped to see what earns it */
+  const [bagPeek, setBagPeek] = useState<BagId | null>(null);
   useEffect(() => {
     if (!isOpen) return;
     setCodeText(initialCode ?? "");
     setCodeOpen(Boolean(initialCode));
     setLevel(Math.min(initial, unlocked));
     setCompanion(companions.includes(initialCompanion) ? initialCompanion : "KNIGHT");
+    setBag(initialBag && bags.includes(initialBag) ? initialBag : null);
+    setBagPeek(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, initial, unlocked, initialCompanion, companions, initialCode]);
   useBackClose(isOpen, onClose);
   if (!isOpen) return null;
@@ -183,6 +195,73 @@ export default function AscensionPicker({
           })}
         </div>
 
+        {/* Starting bag (rules v24+): the usual Garden bag, or one earned by playing */}
+        <div className="space-y-1.5">
+          <div className="text-[12px] font-semibold text-white/60">Starting bag</div>
+          <div className="grid grid-cols-5 gap-1.5">
+            {([null, ...RUN_BAG_ORDER] as Array<BagId | null>).map((id) => {
+              const locked = id !== null && !bags.includes(id);
+              const selected = id === bag && !bagPeek;
+              const peeked = id !== null && id === bagPeek;
+              const name = id ? STARTING_BAGS[id].name.replace(" bag", "") : "Garden";
+              return (
+                <button
+                  key={id ?? "GARDEN"}
+                  type="button"
+                  aria-pressed={selected}
+                  aria-label={`${id ? STARTING_BAGS[id].name : "Garden bag"}${locked ? " (locked)" : ""}`}
+                  onClick={() => {
+                    if (locked) setBagPeek(peeked ? null : id);
+                    else {
+                      setBag(id);
+                      setBagPeek(null);
+                    }
+                  }}
+                  className={`relative flex flex-col items-center justify-center gap-0.5 rounded-xl border min-h-[64px] px-1 py-1.5 transition active:scale-[0.96] ${
+                    selected
+                      ? "border-amber-300 bg-amber-400/15"
+                      : peeked
+                      ? "border-white/40 bg-white/[0.06]"
+                      : locked
+                      ? "border-white/[0.06] bg-black/20"
+                      : "border-white/15 bg-white/[0.04]"
+                  }`}
+                >
+                  {id ? (
+                    <img src={bagArt(id)} alt="" aria-hidden="true" draggable={false} className={`h-8 w-8 object-contain ${locked ? "opacity-40 grayscale" : ""}`} />
+                  ) : (
+                    <Backpack className="h-8 w-8 p-1 text-white/75" aria-hidden="true" />
+                  )}
+                  <span className={`text-[11px] font-semibold leading-none ${locked ? "text-white/45" : "text-white/85"}`}>{name}</span>
+                  {locked && (
+                    <span className="absolute top-0.5 right-0.5">
+                      <Badge id="lock" />
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          <div className="text-[11.5px] leading-snug text-white/65 min-h-[2.4em]">
+            {bagPeek ? (
+              <>
+                <b className="text-white/85">{STARTING_BAGS[bagPeek].name}:</b> {STARTING_BAGS[bagPeek].text}{" "}
+                <span className="text-white/50">
+                  <Badge id="lock" /> {bagUnlockFor(bagPeek).needText}
+                </span>
+              </>
+            ) : bag ? (
+              <>
+                <b className="text-white/85">{STARTING_BAGS[bag].name}:</b> {STARTING_BAGS[bag].text}
+              </>
+            ) : (
+              <>
+                <b className="text-white/85">Garden bag:</b> the usual mix of 40 tiles.
+              </>
+            )}
+          </div>
+        </div>
+
         {unlocked === 0 ? (
           <div className="text-[11px] text-white/45"><Badge id="lock" /> Harder Ascension levels: clear the Season 3 Boss.</div>
         ) : (
@@ -227,11 +306,12 @@ export default function AscensionPicker({
           <button
             type="button"
             disabled={codeTyped && !code}
-            onClick={() => onStart(level, companion, code)}
+            onClick={() => onStart(level, companion, code, bag)}
             className="w-full rounded-xl py-3 font-bold text-[14px] bg-teal-300 text-slate-950 active:scale-95 disabled:opacity-40 flex items-center justify-center gap-1.5"
           >
             {code ? `Plant ${code} with ` : "Start with "}
             {pickedDef.sanctuaryShortName ?? pickedDef.shortName}
+            {bag ? ` · ${STARTING_BAGS[bag].name}` : ""}
             {level > 0 ? ` · Ascension ${level}` : ""}
             <ArrowRight className="w-4 h-4 shrink-0" />
           </button>

@@ -35,6 +35,7 @@ import {
   RelicCounters,
   ToolId,
   PacketId,
+  BagId,
   GardenUpgradeId,
   RelicId,
   RelicScoreContext,
@@ -172,6 +173,7 @@ import {
   applyRunSkip,
   runRulesUseSteepTargets,
   runRulesUseBossReroll,
+  shopMomentFor,
   comingBossSeason,
   BOSS_REROLL_COST,
   finishShopOffers,
@@ -238,6 +240,9 @@ import {
   getNextStarUnlocks,
   isCompanionUnlocked,
   loadChosenCompanion,
+  loadChosenBag,
+  saveChosenBag,
+  unlockedRunBags,
   loadUnlockProgress,
   recordBedReached,
   saveChosenCompanion,
@@ -461,6 +466,8 @@ export default function OneStrokeTacticianPage() {
   const runAscensionRef = useRef<number>(0);
   // Companion for new Garden Runs (each plays by its own rule)
   const runCompanionRef = useRef<HeroClassId>("KNIGHT");
+  /** Rules v24+: the starting bag for new Runs (null = the usual Garden bag) */
+  const runBagRef = useRef<BagId | null>(null);
   const [vibrationOn, setVibrationOn] = useState<boolean>(true);
   const [reduceMotion, setReduceMotion] = useState<boolean>(false);
   // Text and controls grow on bigger screens (the board fills what's left)
@@ -700,6 +707,7 @@ export default function OneStrokeTacticianPage() {
       // New Garden Runs use the last Ascension level chosen
       runAscensionRef.current = loadChosenAscension();
       runCompanionRef.current = loadChosenCompanion(loadCosmeticPreferences().companionId);
+      runBagRef.current = loadChosenBag();
       // Continue a Run saved on this device, or start a new one
       resumeSavedRun();
       // A shared garden code (?seed=MOSS-4821) waits in the New Run sheet
@@ -1459,7 +1467,7 @@ export default function OneStrokeTacticianPage() {
    * Starts a fresh Run: a new seed, a new Tile Bag and Season 1's Small Garden.
    */
   const startRun = useCallback(
-    (overrideClassId?: HeroClassId, _isTrial?: boolean, options?: { practice?: boolean; asc?: number; daily?: boolean; seed?: string }) => {
+    (overrideClassId?: HeroClassId, _isTrial?: boolean, options?: { practice?: boolean; asc?: number; daily?: boolean; seed?: string; bag?: BagId | null }) => {
       const practice = Boolean(options?.practice);
       // Daily Garden: today's seed for everyone, the Keeper, Ascension 0
       const daily = !practice && options?.daily ? getTodayDateKey() : null;
@@ -1481,7 +1489,10 @@ export default function OneStrokeTacticianPage() {
       // Companions are earned by playing (no free trials): a locked one falls back to the Keeper
       const wanted = overrideClassId ?? runCompanionRef.current;
       const classId: HeroClassId = practice || daily || !isCompanionUnlocked(wanted) ? "KNIGHT" : wanted;
-      const { bag, ...first } = startRunGarden(runSeed, classId, RUN_LOG_VERSION, asc);
+      // Starting bag (rules v24+): never in the Daily Garden or the Practice Garden
+      const wantedBag = options?.bag !== undefined ? options.bag : runBagRef.current;
+      const bagId = practice || daily || !wantedBag || !unlockedRunBags().includes(wantedBag) ? undefined : wantedBag;
+      const { bag, ...first } = startRunGarden(runSeed, classId, RUN_LOG_VERSION, asc, bagId);
       // Morning dew on the first board of the day's first morning Run (looks and sound only)
       if (!practice && takeMorningDew()) {
         setDewIds(pickDewTiles(first.floor.grid.flat()));
@@ -1509,7 +1520,7 @@ export default function OneStrokeTacticianPage() {
       setSkipOpen(false);
       setGardenUpgrades([]);
       setUpgradeSeasons([]);
-      runLogRef.current = practice ? null : createRunLog(runSeed, classId, asc, daily ?? undefined);
+      runLogRef.current = practice ? null : createRunLog(runSeed, classId, asc, daily ?? undefined, bagId);
       if (!practice) {
         countRunStarted();
         const official = noteRunStarted(daily);
@@ -1927,7 +1938,11 @@ export default function OneStrokeTacticianPage() {
 
   /** Sanctuary Shop: pay to draw 3 new (seeded) offers */
   const rerollCost =
-    mode === "RUN" ? getRunRerollCost(shopRerolls, activeRelics) : SHOP_REROLL_COST;
+    mode === "RUN"
+      ? shopRerolls === 0 && runGarden && shopMomentFor(dungeon.seedKey, runGarden.gardenIndex, runLogRef.current?.v ?? RUN_LOG_VERSION) === "FREE_REROLL"
+        ? 0
+        : getRunRerollCost(shopRerolls, activeRelics)
+      : SHOP_REROLL_COST;
   const handleRerollShop = useCallback(() => {
     const base = pendingPostFloorStats ?? hero;
     let next: HeroStats;
@@ -1952,6 +1967,7 @@ export default function OneStrokeTacticianPage() {
               owned: gardenUpgrades,
               boughtThisSeason: upgradeSeasons.includes(Math.floor(runGarden.gardenIndex / 3)),
               logVersion: runLogRef.current?.v ?? RUN_LOG_VERSION,
+              rerolls: reroll.rerolls,
             })
           : reroll.offers;
       logRunAction({ k: "r" });
@@ -5061,6 +5077,13 @@ phase === "RESOLVING"
         relicCounters={relicCounters}
         toolsHeld={runTools.length}
         packetsHeld={runPackets.length}
+        moment={(() => {
+          if (mode !== "RUN" || !runGarden) return null;
+          const id = shopMomentFor(dungeon.seedKey, runGarden.gardenIndex, runLogRef.current?.v ?? RUN_LOG_VERSION);
+          // A Sale or Two for one shows while its marked offer is in the Shop; a free reroll until it's used
+          if (!id || (id === "FREE_REROLL" ? shopRerolls > 0 : !shopOffers.some((o) => o.wasCost !== undefined && !shopSoldIds.includes(o.id)))) return null;
+          return id;
+        })()}
         bossReroll={
           mode === "RUN" && runGarden && runRulesUseBossReroll(runLogRef.current?.v ?? RUN_LOG_VERSION) &&
           !(runLogRef.current?.d && runGarden.gardenIndex >= RUN_DAILY_LAST_BED)
@@ -5288,14 +5311,18 @@ phase === "RESOLVING"
         initial={runAscensionRef.current}
         companions={ascPickerOpen ? unlockedRunCompanions() : ["KNIGHT"]}
         initialCompanion={runCompanionRef.current}
-        onStart={(level, companion, code) => {
+        bags={ascPickerOpen ? unlockedRunBags() : []}
+        initialBag={runBagRef.current}
+        onStart={(level, companion, code, bag) => {
           setAscPickerOpen(false);
           saveChosenAscension(level);
           saveChosenCompanion(companion);
+          saveChosenBag(bag);
           runAscensionRef.current = level;
           runCompanionRef.current = companion;
+          runBagRef.current = bag;
           setRunOver(null);
-          startRun(companion, false, { asc: level, seed: code ?? undefined });
+          startRun(companion, false, { asc: level, seed: code ?? undefined, bag });
         }}
         onPlayDaily={startDailyGarden}
         dailyToday={ascPickerOpen ? dailyStatus() : undefined}

@@ -104,7 +104,15 @@ const UNLOCK_ART: Record<string, string> = {
   "c-otter": "companion-otter",
   "c-butterfly": "companion-sprite",
   "c-fox": "companion-fox",
+  "g-thorny": "bag-thorny",
+  "g-acorn": "bag-acorn",
+  "g-berry": "bag-berry",
+  "g-lean": "bag-lean",
 };
+/** Starting bags (rules v24+), e.g. THORNY → bag-thorny */
+export const bagArt = (id: string) => icon(`bag-${kebab(id)}`);
+/** Rare Shop moments (rules v24+), e.g. FREE_REROLL → shop-free-reroll; a Sale is shop-sale */
+export const shopMomentArt = (id: string) => icon(`shop-${kebab(id)}`);
 export const unlockArt = (id: string): string | null => (UNLOCK_ART[id] ? icon(UNLOCK_ART[id]) : null);
 /** A tile once the line has passed it (an opened acorn, eaten berries, a cut or wilted Thorn…) */
 export type TileAfterId =

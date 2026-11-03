@@ -174,7 +174,7 @@ export function rebuildRunFromSave(raw: unknown): { ok: true; run: RestoredRun }
     const log = parseRunLog(save.log);
     if (!log) return { ok: false, error: "unreadable save" };
 
-    const run = createRunReplayer(log.seed, log.hero, log.v, log.asc ?? 0, Boolean(log.d));
+    const run = createRunReplayer(log.seed, log.hero, log.v, log.asc ?? 0, Boolean(log.d), log.bag);
     const s = run.state;
     const floors: DungeonFloor[] = [];
     const history: FloorHistoryRecord[] = [];

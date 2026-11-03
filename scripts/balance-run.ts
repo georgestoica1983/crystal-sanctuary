@@ -7,7 +7,7 @@
 //      SETS=chase (the bot builds toward relic sets: rules v10+ pays them ×1.25)
 //      FERT=first|never (rules v12+: the bot buys Fertilizer before anything else, or never)
 import { findEntityCoord, searchBestFloorLine } from "@/lib/engine";
-import type { HeroClassId } from "@/types/game";
+import type { BagId, HeroClassId } from "@/types/game";
 import { completedRelicSets } from "@/lib/relicTags";
 import { setChaserShopMove } from "./botSets";
 import { createRunReplayer, packCoords, RUN_PRUNE_COST, runModifierFor, runRulesUseRelicSets } from "@/lib/runReplay";
@@ -34,6 +34,8 @@ const EDS_NEVER = process.env.EDS === "never";
 const SKIP = process.env.SKIP ?? "never";
 /** UPG=first (rules v18+): buy the Season's garden upgrade before anything else */
 const UPG_FIRST = process.env.UPG === "first";
+/** BAG=THORNY|ACORN|BERRY|LEAN (rules v24+): the starting bag */
+const BAG = (process.env.BAG || undefined) as BagId | undefined;
 
 for (const budget of BUDGETS) {
   for (const v of VERSIONS) {
@@ -51,7 +53,7 @@ for (const budget of BUDGETS) {
     let toolsUsed = 0;
     let skips = 0;
     for (let i = 0; i < SEEDS; i++) {
-      const run = createRunReplayer(`bal-run-${i}`, HERO, v, ASC);
+      const run = createRunReplayer(`bal-run-${i}`, HERO, v, ASC, false, BAG);
       let lastGarden = -1;
       let runSkips = 0;
       for (let guard = 0; guard < 400 && run.state.phase !== "OVER"; guard++) {
@@ -186,7 +188,7 @@ for (const budget of BUDGETS) {
       const b = [...a].sort((x, y) => x - y);
       return b[Math.floor(b.length / 2)];
     };
-    console.log(`\n== rules v${v} (${modifier}) A${ASC}, budget ${budget}, ${SEEDS} seeds`);
+    console.log(`\n== rules v${v} (${modifier}) A${ASC}, budget ${budget}, ${SEEDS} seeds${BAG ? `, ${BAG} bag` : ""}`);
     console.log(
       `gardens cleared: median ${median(reachedCounts)}, avg ${avg(reachedCounts).toFixed(1)}, ` +
         `cleared all ${MAX_GARDENS}: ${reachedCounts.filter((n) => n >= MAX_GARDENS).length}`

@@ -282,6 +282,8 @@ function buildPages(): GuidePage[] {
               <>☀️ Garden tools (hold 2): tap one under the board, then a tile. The upgrade stays on that tile in your bag for the whole Run. 🔔 Echo makes a tile score twice and can join another upgrade.</>,
               <>✦ Shimmering tiles are special: Golden +30 Value, Iridescent +2 Length, Radiant ×1.25 on any line through them. Your bag starts with one; the Shop sometimes sells more.</>,
               <>🎁 Before your first line on a Small bed you can skip it for a Tag. You lose its Seeds and Shop, and the Big bed after it gets 50% harder.</>,
+              <>✨ From Season 2 a Shop is sometimes rare: a Sale, a free reroll, or a relic for free.</>,
+              <>🎒 Earn starting bags by playing (Thorny, Acorn, Berry, Lean) and pick one on the New Run sheet. Each changes the tiles you grow.</>,
               <>🏺 Each Season the Shop offers one garden upgrade (6 🌱) that lasts the whole Run: a bigger interest cap, cheaper Shops or stronger Fertilizer. Each has a second, stronger tier.</>,
             ]}
           />

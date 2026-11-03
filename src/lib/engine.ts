@@ -1,4 +1,5 @@
 import {
+  BagId,
   BossRuleDefinition,
   BossRuleId,
   RunWeather,
@@ -3773,10 +3774,53 @@ function shuffleSeeded<T>(arr: T[], rng: () => number): T[] {
 }
 
 /** The run's starting Tile Bag (same run seed → same bag) */
-export function generateRunSeedBag(runSeed: string): SeedTile[] {
+/**
+ * Rules v24+: starting bags unlocked by playing, like Balatro's decks.
+ * Each trades one strength for a weakness.
+ */
+export const RUN_BAG_MIXES: Record<BagId, typeof RUN_SEED_BAG_MIX> = {
+  // More and stronger Thorns (big Value, costs Life), more Shears, fewer Acorns
+  THORNY: [
+    { type: "ENEMY", count: 20, min: 3, max: 7 },
+    { type: "SHIELD", count: 6, min: 2, max: 5 },
+    { type: "WEAPON", count: 8, min: 3, max: 6 },
+    { type: "POTION", count: 5, min: 2, max: 5 },
+    { type: "GOLD", count: 3, min: 2, max: 6 },
+    { type: "TRAP", count: 3, min: 2, max: 4 },
+  ],
+  // Twice the Acorns, fewer Thorns and Berries
+  ACORN: [
+    { type: "ENEMY", count: 12, min: 3, max: 6 },
+    { type: "SHIELD", count: 6, min: 2, max: 5 },
+    { type: "WEAPON", count: 6, min: 3, max: 6 },
+    { type: "POTION", count: 3, min: 2, max: 5 },
+    { type: "GOLD", count: 10, min: 2, max: 6 },
+    { type: "TRAP", count: 3, min: 2, max: 4 },
+  ],
+  // Twice the Berries for long, safe lines; fewer Acorns and Gloves
+  BERRY: [
+    { type: "ENEMY", count: 15, min: 3, max: 6 },
+    { type: "SHIELD", count: 4, min: 2, max: 5 },
+    { type: "WEAPON", count: 6, min: 3, max: 6 },
+    { type: "POTION", count: 10, min: 2, max: 5 },
+    { type: "GOLD", count: 3, min: 2, max: 6 },
+    { type: "TRAP", count: 3, min: 2, max: 4 },
+  ],
+  // Only 30 tiles (no room to Prune); Gloves, Shears, Berries and Acorns 2 stronger
+  LEAN: [
+    { type: "ENEMY", count: 11, min: 3, max: 6 },
+    { type: "SHIELD", count: 5, min: 4, max: 7 },
+    { type: "WEAPON", count: 5, min: 5, max: 8 },
+    { type: "POTION", count: 4, min: 4, max: 7 },
+    { type: "GOLD", count: 3, min: 4, max: 8 },
+    { type: "TRAP", count: 2, min: 2, max: 4 },
+  ],
+};
+
+export function generateRunSeedBag(runSeed: string, bagId?: BagId): SeedTile[] {
   const rng = mulberry32(hashStringToSeed(`bag-${runSeed}`));
   const bag: SeedTile[] = [];
-  for (const mix of RUN_SEED_BAG_MIX) {
+  for (const mix of bagId ? RUN_BAG_MIXES[bagId] : RUN_SEED_BAG_MIX) {
     for (let i = 0; i < mix.count; i++) {
       bag.push({
         type: mix.type,

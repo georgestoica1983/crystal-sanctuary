@@ -65,6 +65,8 @@ import type {
   ToolId,
   GardenUpgradeId,
   PacketId,
+  BagId,
+  ShopMomentId,
 } from "@/types/game";
 
 /**
@@ -156,14 +158,16 @@ export function startRunGarden(
   runSeed: string,
   classId: HeroClassId,
   logVersion: number = RUN_LOG_VERSION,
-  asc = 0
+  asc = 0,
+  /** Rules v24+: the starting bag picked for the Run */
+  bagId?: BagId
 ): {
   bag: SeedTile[];
   hero: HeroStats;
   floor: DungeonFloor;
   state: RunGardenState;
 } {
-  const baseBag = generateRunSeedBag(runSeed);
+  const baseBag = generateRunSeedBag(runSeed, runRulesUseBags(logVersion) ? bagId : undefined);
   const bag = runRulesUseEditions(logVersion) ? addStartEditions(baseBag, runSeed) : baseBag;
   const base = getInitialHeroStatsForClass(classId);
   // Shears rule: a starting Power counts as one cut
@@ -553,6 +557,8 @@ export function finishShopOffers(
     boughtThisSeason: boolean;
     /** The Run's rules version: from v21 upgrades only appear from Season 3 */
     logVersion?: number;
+    /** Rerolls so far in this Shop (a Sale or Two for one only marks the first offers) */
+    rerolls?: number;
   }
 ): ShopOffer[] {
   const { owned } = params;
@@ -567,6 +573,16 @@ export function finishShopOffers(
     if (discount < 1 && cost > 0) cost = Math.max(1, Math.floor(cost * discount));
     return cost === o.cost ? o : { ...o, cost };
   });
+  const moment = (params.rerolls ?? 0) === 0 ? shopMomentFor(params.runSeed, params.gardenIndex, params.logVersion ?? 0) : null;
+  if (moment === "SALE" || moment === "TWO_FOR_ONE") {
+    const relics = priced.filter((o) => o.kind === "RELIC").sort((a, b) => a.cost - b.cost);
+    // Sale: the priciest relic at half price · Two for one: the cheaper of two relics is free
+    const marked = moment === "SALE" ? relics[relics.length - 1] : relics.length >= 2 ? relics[0] : undefined;
+    if (marked) {
+      const cost = moment === "SALE" ? Math.max(1, Math.ceil(marked.cost / 2)) : 0;
+      priced.splice(priced.indexOf(marked), 1, { ...marked, cost, wasCost: marked.cost });
+    }
+  }
   if (params.boughtThisSeason) return priced;
   if (!shopUnlocks(params.logVersion ?? 0, getRunGardenPosition(params.gardenIndex).season).upgrades) return priced;
   const season = Math.floor(params.gardenIndex / 3);
@@ -575,6 +591,36 @@ export function finishShopOffers(
   const rng = mulberry32(hashStringToSeed(`upgrade-${params.runSeed}-s${season}-${owned.length}`));
   const upgrade = available[Math.floor(rng() * available.length)];
   return [...priced, { id: `s${season}-upgrade-${upgrade}`, kind: "UPGRADE", upgrade, cost: GARDEN_UPGRADE_COST }];
+}
+
+// ── Starting bags and rare Shop moments (rules v24+) ─────────────────────────
+
+/** v24: a starting bag picked on the New Run sheet (never in the Daily Garden) */
+export const runRulesUseBags = (logVersion: number) => logVersion >= 24;
+export const STARTING_BAGS: Record<BagId, { name: string; text: string }> = {
+  THORNY: { name: "Thorny bag", text: "More and stronger Thorns, more Shears, fewer Acorns." },
+  ACORN: { name: "Acorn bag", text: "Twice the Acorns, fewer Thorns and Berries." },
+  BERRY: { name: "Berry bag", text: "Twice the Berries for long lines, fewer Acorns and Gloves." },
+  LEAN: { name: "Lean bag", text: "Only 30 tiles. Gloves, Shears, Berries and Acorns are 2 stronger. No room to Prune." },
+};
+export const BAG_IDS = Object.keys(STARTING_BAGS) as BagId[];
+
+/** v24: from Season 2, about one Shop in five has a rare moment */
+export const runRulesUseShopMoments = (logVersion: number) => logVersion >= 24;
+export const SHOP_MOMENT_CHANCE = 0.2;
+export const SHOP_MOMENTS: Record<ShopMomentId, { name: string; text: string }> = {
+  SALE: { name: "Sale", text: "The priciest relic is half price." },
+  FREE_REROLL: { name: "Free reroll", text: "Your first reroll here is free." },
+  TWO_FOR_ONE: { name: "Two for one", text: "One of the relics is free." },
+};
+const MOMENT_IDS = Object.keys(SHOP_MOMENTS) as ShopMomentId[];
+
+/** The rare moment of the Shop after this bed, if any (from the Run's seed) */
+export function shopMomentFor(runSeed: string, gardenIndex: number, logVersion: number): ShopMomentId | null {
+  if (!runRulesUseShopMoments(logVersion) || getRunGardenPosition(gardenIndex).season < 2) return null;
+  const rng = mulberry32(hashStringToSeed(`moment-${runSeed}-g${gardenIndex}`));
+  if (rng() >= SHOP_MOMENT_CHANCE) return null;
+  return MOMENT_IDS[Math.floor(rng() * MOMENT_IDS.length)];
 }
 
 // ── Seed packets (rules v22+): one-use items, held two at a time ─────────────
@@ -760,7 +806,9 @@ export function applyRunShopReroll(params: {
   logVersion?: number;
   asc?: number;
 }): { stats: HeroStats; rerolls: number; offers: ShopOffer[]; cost: number } | null {
-  const cost = getRunRerollCost(params.rerolls, params.relics);
+  const freeMoment =
+    params.rerolls === 0 && shopMomentFor(params.runSeed, params.floorNumber - 1, params.logVersion ?? RUN_LOG_VERSION) === "FREE_REROLL";
+  const cost = freeMoment ? 0 : getRunRerollCost(params.rerolls, params.relics);
   if (params.stats.gold < cost) return null;
   const rerolls = params.rerolls + 1;
   const unlocked = shopUnlocks(params.logVersion ?? RUN_LOG_VERSION, getRunGardenPosition(params.floorNumber - 1).season);
@@ -965,9 +1013,11 @@ export function getRunPathError(
  * v23: a steeper climb (targets grow +0.25× each Season from Season 4, and
  *      faster still in Endless), and the Shop can reroll the coming Boss
  *      once per Season for Seeds.
+ * v24: starting bags (Thorny, Acorn, Berry, Lean; the log's `bag`) and rare
+ *      Shop moments from Season 2 (a Sale, a free reroll, two for one).
  * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 23;
+export const RUN_LOG_VERSION = 24;
 export const RUN_LOG_MIN_VERSION = 2;
 /** Rule set of new Runs (the current version) */
 export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);
@@ -1005,6 +1055,8 @@ export interface RunActionLog {
   asc?: number;
   /** Daily Garden for this date (YYYY-MM-DD): seed `daily-<date>`, the Keeper, Ascension 0, ends after Season 3 */
   d?: string;
+  /** Rules v24+: the starting bag (missing = the usual Garden bag; never on a Daily) */
+  bag?: BagId;
   a: RunLogAction[];
 }
 
@@ -1017,9 +1069,10 @@ export const packCoord = (c: GridCoord): number => c.row * 5 + c.col;
 export const packCoords = (coords: GridCoord[]): number[] => coords.map(packCoord);
 const unpackCoord = (n: number): GridCoord => ({ row: Math.floor(n / 5), col: n % 5 });
 
-export function createRunLog(seed: string, hero: HeroClassId, asc = 0, daily?: string): RunActionLog {
+export function createRunLog(seed: string, hero: HeroClassId, asc = 0, daily?: string, bag?: BagId): RunActionLog {
   const log: RunActionLog = asc > 0 ? { v: RUN_LOG_VERSION, seed, hero, asc, a: [] } : { v: RUN_LOG_VERSION, seed, hero, a: [] };
-  return daily ? { ...log, d: daily } : log;
+  if (daily) return { ...log, d: daily };
+  return bag ? { ...log, bag } : log;
 }
 
 // ── Replay ──────────────────────────────────────────────────────────────────
@@ -1078,6 +1131,12 @@ export function parseRunLog(raw: unknown): RunActionLog | null {
   if (
     log.d !== undefined &&
     (typeof log.d !== "string" || !DATE_KEY.test(log.d) || log.seed !== dailyRunSeed(log.d) || log.hero !== "KNIGHT" || log.asc)
+  ) {
+    return null;
+  }
+  if (
+    log.bag !== undefined &&
+    (typeof log.bag !== "string" || !BAG_IDS.includes(log.bag as BagId) || log.v < 24 || log.d !== undefined)
   ) {
     return null;
   }
@@ -1158,9 +1217,11 @@ export function createRunReplayer(
   logVersion: number = RUN_LOG_VERSION,
   asc = 0,
   /** A Daily Garden: nothing more can happen once the Season 3 Boss blooms */
-  daily = false
+  daily = false,
+  /** Rules v24+: the starting bag */
+  bagId?: BagId
 ) {
-  const first = startRunGarden(runSeed, heroClassId, logVersion, asc);
+  const first = startRunGarden(runSeed, heroClassId, logVersion, asc, bagId);
   const modifier = runModifierFor(logVersion);
   const s: RunReplayState = {
     runSeed,
@@ -1384,6 +1445,7 @@ export function createRunReplayer(
             owned: s.gardenUpgrades,
             boughtThisSeason: s.upgradeSeasons.includes(Math.floor(s.garden.gardenIndex / 3)),
             logVersion,
+            rerolls: reroll.rerolls,
           })
         : reroll.offers;
       s.shop = { ...s.shop, stats: reroll.stats, offers: rerolled, soldIds: [], rerolls: reroll.rerolls };
@@ -1516,7 +1578,7 @@ export function createRunReplayer(
 export function replayRun(raw: unknown): RunReplayResult {
   const log = parseRunLog(raw);
   if (!log) return { ok: false, error: "malformed log", actionIndex: null };
-  const run = createRunReplayer(log.seed, log.hero, log.v, log.asc ?? 0, Boolean(log.d));
+  const run = createRunReplayer(log.seed, log.hero, log.v, log.asc ?? 0, Boolean(log.d), log.bag);
   for (let i = 0; i < log.a.length; i++) {
     const error = run.apply(log.a[i]);
     if (error) return { ok: false, error, actionIndex: i };

@@ -58,12 +58,16 @@ import {
   applySeedPacket,
   SEED_PACKETS,
   comingBossSeason,
+  BAG_IDS,
+  STARTING_BAGS,
+  shopMomentFor,
+  applyRunShopReroll,
 } from "@/lib/runReplay";
 import { verifyRunSubmission } from "@/lib/server/runLeaderboard";
 import { completedRelicSets, RELIC_SET_X } from "@/lib/relicTags";
 import { setChaserShopMove } from "./botSets";
 import { PRACTICE_GARDEN_SEED } from "@/lib/runLessons";
-import type { GridCell, HeroClassId } from "@/types/game";
+import type { BagId, GridCell, HeroClassId, ShopOffer } from "@/types/game";
 
 let failures = 0;
 function check(label: string, ok: boolean, detail = "") {
@@ -79,9 +83,10 @@ function check(label: string, ok: boolean, detail = "") {
  * With `chaseSets` it first buys a relic that shares a tag with its own.
  * Returns its log and the score it expects from the searched lines' scores.
  */
-function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0, chaseSets = false, v = RUN_LOG_VERSION, fertFirst = false, usePackets = false, rerollBoss = false) {
-  const run = createRunReplayer(seed, hero, v, asc);
-  const log: RunActionLog = asc ? { v, seed, hero, asc, a: [] } : { v, seed, hero, a: [] };
+function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0, chaseSets = false, v = RUN_LOG_VERSION, fertFirst = false, usePackets = false, rerollBoss = false, bag?: BagId) {
+  const run = createRunReplayer(seed, hero, v, asc, false, bag);
+  const base: RunActionLog = asc ? { v, seed, hero, asc, a: [] } : { v, seed, hero, a: [] };
+  const log: RunActionLog = bag ? { ...base, bag } : base;
   let expected = 0;
   const act = (a: RunLogAction) => {
     const err = run.apply(a);
@@ -1219,6 +1224,86 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
   check("a Boss reroll is refused under rules v22", old.apply({ k: "o" }) === "no Boss rerolls in these rules");
   check("refused: a Boss reroll in a v22 log", !parseRunLog({ v: 22, seed: "x", hero: "KNIGHT", a: [{ k: "o" }] }));
   check("the Boss after a Boss bed is next Season's", comingBossSeason(2) === 2 && comingBossSeason(3) === 2 && comingBossSeason(4) === 2 && comingBossSeason(5) === 3);
+}
+
+// Rules v24: starting bags and rare Shop moments
+{
+  // The usual bag is drawn exactly as before; each starting bag has its own mix
+  check("the usual bag is unchanged", JSON.stringify(generateRunSeedBag("bag-check")) === JSON.stringify(generateRunSeedBag("bag-check", undefined)));
+  const count = (id: BagId, type: string) => generateRunSeedBag("bag-check", id).filter((t) => t.type === type).length;
+  const plain = (type: string) => generateRunSeedBag("bag-check").filter((t) => t.type === type).length;
+  check("Thorny bag: more Thorns, fewer Acorns", count("THORNY", "ENEMY") > plain("ENEMY") && count("THORNY", "GOLD") < plain("GOLD"));
+  check("Acorn bag: twice the Acorns", count("ACORN", "GOLD") === plain("GOLD") * 2);
+  check("Berry bag: twice the Berries", count("BERRY", "POTION") === plain("POTION") * 2);
+  const lean = generateRunSeedBag("bag-check", "LEAN");
+  check(`Lean bag: ${lean.length} tiles, the Prune minimum`, lean.length === RUN_BAG_MIN_SIZE);
+  check("a bag only changes v24 Runs", JSON.stringify(createRunReplayer("bag-v", "KNIGHT", 23, 0, false, "LEAN").state.bag) === JSON.stringify(createRunReplayer("bag-v", "KNIGHT", 23).state.bag));
+  check("refused: a bag in a v23 log", !parseRunLog({ v: 23, seed: "x", hero: "KNIGHT", bag: "LEAN", a: [] }));
+  check("refused: a bag on a Daily", !parseRunLog({ v: 24, seed: dailyRunSeed("2026-11-03"), hero: "KNIGHT", d: "2026-11-03", bag: "ACORN", a: [] }));
+  check("refused: an unknown bag", !parseRunLog({ v: 24, seed: "x", hero: "KNIGHT", bag: "GOLD", a: [] }));
+  for (const id of BAG_IDS) {
+    // The first seed (of five) where the bot clears a bed, so the Run really plays the bag
+    let bot = playBotRun(`bag-run-${id}`, "KNIGHT", 4, 0, false, 24, false, false, false, id);
+    for (let n = 1; n < 5 && bot.state.gardensBloomed === 0; n++) {
+      bot = playBotRun(`bag-run-${id}-${n}`, "KNIGHT", 4, 0, false, 24, false, false, false, id);
+    }
+    const replay = replayRun(JSON.parse(JSON.stringify(bot.log)));
+    check(
+      `v24 bot Run with the ${STARTING_BAGS[id].name} replays (${bot.state.gardensBloomed} gardens)`,
+      bot.state.gardensBloomed > 0 && replay.ok && replay.score === bot.expected && bot.log.bag === id,
+      replay.ok ? `${replay.score} vs ${bot.expected}` : replay.error
+    );
+  }
+
+  // Shop moments: about one Shop in five from Season 2, never in Season 1 or older rules
+  let s1 = 0;
+  let later = 0;
+  let old = 0;
+  const kinds = new Set<string>();
+  for (let n = 0; n < 400; n++) {
+    if (shopMomentFor(`m-${n}`, n % 3, 24)) s1++;
+    const m = shopMomentFor(`m-${n}`, 3 + (n % 9), 24);
+    if (m) {
+      later++;
+      kinds.add(m);
+    }
+    if (shopMomentFor(`m-${n}`, 3 + (n % 9), 23)) old++;
+  }
+  check(`Shop moments: ${later}/400 Shops from Season 2, ${s1} in Season 1, ${old} under v23`, s1 === 0 && old === 0 && later > 40 && later < 130 && kinds.size === 3);
+  // Find one Shop of each moment and check what it does
+  const find = (id: string) => {
+    for (let n = 0; n < 2000; n++) if (shopMomentFor(`mm-${n}`, 4, 24) === id) return `mm-${n}`;
+    return null;
+  };
+  const relics: ShopOffer[] = [
+    { id: "r1", kind: "RELIC", relicId: "ACORN_POUCH", cost: 5 },
+    { id: "r2", kind: "RELIC", relicId: "ACORN_HOARD", cost: 9 },
+    { id: "f1", kind: "PACKET", packet: "LONG_ROOT", cost: 4 },
+  ];
+  const finish = (seed: string, rerolls: number) => finishShopOffers(relics, { runSeed: seed, gardenIndex: 4, owned: [], boughtThisSeason: true, logVersion: 24, rerolls });
+  const sale = find("SALE")!;
+  const onSale = finish(sale, 0);
+  check("Sale: the priciest relic is half price", onSale.find((o) => o.id === "r2")?.cost === 5 && onSale.find((o) => o.id === "r2")?.wasCost === 9 && onSale.find((o) => o.id === "r1")?.cost === 5);
+  const two = find("TWO_FOR_ONE")!;
+  check("Two for one: the cheaper relic is free", finish(two, 0).find((o) => o.id === "r1")?.cost === 0);
+  check("a moment doesn't come back after a reroll", finish(two, 1).every((o) => o.wasCost === undefined) && finish(sale, 1).every((o) => o.wasCost === undefined));
+  const free = find("FREE_REROLL")!;
+  const stats = { hp: 10, maxHp: 10, shield: 0, weapon: 0, gold: 20 };
+  const first = applyRunShopReroll({ stats, rerolls: 0, runSeed: free, floorNumber: 5, relics: [], logVersion: 24 });
+  const second = applyRunShopReroll({ stats, rerolls: 1, runSeed: free, floorNumber: 5, relics: [], logVersion: 24 });
+  const before = applyRunShopReroll({ stats, rerolls: 0, runSeed: free, floorNumber: 5, relics: [], logVersion: 23 });
+  check("Free reroll: only the first reroll is free, and only under v24", first?.cost === 0 && (second?.cost ?? 0) > 0 && (before?.cost ?? 0) > 0);
+
+  // A long v24 bot Run meets moments and still replays to the same score
+  let seen = 0;
+  let replays = true;
+  for (let n = 1; n <= 4; n++) {
+    const bot = playBotRun(`moment-run-${n}`, "KNIGHT", 9, 0, false, 24);
+    for (let g = 3; g < bot.state.gardensBloomed; g++) if (shopMomentFor(`moment-run-${n}`, g, 24)) seen++;
+    const replay = replayRun(JSON.parse(JSON.stringify(bot.log)));
+    if (!replay.ok || replay.score !== bot.expected) replays = false;
+  }
+  check(`v24 bot Runs through rare Shops replay (${seen} moments met)`, replays);
 }
 
 // Daily Garden: today's seed, the Keeper, Ascension 0, and nothing after the Season 3 Boss

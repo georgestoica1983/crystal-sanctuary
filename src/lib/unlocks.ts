@@ -1,4 +1,4 @@
-import { BoardThemeId, HeroClassId, SanctuaryCompanionId, TrailSkinId } from "@/types/game";
+import { BagId, BoardThemeId, HeroClassId, SanctuaryCompanionId, TrailSkinId } from "@/types/game";
 import { loadBestStars, totalBestStars } from "@/lib/runStars";
 import { getRunGardenLabel, V22_RELICS } from "@/lib/engine";
 import { ASCENSION_UNLOCK_BED, loadBestClearedAscension, loadUnlockedAscension } from "@/lib/ascension";
@@ -49,7 +49,9 @@ export type UnlockItem =
   | { id: string; kind: "TRAIL"; target: TrailSkinId; icon: string; name: string; need: Need; needText: string }
   | { id: string; kind: "BOARD"; target: BoardThemeId; icon: string; name: string; need: Need; needText: string }
   | { id: string; kind: "RANK"; icon: string; name: string; need: Need; needText: string }
-  | { id: string; kind: "TITLE"; icon: string; name: string; need: Need; needText: string };
+  | { id: string; kind: "TITLE"; icon: string; name: string; need: Need; needText: string }
+  /** Rules v24+: a starting bag for new Runs */
+  | { id: string; kind: "BAG"; target: BagId; icon: string; name: string; need: Need; needText: string };
 
 export const UNLOCKS: UnlockItem[] = [
   { id: "c-cat", kind: "COMPANION", target: "CAT", icon: "🐱", name: "Cozy Cat", need: {}, needText: "From the start" },
@@ -78,6 +80,11 @@ export const UNLOCKS: UnlockItem[] = [
   { id: "r-star", kind: "RANK", icon: "✨", name: "Star Gardener", need: { stars: 70 }, needText: "70 ⭐" },
   { id: "r-master", kind: "RANK", icon: "👑", name: "Master of Seasons", need: { season: 9 }, needText: "Clear Season 8" },
   { id: "r-endless", kind: "RANK", icon: "🌌", name: "Endless Gardener", need: { season: 10 }, needText: "Reach Season 10" },
+  // Starting bags (rules v24+)
+  { id: "g-thorny", kind: "BAG", target: "THORNY", icon: "🌹", name: "Thorny bag", need: { stars: 10 }, needText: "10 ⭐" },
+  { id: "g-acorn", kind: "BAG", target: "ACORN", icon: "🌰", name: "Acorn bag", need: { season: 3 }, needText: "Reach Season 3" },
+  { id: "g-berry", kind: "BAG", target: "BERRY", icon: "🫐", name: "Berry bag", need: { stars: 30 }, needText: "30 ⭐" },
+  { id: "g-lean", kind: "BAG", target: "LEAN", icon: "🌱", name: "Lean bag", need: { asc: 1 }, needText: "Beat the Season 3 Boss on Ascension 1" },
   // Garden Journal rewards
   { id: "j-botanist", kind: "TITLE", icon: "📖", name: "Botanist title", need: { journal: 25 }, needText: "Fill 25% of the Garden Journal" },
   { id: "j-petal", kind: "TRAIL", target: "PRESSED_PETAL", icon: "🌸", name: "Pressed Petal line", need: { journal: 50 }, needText: "Fill 50% of the Garden Journal" },
@@ -287,6 +294,41 @@ export function companionUnlockFor(classId: HeroClassId): UnlockItem {
 
 export function isCompanionUnlocked(classId: HeroClassId, p: UnlockProgress = loadUnlockProgress()): boolean {
   return classId === "KNIGHT" || isUnlocked(companionUnlockFor(classId), p);
+}
+
+// ── Starting bags (rules v24+): unlocked by playing, picked on the New Run sheet ──
+
+export const RUN_BAG_ORDER: BagId[] = ["THORNY", "ACORN", "BERRY", "LEAN"];
+const CHOSEN_BAG_KEY = "ost_run_bag_v1";
+
+export function bagUnlockFor(id: BagId): UnlockItem {
+  return UNLOCKS.find((u) => u.kind === "BAG" && u.target === id)!;
+}
+
+/** Starting bags this device has earned */
+export function unlockedRunBags(p: UnlockProgress = loadUnlockProgress()): BagId[] {
+  return RUN_BAG_ORDER.filter((b) => isUnlocked(bagUnlockFor(b), p));
+}
+
+/** Last bag picked for a Garden Run (null = the usual Garden bag, or a locked one) */
+export function loadChosenBag(): BagId | null {
+  let id: string | null = null;
+  try {
+    id = window.localStorage.getItem(CHOSEN_BAG_KEY);
+  } catch {
+    // Ignore storage errors
+  }
+  const pick = (RUN_BAG_ORDER as string[]).includes(id ?? "") ? (id as BagId) : null;
+  return pick && unlockedRunBags().includes(pick) ? pick : null;
+}
+
+export function saveChosenBag(id: BagId | null): void {
+  try {
+    if (id) window.localStorage.setItem(CHOSEN_BAG_KEY, id);
+    else window.localStorage.removeItem(CHOSEN_BAG_KEY);
+  } catch {
+    // Ignore storage errors
+  }
 }
 
 /** Companions this device has earned (the Keeper always) */
