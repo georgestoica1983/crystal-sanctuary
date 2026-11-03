@@ -63,6 +63,7 @@ export type TrackEvent =
   | "tool_used"
   | "bed_skipped"
   | "run_over"
+  | "run_paused"
   | "feedback_open"
   | "run_start"
   | "bed_start"

@@ -249,6 +249,7 @@ import {
   BagPanel,
   RunOverInfo,
   RunOverModal,
+  RunSavedRest,
   RunWeedOutOverlay,
 } from "@/components/RunModeUI";
 import TutorialCoach from "@/components/TutorialCoach";
@@ -395,6 +396,8 @@ export default function OneStrokeTacticianPage() {
   const [weedOutMode, setWeedOutMode] = useState<boolean>(false);
   const [weedOutSelection, setWeedOutSelection] = useState<GridCoord[]>([]);
   const [runClear, setRunClear] = useState<RunClearInfo | null>(null);
+  // Stopped after a Boss: the saved-for-later screen is up
+  const [runResting, setRunResting] = useState(false);
   const [runOver, setRunOver] = useState<RunOverInfo | null>(null);
   // The Run's action log (sent with leaderboard submissions so the server can
   // replay it) and the Shop a bloomed garden opens; null for practice
@@ -555,6 +558,7 @@ export default function OneStrokeTacticianPage() {
   useBackClose(Boolean(tip), () => setTip(null));
   useBackClose(Boolean(bossBeaten), () => setBossBeaten(null));
   useBackClose(runOver !== null, () => setRunOver(null));
+  useBackClose(runResting, () => setRunResting(false));
   // The Run whose first bed already had its card (once per Run)
   const goalCardRunRef = useRef<string | null>(null);
   const [activeResolutionStep, setActiveResolutionStep] = useState<
@@ -2727,6 +2731,13 @@ export default function OneStrokeTacticianPage() {
    */
   const resumedRef = useRef(false);
   /** Leaving a lesson or the Practice Garden: back to the saved Run, or a new one if there is none */
+  /** After a Boss: write the save now and show that it's safe to close */
+  const handleStopAfterBoss = () => {
+    if (pendingSaveRef.current) writeRunSave(pendingSaveRef.current);
+    track("run_paused", { bed: runClear?.gardenIndex ?? 0 });
+    setRunResting(true);
+  };
+
   const backToRunOrNew = () => {
     resumedRef.current = false;
     resumeSavedRun();
@@ -4879,7 +4890,16 @@ export default function OneStrokeTacticianPage() {
       />
 
       {/* Run mode: garden-clear payout and the end-of-run summary */}
-      <RunGardenClearModal info={runClear} onContinue={handleRunClearContinue} />
+      <RunGardenClearModal
+        info={runClear}
+        onContinue={handleRunClearContinue}
+        onStop={practiceStep || lesson ? undefined : handleStopAfterBoss}
+      />
+      <RunSavedRest
+        open={runResting}
+        season={runClear ? Math.floor(runClear.gardenIndex / 3) + 1 : 1}
+        onKeepPlaying={() => setRunResting(false)}
+      />
       <AnimatePresence>{tip && <TipCard key={tip.text} tip={tip} onDone={() => setTip(null)} />}</AnimatePresence>
       <AnimatePresence>
         {bossIntro && (

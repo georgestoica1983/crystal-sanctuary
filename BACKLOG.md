@@ -43,7 +43,7 @@ Everything below this section is parked until this is done.
 
 **Coming back and sharing**
 - [x] 22. The end screen points forward: one next goal first.
-- [ ] 23. A good place to stop: "Stop here, resume later" after each Boss (quick mode fits here).
+- [x] 23. A good place to stop: "Stop here, resume later" after each Boss. (Quick mode, a shorter Run, not built yet: it would need new rules.)
 - [ ] 24. Shareable daily result grid, and the daily easier to find.
 - [ ] 25. Shareable seeded Runs (a code like MOSS-4821) using the replay system.
 

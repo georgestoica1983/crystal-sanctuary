@@ -548,9 +548,12 @@ export function RunGoalCard({
 export function RunGardenClearModal({
   info,
   onContinue,
+  onStop,
 }: {
   info: RunClearInfo | null;
   onContinue: () => void;
+  /** After a Boss: a natural place to stop, the Run waits in its save */
+  onStop?: () => void;
 }) {
   // Each earned star lands on a rising bell, in time with its pop-in
   useEffect(() => {
@@ -693,7 +696,55 @@ export function RunGardenClearModal({
           >
             Enter the Shop · {info.gemsBefore + info.total} 🌱 to spend →
           </button>
+          {onStop && kind === "BOSS" && (
+            <button
+              type="button"
+              onClick={onStop}
+              className="mt-2 w-full rounded-xl py-2.5 text-[13px] font-semibold border border-white/10 bg-white/[0.05] text-white/80 active:scale-[0.98]"
+            >
+              Stop here, resume later
+            </button>
+          )}
         </div>
+      </motion.div>
+    </div>
+  );
+}
+
+/** The player chose to stop after a Boss: the Run is saved and waits right here */
+export function RunSavedRest({
+  open,
+  season,
+  onKeepPlaying,
+}: {
+  open: boolean;
+  /** The Season just finished */
+  season: number;
+  onKeepPlaying: () => void;
+}) {
+  if (!open) return null;
+  return artify(
+    <div className="ui-zoom fixed inset-0 z-[70] bg-[#101813] flex items-center justify-center p-5">
+      <motion.div
+        initial={{ y: 16, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 200, damping: 22 }}
+        className="w-full max-w-[340px] text-center text-white space-y-3"
+      >
+        <img src={BLOOM_ART} alt="" aria-hidden="true" draggable={false} className="mx-auto h-14 w-14 object-contain" />
+        <div className="font-display text-[26px] font-semibold text-amber-100">Saved for later</div>
+        <p className="text-[14px] leading-snug text-white/75">
+          Season {season} is done and your Run is saved on this device. Open Bloomline any time and you&apos;ll pick up
+          right here, before the Shop.
+        </p>
+        <p className="text-[13px] text-white/50">You can close the game now.</p>
+        <button
+          type="button"
+          onClick={onKeepPlaying}
+          className="w-full rounded-xl py-3 font-bold text-[15px] bg-teal-300 text-slate-950 active:scale-[0.98]"
+        >
+          Keep playing
+        </button>
       </motion.div>
     </div>
   );
