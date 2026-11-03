@@ -78,3 +78,6 @@ export const tagArt = (id: string) => icon(`tag-${kebab(id)}`);
 /** Small badges (public/art/icons/badge-*.webp) shown next to text and numbers */
 export type BadgeId = "star" | "crown" | "flame" | "lock" | "golden" | "iridescent" | "radiant" | "seed";
 export const badgeArt = (id: BadgeId) => icon(`badge-${id}`);
+/** Garden moments (public/art/icons/misc-*.webp): the Gardener, Swap, the Journal, Today's garden… */
+export type MiscArtId = "gardener" | "swap" | "no-safe-line" | "journal" | "daily" | "music" | "hint" | "rotate-phone";
+export const miscArt = (id: MiscArtId) => icon(`misc-${id}`);

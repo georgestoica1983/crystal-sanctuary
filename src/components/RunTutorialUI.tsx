@@ -196,7 +196,7 @@ const PRACTICE_COPY: Record<PracticeStep, { title: string; lines: string[]; butt
     title: "New tiles",
     lines: [
       "Used tiles were replaced. ❤️ Life comes back only when you clear the Garden Bed.",
-      "Try 🌿 Swap: tap up to 3 tiles to change them.",
+      "Try 🔄 Swap: tap up to 3 tiles to change them.",
     ],
   },
   weeded: {

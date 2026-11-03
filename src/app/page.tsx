@@ -2,7 +2,7 @@
 
 import Badge from "@/components/Badge";
 import SupplyIcon from "@/components/SupplyIcon";
-import { badgeArt, bossArt, relicArt, tileArt, toolArt } from "@/lib/art";
+import { badgeArt, bossArt, miscArt, relicArt, tileArt, toolArt } from "@/lib/art";
 import { bossAdvice } from "@/lib/bossAdvice";
 import GardenerCard from "@/components/GardenerCard";
 import { applyGardenerGift, GARDENER_GIFTS, gardenerRelic } from "@/lib/runReplay";
@@ -2226,7 +2226,7 @@ export default function OneStrokeTacticianPage() {
     }
     if (garden.weedOutsLeft > 0) {
       setRunNoSafeLine(true);
-      handleNotice("No safe line on this board. Use a 🌿 Swap to change some tiles.");
+      handleNotice("No safe line on this board. Use a 🔄 Swap to change some tiles.");
       return false;
     }
     endRunMode("NO_SAFE_LINE", garden, history, stats);
@@ -3758,7 +3758,7 @@ export default function OneStrokeTacticianPage() {
   // Run notices (a warning about the line, no safe line) take the top card's
   // place like the meter does, so they never cover the board
   const runNoticeText = RUN_ONLY && (retractNotice || (runNoSafeLine && !weedOutMode))
-    ? retractNotice ?? "🪨 No safe line on this board. Tap 🌿 Swap to change some tiles."
+    ? retractNotice ?? "⛔ No safe line on this board. Tap 🔄 Swap to change some tiles."
     : null;
   const runCardShown =
     mode === "RUN" && !isInteractiveTutorial && !lesson && !!runGarden && !(phase === "DEFEAT" && runOver === null);
@@ -3789,9 +3789,9 @@ export default function OneStrokeTacticianPage() {
                     lesson
                       ? "Your points show here as you draw."
                       : runNoSafeLine
-                      ? "No safe line on this board. 🌿 Swap can change up to 3 tiles."
+                      ? "No safe line on this board. 🔄 Swap can change up to 3 tiles."
                       : swapSuggested
-                      ? "Tough board. Even the best line falls short, so try 🌿 Swap to change up to 3 tiles."
+                      ? "Tough board. Even the best line falls short, so try 🔄 Swap to change up to 3 tiles."
                       : undefined
                   }
                   intro={
@@ -3937,7 +3937,8 @@ export default function OneStrokeTacticianPage() {
       <SoundPrompt ready={(lessonIndex === null || lessonIndex >= 1) && !showGoalCard} onChoose={handleSoundPrompt} />
       {/* Phones held sideways: the game is played upright */}
       <div className="rotate-hint fixed inset-0 z-[90] bg-[#101813] flex-col items-center justify-center gap-3 text-center px-6">
-        <div className="text-5xl" aria-hidden="true">📱</div>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={miscArt("rotate-phone")} alt="" aria-hidden="true" draggable={false} className="h-20 w-20 object-contain" />
         <div className="text-lg font-black text-white">Turn your phone upright</div>
         <p className="text-sm text-indigo-100/80 max-w-xs">
           Bloomline is played in portrait so the whole garden fits on screen.
@@ -4370,16 +4371,18 @@ export default function OneStrokeTacticianPage() {
             // Takes the top spacer's place: it grows like the spacer under the
             // board, so the board sits centred between the top card and the buttons
             <p data-area="hint" className="ui-zoom w-full max-w-game grow basis-0 !shrink min-h-[20px] flex items-end justify-center text-center text-[14px] leading-snug text-amber-200/90">
-              {phase === "RESOLVING"
+              {artify(
+phase === "RESOLVING"
                 ? "Tap the board to skip ⏩"
                 : runNoSafeLine
-                ? "No safe line on this board. 🌿 Swap can change up to 3 tiles."
+                ? "No safe line on this board. 🔄 Swap can change up to 3 tiles."
                 : swapSuggested
-                ? "Tough board. Try 🌿 Swap to change up to 3 tiles."
+                ? "Tough board. Try 🔄 Swap to change up to 3 tiles."
                 : // The main rule, while it is new: only the very first bed of a player's first Run
                 runsStarted() <= 1 && (runGarden?.gardenIndex ?? 0) === 0
                 ? "Longer lines score far more."
-                : ""}
+                : ""
+              )}
             </p>
           )}
 
@@ -4617,7 +4620,7 @@ export default function OneStrokeTacticianPage() {
                       : "bg-[#2A1018]/95 border-rose-300/60 text-rose-50"
                   }`}
                 >
-                  {artify(retractNotice ?? "🪨 No safe line on this board. Tap 🌿 Swap to change some tiles.")}
+                  {artify(retractNotice ?? "⛔ No safe line on this board. Tap 🔄 Swap to change some tiles.")}
                   {noticeSticky && retractNotice && (
                     <span className="mt-1.5 block">
                       <span className="inline-block rounded-lg bg-amber-300 px-3 py-1 text-[12px] font-black text-slate-950">Got it</span>

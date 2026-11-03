@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import type { GardenerGiftId, RelicId } from "@/types/game";
 import { GARDENER_GIFTS } from "@/lib/runReplay";
 import { RELIC_REGISTRY } from "@/lib/engine";
-import { badgeArt, statArt } from "@/lib/art";
+import { badgeArt, miscArt, statArt } from "@/lib/art";
 import RelicIcon from "@/components/RelicIcon";
 import { artify } from "@/components/ArtText";
 
@@ -55,9 +55,8 @@ export default function GardenerCard({
         className="fit-card w-full max-w-[380px] rounded-2xl border border-amber-200/25 bg-[#1B281F] p-4 text-white shadow-2xl space-y-3"
       >
         <div className="text-center">
-          <div className="text-[44px] leading-none" aria-hidden="true">
-            🧑‍🌾
-          </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={miscArt("gardener")} alt="" aria-hidden="true" draggable={false} className="mx-auto h-20 w-20 object-contain" />
           <div className="mt-1 text-[13px] font-semibold text-amber-200/90">Season {season} begins</div>
           <h2 className="font-display text-[24px] font-semibold leading-tight">The Wandering Gardener</h2>
           <p className="mt-1 text-[14px] leading-snug text-white/75">

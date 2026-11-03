@@ -258,8 +258,8 @@ function buildPages(): GuidePage[] {
             <>You get <B>{RUN_STROKES_PER_GARDEN} lines</B>. Each adds to the bar.</>,
             <>Used tiles are replaced with new ones from your Tile Bag.</>,
             <>❤️ Life, 🧤 Gloves and ✂️ Shears carry over between lines. Clearing a Garden Bed gives back +3 ❤️.</>,
-            <><B>🌿 Swap</B> ({RUN_WEEDOUTS_PER_GARDEN} per garden): change up to {RUN_WEEDOUT_MAX_TILES} tiles.</>,
-            <><B>✨ Hint</B> (1 per garden): lights up a good route.</>,
+            <><B>🔄 Swap</B> ({RUN_WEEDOUTS_PER_GARDEN} per garden): change up to {RUN_WEEDOUT_MAX_TILES} tiles.</>,
+            <><B>💡 Hint</B> (1 per garden): lights up a good route.</>,
             <>If a line would run out of Life, it pulls back and shows why.</>,
           ]}
         />

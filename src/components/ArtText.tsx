@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { badgeArt, companionArt, statArt, tileArt } from "@/lib/art";
+import { badgeArt, companionArt, miscArt, statArt, tileArt } from "@/lib/art";
 
 /**
  * Teaching text, tips and messages still name tiles with emoji (🌺 Thorn,
@@ -24,8 +24,16 @@ const ART: Record<string, string> = {
   "👑": badgeArt("crown"),
   "🔥": badgeArt("flame"),
   "🔒": badgeArt("lock"),
+  // Garden moments: 🔄 Swap and ⛔ no safe line are this game's own markers
+  // (🌿 and 🪨 mean other things elsewhere)
+  "🔄": miscArt("swap"),
+  "⛔": miscArt("no-safe-line"),
+  "📖": miscArt("journal"),
+  "🌞": miscArt("daily"),
+  "🎵": miscArt("music"),
+  "💡": miscArt("hint"),
 };
-const ART_RE = /(❤️?|🧤|✂️?|🌱|🌺|🌈|🍓|🌰|🐱|🌸|⭐|👑|🔥|🔒)/gu;
+const ART_RE = /(❤️?|🧤|✂️?|🌱|🌺|🌈|🍓|🌰|🐱|🌸|⭐|👑|🔥|🔒|🔄|⛔|📖|🌞|🎵|💡)/gu;
 const SKIP = new Set(["svg", "textarea", "input", "option", "title", "select"]);
 
 function artifyString(text: string, keyBase: string): React.ReactNode {

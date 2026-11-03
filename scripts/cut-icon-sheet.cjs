@@ -9,6 +9,7 @@
 //      or:  node scripts/cut-icon-sheet.cjs design/gemini-visitors.webp visitors      (2 × 2 garden visitors)
 //      or:  node scripts/cut-icon-sheet.cjs design/gemini-bosses.webp bosses          (4 × 3 Boss portraits)
 //      or:  node scripts/cut-icon-sheet.cjs design/gemini-supplies.webp supplies      (5 × 3 tools, upgrades, Tags)
+//      or:  node scripts/cut-icon-sheet.cjs design/gemini-moments.webp moments        (4 × 2 Gardener, Swap, Journal…)
 const sharp = require("sharp");
 const path = require("path");
 
@@ -60,6 +61,8 @@ const SUPPLY_NAMES = [
 ];
 // Rules v20 relics: 3 × 2, each cell with its own background shade
 const RELIC_NAMES_3 = ["seven-stones", "short-cut", "straight-furrow", "light-step", "thornless-path", "even-rows"].map((n) => `relic-${n}`);
+// Garden moments: 4 × 2, each cell with its own background shade (design/missing-art-audit-and-prompts.md, sheet A)
+const MOMENT_NAMES = ["gardener", "swap", "no-safe-line", "journal", "daily", "music", "hint", "rotate-phone"].map((n) => `misc-${n}`);
 // Small badges: 4 × 2, in the order of the badges prompt
 const BADGE_NAMES = ["star", "crown", "flame", "lock", "golden", "iridescent", "radiant", "seed"].map((n) => `badge-${n}`);
 // Lawn board pieces: 4 × 2. Each cell has its own background shade, and pieces keep their own shape
@@ -74,6 +77,7 @@ const SOFT = 46; // up to this (and reachable from the edge): partly transparent
 const WIDE_GLOW = new Set([
   "relic-long-shadow", "boss-eclipse", "boss-frost", "boss-long-road", "boss-fog",
   "tool-sunlit", "upgrade-observatory", "tag-golden", "badge-radiant", "relic-seven-stones",
+  "misc-daily", "misc-hint",
 ]);
 const GLOW_SOFT = 120;
 const OUT = 256;
@@ -92,8 +96,9 @@ const OUT = 256;
     : mode === "badges" ? BADGE_NAMES
     : mode === "lawn" ? LAWN_NAMES
     : mode === "relics3" ? RELIC_NAMES_3
+    : mode === "moments" ? MOMENT_NAMES
     : ICON_NAMES;
-  const COLS = mode === "relics2" || mode === "decor" || mode === "bosses" || mode === "badges" || mode === "lawn" ? 4 : mode === "relics3" ? 3 : mode === "supplies" ? 5 : Math.round(Math.sqrt(NAMES.length));
+  const COLS = mode === "relics2" || mode === "decor" || mode === "bosses" || mode === "badges" || mode === "lawn" || mode === "moments" ? 4 : mode === "relics3" ? 3 : mode === "supplies" ? 5 : Math.round(Math.sqrt(NAMES.length));
   const ROWS = Math.ceil(NAMES.length / COLS);
   const { data, info } = await sharp(src).raw().toBuffer({ resolveWithObject: true });
   const { width: W, height: H, channels: C } = info;
@@ -102,7 +107,7 @@ const OUT = 256;
   for (let n = 0; n < NAMES.length; n++) {
     const col = n % COLS, row = Math.floor(n / COLS);
     // The garden sheet has faint grid lines: step a few pixels inside each cell
-    const inset = mode === "garden" ? 6 : mode === "relics3" ? 10 : 0;
+    const inset = mode === "garden" ? 6 : mode === "relics3" || mode === "moments" ? 10 : 0;
     // Some sheets have unevenly spaced rows: cut them at the empty gaps instead
     const edges = ROW_EDGES[mode] ? [...ROW_EDGES[mode].map((f) => Math.round(f * H)), H] : null;
     const x0 = Math.round(col * cellW) + inset;
@@ -110,7 +115,7 @@ const OUT = 256;
     const w = Math.round((col + 1) * cellW) - inset - x0;
     const h = (edges ? edges[row] : Math.round((row + 1) * cellH)) - inset - y0;
     // The lawn sheet's cells each have their own shade: read it from the cell's corner
-    const perCell = mode === "lawn" || mode === "relics3";
+    const perCell = mode === "lawn" || mode === "relics3" || mode === "moments";
     const at = (perCell ? (y0 + 4) * W + x0 + 4 : 2) * C;
     const bg = perCell ? [data[at], data[at + 1], data[at + 2]] : sheetBg;
     const rgba = Buffer.alloc(w * h * 4);

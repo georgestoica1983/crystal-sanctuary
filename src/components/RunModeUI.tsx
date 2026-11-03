@@ -4,7 +4,7 @@ import Badge from "@/components/Badge";
 import BossIcon from "@/components/BossIcon";
 import React, { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, PartyPopper, Sparkles, Sun, Trophy } from "lucide-react";
+import { ArrowRight, PartyPopper, Sparkles, Trophy } from "lucide-react";
 import EntityIcon from "@/components/EntityIcon";
 import { BossRuleId, GridCell, GridCoord, RelicId, RunGardenState } from "@/types/game";
 import {
@@ -22,7 +22,7 @@ import {
   WEATHER_INFO,
 } from "@/lib/engine";
 import RelicIcon from "@/components/RelicIcon";
-import { tileArt } from "@/lib/art";
+import { miscArt, tileArt } from "@/lib/art";
 import { pickNextGoal } from "@/lib/unlocks";
 import { DailyRecord, dailyGridRows, dailyShareText } from "@/lib/daily";
 import { seedCodeLink } from "@/lib/seedCode";
@@ -270,7 +270,13 @@ export function RunWeedOutOverlay({
                       : "bg-transparent hover:bg-lime-200/15 ring-1 ring-lime-200/30"
                   } flex items-center justify-center text-xl`}
                 >
-                  {on ? "🌿" : ""}
+                  {on && (
+                    // On a solid round backing, so it reads over any tile
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#1B281F] ring-2 ring-lime-200 shadow-lg">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={miscArt("swap")} alt="" aria-hidden="true" draggable={false} className="h-8 w-8 object-contain" />
+                    </span>
+                  )}
                 </button>
               );
             })
@@ -915,7 +921,8 @@ export function TodaysGardenButton({ played, streak, onClick }: { played: boolea
       className="w-full rounded-xl border border-amber-300/50 bg-amber-400/10 px-3 py-2.5 text-left active:scale-[0.98] transition"
     >
       <span className="flex items-center gap-1.5 text-[14px] font-bold text-amber-50">
-        <Sun className="w-4 h-4 text-amber-300" /> Today&apos;s garden
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={miscArt("daily")} alt="" aria-hidden="true" draggable={false} className="h-6 w-6 object-contain" /> Today&apos;s garden
         {!played && (
           <span className="rounded-full bg-amber-300 px-1.5 text-[10px] leading-[16px] font-black text-slate-950" aria-label="Not played today">
             New today
