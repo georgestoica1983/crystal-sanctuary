@@ -1094,6 +1094,8 @@ export default function OneStrokeTacticianPage() {
       const gold = Math.max(0, purse - offer.cost);
       out[offer.id] = Math.max(0, scoreWith([...activeRelics, offer.relicId], gold) - scoreWith(activeRelics, gold));
     }
+    // The best line's own score, so the Shop can show each gain as a share of it
+    out.__base = scoreWith(activeRelics, purse);
     return out;
   }, [phase, mode, floorHistory, floorStartHero.maxHp, relicCounters, dungeon.modifierId, heroClassId, activeRelics, shopOffers, pendingPostFloorStats, hero]);
 

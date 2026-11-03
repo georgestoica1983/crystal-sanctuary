@@ -335,6 +335,11 @@ export default function ShopModal({
   const current =
     pickedValid ?? (legendary ? null : fallback ? { kind: "OFFER" as const, id: fallback.id } : null);
 
+  /** A gain as a share of the best line's score (whole percent, 0 when unknown) */
+  const gainPct = (gain: number) => {
+    const base = scorePreview?.__base ?? 0;
+    return base > 0 && gain > 0 ? Math.max(1, Math.round((gain / base) * 100)) : 0;
+  };
   const blockedOf = (o: ShopOffer) => (o.kind === "RELIC" && slotsFull) || (o.kind === "TOOL" && toolsHeld >= MAX_TOOLS);
 
   const offerIcon = (offer: ShopOffer, size: number) =>
@@ -472,8 +477,12 @@ export default function ShopModal({
             </div>
           )}
           {preview !== undefined && !sold && (
-            <div className={`text-[12.5px] font-mono font-black ${preview > 0 ? "text-emerald-300" : "text-white/45"}`}>
-              {preview > 0 ? `≈ +${preview.toLocaleString()} on your best line` : "No boost on your best line"}
+            <div className={`text-[12.5px] font-mono font-black ${preview > 0 ? "text-emerald-300" : "text-white/55"}`}>
+              {preview > 0
+                ? `≈ +${preview.toLocaleString()}${gainPct(preview) ? ` (+${gainPct(preview)}%)` : ""} on your best line`
+                : offer.relicId && RELIC_REGISTRY[offer.relicId]?.category === "XMULT"
+                ? "Your last best line didn't meet its rule; another line could"
+                : "No boost on your last best line"}
             </div>
           )}
           {blocked && !sold && (
@@ -550,6 +559,12 @@ export default function ShopModal({
               >
                 {offerIcon(offer, 30)}
                 <span className="w-full text-center text-[11px] font-bold leading-tight line-clamp-2">{name}</span>
+                {/* What it would add to your best line, to compare offers at a glance */}
+                {!sold && gainPct(scorePreview?.[offer.id] ?? 0) > 0 && (
+                  <span className="absolute top-1 left-1 rounded-md bg-emerald-400/20 px-1 text-[10px] font-mono font-black text-emerald-200">
+                    +{gainPct(scorePreview?.[offer.id] ?? 0)}%
+                  </span>
+                )}
                 <span
                   className={`absolute top-1 right-1 rounded-md px-1 text-[10.5px] font-mono font-black ${
                     sold ? "text-white/50" : affordable && !blocked ? "bg-amber-400/20 text-amber-200" : "text-white/40"
