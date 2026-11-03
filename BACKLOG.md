@@ -30,7 +30,7 @@ Everything below this section is parked until this is done.
 - [x] 13. Softer first Boss: preview it in the Big bed before ("Next: Thistle King. Bring Gloves.").
 
 **Feel**
-- [ ] 14. Long lines feel huge: burst, sound and pause grow with length.
+- [x] 14. Long lines feel huge: burst, sound and pause grow with length.
 - [ ] 15. Haptics while drawing: a tick per tile, stronger on Thorns and at the gate.
 - [ ] 16. Readable score versus target: bigger bar, a notch at the target, short numbers.
 

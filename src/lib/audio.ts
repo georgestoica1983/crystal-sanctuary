@@ -861,6 +861,30 @@ class SoundAndHapticsEngine {
     if (notes >= 5) this.bell(gardenNote(14, 2), { gain: 0.06, delay: 0.12 });
   }
 
+  /** The counted Length reaches a new line tier (Sprout, Vine, Blossom, Grand garden) */
+  public playTierUp(level: number): void {
+    this.vibrate(8 + level * 4);
+    const top = 7 + level * 2;
+    this.bell(gardenNote(top, 2), { gain: 0.05 + level * 0.01 });
+    this.pluck(gardenNote(top - 3, 2), { gain: 0.04, decay: 0.3, delay: 0.04 });
+  }
+
+  /**
+   * A long line's fanfare after its total: one more rising note for every
+   * line tier, and bells from Blossom (15 tiles) up
+   */
+  public playLineFanfare(level: number): void {
+    if (level <= 0) return;
+    const run = [0, 4, 7, 9, 12, 14, 16, 19].slice(0, 2 + level * 1.5);
+    run.forEach((s, i) => this.pluck(gardenNote(s, 2), { gain: 0.06, decay: 0.7, delay: 0.05 + i * 0.07 }));
+    if (level >= 3) {
+      this.bell(gardenNote(19, 2), { gain: 0.07, delay: 0.1 + run.length * 0.07 });
+      this.pluck(gardenNote(0, 0), { gain: 0.07, decay: 1.6 });
+    }
+    if (level >= 4) this.bell(gardenNote(24, 2), { gain: 0.06, delay: 0.24 + run.length * 0.07 });
+    this.vibrate(level >= 3 ? [20, 40, 28, 40, 36] : [14, 30, 20]);
+  }
+
   /** A star lands on the bed-cleared screen (1, 2, 3 climb higher) */
   public playStarLand(star: number): void {
     this.vibrate(10 + star * 4);

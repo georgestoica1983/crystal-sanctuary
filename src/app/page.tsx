@@ -487,6 +487,7 @@ export default function OneStrokeTacticianPage() {
     target: number;
     tierName: string | null;
     tierColor: string;
+    tierLevel: number;
   } | null>(null);
   const [scoreSpeed, setScoreSpeed] = useState<ScoreSpeed>(1);
   useEffect(() => setScoreSpeed(loadScoreSpeed()), []);
@@ -2995,7 +2996,7 @@ export default function OneStrokeTacticianPage() {
           relicScoreCtx
         );
         const echoes = echoValues(simResult);
-        showEndMs = lineShowTimeline(b, simResult.steps.length, STEP_MS, scoreSpeed, echoes).endAt;
+        showEndMs = lineShowTimeline(b, simResult.steps.length, STEP_MS, scoreSpeed, echoes, tier.level).endAt;
         setLineShow({
           key: Date.now(),
           breakdown: b,
@@ -3006,8 +3007,8 @@ export default function OneStrokeTacticianPage() {
           target: runGarden ? Math.max(1, runGarden.target - runGarden.score) : 0,
           tierName: tier.level > 0 ? tier.name : null,
           tierColor: tier.color,
+          tierLevel: tier.level,
         });
-        if (tier.level > 0) soundEngine.playVictoryChord();
       }
 
       // Celebrate long lines (Sprout and up) as soon as they're let go
@@ -3670,6 +3671,7 @@ export default function OneStrokeTacticianPage() {
                     target={lineShow.target}
                     tierName={lineShow.tierName}
                     tierColor={lineShow.tierColor}
+                    tierLevel={lineShow.tierLevel}
                     onRelic={(id) => {
                       setFlashRelics([id]);
                       window.setTimeout(() => setFlashRelics((prev) => (prev.length === 1 && prev[0] === id ? [] : prev)), 600);

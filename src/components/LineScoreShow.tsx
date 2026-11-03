@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { LINE_TIERS } from "@/lib/lineTiers";
 import { FloorScoreBreakdown, PathSimulationResult, RelicId, ScoreSource } from "@/types/game";
 import { soundEngine } from "@/lib/audio";
 import { artify } from "@/components/ArtText";
@@ -74,6 +75,30 @@ export const FIRE_GLOW = [
 ];
 const PETAL_COLORS = ["#F9C784", "#F4A6A6", "#FCD34D", "#F7B2C4", "#FDBA74"];
 
+/** A burst of petals from the total: bigger, wider and more of them for longer lines */
+function LengthBurst({ level, color }: { level: number; color: string }) {
+  const count = [0, 8, 14, 22, 32][level] ?? 0;
+  const reach = 30 + level * 16;
+  return (
+    <span aria-hidden="true" className="pointer-events-none absolute right-6 top-1/2 h-0 w-0 overflow-visible">
+      {Array.from({ length: count }, (_, i) => {
+        const a = (i / count) * Math.PI * 2 + (i % 2) * 0.2;
+        const r = reach * (0.7 + ((i * 29) % 10) / 30);
+        return (
+          <motion.span
+            key={i}
+            initial={{ opacity: 0, x: 0, y: 0, scale: 0.4, rotate: 0 }}
+            animate={{ opacity: [0, 1, 0], x: Math.cos(a) * r, y: Math.sin(a) * r * 0.6, scale: 1 + level * 0.12, rotate: 200 + i * 30 }}
+            transition={{ duration: 0.9 + level * 0.15, ease: "easeOut" }}
+            className="absolute h-[7px] w-[5px] rounded-[60%_40%_60%_40%]"
+            style={{ backgroundColor: i % 3 === 0 ? color : PETAL_COLORS[i % PETAL_COLORS.length] }}
+          />
+        );
+      })}
+    </span>
+  );
+}
+
 /** Warm petals drifting up from the total: more of them the bigger the overflow */
 function Petals({ level }: { level: number }) {
   const count = [0, 6, 10, 16][level] ?? 0;
@@ -114,7 +139,9 @@ export function lineShowTimeline(
   steps: number,
   stepMs: number,
   speed: ScoreSpeed,
-  echoes: number[] = []
+  echoes: number[] = [],
+  /** Line tier (getLineTier): longer lines hold their total a little longer */
+  tierLevel = 0
 ): { events: ShowEvent[]; totalAt: number; endAt: number } {
   const events: ShowEvent[] = [];
   for (let i = 1; i < steps; i++) {
@@ -140,7 +167,7 @@ export function lineShowTimeline(
   });
   t += 80 / speed;
   events.push({ at: t, kind: "total" });
-  return { events, totalAt: t, endAt: t + 750 / speed };
+  return { events, totalAt: t, endAt: t + (750 + tierLevel * 260) / speed };
 }
 
 /**
@@ -158,9 +185,12 @@ export default function LineScoreShow({
   target,
   tierName,
   tierColor,
+  tierLevel = 0,
   onRelic,
   onSkip,
 }: {
+  /** Line tier of this line (0 Seedling … 4 Grand garden) */
+  tierLevel?: number;
   breakdown: FloorScoreBreakdown;
   values: number[];
   /** Echo tiles' second count per step (rules v15+) */
@@ -179,14 +209,15 @@ export default function LineScoreShow({
   const [value, setValue] = useState(0);
   const [length, setLength] = useState(1);
   const [xMult, setXMult] = useState(1);
-  const [caption, setCaption] = useState<{ key: string; art?: string; text: string; tone: string } | null>(null);
+  const [caption, setCaption] = useState<{ key: string; art?: string; text: string; tone: string; color?: string } | null>(null);
+  const still = useReducedMotion();
   const [total, setTotal] = useState<number | null>(null);
   const [pulse, setPulse] = useState<{ box: "value" | "length" | "x"; key: number } | null>(null);
   const onRelicRef = useRef(onRelic);
   onRelicRef.current = onRelic;
 
   useEffect(() => {
-    const { events } = lineShowTimeline(breakdown, steps, stepMs, speed, echoes);
+    const { events } = lineShowTimeline(breakdown, steps, stepMs, speed, echoes, tierLevel);
     const echoTotal = echoes.reduce((a, b) => a + b, 0);
     const lastWalkAt = Math.max(0, ...events.filter((e) => e.kind === "tile" || e.kind === "echo").map((e) => e.at));
     let v = 0;
@@ -202,6 +233,12 @@ export default function LineScoreShow({
           if (ev.step === steps - 1) len = breakdown.pathMult;
           setValue(v);
           setLength(len);
+          // The line grows a tier: its name pops up with a rising chime
+          const crossed = LINE_TIERS.find((t) => t.level > 0 && t.minTiles === ev.step + 1);
+          if (crossed) {
+            setCaption({ key: `t${crossed.level}`, text: `${crossed.name}!`, tone: "font-black", color: crossed.color });
+            soundEngine.playTierUp(crossed.level);
+          }
           const add = values[ev.step] ?? 0;
           if (add > 0) setPulse({ box: "value", key: ev.at });
         } else if (ev.kind === "echo") {
@@ -244,6 +281,7 @@ export default function LineScoreShow({
           setTotal(breakdown.total);
           setCaption(null);
           soundEngine.playTallyTotal(target > 0 ? breakdown.total / target : 0.3);
+          if (tierLevel > 0) window.setTimeout(() => soundEngine.playLineFanfare(tierLevel), 120);
           const lvl = fireLevel(breakdown.total, target);
           if (lvl >= 2) window.setTimeout(() => soundEngine.playMultiplierSparkle(lvl + 1), 160);
         }
@@ -273,6 +311,7 @@ export default function LineScoreShow({
       style={fire > 0 ? { boxShadow: `inset 0 0 18px rgba(252,211,77,${0.06 * fire}), ${FIRE_GLOW[fire]}` } : undefined}
     >
       {fire > 0 && <Petals level={fire} />}
+      {total !== null && tierLevel > 0 && !still && <LengthBurst level={tierLevel} color={tierColor ?? "#FCD34D"} />}
       <div className="flex items-center gap-1.5 min-w-0">
         <div className="flex flex-col items-center min-w-[40px]">
           <span className="text-[11px] font-semibold uppercase tracking-wide text-sky-300/80">Value</span>
@@ -302,10 +341,20 @@ export default function LineScoreShow({
         <AnimatePresence>
           {total !== null && (
             <motion.span
-              initial={{ scale: 1.7, opacity: 0, y: -4 }}
-              animate={{ scale: [1.7, 0.92, 1], opacity: 1, y: 0 }}
-              transition={{ duration: 0.45 }}
-              className="shrink-0 whitespace-nowrap text-[28px] font-display font-semibold tabular-nums leading-none text-amber-200"
+              initial={{ scale: 1.7 + tierLevel * 0.25, opacity: 0, y: -4 }}
+              animate={
+                still
+                  ? { scale: 1, opacity: 1, y: 0 }
+                  : {
+                      scale: [1.7 + tierLevel * 0.25, 0.92, 1],
+                      opacity: 1,
+                      y: 0,
+                      // Blossom and Grand garden lines give the card a little shake
+                      x: tierLevel >= 3 ? [0, -3, 3, -2, 2, 0] : 0,
+                    }
+              }
+              transition={{ duration: 0.45 + tierLevel * 0.08 }}
+              className={`shrink-0 whitespace-nowrap ${tierLevel >= 3 ? "text-[32px]" : "text-[28px]"} font-display font-semibold tabular-nums leading-none text-amber-200`}
               style={fire > 0 ? { textShadow: FIRE_GLOW[fire] } : undefined}
             >
               {fmt(total)}
@@ -323,6 +372,7 @@ export default function LineScoreShow({
               exit={{ y: -6, opacity: 0 }}
               transition={{ duration: 0.16 }}
               className={`flex items-center gap-1.5 ${caption.tone}`}
+              style={caption.color ? { color: caption.color } : undefined}
             >
               {caption.art && (
                 // eslint-disable-next-line @next/next/no-img-element
