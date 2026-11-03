@@ -563,6 +563,8 @@ export default function OneStrokeTacticianPage() {
   const [floorHistory, setFloorHistory] = useState<FloorHistoryRecord[]>([]);
   const [finalScore, setFinalScore] = useState<number>(0);
   const [retractNotice, setRetractNotice] = useState<string | null>(null);
+  /** The notice is a Life-out explanation: it stays until read */
+  const [noticeSticky, setNoticeSticky] = useState(false);
 
   // Scout Hint (1 per floor, illuminates first 4 cells for 4 seconds)
   const [hintsRemaining, setHintsRemaining] = useState<number>(1);
@@ -897,6 +899,13 @@ export default function OneStrokeTacticianPage() {
   }, [mode, lesson, lessonIndex, runGarden, phase, dungeon.seedKey]);
 
   useEffect(() => setTipsOn(loadTipsOn()), []);
+  // A Life-out explanation goes away once the next line starts
+  useEffect(() => {
+    if (noticeSticky && drawnPath.length > 1) {
+      setRetractNotice(null);
+      setNoticeSticky(false);
+    }
+  }, [noticeSticky, drawnPath.length]);
   // Tester funnel: each bed of a real Run (first bed, Bosses) and each Shop visit, once
   const bedTrackRef = useRef<string | null>(null);
   useEffect(() => {
@@ -1116,7 +1125,13 @@ export default function OneStrokeTacticianPage() {
     }
   }, [phase, mode, practiceStep]);
 
+  /** Why a line would run out of Life: stays until tapped or the next line starts */
+  const handleExplainWilt = useCallback((msg: string) => {
+    setRetractNotice(msg);
+    setNoticeSticky(true);
+  }, []);
   const handleNotice = useCallback((msg: string) => {
+    setNoticeSticky(false);
     setRetractNotice(msg);
     // Longer explanations stay up longer (about 2.5s + reading time, max 6s)
     const ms = Math.min(6000, 2500 + msg.length * 35);
@@ -4314,6 +4329,7 @@ export default function OneStrokeTacticianPage() {
               }}
               onCommitPath={handleCommitPath}
               onRetractNotice={handleNotice}
+              onExplainWilt={mode === "RUN" ? handleExplainWilt : undefined}
               onSkipPlayback={
                 phase === "RESOLVING" && mode === "RUN" ? () => skipPlaybackRef.current?.() : undefined
               }
@@ -4429,9 +4445,10 @@ export default function OneStrokeTacticianPage() {
 
             {/* Run notices float over the board so nothing below it moves */}
             {RUN_ONLY && (retractNotice || (runNoSafeLine && !weedOutMode)) && (
-              <div className="pointer-events-none absolute top-2 inset-x-2 z-40 flex justify-center">
+              <div className={`${noticeSticky && retractNotice ? "" : "pointer-events-none "}absolute top-2 inset-x-2 z-40 flex justify-center`}>
                 <div
                   role="status"
+                  onClick={noticeSticky ? () => (setRetractNotice(null), setNoticeSticky(false)) : undefined}
                   className={`max-w-full rounded-xl px-3 py-2 text-[12px] leading-snug font-sans font-bold text-center shadow-lg border ${
                     retractNotice
                       ? "bg-[#1F1A10]/95 border-amber-300/60 text-amber-50"
@@ -4439,6 +4456,11 @@ export default function OneStrokeTacticianPage() {
                   }`}
                 >
                   {artify(retractNotice ?? "🪨 No safe line on this board. Tap 🌿 Swap to change some tiles.")}
+                  {noticeSticky && retractNotice && (
+                    <span className="mt-1.5 block">
+                      <span className="inline-block rounded-lg bg-amber-300 px-3 py-1 text-[12px] font-black text-slate-950">Got it</span>
+                    </span>
+                  )}
                 </div>
               </div>
             )}

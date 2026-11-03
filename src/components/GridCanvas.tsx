@@ -62,6 +62,8 @@ interface GridCanvasProps {
   onToolTarget?: (coord: GridCoord) => void;
   onCommitPath: (committedPath: GridCoord[]) => void;
   onRetractNotice?: (reason: string) => void;
+  /** Why a line would run out of Life: stays until read (falls back to onRetractNotice) */
+  onExplainWilt?: (reason: string) => void;
   /** First-time players: home and the Exit pulse until the first line */
   pulseStartExit?: boolean;
   /** Score of the line being drawn, shown beside its head */
@@ -87,6 +89,7 @@ export default function GridCanvas({
   tileLevels,
   toolArmed = false,
   teachSpike = false,
+  onExplainWilt,
   onToolTarget,
   fog = false,
   dewIds = [],
@@ -615,14 +618,13 @@ export default function GridCanvas({
 
     // At the Exit but it would cost all your Life: retract it so the player can rethink the route
     soundEngine.playRetractPath();
-    if (onRetractNotice && !simulation.survives) {
+    if ((onExplainWilt || onRetractNotice) && !simulation.survives) {
       const why = explainWilt(simulation);
       if (simulation.firstDeathCoord) setLastDeathCoord({ ...simulation.firstDeathCoord });
-      onRetractNotice(
-        isSanctuary
-          ? why?.long ?? "This line would run out of ❤️ Life. Try a safer route."
-          : "Lethal route! Projected HP drops to 0"
-      );
+      const text = isSanctuary
+        ? why?.long ?? "This line would run out of ❤️ Life. Try a safer route."
+        : "Lethal route! Projected HP drops to 0";
+      (onExplainWilt ?? onRetractNotice)!(text);
     }
 
     setRetractingPath([...drawnPath]);
@@ -638,6 +640,7 @@ export default function GridCanvas({
     onCommitPath,
     onPathChange,
     onRetractNotice,
+    onExplainWilt,
   ]);
 
   /**

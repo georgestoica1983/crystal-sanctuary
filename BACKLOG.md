@@ -38,7 +38,7 @@ Everything below this section is parked until this is done.
 - [x] 17. Teach Spikes when they first appear (ghost arrow crossing diagonally).
 - [x] 18. Show Fertilizer on the board (level badge on the tile).
 - [x] 19. The Shop shows how a relic works with yours ("about +X on your best line", "2 of 3 Thorns set").
-- [ ] 20. The Life-out explanation stays until read.
+- [x] 20. The Life-out explanation stays until read.
 - [ ] 21. Bring in upgrade types gradually across the first Seasons.
 
 **Coming back and sharing**
