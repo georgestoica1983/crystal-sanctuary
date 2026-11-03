@@ -1,6 +1,19 @@
 // Tip cards between beds: one short game tip or gardening tip, with a picture.
 // No tip repeats until every tip of its kind has been shown on this device.
 import { decorArt, gardenArt, tileArt, visitorArt } from "@/lib/art";
+import {
+  EDITIONS,
+  MAX_COMMON_RELICS,
+  MAX_TOOLS,
+  RUN_INTEREST_STEP,
+  RUN_REROLL_BASE_COST,
+  RUN_STROKES_PER_GARDEN,
+  RUN_WEEDOUT_MAX_TILES,
+  RUN_WEEDOUTS_PER_GARDEN,
+} from "@/lib/engine";
+import { RUN_SKIP_TARGET_MULT } from "@/lib/runReplay";
+import { RELIC_SET_X } from "@/lib/relicTags";
+import type { HeroClassId } from "@/types/game";
 
 export type TipKind = "GAME" | "GARDEN";
 export interface Tip {
@@ -10,6 +23,8 @@ export interface Tip {
   art: string;
   /** Heading instead of "Game tip" (e.g. the bed's weather) */
   label?: string;
+  /** Game tips are remembered by id (their numbers can change); gardening tips by their text */
+  id?: string;
 }
 
 const tile = (t: Parameters<typeof tileArt>[0]) => tileArt(t) ?? "";
@@ -23,57 +38,116 @@ export interface TipContext {
   gardenIndex: number;
   /** Furthest bed ever reached on this device */
   highestBed: number;
-  /** More than one companion earned */
-  companions: boolean;
+  /** Companions earned on this device */
+  companions: HeroClassId[];
+  /** Most interest after a bed right now (relics and garden upgrades raise it) */
+  interestCap: number;
+  /** Life given back for clearing a bed (lower on some Ascension levels) */
+  clearLife: number;
 }
 
 type When = (c: TipContext) => boolean;
+type Text = string | ((c: TipContext) => string);
 const always: When = () => true;
 /** From this bed of a Run on (the Shop opens kinds gradually: tools from Season 2, special tiles from Season 3) */
 const fromBed = (bed: number): When => (c) => c.gardenIndex >= bed;
+const has = (id: HeroClassId): When => (c) => c.companions.includes(id);
 
-const GAME_TIP_LIST: Array<[string, string, When?]> = [
-  ["Longer lines score far more: every tile adds to both Value and Length.", bloom],
-  ["Twice the tiles scores about four times the points.", bloom],
-  ["A Thorn's number is points for your line, and it costs that much Life.", tile("ENEMY")],
-  ["Step onto a Spike diagonally and it can't hurt you.", tile("TRAP")],
-  ["Gloves block Thorn damage. Gather them before a thorny stretch.", tile("SHIELD")],
-  ["Shears cut the next Thorn completely: no Life lost, and you keep its points.", tile("WEAPON")],
-  ["Berries give back Life, up to your maximum. Save them for when you're hurt.", tile("POTION")],
-  ["Acorns add Value to your line. Grab them on the way.", tile("GOLD")],
-  ["Every bed gives you 4 lines. Lines you don't use pay 1 🌱 each.", bloom],
-  ["Swap changes up to 3 tiles. You get 3 Swaps in every bed.", bloom],
-  ["Stuck? Hint lights up a good route once per bed.", bloom],
-  ["Clearing a bed gives you 3 Life back for the next one.", tile("POTION")],
-  ["A line with one to spare earns ⭐⭐. Score 1.5× the target for ⭐⭐⭐.", bloom],
-  ["Seeds you keep earn interest: +1 for every 5 🌱, up to +5 after each bed.", tile("GOLD")],
-  ["Three beds make a Season: Small, Big, then a Boss bed.", bloom, (c) => c.runs <= 1],
-  ["Beat a Boss bed to win a Legendary relic.", bloom, (c) => c.gardenIndex < 9],
-  ["The Season dots show the coming Boss early. Tap its icon to read the rule.", bloom],
-  ["Three relics with the same tag make a set: every line scores ×1.25.", bloom, fromBed(2)],
-  ["You can hold 5 relics. Sell one in the Shop for half its price.", bloom, fromBed(3)],
-  ["A reroll costs 5 🌱, and 1 more each time in the same Shop.", tile("GOLD")],
-  ["Fertilizer makes one kind of tile worth more for the whole Run.", tile("GOLD"), fromBed(4)],
-  ["Garden tools upgrade a single tile on the board. You can carry two.", tile("WEAPON"), fromBed(4)],
-  ["Golden tiles add +30 Value. Iridescent ones add +2 Length.", bloom, fromBed(7)],
-  ["Echo tiles score twice. Route your line through them.", bloom, fromBed(7)],
-  ["Prune weak tiles from your bag in the Shop so better ones come up.", tile("WEAPON"), fromBed(2)],
-  ["Skip a Small bed for a Tag. The Big bed's target grows by half.", bloom, (c) => c.gardenIndex >= 3 && c.gardenIndex % 3 === 0],
-  ["Each companion plays differently. Try them all as they unlock.", bloom, (c) => c.companions],
-  ["If a line would run out of Life, it pulls back and shows you why.", tile("ENEMY"), (c) => c.runs <= 3],
-  ["Plan the long way first, then trim the risky bits.", bloom],
-  ["Finish Season 8 and the garden goes on forever in Endless.", bloom, (c) => c.highestBed >= 15],
+/** Shown as one of the first three game tips a player sees */
+const FIRST_TIP_ID = "plan-long";
+
+// Numbers come from the game's own rules, so a rule change can't leave a tip wrong
+const GAME_TIP_LIST: Array<{ id: string; text: Text; art: string; when?: When }> = [
+  { id: "long-lines", text: "Longer lines score far more: twice the tiles scores about four times the points.", art: bloom },
+  {
+    id: "life-carries",
+    text: (c) =>
+      c.clearLife > 0
+        ? `Reach the gate with Life to spare: it carries into the next bed, plus ${c.clearLife} ❤️ for clearing.`
+        : "Reach the gate with Life to spare: it carries into the next bed.",
+    art: tile("POTION"),
+  },
+  { id: "thorn-number", text: "A Thorn's number is points for your line and Life off your companion. Big ones are worth it while you're healthy.", art: tile("ENEMY") },
+  { id: "spike-diagonal", text: "Come at a Spike diagonally and it can't hurt you.", art: tile("TRAP") },
+  { id: "gloves", text: "Gloves soak up Thorn damage. Pick them up before a thorny stretch.", art: tile("SHIELD") },
+  { id: "shears", text: "Shears cut the next Thorn clean: no Life lost, and you still get its points.", art: tile("WEAPON") },
+  { id: "berries", text: "Save Berries for when you're hurt. They heal up to your maximum, never past it.", art: tile("POTION") },
+  { id: "acorns", text: "Acorns are free points. Bend your line to pick them up.", art: tile("GOLD") },
+  { id: "spare-lines", text: `You get ${RUN_STROKES_PER_GARDEN} lines a bed. Clear it early and every spare line pays 1 🌱.`, art: bloom },
+  {
+    id: "swap",
+    text: `Don't like a corner of the board? Swap changes up to ${RUN_WEEDOUT_MAX_TILES} tiles, ${RUN_WEEDOUTS_PER_GARDEN} times a bed.`,
+    art: bloom,
+  },
+  { id: "hint", text: "Stuck? Hint lights up a good route once per bed. No shame in it.", art: bloom },
+  { id: "stars", text: "Clear with a line to spare for ⭐⭐. Reach 1.5× the target too for ⭐⭐⭐.", art: bloom },
+  {
+    id: "interest",
+    text: (c) => `Seeds you keep earn interest: +1 for every ${RUN_INTEREST_STEP} 🌱, up to +${c.interestCap} after each bed.`,
+    art: tile("GOLD"),
+    when: fromBed(1),
+  },
+  { id: "big-shows-boss", text: "The Big bed shows which Boss comes next. Shop with that Boss in mind.", art: bloom, when: (c) => c.runs <= 2 },
+  {
+    id: "boss-legendary",
+    text: `Beat a Boss bed to win a Legendary relic. It doesn't take one of your ${MAX_COMMON_RELICS} relic slots.`,
+    art: bloom,
+    when: (c) => c.gardenIndex < 9,
+  },
+  { id: "season-dots", text: "Tap the Boss icon in the Season dots to read its rule before you get there.", art: bloom },
+  {
+    id: "sets",
+    text: `Three relics with the same tag make a set: every line scores ×${RELIC_SET_X}. Look for matching tags in the Shop.`,
+    art: bloom,
+    when: fromBed(2),
+  },
+  {
+    id: "relic-slots",
+    text: `You can hold ${MAX_COMMON_RELICS} relics. Full? Sell your weakest in the Shop for half its price.`,
+    art: bloom,
+    when: fromBed(3),
+  },
+  {
+    id: "reroll",
+    text: `Nothing good in the Shop? A reroll costs ${RUN_REROLL_BASE_COST} 🌱, then 1 more each time in the same Shop.`,
+    art: tile("GOLD"),
+    when: fromBed(1),
+  },
+  { id: "fertilizer", text: "Fertilizer makes one kind of tile worth more for the rest of the Run. Pick the kind your bag has most of.", art: tile("GOLD"), when: fromBed(4) },
+  {
+    id: "tools",
+    text: `Garden tools upgrade one tile on the board. You can carry ${MAX_TOOLS}, and they only score once you use them.`,
+    art: tile("WEAPON"),
+    when: fromBed(4),
+  },
+  {
+    id: "editions",
+    text: `Golden tiles add ${EDITIONS.GOLDEN.tag} and Iridescent ones ${EDITIONS.IRIDESCENT.tag}. Route through them when you can.`,
+    art: bloom,
+    when: fromBed(7),
+  },
+  { id: "echo", text: "Echo tiles score twice. Bend your line to pass through them.", art: bloom, when: fromBed(7) },
+  { id: "prune", text: "Prune weak tiles from your bag in the Shop, and the good ones come up more often.", art: tile("WEAPON"), when: fromBed(2) },
+  {
+    id: "skip",
+    text: `Skip a Small bed for a Tag, but the Big bed's target grows ×${RUN_SKIP_TARGET_MULT}. Skip when you feel strong.`,
+    art: bloom,
+    when: (c) => c.gardenIndex >= 3 && c.gardenIndex % 3 === 0,
+  },
+  { id: "otter", text: "The Otter can cross its own line once. Try a loop around a Thorn cluster.", art: bloom, when: has("ROGUE") },
+  { id: "fox", text: "The Fox can hop over one tile per line. Jump a big Thorn instead of walking around it.", art: bloom, when: has("MAGE") },
+  { id: "sprite", text: "The Sprite has no Gloves, but cut Thorns heal it. Shears are its best friend.", art: bloom, when: has("VAMPIRE") },
+  { id: "pulls-back", text: "If a line would run out of Life, it pulls back and shows you why. Try it: you lose nothing.", art: tile("ENEMY"), when: (c) => c.runs <= 3 },
+  { id: FIRST_TIP_ID, text: "Plan the long way first, then trim the risky bits.", art: bloom },
+  { id: "endless", text: "Finish Season 8 and the garden goes on forever in Endless.", art: bloom, when: (c) => c.highestBed >= 15 },
 ];
 
-export const GAME_TIPS: Array<Tip & { when: When }> = GAME_TIP_LIST.map(([text, art, when]) => ({
-  kind: "GAME" as const,
-  text,
-  art,
-  when: when ?? always,
-}));
+export const GAME_TIPS = GAME_TIP_LIST.map((t) => ({ ...t, when: t.when ?? always }));
+
+const tipText = (text: Text, ctx: TipContext): string => (typeof text === "string" ? text : text(ctx));
 
 /** Next-bed tips: chosen from what's on this board or in your hands, before any random tip */
-export const SPIKE_TIP: Tip = { kind: "GAME", label: "Spikes on this bed", text: "Step onto a Spike diagonally and it can't hurt you.", art: tile("TRAP") };
+export const SPIKE_TIP: Tip = { kind: "GAME", id: "spike-diagonal", label: "Spikes on this bed", text: "Come at a Spike diagonally and it can't hurt you.", art: tile("TRAP") };
 export const toolReminderTip = (name: string, art: string): Tip => ({
   kind: "GAME",
   label: "Still in your pocket",
@@ -114,8 +188,9 @@ export const GARDEN_TIPS: Tip[] = [
   ["A garden is never finished. That's the best part.", decorArt("gate")],
 ].map(([text, art]) => ({ kind: "GARDEN" as const, text, art }));
 
-// Seen tips are kept by their text, so rewording a tip makes it new again
+// Seen tips are kept by id (game) or text (gardening)
 const SEEN_KEY = "ost_tips_seen_v2";
+const seenKey = (t: { id?: string; text: string }) => t.id ?? t.text;
 const LAST_KIND_KEY = "ost_tips_last_kind_v1";
 const TIPS_ON_KEY = "ost_tips_on_v1";
 
@@ -140,7 +215,7 @@ function saveSeen(seen: Record<TipKind, string[]>, kind?: TipKind): void {
 /** A next-bed tip counts as seen too, so the same words don't come back at random soon after */
 export function markTipSeen(tip: Tip): void {
   const seen = loadSeen();
-  if (!seen[tip.kind].includes(tip.text)) saveSeen({ ...seen, [tip.kind]: [...seen[tip.kind], tip.text] });
+  if (!seen[tip.kind].includes(seenKey(tip))) saveSeen({ ...seen, [tip.kind]: [...seen[tip.kind], seenKey(tip)] });
 }
 
 /**
@@ -165,18 +240,24 @@ export function takeNextTip(ctx: TipContext): Tip {
     // Ignore storage errors
   }
   const kind: TipKind = lastKind === "GAME" ? "GARDEN" : "GAME";
-  const list: Tip[] = kind === "GAME" ? GAME_TIPS.filter((t) => t.when(ctx)) : GARDEN_TIPS;
+  const list: Array<{ id?: string; text: Text; art: string; label?: string }> =
+    kind === "GAME" ? GAME_TIPS.filter((t) => t.when(ctx)) : GARDEN_TIPS;
+  const key = (t: { id?: string; text: Text }) => t.id ?? (t.text as string);
   const seen = loadSeen();
-  let unseen = list.filter((t) => !seen[kind].includes(t.text));
+  let unseen = list.filter((t) => !seen[kind].includes(key(t)));
   if (unseen.length === 0) {
     // All shown: start the round again (keeping tips that don't fit yet unseen)
-    seen[kind] = seen[kind].filter((text) => !list.some((t) => t.text === text));
+    seen[kind] = seen[kind].filter((k) => !list.some((t) => key(t) === k));
     unseen = list;
   }
-  const pick = unseen[Math.floor(Math.random() * unseen.length)];
-  seen[kind] = [...seen[kind], pick.text];
+  // The best strategy tip is one of the first three game tips anyone sees
+  const early = kind === "GAME" && seen.GAME.length < 3 && !seen.GAME.includes(FIRST_TIP_ID);
+  const pick =
+    (early && seen.GAME.length >= 1 && unseen.find((t) => t.id === FIRST_TIP_ID)) ||
+    unseen[Math.floor(Math.random() * unseen.length)];
+  seen[kind] = [...seen[kind], key(pick)];
   saveSeen(seen, kind);
-  return { kind: pick.kind, text: pick.text, art: pick.art, label: pick.label };
+  return { kind, id: pick.id, text: tipText(pick.text, ctx), art: pick.art, label: pick.label };
 }
 
 /** The "Tips between beds" setting (on by default) */

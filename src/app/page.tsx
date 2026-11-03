@@ -60,6 +60,8 @@ import {
   SHOP_STAT_BOOSTS,
   previewSeasonBoss,
   GARDEN_TOOLS,
+  getRunInterestCap,
+  RUN_INTEREST_MAX,
   EDITIONS,
   FERTILIZER,
   getFertLevel,
@@ -183,6 +185,9 @@ import {
   RUN_LOG_VERSION,
   RUN_PRUNE_COST,
   runClearLifeFor,
+  upgradeInterestBonus,
+  ascensionRules,
+  runAscensionFor,
   runRulesAllowPrune,
   runRulesUseRelicSets,
   runRulesUseGentleStart,
@@ -1013,7 +1018,15 @@ export default function OneStrokeTacticianPage() {
         runs,
         gardenIndex: runGarden.gardenIndex,
         highestBed: progress.highestBed,
-        companions: unlockedRunCompanions(progress).length > 1,
+        companions: unlockedRunCompanions(progress),
+        // The same cap the payout uses (Ascension 2+ lowers the base)
+        interestCap:
+          getRunInterestCap(activeRelics) -
+          RUN_INTEREST_MAX +
+          (ascensionRules(runAscensionFor(runLogRef.current?.v ?? RUN_LOG_VERSION, runLogRef.current?.asc)).interestBase ??
+            RUN_INTEREST_MAX) +
+          upgradeInterestBonus(gardenUpgrades),
+        clearLife: runClearLifeFor(runLogRef.current?.v ?? RUN_LOG_VERSION, runLogRef.current?.asc),
       })
     );
   }, [tipsOn, mode, lesson, practiceStep, runGarden, phase, runClear, tally, dungeon.seedKey]);
