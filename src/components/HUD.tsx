@@ -994,8 +994,8 @@ export function TopHUD({
                     )}
                     {bagPanel && (
                       <button type="button" className={menuTile} onClick={() => setShowBag((v) => !v)} aria-expanded={showBag}>
-                        <span className={menuTileTop}><Backpack className="w-4 h-4 text-white/75" /> Tile bag</span>
-                        <span className={menuTileSub}>{bagCount ?? ""} tiles left</span>
+                        <span className={menuTileTop}><Backpack className="w-4 h-4 text-white/75" /> Bag &amp; levels</span>
+                        <span className={menuTileSub}>{bagCount ?? ""} tiles left · Garden levels</span>
                       </button>
                     )}
                     {onOpenLooks && (

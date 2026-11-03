@@ -6,9 +6,12 @@ import React, { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight, PartyPopper, Sparkles, Trophy } from "lucide-react";
 import EntityIcon from "@/components/EntityIcon";
-import { BossRuleId, GridCell, GridCoord, RelicId, RunGardenState } from "@/types/game";
+import { BossRuleId, GridCell, GridCoord, RelicCounters, RelicId, RunGardenState } from "@/types/game";
 import {
   BOSS_RULE_REGISTRY,
+  FERT_TILES,
+  FERTILIZER,
+  getFertLevel,
   getRunGardenKindLabel,
   getRunGardenLabel,
   getRunGardenPosition,
@@ -334,7 +337,17 @@ export interface RunClearInfo {
 const BAG_ORDER = ["ENEMY", "TRAP", "WEAPON", "SHIELD", "POTION", "GOLD"] as const;
 
 /** What's still in the Tile Bag: the tiles that will refill the board next */
-export function BagPanel({ garden, prunedCount = 0 }: { garden: RunGardenState; prunedCount?: number }) {
+export function BagPanel({
+  garden,
+  prunedCount = 0,
+  counters,
+}: {
+  garden: RunGardenState;
+  prunedCount?: number;
+  /** Run counters: Fertilizer levels live here (Garden levels, like poker hand levels) */
+  counters?: RelicCounters;
+}) {
+  const levels = FERT_TILES.map((t) => ({ t, lv: getFertLevel(counters, t) }));
   const counts = new Map<string, number>();
   for (const t of garden.drawPile) counts.set(t.type, (counts.get(t.type) ?? 0) + 1);
   const shown = BAG_ORDER.filter((t) => (counts.get(t) ?? 0) > 0);
@@ -358,6 +371,25 @@ export function BagPanel({ garden, prunedCount = 0 }: { garden: RunGardenState; 
         {garden.discardPile.length > 0 &&
           ` Then your ${garden.discardPile.length} used tiles get shuffled back in.`}
         {prunedCount > 0 && ` ✂️ ${prunedCount} tile${prunedCount === 1 ? "" : "s"} pruned this run.`}
+      </div>
+      {/* Garden levels: what Fertilizer has grown so far this Run */}
+      <div className="mt-2 border-t border-white/10 pt-1.5">
+        <div className="text-[11px] font-semibold text-white/60">Garden levels</div>
+        <div className="mt-1 grid grid-cols-3 gap-1">
+          {levels.map(({ t, lv }) => (
+            <div
+              key={t}
+              className={`flex items-center gap-1 rounded-md px-1.5 py-1 ${lv > 0 ? "bg-lime-300/10 text-lime-100" : "bg-white/[0.03] text-white/45"}`}
+            >
+              <EntityIcon type={t} size={16} />
+              <span className="min-w-0 leading-tight">
+                <span className="block text-[11px] font-black">Lv {lv + 1}</span>
+                <span className="block text-[9.5px]">{lv > 0 ? `+${FERTILIZER[t].perLevel * lv} each` : "base"}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+        <div className="mt-1 text-[10px] leading-snug text-white/45">Fertilizer in the Shop levels a tile type up for the rest of the Run.</div>
       </div>
     </motion.div>
   );

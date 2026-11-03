@@ -4170,7 +4170,7 @@ export default function OneStrokeTacticianPage() {
         flashRelics={flashRelics}
         bagPanel={
           mode === "RUN" && !lesson && runGarden ? (
-            <BagPanel garden={runGarden} prunedCount={runLogRef.current?.a.filter((a) => a.k === "p").length ?? 0} />
+            <BagPanel garden={runGarden} prunedCount={runLogRef.current?.a.filter((a) => a.k === "p").length ?? 0} counters={relicCounters} />
           ) : undefined
         }
         bagCount={runGarden?.drawPile.length}
