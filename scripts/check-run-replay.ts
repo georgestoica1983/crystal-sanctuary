@@ -7,6 +7,7 @@ import {
   calculateFloorScoreBreakdown,
   bakeBossTile,
   openSpikeWalls,
+  runBedWeather,
   previewSeasonBoss,
   countCommonRelics,
   findEntityCoord,
@@ -131,6 +132,7 @@ function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0
       strokesLeft: s.garden.strokesLeft,
       relicSets: true,
       bossRuleId: s.garden.bossRuleId,
+      weather: s.garden.weather,
     });
     if (best && best.score > 0) {
       expected += best.score;
@@ -918,6 +920,49 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
     const toll19 = scoreRunStroke(best.sim, start, best.path, [], {}, 4, true, "TOLL", false);
     check(`v19 Toll still costs 2 Seeds a line (30 → ${toll19.afterStroke.gold})`, toll19.afterStroke.gold === 28);
   }
+}
+
+// 18. Garden weather (rules v20): only on v20 Small and Big beds from Season 2
+{
+  let small = 0;
+  let boss = 0;
+  let early = 0;
+  for (let i = 0; i < 300; i++) {
+    if (runBedWeather(`weather-${i}`, 3, 2, "SMALL")) small++;
+    if (runBedWeather(`weather-${i}`, 5, 2, "BOSS")) boss++;
+    if (runBedWeather(`weather-${i}`, 0, 1, "SMALL")) early++;
+  }
+  check(`weather on about 1 in 3 beds from Season 2 (${small} of 300), never on Boss beds or Season 1`, small > 70 && small < 130 && boss === 0 && early === 0);
+  const cell = (row: number, col: number, type: GridCell["type"], value = 1, extra: Partial<GridCell> = {}): GridCell => ({
+    id: `w${row}${col}`, row, col, type, value, ...extra,
+  });
+  const thornGrid = (harm: number): GridCell[][] =>
+    Array.from({ length: 5 }, (_, r) =>
+      Array.from({ length: 5 }, (__, c) =>
+        r === 4 && c === 0
+          ? cell(r, c, "HERO", 10)
+          : r === 2 && c === 0
+          ? cell(r, c, "EXIT", 0)
+          : r === 3 && c === 0
+          ? cell(r, c, "ENEMY", 3, harm ? { harm } : {})
+          : cell(r, c, "GOLD")
+      )
+    );
+  const hero = { hp: 10, maxHp: 10, shield: 0, weapon: 0, gold: 0 };
+  const way = [{ row: 4, col: 0 }, { row: 3, col: 0 }, { row: 2, col: 0 }];
+  const plain = simulatePath(thornGrid(0), way, hero, RUN_MODIFIER, "KNIGHT", []);
+  const brambles = simulatePath(thornGrid(2), way, hero, RUN_MODIFIER, "KNIGHT", []);
+  check(`Thick Brambles: a Thorn costs 2 more Life (${plain.finalStats.hp} vs ${brambles.finalStats.hp})`, plain.finalStats.hp - brambles.finalStats.hp === 2);
+  const s0 = calculateFloorScoreBreakdown(plain, hero, 3, [], {}).total;
+  const s1 = calculateFloorScoreBreakdown(brambles, hero, 3, [], {}).total;
+  check(`Thick Brambles: Thorn points stay the same (${s0} vs ${s1})`, s0 === s1);
+  const golden = calculateFloorScoreBreakdown(plain, hero, 3, [], { weather: "GOLDEN_HOUR" }).total;
+  check(`Golden Hour: half Life or more at the gate scores ×2 (${s0} → ${golden})`, golden === s0 * 2);
+  const low = { ...hero, hp: 6 };
+  const lowSim = simulatePath(thornGrid(2), way, low, RUN_MODIFIER, "KNIGHT", []);
+  const lowPlain = calculateFloorScoreBreakdown(lowSim, low, 3, [], {}).total;
+  const lowGolden = calculateFloorScoreBreakdown(lowSim, low, 3, [], { weather: "GOLDEN_HOUR" }).total;
+  check(`Golden Hour: under half Life scores normally (${lowSim.finalStats.hp} Life left)`, lowSim.finalStats.hp * 2 < 10 && lowGolden === lowPlain);
 }
 
 console.log(failures ? `\n${failures} check(s) failed` : "\nAll replay checks passed");

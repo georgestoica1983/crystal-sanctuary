@@ -18,6 +18,7 @@ import {
   RUN_STROKES_PER_GARDEN,
   RUN_WEEDOUT_MAX_TILES,
   RUN_WEEDOUTS_PER_GARDEN,
+  WEATHER_INFO,
 } from "@/lib/engine";
 import RelicIcon from "@/components/RelicIcon";
 import { tileArt } from "@/lib/art";
@@ -132,6 +133,15 @@ export function RunHudStrip({
         <div className="text-[13px] leading-snug text-rose-100">
           <b>{boss.name}:</b> {boss.description}{" "}
           <span className="text-rose-50/60"><Badge id="crown" /> Legendary relic if cleared</span>
+        </div>
+      )}
+      {/* Garden weather (rules v20) */}
+      {garden.weather && (
+        <div className={`text-[13px] leading-snug ${garden.weather === "GOLDEN_HOUR" ? "text-amber-100" : "text-lime-100"}`}>
+          <b>
+            {WEATHER_INFO[garden.weather].icon} {WEATHER_INFO[garden.weather].name}:
+          </b>{" "}
+          {artify(WEATHER_INFO[garden.weather].short)}
         </div>
       )}
 

@@ -1851,7 +1851,10 @@ function TileIconWithValue({
   struck = false,
   wilted = false,
   dry = false,
+  harm = 0,
 }: {
+  /** Thick Brambles (rules v20): extra Life this Thorn costs */
+  harm?: number;
   type: EntityType;
   value: number | string;
   /** The Drought (rules v20): Berries that score but give no Life back */
@@ -1904,6 +1907,14 @@ function TileIconWithValue({
           isBloomed={isBloomed}
         />
       </span>
+      {harm > 0 && !struck && (
+        <span
+          className="tile-tag absolute -top-1.5 -left-2 z-[3] rounded-full bg-[#B4374A] px-1 text-[10px] font-black leading-[14px] text-white select-none pointer-events-none"
+          aria-label={`Costs ${harm} more Life`}
+        >
+          +{harm}
+        </span>
+      )}
       {type === "TRAP" && (
         <span
           className="tile-tag absolute -top-1.5 -left-2 text-[11px] leading-none font-black text-slate-200 select-none pointer-events-none"
@@ -2054,6 +2065,7 @@ export function CellGeometricNode({
           isBloomed={bloomed}
           struck={bloomed}
           wilted={isThornWilted}
+          harm={cell.harm}
         />
       );
     }

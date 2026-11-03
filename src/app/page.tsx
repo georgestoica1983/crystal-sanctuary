@@ -2,6 +2,7 @@
 
 import Badge from "@/components/Badge";
 import SupplyIcon from "@/components/SupplyIcon";
+import { tileArt, toolArt } from "@/lib/art";
 import { useBackClose } from "@/lib/backClose";
 import { BossBeaten, BossIntro, BOSS_LOOK } from "@/components/BossMoments";
 import TipCard from "@/components/TipCard";
@@ -39,6 +40,7 @@ import {
 } from "@/types/game";
 import {
   BOSS_RULE_REGISTRY,
+  WEATHER_INFO,
   countPathBlinks,
   countPathSelfCrosses,
   calculateFloorScoreBreakdown,
@@ -828,8 +830,9 @@ export default function OneStrokeTacticianPage() {
             strokesLeft: runGarden?.strokesLeft,
             relicSets: runRulesUseRelicSets(runLogRef.current?.v ?? RUN_LOG_VERSION),
             bossRuleId: runGarden?.bossRuleId,
+            weather: runGarden?.weather,
           },
-    [isInteractiveTutorial, lesson, mode, relicCounters, runGarden?.strokesLeft, runGarden?.bossRuleId]
+    [isInteractiveTutorial, lesson, mode, relicCounters, runGarden?.strokesLeft, runGarden?.bossRuleId, runGarden?.weather]
   );
 
   // Live Ghost Preview deterministic calculation with Hero Class & Active Relics
@@ -903,14 +906,26 @@ export default function OneStrokeTacticianPage() {
     shopTrackRef.current = key;
     track("shop_open", { bed: currentFloorIndex, seeds: (pendingPostFloorStats ?? hero).gold, first: shopIntroVisible });
   }, [mode, practiceStep, phase, dungeon.seedKey, currentFloorIndex, pendingPostFloorStats, hero, shopIntroVisible]);
-  // A new bed (not the first of a Run) opens with one short tip
+  // A new bed (not the first of a Run) opens with one short tip; a bed with
+  // weather opens with its weather instead (even with tips switched off)
   useEffect(() => {
-    if (!tipsOn || mode !== "RUN" || lesson || practiceStep || !runGarden) return;
+    if (mode !== "RUN" || lesson || practiceStep || !runGarden) return;
+    if (!tipsOn && !runGarden.weather) return;
     if (runGarden.gardenIndex === 0 || runGarden.score > 0 || phase !== "PLANNING" || runClear || tally) return;
     if (runGarden.kind === "BOSS") return; // a Boss bed opens with its own intro instead
     const key = `${dungeon.seedKey}-${runGarden.gardenIndex}`;
     if (tipBedRef.current === key) return;
     tipBedRef.current = key;
+    if (runGarden.weather) {
+      const w = WEATHER_INFO[runGarden.weather];
+      setTip({
+        kind: "GAME",
+        label: `Weather: ${w.name}`,
+        text: w.text.replace(/[❤️🌺]\uFE0F?\s?/gu, ""),
+        art: (runGarden.weather === "GOLDEN_HOUR" ? toolArt("SUNLIT") : tileArt("ENEMY")) ?? "",
+      });
+      return;
+    }
     setTip(takeNextTip());
   }, [tipsOn, mode, lesson, practiceStep, runGarden, phase, runClear, tally, dungeon.seedKey]);
 
@@ -2080,7 +2095,8 @@ export default function OneStrokeTacticianPage() {
       garden.strokesLeft,
       !!strokeCtx.relicSets,
       garden.bossRuleId,
-      Boolean(garden.bossV20)
+      Boolean(garden.bossV20),
+      garden.weather
     );
     setRelicCounters(countersAfter);
     logRunAction({ k: "s", p: packCoords(path) });

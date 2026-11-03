@@ -134,7 +134,12 @@ export interface RelicScoreContext {
   relicSets?: boolean;
   /** Rules v19+: the bed's Boss rule, for the Bosses that change scoring */
   bossRuleId?: BossRuleId;
+  /** Rules v20+: the bed's weather (Golden Hour doubles safe lines) */
+  weather?: RunWeather;
 }
+
+/** Rules v20+: weather on some Small and Big beds from Season 2 */
+export type RunWeather = "GOLDEN_HOUR" | "THICK_BRAMBLES";
 
 export interface RelicDefinition {
   id: RelicId;
@@ -236,6 +241,8 @@ export interface GridCell {
   bagTile?: SeedTile; // Run mode: the Seed Bag tile before any boss twist
   /** The Drought (rules v20): these Berries still score but give no Life back */
   dry?: boolean;
+  /** Thick Brambles (rules v20): extra Life this Thorn costs (its points stay the same) */
+  harm?: number;
 }
 
 export interface HeroStats {
@@ -376,6 +383,8 @@ export type ToolId = "RICH_SOIL" | "LONG_ROOT" | "SUNLIT" | "DEW" | "ECHO";
 export interface RunGardenState {
   /** Rules v20+: this bed's Boss uses the route-changing rules (Spike walls, dry Berries, the Toll per tile) */
   bossV20?: boolean;
+  /** Rules v20+: this bed's weather, if any */
+  weather?: RunWeather;
   gardenIndex: number; // 0-based across the whole run
   season: number; // 1-based; > RUN_FINAL_SEASON is Endless
   kind: RunGardenKind;

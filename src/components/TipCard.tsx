@@ -23,7 +23,7 @@ export default function TipCard({ tip, onDone }: { tip: Tip; onDone: () => void 
   return (
     <motion.button
       type="button"
-      aria-label={`${tip.kind === "GAME" ? "Game tip" : "Gardening tip"}: ${tip.text} Tap to continue`}
+      aria-label={`${tip.label ?? (tip.kind === "GAME" ? "Game tip" : "Gardening tip")}: ${tip.text} Tap to continue`}
       onClick={onDone}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
@@ -46,7 +46,7 @@ export default function TipCard({ tip, onDone }: { tip: Tip; onDone: () => void 
           transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
         />
         <div className={`mt-2 text-[13px] font-semibold ${tip.kind === "GAME" ? "text-amber-200/90" : "text-lime-200/90"}`}>
-          {tip.kind === "GAME" ? "Game tip" : "Gardening tip"}
+          {tip.label ?? (tip.kind === "GAME" ? "Game tip" : "Gardening tip")}
         </div>
         <p className="mt-1 font-hand text-[18px] leading-snug text-white/90">{tip.text}</p>
         <div className="mt-3 text-[12px] text-white/45">Tap to continue</div>

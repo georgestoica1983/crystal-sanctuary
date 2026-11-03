@@ -44,6 +44,7 @@ import {
 } from "@/lib/engine";
 import type {
   BossRuleId,
+  RunWeather,
   DungeonFloor,
   FloorScoreBreakdown,
   GridCell,
@@ -179,6 +180,7 @@ export function startRunGarden(
     allBossRules: runRulesUseAllBosses(logVersion),
     newBosses: runRulesUseNewBosses(logVersion),
     bossV20: runRulesUseV20Bosses(logVersion),
+    weather: runRulesUseWeather(logVersion),
     ...ascensionGardenParams(rules),
   });
   return { bag, hero, ...first };
@@ -201,13 +203,16 @@ export function scoreRunStroke(
   /** The bed's Boss rule (rules v19 Bosses change scoring and cost) */
   bossRuleId?: BossRuleId,
   /** Rules v20 Bosses (RunGardenState.bossV20): the Toll charges per tile */
-  bossV20 = false
+  bossV20 = false,
+  /** Rules v20 weather (RunGardenState.weather) */
+  weather?: RunWeather
 ): { breakdown: FloorScoreBreakdown; afterStroke: HeroStats; countersAfter: RelicCounters } {
   const breakdown = calculateFloorScoreBreakdown(sim, startHero, path.length, relics, {
     counters,
     strokesLeft,
     relicSets,
     bossRuleId,
+    weather,
   });
   // The Toll: every line on its bed costs Seeds (rules v20: 1 for every tile past Length 10)
   const toll = bossRuleId !== "TOLL" ? 0 : bossV20 ? Math.max(0, path.length - TOLL_FREE_LENGTH) : TOLL_SEEDS;
@@ -456,6 +461,8 @@ export const runRulesUseV16Relics = (logVersion: number) => logVersion >= 16;
 export const runRulesUseV20Relics = (logVersion: number) => logVersion >= 20;
 /** v20: the Spike King walls, the Drought dries Berries, the Toll charges per tile */
 export const runRulesUseV20Bosses = (logVersion: number) => logVersion >= 20;
+/** v20: Golden Hour and Thick Brambles on some Small and Big beds from Season 2 */
+export const runRulesUseWeather = (logVersion: number) => logVersion >= 20;
 /** The Toll (rules v20): tiles up to this Length are free, each one past it costs 1 Seed */
 export const TOLL_FREE_LENGTH = 10;
 /** Rules v17+: a Small or Big bed can be skipped (before any line) for a Tag */
@@ -676,6 +683,7 @@ export function createNextRunGarden(params: {
     allBossRules: runRulesUseAllBosses(v),
     newBosses: runRulesUseNewBosses(v),
     bossV20: runRulesUseV20Bosses(v),
+    weather: runRulesUseWeather(v),
     ...ascensionGardenParams(rules),
   });
   return { hero, ...next };
@@ -946,7 +954,8 @@ export function createRunReplayer(
         s.garden.strokesLeft,
         runRulesUseRelicSets(logVersion),
         s.garden.bossRuleId,
-        Boolean(s.garden.bossV20)
+        Boolean(s.garden.bossV20),
+        s.garden.weather
       );
       s.counters = countersAfter;
       if (runRulesUseTools(logVersion)) {

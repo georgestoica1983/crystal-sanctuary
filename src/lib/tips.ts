@@ -8,6 +8,8 @@ export interface Tip {
   text: string;
   /** Picture shown with the tip */
   art: string;
+  /** Heading instead of "Game tip" (e.g. the bed's weather) */
+  label?: string;
 }
 
 const tile = (t: Parameters<typeof tileArt>[0]) => tileArt(t) ?? "";

@@ -1,6 +1,7 @@
 import {
   BossRuleDefinition,
   BossRuleId,
+  RunWeather,
   DungeonFloor,
   DungeonTheme,
   EntityType,
@@ -1213,6 +1214,35 @@ const bossPool = (allBossRules: boolean, newBosses: boolean): BossRuleId[] =>
 /** The Toll: Seeds each line costs on its bed */
 export const TOLL_SEEDS = 2;
 
+/** Garden weather (rules v20): some Small and Big beds from Season 2 have one */
+export const WEATHER_INFO: Record<RunWeather, { name: string; icon: string; text: string; short: string }> = {
+  GOLDEN_HOUR: {
+    name: "Golden Hour",
+    icon: "☀️",
+    text: "Reach the gate with at least half your ❤️ Life and that line scores ×2.",
+    short: "Keep half your Life: ×2",
+  },
+  THICK_BRAMBLES: {
+    name: "Thick Brambles",
+    icon: "🌿",
+    text: "🌺 Thorns cost 2 more ❤️ Life. Their points stay the same.",
+    short: "Thorns cost +2 Life",
+  },
+};
+/** Chance a Small or Big bed from Season 2 on has weather */
+export const WEATHER_CHANCE = 1 / 3;
+/** Thick Brambles: extra Life each Thorn costs */
+export const BRAMBLE_HARM = 2;
+const WEATHERS: RunWeather[] = ["GOLDEN_HOUR", "THICK_BRAMBLES"];
+
+/** The weather a bed gets (rules v20), the same every time for its Run seed */
+export function runBedWeather(runSeed: string, gardenIndex: number, season: number, kind: RunGardenKind): RunWeather | undefined {
+  if (kind === "BOSS" || season < 2) return undefined;
+  const rng = mulberry32(hashStringToSeed(`weather-${runSeed}-g${gardenIndex}`));
+  if (rng() >= WEATHER_CHANCE) return undefined;
+  return WEATHERS[Math.floor(rng() * WEATHERS.length)];
+}
+
 /** The Even Garden sets every tile to these numbers (Thorns and Spikes lower) */
 const EVEN_GARDEN_VALUE = 4;
 const EVEN_GARDEN_HARM = 2;
@@ -1835,7 +1865,8 @@ export function simulatePath(
           break;
         }
         case "ENEMY": {
-          let enemyPower = cell.value;
+          // Thick Brambles (rules v20): the Thorn costs more Life, its points stay
+          let enemyPower = cell.value + (cell.harm ?? 0);
           if (modifierId === "MIRROR_VERTICAL" && direction) {
             if (direction.dr !== 0 && direction.dc === 0) {
               enemyPower += 2;
@@ -2303,6 +2334,16 @@ export function calculateFloorScoreBreakdown(
       const info = RELIC_TAG_INFO[tag];
       xMultSources.push({ label: `${info.name} set`, value: RELIC_SET_X, art: themeArt(tag) });
     }
+  }
+
+  // Garden weather (rules v20): Golden Hour doubles a line that keeps half its Life
+  if (
+    ctx.weather === "GOLDEN_HOUR" &&
+    sim.survives &&
+    sim.endsOnExit &&
+    sim.finalStats.hp * 2 >= startHero.maxHp
+  ) {
+    xMultSources.push({ label: WEATHER_INFO.GOLDEN_HOUR.name, value: 2 });
   }
 
   // Rules v19 Bosses that change scoring
@@ -3575,7 +3616,8 @@ function runTileToCell(
   season: number,
   bossRuleId?: BossRuleId,
   thornBonus = 0,
-  bossV20 = false
+  bossV20 = false,
+  weather?: RunWeather
 ): GridCell {
   const growth = getRunSeasonGrowth(season);
   const bonus =
@@ -3588,6 +3630,7 @@ function runTileToCell(
     value: tile.value + bonus,
     bagTile: tile,
   };
+  if (weather === "THICK_BRAMBLES" && cell.type === "ENEMY") cell.harm = BRAMBLE_HARM;
   return bossRuleId ? bakeBossTile(cell, bossRuleId, bossV20) : cell;
 }
 
@@ -3714,6 +3757,8 @@ export function createRunGarden(params: {
   newBosses?: boolean;
   /** Rules v20+: Spike walls, dry Berries and the Toll per tile */
   bossV20?: boolean;
+  /** Rules v20+: some Small and Big beds have weather */
+  weather?: boolean;
   /** Rules v11+: gentler Season 1 targets */
   gentleStart?: boolean;
   /** Ascension (rules v8+): harder targets, stronger Thorns, fewer Swaps / Boss lines */
@@ -3737,6 +3782,7 @@ export function createRunGarden(params: {
         })()
       : [undefined];
 
+  const weather = params.weather ? runBedWeather(runSeed, gardenIndex, season, kind) : undefined;
   let fallback: { floor: DungeonFloor; state: RunGardenState } | null = null;
   for (let attempt = 0; attempt < 8; attempt++) {
     const rng = mulberry32(hashStringToSeed(`garden-${runSeed}-g${gardenIndex}-a${attempt}`));
@@ -3759,7 +3805,7 @@ export function createRunGarden(params: {
           if (r === exitCoord.row && c === exitCoord.col) {
             return { id, row: r, col: c, type: "EXIT", value: 0 };
           }
-          return runTileToCell(pile[next++], r, c, id, season, bossRuleId, params.thornBonus ?? 0, Boolean(params.bossV20));
+          return runTileToCell(pile[next++], r, c, id, season, bossRuleId, params.thornBonus ?? 0, Boolean(params.bossV20), weather);
         })
       );
       if (params.bossV20 && bossRuleId === "THISTLE_KING") {
@@ -3768,6 +3814,7 @@ export function createRunGarden(params: {
       }
       const state: RunGardenState = {
         ...(params.bossV20 && bossRuleId ? { bossV20: true } : {}),
+        ...(weather ? { weather } : {}),
         gardenIndex,
         season,
         kind,
@@ -3855,7 +3902,8 @@ export function refillRunGarden(
       state.season,
       state.bossRuleId,
       state.thornBonus ?? 0,
-      Boolean(state.bossV20)
+      Boolean(state.bossV20),
+      state.weather
     );
   });
   // New Spikes can wall the way in too: keep a way to the gate open
