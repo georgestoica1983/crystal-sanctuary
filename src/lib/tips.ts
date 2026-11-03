@@ -1,6 +1,6 @@
 // Tip cards between beds: one short game tip or gardening tip, with a picture.
 // No tip repeats until every tip of its kind has been shown on this device.
-import { decorArt, gardenArt, tileArt, visitorArt } from "@/lib/art";
+import { badgeArt, decorArt, gardenArt, tileArt, toolArt, visitorArt } from "@/lib/art";
 import {
   EDITIONS,
   MAX_COMMON_RELICS,
@@ -156,35 +156,42 @@ export const toolReminderTip = (name: string, art: string): Tip => ({
 });
 
 export const GARDEN_TIPS: Tip[] = [
+  // Each tip is about what its picture shows
   ["Water in the morning, so leaves dry before night.", gardenArt("Daisy")],
   ["Water deeply and less often. Roots grow down to follow it.", gardenArt("Young Oak")],
-  ["A layer of mulch keeps soil cool and moist on hot days.", gardenArt("Clover")],
-  ["Deadhead spent flowers and many plants bloom again.", gardenArt("Tulip")],
+  ["Compost turns kitchen scraps into rich, dark soil that plants love.", toolArt("RICH_SOIL")],
+  ["Deadhead faded poppies and they keep flowering for weeks longer.", gardenArt("Path Poppy")],
   ["Plant tall flowers at the back so the small ones get sun too.", gardenArt("Foxglove")],
   ["Bees love blue, purple and yellow flowers.", visitorArt("bee")],
   ["Leave a few seed heads in autumn. Birds will thank you.", decorArt("bird-bath")],
   ["Ladybugs eat aphids. One ladybug can eat dozens a day.", visitorArt("ladybug")],
-  ["Compost turns kitchen scraps into the best food for soil.", gardenArt("Clover")],
-  ["Most vegetables want six hours of sun a day.", gardenArt("Buttercup")],
+  ["Creeping buttercups love damp ground and spread fast along runners.", gardenArt("Buttercup")],
   ["Snowdrops push up through frost to flower in late winter.", gardenArt("Snowdrop")],
-  ["Sunflowers follow the sun while they're young.", gardenArt("Coin Marigold")],
-  ["Lavender likes poor, dry soil and lots of sun.", gardenArt("Lilac Bush")],
-  ["Mint spreads fast. Give it a pot of its own.", gardenArt("Clover")],
+  ["Lilacs set next year's buds soon after flowering, so prune them right away or not at all.", gardenArt("Lilac Bush")],
   ["Plant bulbs about three times as deep as they are tall.", gardenArt("Tulip")],
   ["Cut flowers early in the morning so they last longer in a vase.", gardenArt("Lily")],
-  ["Thorny roses smell sweetest in the warmth of the afternoon.", gardenArt("Queen Rose")],
+  ["Many roses smell strongest on a warm, still morning.", gardenArt("Queen Rose")],
   ["Foxglove takes two years to flower, then seeds itself.", gardenArt("Foxglove")],
-  ["Clover feeds the soil by pulling nitrogen from the air.", gardenArt("Clover")],
+  ["Clover feeds the soil: tiny helpers on its roots pull nitrogen from the air.", gardenArt("Clover")],
   ["A small pond brings frogs, and frogs eat slugs.", decorArt("pond")],
-  ["Moonflowers open at dusk and close at dawn.", gardenArt("Moonflower")],
-  ["Rain barrels save water and plants prefer rainwater.", decorArt("pond")],
-  ["Pinch the tips of young plants to make them bushier.", gardenArt("Violet")],
-  ["Rotate vegetable beds each year to keep the soil healthy.", decorArt("stepping-stones")],
+  ["Moonflowers open at dusk and close by morning.", gardenArt("Moonflower")],
+  ["Stepping stones keep your feet off wet soil, so roots don't get packed down.", decorArt("stepping-stones")],
+  ["Sweet violet flowers are edible. People candy them to decorate cakes.", gardenArt("Violet")],
   ["Leave a corner a little wild. Wildlife loves an untidy patch.", visitorArt("butterfly")],
   ["Oak trees can live for hundreds of years.", gardenArt("Young Oak")],
-  ["Seeds need warmth more than light to sprout.", gardenArt("Daisy")],
+  ["Most seeds just need warmth and moisture to sprout, but a few, like lettuce, need light too.", badgeArt("seed")],
   ["Marigolds planted between vegetables help keep some pests away.", gardenArt("Coin Marigold")],
   ["Snails come out after rain. Check under leaves in the evening.", visitorArt("snail")],
+  ["Cherry trees blossom for only a week or two each spring. Look up while it lasts.", gardenArt("Cherry Tree")],
+  ["Rowan berries feed birds well into autumn.", gardenArt("Rowan")],
+  ["Hazel flowers in late winter. The long yellow catkins are its flowers.", gardenArt("Hazel Bloom")],
+  ["Bearded irises like their roots half above the soil, warming in the sun.", gardenArt("Iris")],
+  ["Thistle seeds float away on silky down, carried by the wind.", gardenArt("Silver Thistle")],
+  // Facts that echo the board
+  ["Real rose thorns keep grazing animals away, the way Gloves keep Thorns off you.", tile("ENEMY")],
+  ["Many oaks grow from acorns that squirrels buried and forgot to dig up.", tile("GOLD")],
+  ["Birds eat berries and drop the seeds far away, planting new bushes.", tile("POTION")],
+  ["Dew forms on cool, clear nights, and small plants sip it at dawn.", toolArt("DEW")],
   ["A garden is never finished. That's the best part.", decorArt("gate")],
 ].map(([text, art]) => ({ kind: "GARDEN" as const, text, art }));
 
