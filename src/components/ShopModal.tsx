@@ -143,6 +143,18 @@ const TILE_NAMES: Record<string, string> = {
   WEAPON: "Shears",
 };
 
+/** What an offer does, in a few words for its tile (the panel below has the full text) */
+function glanceOf(offer: ShopOffer, info: { tag: string }): string {
+  if (offer.kind === "TOOL" && offer.tool) return `Tool: ${GARDEN_TOOLS[offer.tool].tag}`;
+  if (offer.kind === "TILE" && offer.tile?.ed) return `${EDITIONS[offer.tile.ed].tag} tile`;
+  if (offer.kind === "FERT" && offer.fert) {
+    const f = FERTILIZER[offer.fert];
+    return `+${f.perLevel} Value per ${f.name.replace(/s$/, "")}`;
+  }
+  if (offer.kind === "UPGRADE" && offer.upgrade) return GARDEN_UPGRADES[offer.upgrade].text;
+  return info.tag;
+}
+
 function describeOffer(offer: ShopOffer, isSanctuary: boolean, counters?: RelicCounters) {
   if (offer.kind === "UPGRADE" && offer.upgrade) {
     const u = GARDEN_UPGRADES[offer.upgrade];
@@ -551,7 +563,7 @@ export default function ShopModal({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 22 }}
         ref={cardRef}
-        className="relative w-full max-w-[430px] max-h-full flex flex-col gap-2.5 rounded-2xl p-3.5 text-white border border-white/[0.08] bg-[#1B281F] shadow-2xl shadow-black/50"
+        className="relative w-full max-w-[430px] max-h-full overflow-y-auto overscroll-contain flex flex-col gap-2.5 rounded-2xl p-3.5 text-white border border-white/[0.08] bg-[#1B281F] shadow-2xl shadow-black/50"
       >
         {/* Header: one row */}
         <div className="flex items-center justify-between gap-2">
@@ -600,12 +612,14 @@ export default function ShopModal({
                 aria-pressed={on}
                 aria-label={`${info.name}, ${offer.cost} Seeds${sold ? ", bought" : ""}`}
                 style={{ borderColor: on ? "#FCD34D" : sold ? "rgba(255,255,255,0.08)" : `${info.accent}55` }}
-                className={`relative h-[80px] rounded-xl border flex flex-col items-center justify-start gap-1 px-1 pt-[19px] transition active:scale-95 ${
+                className={`relative h-[118px] [@media(max-height:700px)]:h-[100px] rounded-xl border flex flex-col items-center justify-start gap-0.5 px-1 pt-[19px] transition active:scale-95 ${
                   on ? "bg-amber-300/15" : offer.kind === "RELIC" ? "bg-white/[0.07]" : "bg-white/[0.035]"
                 } ${sold ? "opacity-45" : ""}`}
               >
                 {offerIcon(offer, 26)}
-                <span className="w-full text-center text-[11px] font-bold leading-tight line-clamp-2">{name}</span>
+                <span className="w-full text-center text-[10.5px] font-bold leading-tight line-clamp-2">{name}</span>
+                {/* What it does, at a glance */}
+                <span className="w-full text-center text-[9.5px] leading-[1.2] text-white/65 line-clamp-3 [@media(max-height:700px)]:line-clamp-2">{artify(glanceOf(offer, info))}</span>
                 {/* Top row, above the art: what it adds to your best line (or New) on the left, the price on the right */}
                 {!sold && gainPct(scorePreview?.[offer.id] ?? 0) > 0 ? (
                   <span className="absolute top-1 left-1 rounded-md bg-emerald-400/20 px-1 text-[10px] leading-[15px] font-mono font-black text-emerald-200">
@@ -626,20 +640,21 @@ export default function ShopModal({
               type="button"
               onClick={() => setPruneOpen(true)}
               aria-haspopup="dialog"
-              className={`relative h-[80px] rounded-xl border flex flex-col items-center justify-start gap-1 px-1 pt-[19px] active:scale-95 border-white/15 bg-white/[0.035] ${
+              className={`relative h-[118px] [@media(max-height:700px)]:h-[100px] rounded-xl border flex flex-col items-center justify-start gap-0.5 px-1 pt-[19px] active:scale-95 border-white/15 bg-white/[0.035] ${
                 pruned ? "opacity-45" : ""
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={tileArt("WEAPON") ?? ""} alt="" aria-hidden="true" draggable={false} className="h-[26px] w-[26px] object-contain" />
-              <span className="w-full text-center text-[11px] font-bold leading-tight line-clamp-2">Prune a tile</span>
+              <span className="w-full text-center text-[10.5px] font-bold leading-tight line-clamp-2">Prune a tile</span>
+              <span className="w-full text-center text-[9.5px] leading-[1.2] text-white/65 line-clamp-3 [@media(max-height:700px)]:line-clamp-2">Take one tile out of your bag</span>
               <PriceChip sold={pruned} blocked={false} affordable={gems >= RUN_PRUNE_COST} cost={RUN_PRUNE_COST} />
             </button>
           )}
         </div>
 
         {/* The tapped offer, in full */}
-        <div ref={detailRef} className="min-h-[120px] flex-1 flex flex-col gap-2 rounded-xl border border-white/10 bg-black/20 p-3">
+        <div ref={detailRef} className="min-h-[120px] [@media(max-height:700px)]:min-h-[104px] flex-1 shrink-0 flex flex-col gap-2 rounded-xl border border-white/10 bg-black/20 p-3">
           <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{detail}</div>
           {action}
         </div>
@@ -700,8 +715,8 @@ export default function ShopModal({
           </div>
         )}
 
-        {/* Actions */}
-        <div className="grid grid-cols-2 gap-2">
+        {/* Actions, pinned: always in reach, even when a full Shop scrolls on a small phone */}
+        <div className="card-footer grid grid-cols-2 gap-2 bg-[#1B281F]" style={{ bottom: "-0.875rem", marginBottom: "-0.875rem", paddingBottom: "0.875rem" }}>
           <button
             type="button"
             onClick={onReroll}
