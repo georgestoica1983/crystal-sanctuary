@@ -35,7 +35,7 @@ Everything below this section is parked until this is done.
 - [x] 16. Readable score versus target: bigger bar, a notch at the target, short numbers.
 
 **Teaching**
-- [ ] 17. Teach Spikes when they first appear (ghost arrow crossing diagonally).
+- [x] 17. Teach Spikes when they first appear (ghost arrow crossing diagonally).
 - [ ] 18. Show Fertilizer on the board (level badge on the tile).
 - [ ] 19. The Shop shows how a relic works with yours ("about +X on your best line", "2 of 3 Thorns set").
 - [ ] 20. The Life-out explanation stays until read.

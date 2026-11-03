@@ -39,7 +39,7 @@ export const TILE_INTROS: Record<IntroTileType, { name: string; text: string }> 
   WEAPON: { name: "Shears", text: "cut the next Thorn completely. Like every tile, its number adds points." },
   POTION: { name: "Berries", text: "green number with a leaf: points, and gives that much ❤️ Life back." },
   SHIELD: { name: "Gloves", text: "block that much Thorn damage, and they last." },
-  TRAP: { name: "Spike", text: "its grey number is points and costs that much ❤️ Life, unless you step on it diagonally ↗." },
+  TRAP: { name: "Spike", text: "step onto it diagonally ↗ and it costs no Life. Straight on, its grey number costs that much ❤️ Life. Either way it's points." },
 };
 export const SEEN_TILE_INTROS_KEY = "ost_seen_tile_intros_v1";
 /** Until the first line is walked, home and the Exit pulse */

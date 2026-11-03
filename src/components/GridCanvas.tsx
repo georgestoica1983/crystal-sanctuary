@@ -3,7 +3,7 @@
 import SupplyIcon from "@/components/SupplyIcon";
 import { tileArt } from "@/lib/art";
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Cat, Crown, Sparkles, Compass } from "lucide-react";
 import {
   CosmeticPreferences,
@@ -56,6 +56,8 @@ interface GridCanvasProps {
   fog?: boolean;
   /** A garden tool is armed: the next tile tap uses it instead of drawing */
   toolArmed?: boolean;
+  /** The Spike introduction is open: a ghost arrow shows the safe diagonal step over the first Spike */
+  teachSpike?: boolean;
   onToolTarget?: (coord: GridCoord) => void;
   onCommitPath: (committedPath: GridCoord[]) => void;
   onRetractNotice?: (reason: string) => void;
@@ -83,6 +85,7 @@ export default function GridCanvas({
   clearsBed = false,
   tileLevels,
   toolArmed = false,
+  teachSpike = false,
   onToolTarget,
   fog = false,
   dewIds = [],
@@ -683,6 +686,8 @@ export default function GridCanvas({
   const calmWhileDrawing =
     isSanctuary && ((isDragging && !isResolving) || (isResolving && activeResolutionStep !== null));
   const lineTier = getLineTier(pathToRender.length);
+  // The first Spike in reading order, for the Spike introduction's ghost arrow
+  const firstSpikeId = teachSpike ? grid.flat().find((c) => c.type === "TRAP")?.id : undefined;
 
   const polylinePoints = pathToRender
     .map((pt) => {
@@ -1057,6 +1062,7 @@ export default function GridCanvas({
                       ✓ Bloom
                     </motion.span>
                   )}
+                  {teachSpike && cell.id === firstSpikeId && <SpikeLesson />}
                   {isExitCell && !stepSim && (
                     <span
                       className={`tile-tag absolute top-0.5 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono font-black text-[9px] px-1.5 py-0.5 rounded shadow leading-none pointer-events-none z-20 ${
@@ -1810,6 +1816,41 @@ const TOOL_MARKS: Record<string, { label: string }> = {
   DEW: { label: "Dew, ×1.5" },
   ECHO: { label: "Echo, scores twice" },
 };
+
+/**
+ * Teaching the Spike (its first appearance): a ghost arrow crosses the tile
+ * diagonally, again and again, with "no damage" under it.
+ */
+function SpikeLesson() {
+  const still = useReducedMotion();
+  return (
+    <span aria-hidden="true" className="pointer-events-none absolute -inset-[30%] z-[45] overflow-visible">
+      <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full overflow-visible">
+        <defs>
+          <marker id="spike-lesson-head" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+            <path d="M0 0 L10 5 L0 10 Z" fill="#FDE68A" />
+          </marker>
+        </defs>
+        <motion.path
+          d="M18 82 L82 18"
+          stroke="#FDE68A"
+          strokeWidth="5"
+          strokeLinecap="round"
+          strokeDasharray="10 8"
+          fill="none"
+          markerEnd="url(#spike-lesson-head)"
+          initial={{ pathLength: still ? 1 : 0, opacity: 0.95 }}
+          animate={still ? { pathLength: 1 } : { pathLength: [0, 1, 1], opacity: [0.95, 0.95, 0] }}
+          transition={still ? undefined : { duration: 1.6, times: [0, 0.7, 1], repeat: Infinity, repeatDelay: 0.3 }}
+          style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.7))" }}
+        />
+      </svg>
+      <span className="absolute left-1/2 bottom-0 -translate-x-1/2 translate-y-1/2 whitespace-nowrap rounded-full bg-amber-200 px-1.5 py-0.5 text-[10px] font-black text-slate-950 shadow">
+        Diagonal: no damage
+      </span>
+    </span>
+  );
+}
 
 /** Tiny marks inside a tile's number: they follow the number's colour */
 function ThornMark() {

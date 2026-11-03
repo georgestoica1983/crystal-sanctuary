@@ -4215,6 +4215,7 @@ export default function OneStrokeTacticianPage() {
             )}
             <GridCanvas
               toolArmed={toolArmed !== null && phase === "PLANNING"}
+              teachSpike={mode === "RUN" && phase === "PLANNING" && tileIntroQueue[0] === "TRAP"}
               fog={mode === "RUN" && !lesson && runGarden?.bossRuleId === "FOG" && phase === "PLANNING"}
               dewIds={dewIds}
               onToolTarget={handleUseTool}
