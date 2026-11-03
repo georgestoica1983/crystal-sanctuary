@@ -3,9 +3,10 @@
 import React, { useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import type { Tip } from "@/lib/tips";
+import { artify } from "@/components/ArtText";
 
-/** How long a tip stays before it closes by itself */
-const TIP_MS = 3200;
+/** How long a tip stays before it closes by itself: longer for longer text */
+const tipMs = (text: string) => Math.min(6500, Math.max(3200, 1000 + text.split(/\s+/).length * 250));
 
 /**
  * A short card between beds: a picture, "Game tip" or "Gardening tip", and one
@@ -14,11 +15,12 @@ const TIP_MS = 3200;
  */
 export default function TipCard({ tip, onDone }: { tip: Tip; onDone: () => void }) {
   const still = useReducedMotion();
+  const ms = tipMs(tip.text);
 
   useEffect(() => {
-    const id = window.setTimeout(onDone, TIP_MS);
+    const id = window.setTimeout(onDone, ms);
     return () => window.clearTimeout(id);
-  }, [onDone]);
+  }, [onDone, ms]);
 
   return (
     <motion.button
@@ -48,7 +50,7 @@ export default function TipCard({ tip, onDone }: { tip: Tip; onDone: () => void 
         <div className={`mt-2 text-[13px] font-semibold ${tip.kind === "GAME" ? "text-amber-200/90" : "text-lime-200/90"}`}>
           {tip.label ?? (tip.kind === "GAME" ? "Game tip" : "Gardening tip")}
         </div>
-        <p className="mt-1 font-hand text-[18px] leading-snug text-white/90">{tip.text}</p>
+        <p className="mt-1 font-hand text-[18px] leading-snug text-white/90">{artify(tip.text)}</p>
         <div className="mt-3 text-[12px] text-white/45">Tap to continue</div>
         {/* Time left */}
         <motion.span
@@ -56,7 +58,7 @@ export default function TipCard({ tip, onDone }: { tip: Tip; onDone: () => void 
           className="absolute bottom-0 left-0 h-1 bg-amber-300/70"
           initial={{ width: "100%" }}
           animate={{ width: "0%" }}
-          transition={{ duration: TIP_MS / 1000, ease: "linear" }}
+          transition={{ duration: ms / 1000, ease: "linear" }}
         />
       </motion.div>
     </motion.button>

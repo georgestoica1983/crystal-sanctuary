@@ -2,7 +2,8 @@
 
 import Badge from "@/components/Badge";
 import SupplyIcon from "@/components/SupplyIcon";
-import { relicArt, tileArt, toolArt } from "@/lib/art";
+import { bossArt, relicArt, tileArt, toolArt } from "@/lib/art";
+import { bossAdvice } from "@/lib/bossAdvice";
 import GardenerCard from "@/components/GardenerCard";
 import { applyGardenerGift, GARDENER_GIFTS, gardenerRelic } from "@/lib/runReplay";
 import { useBackClose } from "@/lib/backClose";
@@ -186,6 +187,7 @@ import {
   runRulesUseTools,
   runRulesUseAllBosses,
   runRulesUseNewBosses,
+  runRulesUseV20Bosses,
   runModifierFor,
   scoreRunStroke,
   startRunGarden,
@@ -916,18 +918,32 @@ export default function OneStrokeTacticianPage() {
   useEffect(() => {
     if (mode !== "RUN" || lesson || practiceStep || !runGarden) return;
     if (runGarden.gift) return; // the Wandering Gardener comes first
-    if (!tipsOn && !runGarden.weather) return;
+    // The Big bed warns about the Boss ahead (always, unless the bed has weather)
+    const bossAhead = runGarden.kind === "BIG" && !runGarden.weather;
+    if (!tipsOn && !runGarden.weather && !bossAhead) return;
     if (runGarden.gardenIndex === 0 || runGarden.score > 0 || phase !== "PLANNING" || runClear || tally) return;
     if (runGarden.kind === "BOSS") return; // a Boss bed opens with its own intro instead
     const key = `${dungeon.seedKey}-${runGarden.gardenIndex}`;
     if (tipBedRef.current === key) return;
     tipBedRef.current = key;
+    if (bossAhead) {
+      const v = runLogRef.current?.v ?? RUN_LOG_VERSION;
+      const id = previewSeasonBoss(dungeon.seedKey, runGarden.season, runRulesUseAllBosses(v), runRulesUseNewBosses(v));
+      const boss = BOSS_RULE_REGISTRY[id];
+      setTip({
+        kind: "GAME",
+        label: `Next bed: ${boss.name}`,
+        text: `${boss.description} ${bossAdvice(id, runRulesUseV20Bosses(v))}`,
+        art: bossArt(id),
+      });
+      return;
+    }
     if (runGarden.weather) {
       const w = WEATHER_INFO[runGarden.weather];
       setTip({
         kind: "GAME",
         label: `Weather: ${w.name}`,
-        text: w.text.replace(/[❤️🌺]\uFE0F?\s?/gu, ""),
+        text: w.text,
         art:
           {
             GOLDEN_HOUR: toolArt("SUNLIT"),

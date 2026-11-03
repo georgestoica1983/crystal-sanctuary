@@ -27,7 +27,7 @@ Everything below this section is parked until this is done.
 - [x] 10. Beds where the longest line is a trap.
 - [x] 11. A livelier middle game (Seasons 4–6): new Boss rules, rarer relics, a mid-Run event.
 - [x] 12. Interest isn't the only right answer: checked with the economy bots (2026-11-03), no rule change needed. Strong bots, 18 beds: save everything 52k, buy score relics only 86k, keep 10 and buy the rest 90k, so a mix wins and pure saving is worst. Not measured: Root Cellar / Old Oak builds; watch them in tester data.
-- [ ] 13. Softer first Boss: preview it in the Big bed before ("Next: Thistle King. Bring Gloves.").
+- [x] 13. Softer first Boss: preview it in the Big bed before ("Next: Thistle King. Bring Gloves.").
 
 **Feel**
 - [ ] 14. Long lines feel huge: burst, sound and pause grow with length.
