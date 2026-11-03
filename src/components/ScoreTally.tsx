@@ -8,6 +8,7 @@ import { BossRuleId, FloorScoreBreakdown, FloorStarBreakdown, RelicId, ScoreSour
 import { BOSS_RULE_REGISTRY, RELIC_REGISTRY } from "@/lib/engine";
 import { soundEngine } from "@/lib/audio";
 import { themeArt, tileArt } from "@/lib/art";
+import Badge from "@/components/Badge";
 import RelicIcon from "@/components/RelicIcon";
 import { artify } from "@/components/ArtText";
 import { formatScore } from "@/lib/formatScore";
@@ -257,9 +258,7 @@ export default function ScoreTally({
           {starFlags.length > 0 && (
             <div className="flex items-center justify-center gap-1.5 mt-1 text-[22px]">
               {starFlags.map((earned, i) => (
-                <span key={i} className={earned ? "text-amber-300" : "text-white/15"}>
-                  ★
-                </span>
+                <Badge key={i} id="star" size={22} className={earned ? "" : "opacity-20 grayscale"} />
               ))}
             </div>
           )}

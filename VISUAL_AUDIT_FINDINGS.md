@@ -88,5 +88,8 @@ Also, the browser pane often lagged while animating, so a few states were judged
 5. **Journal, Boss, tablet and leaderboard:** B20, B21, B22, B23, B24. ✅ Done.
    - Tablet: the board scales with the UI zoom, like the top card and buttons (682px board under a 728px card, before about 420px).
    - Leaderboard: kept full screen, since it fills once the online board is live; the gutters now match.
-6. **Icons and stars:** B13, B25.
+6. **Icons and stars:** B13, B25. ✅ Done.
+   - Stars: the painted star art everywhere in the Run (season track, score tally); text ★ only remains in old Daily-mode screens that Run-only mode never shows.
+   - Emoji in headings and buttons became the menu's line icons (trophy, pencil, book, cap, eye, sun, sparkles), relic rows use relic art, and podium ranks are gold, silver and bronze rounds.
+   - Unlock names keep their own emoji (🎨, 🌙), since those come from the unlock data.
 7. **Polish:** C1–C10, then a second pass over the "Not covered yet" list.

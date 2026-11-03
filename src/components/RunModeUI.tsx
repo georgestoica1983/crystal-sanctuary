@@ -4,7 +4,7 @@ import Badge from "@/components/Badge";
 import BossIcon from "@/components/BossIcon";
 import React, { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, PartyPopper, Sparkles, Sun, Trophy } from "lucide-react";
 import EntityIcon from "@/components/EntityIcon";
 import { BossRuleId, GridCell, GridCoord, RelicId, RunGardenState } from "@/types/game";
 import {
@@ -397,8 +397,10 @@ function SeasonMap({
             </span>
             {k === "SMALL" ? "Small" : k === "BIG" ? "Big" : "Boss"}
             {bestStars && (
-              <span className="text-[10px] leading-none tracking-[-0.05em] text-amber-200" aria-label={`best ${bestStars[i]} stars`}>
-                {bestStars[i] > 0 ? "★".repeat(bestStars[i]) + "☆".repeat(3 - bestStars[i]) : "☆☆☆"}
+              <span className="flex leading-none" aria-label={`best ${bestStars[i]} stars`}>
+                {[1, 2, 3].map((n) => (
+                  <Badge key={n} id="star" size={10} className={n <= bestStars[i] ? "" : "opacity-25 grayscale"} />
+                ))}
               </span>
             )}
           </span>
@@ -576,17 +578,27 @@ export function RunGardenClearModal({
   const lines = [
     { label: `${getRunGardenKindLabel(kind)} cleared`, value: info.clearReward },
     {
-      label: `Unused lines (${info.strokesLeft})${
-        info.strokeBonus > info.strokesLeft ? " · 👒 ×2" : ""
-      }`,
+      label: (
+        <>
+          Unused lines ({info.strokesLeft})
+          {info.strokeBonus > info.strokesLeft && (
+            <>
+              {" · "}
+              <RelicIcon id="SUN_HAT" size={14} className="inline-block align-[-2px]" /> ×2
+            </>
+          )}
+        </>
+      ),
       value: info.strokeBonus,
     },
     {
       label: `Interest (1 per ${RUN_INTEREST_STEP} 🌱, max ${info.interestCap ?? RUN_INTEREST_MAX})`,
       value: info.interest,
     },
-    ...(info.relicBonus ? [{ label: "👛 Seed Purse", value: info.relicBonus }] : []),
-    ...(info.welcomeBonus ? [{ label: "🎁 Welcome bonus", value: info.welcomeBonus }] : []),
+    ...(info.relicBonus
+      ? [{ label: <><RelicIcon id="SEED_PURSE" size={14} className="inline-block align-[-2px]" /> Seed Purse</>, value: info.relicBonus }]
+      : []),
+    ...(info.welcomeBonus ? [{ label: "Welcome bonus", value: info.welcomeBonus }] : []),
   ];
   return artify(
     <div className="ui-zoom fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3">
@@ -634,7 +646,7 @@ export function RunGardenClearModal({
         <div className="rounded-xl border border-white/10 bg-white/[0.04] p-2.5 space-y-1">
           {lines.map((l, i) => (
             <motion.div
-              key={l.label}
+              key={i}
               initial={{ opacity: 0, x: -8 }}
               animate={{ opacity: 1, x: 0, transition: { delay: 0.15 + i * 0.18 } }}
               className="flex justify-between items-start gap-2 text-[12px] leading-snug text-white/80"
@@ -667,7 +679,9 @@ export function RunGardenClearModal({
             animate={{ scale: [0.7, 1.08, 1], opacity: 1, transition: { delay: 0.6, duration: 0.45 } }}
             className="rounded-xl border border-violet-300/50 bg-violet-500/15 px-3 py-2 text-center"
           >
-            <div className="text-[12px] font-semibold text-violet-200">🎉 Unlocked</div>
+            <div className="flex items-center justify-center gap-1 text-[12px] font-semibold text-violet-200">
+              <PartyPopper className="w-3.5 h-3.5" /> Unlocked
+            </div>
             <div className="mt-0.5 text-[14px] font-black text-white leading-snug">
               {info.unlocked.map((u) => `${u.icon} ${u.name}`).join(" · ")}
             </div>
@@ -901,7 +915,7 @@ export function TodaysGardenButton({ played, streak, onClick }: { played: boolea
       className="w-full rounded-xl border border-amber-300/50 bg-amber-400/10 px-3 py-2.5 text-left active:scale-[0.98] transition"
     >
       <span className="flex items-center gap-1.5 text-[14px] font-bold text-amber-50">
-        🌞 Today&apos;s garden
+        <Sun className="w-4 h-4 text-amber-300" /> Today&apos;s garden
         {!played && (
           <span className="rounded-full bg-amber-300 px-1.5 text-[10px] leading-[16px] font-black text-slate-950" aria-label="Not played today">
             New today
@@ -997,7 +1011,9 @@ export function RunOverModal({
 
         {info.isNewBest && (
           <div className="rounded-xl border-2 border-amber-300 bg-amber-400/15 px-3 py-2 text-center text-amber-100">
-            <div className="text-[13px] font-black">✨ Your best Garden Run yet!</div>
+            <div className="flex items-center justify-center gap-1 text-[13px] font-black">
+              <Sparkles className="w-4 h-4" /> Your best Garden Run yet!
+            </div>
             <div className="text-[12px] font-semibold text-amber-100/80">{getRunGardenLabel(info.best.gardenIndex)}</div>
           </div>
         )}
@@ -1150,7 +1166,10 @@ export function RunOverModal({
               onClick={onOpenLeaderboard}
               className="py-2.5 rounded-xl px-2 text-[12.5px] font-semibold border border-amber-300/40 bg-amber-400/10 text-amber-100 truncate"
             >
-              {rankLine ? rankLine.replace("🏆 Leaderboard: ", "🏆 ") : "🏆 Leaderboard"}
+              <span className="inline-flex items-center gap-1.5">
+                <Trophy className="w-4 h-4 shrink-0 text-amber-300" />
+                {rankLine ? rankLine.replace("🏆 Leaderboard: ", "") : "Leaderboard"}
+              </span>
             </button>
           )}
         </div>

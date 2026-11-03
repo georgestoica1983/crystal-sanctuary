@@ -195,7 +195,7 @@ function buildPages(): GuidePage[] {
   return [
     {
       title: "How to play",
-      icon: "🌸",
+      icon: "🌈",
       body: (
         <>
           <div className="flex gap-3 items-center">
@@ -217,7 +217,7 @@ function buildPages(): GuidePage[] {
     },
     {
       title: "Tiles",
-      icon: "🧩",
+      icon: "🌺",
       body: (
         <div className="space-y-2.5">
           <TileLine type="ENEMY" value={5} name="Thorn" text="its red number with a thorn is points, and it costs that much ❤️ Life." />
@@ -232,7 +232,7 @@ function buildPages(): GuidePage[] {
     },
     {
       title: "Scoring",
-      icon: "🧮",
+      icon: "⭐",
       body: (
         <>
           <div className="rounded-xl border-2 border-amber-300/70 bg-amber-400/10 p-2.5 text-center font-mono font-black text-amber-100">
@@ -267,7 +267,7 @@ function buildPages(): GuidePage[] {
     },
     {
       title: "Seasons and the Shop",
-      icon: "🗓️",
+      icon: "🌱",
       body: (
         <>
           <Bullets
@@ -306,7 +306,7 @@ function buildPages(): GuidePage[] {
     },
     {
       title: "Relics",
-      icon: "🧿",
+      icon: "👑",
       body: (
         <>
           <P>Lasting powers for your Run. Mix them and they multiply each other. 📈 = grows every Garden Bed.</P>

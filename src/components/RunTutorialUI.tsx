@@ -2,7 +2,7 @@
 
 import { useBackClose } from "@/lib/backClose";
 import { DoneButton } from "@/components/SheetBits";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, BookOpen, Eye, GraduationCap } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { LessonGoalStatus, PRACTICE_GARDEN_GEMS, PRACTICE_GARDEN_TARGET, RunLesson } from "@/lib/runLessons";
@@ -94,7 +94,7 @@ export function RunLessonControls({
       >
         {showingSolution ? "Hide" : (
           <>
-            <span aria-hidden="true">👀 </span>Show<span className="hidden min-[360px]:inline"> me</span>
+            <Eye className="w-4 h-4 shrink-0 mr-1 inline-block align-[-3px]" aria-hidden="true" />Show<span className="hidden min-[360px]:inline"> me</span>
           </>
         )}
       </button>
@@ -263,7 +263,7 @@ export function PracticeCoach({
       >
         <div className="flex items-center justify-between gap-2">
           <div className="text-[10px] font-mono font-black uppercase tracking-wider text-emerald-300">
-            🎓 Practice · {copy.title}
+            <GraduationCap className="w-4 h-4 mr-1 inline-block align-[-3px]" aria-hidden="true" />Practice · {copy.title}
           </div>
           {!isModal && (
             <div className="flex gap-1">
@@ -367,7 +367,7 @@ export function RunHelpMenu({
           className={`${option} border-emerald-300/70 bg-emerald-400/10`}
         >
           <div className="text-sm font-black">
-            🎓 Learn by playing {isFirstVisit && <span className="text-emerald-300">(recommended)</span>}
+            <GraduationCap className="w-4 h-4 mr-1 inline-block align-[-3px]" aria-hidden="true" />Learn by playing {isFirstVisit && <span className="text-emerald-300">(recommended)</span>}
           </div>
           <div className="text-[11px] text-emerald-100/80">
             {totalLessons} quick steps and a practice garden. About 2 minutes.
@@ -377,7 +377,9 @@ export function RunHelpMenu({
           )}
         </button>
         <button type="button" onClick={onGuide} className={`${option} border-white/15 bg-white/5`}>
-          <div className="text-sm font-black">📖 Rules at a glance</div>
+          <div className="text-sm font-black">
+            <BookOpen className="w-4 h-4 mr-1 inline-block align-[-3px]" aria-hidden="true" />Rules at a glance
+          </div>
           <div className="text-[11px] text-indigo-100/75">Every tile, rule and relic in short.</div>
         </button>
         <DoneButton onClick={onClose} label={isFirstVisit ? "Skip and start a Run" : "Back to my Run"} />
