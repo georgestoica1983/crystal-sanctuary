@@ -15,7 +15,24 @@ export interface Tip {
 const tile = (t: Parameters<typeof tileArt>[0]) => tileArt(t) ?? "";
 const bloom = tileArt("ENEMY", { bloomed: true }) ?? "";
 
-export const GAME_TIPS: Tip[] = [
+/** Where the player is when a tip could show: tips only appear when they fit */
+export interface TipContext {
+  /** Garden Runs started on this device, this one included */
+  runs: number;
+  /** This bed's position in the Run (0 = Season 1 Small) */
+  gardenIndex: number;
+  /** Furthest bed ever reached on this device */
+  highestBed: number;
+  /** More than one companion earned */
+  companions: boolean;
+}
+
+type When = (c: TipContext) => boolean;
+const always: When = () => true;
+/** From this bed of a Run on (the Shop opens kinds gradually: tools from Season 2, special tiles from Season 3) */
+const fromBed = (bed: number): When => (c) => c.gardenIndex >= bed;
+
+const GAME_TIP_LIST: Array<[string, string, When?]> = [
   ["Longer lines score far more: every tile adds to both Value and Length.", bloom],
   ["Twice the tiles scores about four times the points.", bloom],
   ["A Thorn's number is points for your line, and it costs that much Life.", tile("ENEMY")],
@@ -30,23 +47,39 @@ export const GAME_TIPS: Tip[] = [
   ["Clearing a bed gives you 3 Life back for the next one.", tile("POTION")],
   ["A line with one to spare earns ⭐⭐. Score 1.5× the target for ⭐⭐⭐.", bloom],
   ["Seeds you keep earn interest: +1 for every 5 🌱, up to +5 after each bed.", tile("GOLD")],
-  ["Three beds make a Season: Small, Big, then a Boss bed.", bloom],
-  ["Beat a Boss bed to win a Legendary relic.", bloom],
+  ["Three beds make a Season: Small, Big, then a Boss bed.", bloom, (c) => c.runs <= 1],
+  ["Beat a Boss bed to win a Legendary relic.", bloom, (c) => c.gardenIndex < 9],
   ["The Season dots show the coming Boss early. Tap its icon to read the rule.", bloom],
-  ["Three relics with the same tag make a set: every line scores ×1.25.", bloom],
-  ["You can hold 5 relics. Sell one in the Shop for half its price.", bloom],
+  ["Three relics with the same tag make a set: every line scores ×1.25.", bloom, fromBed(2)],
+  ["You can hold 5 relics. Sell one in the Shop for half its price.", bloom, fromBed(3)],
   ["A reroll costs 5 🌱, and 1 more each time in the same Shop.", tile("GOLD")],
-  ["Fertilizer makes one kind of tile worth more for the whole Run.", tile("GOLD")],
-  ["Garden tools upgrade a single tile on the board. You can carry two.", tile("WEAPON")],
-  ["Golden tiles add +30 Value. Iridescent ones add +2 Length.", bloom],
-  ["Echo tiles score twice. Route your line through them.", bloom],
-  ["Prune weak tiles from your bag in the Shop so better ones come up.", tile("WEAPON")],
-  ["Skip a Small bed for a Tag. The Big bed's target grows by half.", bloom],
-  ["Each companion plays differently. Try them all as they unlock.", bloom],
-  ["If a line would run out of Life, it pulls back and shows you why.", tile("ENEMY")],
+  ["Fertilizer makes one kind of tile worth more for the whole Run.", tile("GOLD"), fromBed(4)],
+  ["Garden tools upgrade a single tile on the board. You can carry two.", tile("WEAPON"), fromBed(4)],
+  ["Golden tiles add +30 Value. Iridescent ones add +2 Length.", bloom, fromBed(7)],
+  ["Echo tiles score twice. Route your line through them.", bloom, fromBed(7)],
+  ["Prune weak tiles from your bag in the Shop so better ones come up.", tile("WEAPON"), fromBed(2)],
+  ["Skip a Small bed for a Tag. The Big bed's target grows by half.", bloom, (c) => c.gardenIndex >= 3 && c.gardenIndex % 3 === 0],
+  ["Each companion plays differently. Try them all as they unlock.", bloom, (c) => c.companions],
+  ["If a line would run out of Life, it pulls back and shows you why.", tile("ENEMY"), (c) => c.runs <= 3],
   ["Plan the long way first, then trim the risky bits.", bloom],
-  ["Finish Season 8 and the garden goes on forever in Endless.", bloom],
-].map(([text, art]) => ({ kind: "GAME" as const, text, art }));
+  ["Finish Season 8 and the garden goes on forever in Endless.", bloom, (c) => c.highestBed >= 15],
+];
+
+export const GAME_TIPS: Array<Tip & { when: When }> = GAME_TIP_LIST.map(([text, art, when]) => ({
+  kind: "GAME" as const,
+  text,
+  art,
+  when: when ?? always,
+}));
+
+/** Next-bed tips: chosen from what's on this board or in your hands, before any random tip */
+export const SPIKE_TIP: Tip = { kind: "GAME", label: "Spikes on this bed", text: "Step onto a Spike diagonally and it can't hurt you.", art: tile("TRAP") };
+export const toolReminderTip = (name: string, art: string): Tip => ({
+  kind: "GAME",
+  label: "Still in your pocket",
+  text: `You're carrying ${name}. Tap it below the board, then tap a tile to use it.`,
+  art,
+});
 
 export const GARDEN_TIPS: Tip[] = [
   ["Water in the morning, so leaves dry before night.", gardenArt("Daisy")],
@@ -81,11 +114,12 @@ export const GARDEN_TIPS: Tip[] = [
   ["A garden is never finished. That's the best part.", decorArt("gate")],
 ].map(([text, art]) => ({ kind: "GARDEN" as const, text, art }));
 
-const SEEN_KEY = "ost_tips_seen_v1";
+// Seen tips are kept by their text, so rewording a tip makes it new again
+const SEEN_KEY = "ost_tips_seen_v2";
 const LAST_KIND_KEY = "ost_tips_last_kind_v1";
 const TIPS_ON_KEY = "ost_tips_on_v1";
 
-function loadSeen(): Record<TipKind, number[]> {
+function loadSeen(): Record<TipKind, string[]> {
   try {
     const raw = JSON.parse(window.localStorage.getItem(SEEN_KEY) ?? "null");
     return { GAME: raw?.GAME ?? [], GARDEN: raw?.GARDEN ?? [] };
@@ -94,8 +128,36 @@ function loadSeen(): Record<TipKind, number[]> {
   }
 }
 
-/** The next tip: game and gardening take turns; within a kind, none repeats until all were shown */
-export function takeNextTip(): Tip {
+function saveSeen(seen: Record<TipKind, string[]>, kind?: TipKind): void {
+  try {
+    window.localStorage.setItem(SEEN_KEY, JSON.stringify(seen));
+    if (kind) window.localStorage.setItem(LAST_KIND_KEY, kind);
+  } catch {
+    // Ignore storage errors
+  }
+}
+
+/** A next-bed tip counts as seen too, so the same words don't come back at random soon after */
+export function markTipSeen(tip: Tip): void {
+  const seen = loadSeen();
+  if (!seen[tip.kind].includes(tip.text)) saveSeen({ ...seen, [tip.kind]: [...seen[tip.kind], tip.text] });
+}
+
+/**
+ * How often a random tip shows: every bed in the first Run, every other bed
+ * for the next few, then only when a new Season starts (from the 6th Run).
+ */
+export function tipDueThisBed(runs: number, gardenIndex: number): boolean {
+  if (runs <= 1) return true;
+  if (runs <= 5) return gardenIndex % 2 === 1;
+  return gardenIndex % 3 === 0;
+}
+
+/**
+ * The next tip: game and gardening take turns; a game tip must fit where the
+ * player is. Within a kind, none repeats until all that fit were shown.
+ */
+export function takeNextTip(ctx: TipContext): Tip {
   let lastKind: TipKind = "GARDEN";
   try {
     lastKind = (window.localStorage.getItem(LAST_KIND_KEY) as TipKind) ?? "GARDEN";
@@ -103,22 +165,18 @@ export function takeNextTip(): Tip {
     // Ignore storage errors
   }
   const kind: TipKind = lastKind === "GAME" ? "GARDEN" : "GAME";
-  const list = kind === "GAME" ? GAME_TIPS : GARDEN_TIPS;
+  const list: Tip[] = kind === "GAME" ? GAME_TIPS.filter((t) => t.when(ctx)) : GARDEN_TIPS;
   const seen = loadSeen();
-  let unseen = list.map((_, i) => i).filter((i) => !seen[kind].includes(i));
+  let unseen = list.filter((t) => !seen[kind].includes(t.text));
   if (unseen.length === 0) {
-    seen[kind] = [];
-    unseen = list.map((_, i) => i);
+    // All shown: start the round again (keeping tips that don't fit yet unseen)
+    seen[kind] = seen[kind].filter((text) => !list.some((t) => t.text === text));
+    unseen = list;
   }
   const pick = unseen[Math.floor(Math.random() * unseen.length)];
-  seen[kind] = [...seen[kind], pick];
-  try {
-    window.localStorage.setItem(SEEN_KEY, JSON.stringify(seen));
-    window.localStorage.setItem(LAST_KIND_KEY, kind);
-  } catch {
-    // Ignore storage errors
-  }
-  return list[pick];
+  seen[kind] = [...seen[kind], pick.text];
+  saveSeen(seen, kind);
+  return { kind: pick.kind, text: pick.text, art: pick.art, label: pick.label };
 }
 
 /** The "Tips between beds" setting (on by default) */

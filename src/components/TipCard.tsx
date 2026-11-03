@@ -6,7 +6,7 @@ import type { Tip } from "@/lib/tips";
 import { artify } from "@/components/ArtText";
 
 /** How long a tip stays before it closes by itself: longer for longer text */
-const tipMs = (text: string) => Math.min(6500, Math.max(3200, 1000 + text.split(/\s+/).length * 250));
+const tipMs = (text: string) => Math.min(6000, Math.max(3000, 1000 + text.split(/\s+/).length * 250));
 
 /**
  * A short card between beds: a picture, "Game tip" or "Gardening tip", and one

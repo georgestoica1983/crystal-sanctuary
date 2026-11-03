@@ -9,7 +9,7 @@ import { applyGardenerGift, GARDENER_GIFTS, gardenerRelic } from "@/lib/runRepla
 import { useBackClose } from "@/lib/backClose";
 import { BossBeaten, BossIntro, BOSS_LOOK } from "@/components/BossMoments";
 import TipCard from "@/components/TipCard";
-import { loadTipsOn, saveTipsOn, takeNextTip, type Tip } from "@/lib/tips";
+import { loadTipsOn, markTipSeen, saveTipsOn, SPIKE_TIP, takeNextTip, tipDueThisBed, toolReminderTip, type Tip } from "@/lib/tips";
 import { countRunStarted, runsStarted, TEACHING_RUNS } from "@/lib/playCount";
 import IntroSplash from "@/components/IntroSplash";
 import { watchUiScale } from "@/lib/uiScale";
@@ -554,6 +554,9 @@ export default function OneStrokeTacticianPage() {
   const [tipsOn, setTipsOn] = useState(true);
   const [tip, setTip] = useState<Tip | null>(null);
   const tipBedRef = useRef<string | null>(null);
+  // Next-bed tips: the Run that already had its Spike tip, and the tools held at the last bed's start
+  const spikeTipRunRef = useRef<string | null>(null);
+  const toolsAtBedRef = useRef<{ run: string; tools: ToolId[]; reminded: ToolId[] }>({ run: "", tools: [], reminded: [] });
   // Boss beds: an arrival intro (or a still preview from the Season dots) and a "beaten" moment
   const [bossIntro, setBossIntro] = useState<{ id: BossRuleId; preview: boolean } | null>(null);
   const [bossBeaten, setBossBeaten] = useState<{ id: BossRuleId; legendary: RelicId | null } | null>(null);
@@ -985,7 +988,34 @@ export default function OneStrokeTacticianPage() {
       });
       return;
     }
-    setTip(takeNextTip());
+    if (!tipsOn) return;
+    const runs = runsStarted();
+    // Next-bed tips come first: a tool carried through a whole bed unused, then Spikes on this board
+    const held = toolsAtBedRef.current.run === dungeon.seedKey ? toolsAtBedRef.current : { run: dungeon.seedKey, tools: [], reminded: [] };
+    const carried = runTools.find((t) => held.tools.includes(t) && !held.reminded.includes(t));
+    toolsAtBedRef.current = { run: dungeon.seedKey, tools: [...runTools], reminded: carried ? [...held.reminded, carried] : held.reminded };
+    if (carried) {
+      setTip(toolReminderTip(GARDEN_TOOLS[carried].name, toolArt(carried)));
+      return;
+    }
+    const spikes = currentFloor.grid.flat().some((c) => c.type === "TRAP" || c.bagTile?.type === "TRAP");
+    if (spikes && runs <= 5 && spikeTipRunRef.current !== dungeon.seedKey && seenTileIntros?.includes("TRAP")) {
+      spikeTipRunRef.current = dungeon.seedKey;
+      markTipSeen(SPIKE_TIP);
+      setTip(SPIKE_TIP);
+      return;
+    }
+    // Fewer random tips as the player gets to know the game
+    if (!tipDueThisBed(runs, runGarden.gardenIndex)) return;
+    const progress = loadUnlockProgress();
+    setTip(
+      takeNextTip({
+        runs,
+        gardenIndex: runGarden.gardenIndex,
+        highestBed: progress.highestBed,
+        companions: unlockedRunCompanions(progress).length > 1,
+      })
+    );
   }, [tipsOn, mode, lesson, practiceStep, runGarden, phase, runClear, tally, dungeon.seedKey]);
 
   // A Boss bed arrives with its intro (once per bed)
