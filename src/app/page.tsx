@@ -2637,7 +2637,24 @@ export default function OneStrokeTacticianPage() {
     const nextUnlock = next
       ? { stars: next.stars, have: progress.stars, id: next.items[0].id, icon: next.items[0].icon, text: next.items.map((u) => u.name).join(" · ") }
       : null;
-    return { seasonBestStars, newBestStars: saved.improved, unlocked, deepestSeason, nextUnlock };
+    // What's next, in one line: the next bed and its target, or the Boss ahead
+    const v = runLogRef.current?.v ?? RUN_LOG_VERSION;
+    const nextPos = getRunGardenPosition(garden.gardenIndex + 1);
+    const nextBoss =
+      nextPos.kind === "BOSS"
+        ? previewSeasonBoss(dungeon.seedKey, nextPos.season, runRulesUseAllBosses(v), runRulesUseNewBosses(v))
+        : null;
+    const nextBed = runLogRef.current?.d && garden.gardenIndex >= RUN_DAILY_LAST_BED
+      ? null
+      : {
+          label: `${nextPos.season > garden.season ? `Season ${nextPos.season} · ` : ""}${shortBedName(nextPos.kind)}`,
+          target: scaleRunTarget(
+            getRunGardenTarget(nextPos.season, nextPos.kind, runRulesUseGentleStart(v)),
+            runLateTargetMult(nextPos.season, runRulesUseLateTargets(v))
+          ),
+          boss: nextBoss,
+        };
+    return { seasonBestStars, newBestStars: saved.improved, unlocked, deepestSeason, nextUnlock, nextBed };
   };
 
   const handleRunClearContinue = () => {

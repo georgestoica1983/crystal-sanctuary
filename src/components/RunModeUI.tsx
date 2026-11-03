@@ -327,6 +327,8 @@ export interface RunClearInfo {
   deepestSeason?: number;
   /** Ascension level of this Garden Run */
   asc?: number;
+  /** What's next: the next bed and its target, or the Boss ahead (none after the Daily's last bed) */
+  nextBed?: { label: string; target: number; boss: BossRuleId | null } | null;
 }
 
 const BAG_ORDER = ["ENEMY", "TRAP", "WEAPON", "SHIELD", "POTION", "GOLD"] as const;
@@ -367,6 +369,21 @@ export function BagPanel({ garden, prunedCount = 0 }: { garden: RunGardenState; 
  */
 export function getRunBedStars(score: number, target: number, strokesLeft: number): number {
   return 1 + (strokesLeft >= 1 ? 1 : 0) + (strokesLeft >= 1 && score >= target * 1.5 ? 1 : 0);
+}
+
+/** The card's headline, by how well the bed went */
+const BLOOM_HEADLINE: Record<number, string> = {
+  1: "Bed bloomed!",
+  2: "Beautiful bed!",
+  3: "Perfect bloom!",
+};
+
+/** One short line worth bragging about */
+function bloomBrag(score: number, target: number, linesLeft: number): string {
+  const ratio = score / Math.max(1, target);
+  if (ratio >= 2) return `${Math.floor(ratio * 10) / 10}× what it needed!`;
+  if (linesLeft > 0) return `Bloomed with ${linesLeft} ${linesLeft === 1 ? "line" : "lines"} to spare.`;
+  return "Just in time!";
 }
 
 const STAR_HINT: Record<number, string> = {
@@ -627,10 +644,15 @@ export function RunGardenClearModal({
             {getRunGardenLabel(info.gardenIndex)}
             {!!info.asc && <span className="ml-1 text-orange-200">· <Badge id="flame" /> Ascension {info.asc}</span>}
           </div>
-          <div className="text-[24px] font-display font-semibold text-white">
-            Garden Bed bloomed!
-          </div>
-          <div className="flex justify-center gap-1.5 mt-1.5" aria-label={`${stars} of 3 stars`}>
+          <motion.div
+            initial={{ scale: 0.8, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 260, damping: 14 }}
+            className="text-[28px] leading-tight font-display font-semibold text-amber-100"
+          >
+            {kind === "BOSS" ? "Boss bed beaten!" : BLOOM_HEADLINE[stars] ?? "Bed bloomed!"}
+          </motion.div>
+          <div className="flex justify-center gap-2 mt-2" aria-label={`${stars} of 3 stars`}>
             {[1, 2, 3].map((n) => (
               <motion.span
                 key={n}
@@ -638,17 +660,17 @@ export function RunGardenClearModal({
                 animate={{ scale: 1, rotate: 0, transition: { delay: 0.2 + n * 0.22, type: "spring", stiffness: 380, damping: 14 } }}
                 className={`leading-none ${n <= stars ? "" : "opacity-20 grayscale"}`}
               >
-                <Badge id="star" size={32} />
+                <Badge id="star" size={40} />
               </motion.span>
             ))}
           </div>
-          <div className="mt-1 font-mono text-[13px] font-bold text-emerald-100">
-            {fmt(info.score)} / {fmt(info.target)}
-          </div>
-          <div className="text-[12.5px] leading-snug text-emerald-100/75">
-            {info.newBestStars ? "✨ New best! " : ""}
-            {STAR_HINT[stars]}
-          </div>
+          <div className="mt-2 text-[15px] font-semibold text-emerald-100">{bloomBrag(info.score, info.target, info.strokesLeft)}</div>
+          {info.newBestStars && (
+            <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-amber-300/15 px-2.5 py-0.5 text-[12px] font-bold text-amber-100">
+              <Sparkles className="w-3.5 h-3.5" /> Your best on this bed
+            </div>
+          )}
+          {stars < 3 && <div className="mt-0.5 text-[12px] leading-snug text-white/50">Next time: {STAR_HINT[stars]}</div>}
           <SeasonMap season={season} clearedKind={kind} bestStars={info.seasonBestStars} />
           {season > RUN_FINAL_SEASON && (
             <div className="mt-2 rounded-lg border border-violet-300/40 bg-violet-500/10 px-2.5 py-1 text-[12px] text-violet-100">
@@ -657,34 +679,63 @@ export function RunGardenClearModal({
           )}
         </div>
 
-        <div className="rounded-xl border border-white/10 bg-white/[0.04] p-2.5 space-y-1">
-          {lines.map((l, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0, transition: { delay: 0.15 + i * 0.18 } }}
-              className="flex justify-between items-start gap-2 text-[12px] leading-snug text-white/80"
-            >
-              <span className="min-w-0">{l.label}</span>
-              <span className="font-mono font-black shrink-0 whitespace-nowrap text-amber-100">+{l.value} 🌱</span>
-            </motion.div>
-          ))}
-          <div className="border-t border-white/10 pt-1 flex justify-between items-baseline text-sm font-black text-amber-200">
-            <span>Payout</span>
-            <span className="font-mono">
-              <span className="mr-1.5 text-[11px] font-semibold text-white/55">
-                {info.gemsBefore} → {info.gemsBefore + info.total}
-              </span>
-              +{info.total} 🌱
-            </span>
-          </div>
+        {/* The reward, as one number to enjoy */}
+        <motion.div
+          initial={{ y: 8, opacity: 0 }}
+          animate={{ y: 0, opacity: 1, transition: { delay: 0.6 } }}
+          className="flex items-center justify-center gap-2"
+        >
+          <span className="rounded-2xl border border-amber-300/50 bg-amber-400/15 px-4 py-2 text-[26px] font-display font-semibold tabular-nums text-amber-100">
+            +{info.total} 🌱
+          </span>
           {!!info.lifeBonus && (
-            <div className="flex justify-between text-[12.5px] font-bold text-emerald-200">
-              <span>Life for the next bed</span>
-              <span>+{info.lifeBonus} ❤️</span>
-            </div>
+            <span className="rounded-2xl border border-rose-300/40 bg-rose-400/10 px-3 py-2 text-[20px] font-display font-semibold text-rose-100">
+              +{info.lifeBonus} ❤️
+            </span>
           )}
-        </div>
+        </motion.div>
+
+        {/* What's next, in one line */}
+        {info.nextBed && (
+          <div
+            className={`flex items-center gap-2.5 rounded-xl border px-3 py-2 ${
+              info.nextBed.boss ? "border-rose-300/40 bg-rose-500/10" : "border-white/10 bg-white/[0.04]"
+            }`}
+          >
+            {info.nextBed.boss && <BossIcon id={info.nextBed.boss} size={36} />}
+            <div className="min-w-0 flex-1 text-[13px] leading-snug">
+              <div className={info.nextBed.boss ? "font-bold text-rose-100" : "font-bold text-white/90"}>
+                {info.nextBed.boss ? `Boss ahead: ${BOSS_RULE_REGISTRY[info.nextBed.boss].name}` : `Up next: ${info.nextBed.label}`}
+              </div>
+              <div className="text-white/60">
+                {info.nextBed.boss ? BOSS_RULE_REGISTRY[info.nextBed.boss].description : `Reach ${fmt(info.nextBed.target)} to bloom it.`}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Where the Seeds came from, for anyone who wants it */}
+        <details className="group rounded-xl border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-[12px] text-white/70">
+          <summary className="cursor-pointer list-none text-center font-semibold text-white/55 [&::-webkit-details-marker]:hidden">
+            How you earned it <span className="inline-block transition group-open:rotate-180">▾</span>
+          </summary>
+          <div className="mt-1.5 space-y-1">
+            <div className="flex justify-between gap-2">
+              <span>Bed score</span>
+              <span className="font-mono font-bold text-white/85">{fmt(info.score)} / {fmt(info.target)}</span>
+            </div>
+            {lines.map((l, i) => (
+              <div key={i} className="flex justify-between items-start gap-2 leading-snug">
+                <span className="min-w-0">{l.label}</span>
+                <span className="font-mono font-black shrink-0 whitespace-nowrap text-amber-100">+{l.value} 🌱</span>
+              </div>
+            ))}
+            <div className="border-t border-white/10 pt-1 flex justify-between font-bold text-white/80">
+              <span>Your Seeds</span>
+              <span className="font-mono">{info.gemsBefore} → {info.gemsBefore + info.total} 🌱</span>
+            </div>
+          </div>
+        </details>
 
 
         {info.unlocked && info.unlocked.length > 0 && (
