@@ -5,7 +5,10 @@ import { DoneButton } from "@/components/SheetBits";
 import { ArrowRight, BookOpen, Eye, GraduationCap } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { LessonGoalStatus, PRACTICE_GARDEN_GEMS, PRACTICE_GARDEN_TARGET, RunLesson } from "@/lib/runLessons";
+import { LessonGoalStatus, PRACTICE_GARDEN_GEMS, PRACTICE_GARDEN_TARGET, RUN_LESSONS, RunLesson } from "@/lib/runLessons";
+
+/** Seedling Season: every lesson is a level, and the Practice Garden is the last one */
+export const SEEDLING_LEVELS = RUN_LESSONS.length + 1;
 import {
   getRunGardenTarget,
   RUN_INTEREST_MAX,
@@ -44,12 +47,14 @@ export function RunLessonCoach({ lesson, index, total }: { lesson: RunLesson; in
     // As tall as a Run's bed rows (Season, score bar, to go), so the board matches
     <div className="min-h-[72px] min-[600px]:min-h-[75.5px] px-1 pt-1 pb-0.5 space-y-1">
       <div className="flex items-center justify-between gap-2">
-        <div className="text-[12px] font-semibold text-white/60 truncate">🎯 {lesson.goalLabel}</div>
-        <div className="flex shrink-0 gap-1" aria-label={`Step ${index + 1} of ${total}`}>
+        <div className="min-w-0 text-[12px] font-semibold text-white/60 truncate">
+          <span className="text-lime-200/85">Seedling Season</span> · Level {index + 1} of {total}
+        </div>
+        <div className="flex shrink-0 gap-1" aria-hidden="true">
           {Array.from({ length: total }, (_, i) => (
             <span
               key={i}
-              className={`w-5 h-1.5 rounded-full ${
+              className={`w-2.5 h-1.5 rounded-full ${
                 i < index ? "bg-teal-300" : i === index ? "bg-amber-300" : "bg-white/15"
               }`}
             />
@@ -112,6 +117,8 @@ export interface LessonResultInfo {
   text: string;
   scoreLine: string;
   isLast: boolean;
+  /** Seedling Season level just played (1-based) */
+  level: number;
 }
 
 export function RunLessonResult({
@@ -135,7 +142,7 @@ export function RunLessonResult({
             : "border-amber-300/70 bg-gradient-to-b from-[#2A1F0E] to-[#140F0A]"
         }`}
       >
-        <div className="text-xl font-black">{info.ok ? "✓ Nice!" : "Not quite"}</div>
+        <div className="text-xl font-black">{info.ok ? `✓ Level ${info.level} cleared!` : "Not quite"}</div>
         <p className="text-[13px] leading-snug text-white/90">{info.text}</p>
         {info.ok ? (
           <div className="grid grid-cols-[1fr_2fr] gap-2">
@@ -151,7 +158,7 @@ export function RunLessonResult({
               onClick={onNext}
               className="py-2.5 rounded-xl bg-emerald-300 text-slate-950 text-xs font-mono font-black flex items-center justify-center gap-1.5"
             >
-              {info.isLast ? "Practice garden" : "Next"}
+              {info.isLast ? `Level ${SEEDLING_LEVELS}: Practice garden` : `Level ${info.level + 1}`}
               <ArrowRight className="w-4 h-4 shrink-0" />
             </button>
           </div>
@@ -180,10 +187,11 @@ export type PracticeStep =
 
 const PRACTICE_COPY: Record<PracticeStep, { title: string; lines: string[]; button?: string }> = {
   intro: {
-    title: "Practice garden",
+    title: `Level ${SEEDLING_LEVELS}`,
     lines: [
       `Reach ${PRACTICE_GARDEN_TARGET.toLocaleString()} points in 4 lines.`,
-      "The bar above the board fills as you score.",
+      "The bar at the top fills as you score.",
+      "❤️ Life comes back only when you clear a Garden Bed.",
     ],
     button: "Let's go",
   },
@@ -211,15 +219,22 @@ const PRACTICE_COPY: Record<PracticeStep, { title: string; lines: string[]; butt
     lines: ["Relics are lasting powers. Buy one, or save 🌱 for later."],
   },
   done: {
-    title: "You're ready",
-    lines: ["Each Season gets harder. Help is in the ☰ menu."],
+    title: "Seedling Season cleared!",
+    lines: ["You know every tile. Season 1 is next, and each Season gets harder. Help is in the ☰ menu."],
     button: "Start my Run",
   },
 };
 
-/** Steps shown over the payout, Shop or as a closing card (the rest sit under the board) */
+/** Steps shown as a card (the intro, over the payout, the Shop, the close) */
 export const isPracticeOverlayStep = (step: PracticeStep) =>
-  step === "bloom" || step === "shop" || step === "done";
+  step === "intro" || step === "bloom" || step === "shop" || step === "done";
+
+/** While playing, the Practice Garden speaks in one line above the board (where a Run's hint goes), so the board keeps its size */
+export const PRACTICE_HINTS: Partial<Record<PracticeStep, string>> = {
+  draw: "Line 1: draw a long line to the Exit.",
+  regrow: "New tiles grew in. Try 🔄 Swap below.",
+  weeded: `Now reach ${PRACTICE_GARDEN_TARGET.toLocaleString()} before your lines run out.`,
+};
 
 /**
  * Coach card for the Practice Garden. During play it sits in the page flow
@@ -240,7 +255,7 @@ export function PracticeCoach({
   onQuit: () => void;
 }) {
   const copy = PRACTICE_COPY[step];
-  const isModal = step === "done";
+  const isModal = step === "done" || step === "intro";
   // Over the payout and Shop screens the card sits at the top (their buttons
   // are at the bottom); on the board it is part of the page, below the controls
   const atTop = step === "bloom" || step === "shop";
@@ -297,6 +312,11 @@ export function PracticeCoach({
                 className="w-full py-2 rounded-lg bg-emerald-300 text-slate-950 text-xs font-mono font-black"
               >
                 {copy.button}
+              </button>
+            )}
+            {step === "intro" && (
+              <button type="button" onClick={onQuit} className="w-full py-1.5 text-[12px] font-semibold text-white/55">
+                Leave the practice
               </button>
             )}
           </>
@@ -369,7 +389,7 @@ export function RunHelpMenu({
             <GraduationCap className="w-4 h-4 mr-1 inline-block align-[-3px]" aria-hidden="true" />Learn by playing {isFirstVisit && <span className="text-emerald-300">(recommended)</span>}
           </div>
           <div className="text-[11px] text-emerald-100/80">
-            {totalLessons} quick steps and a practice garden. About{"\u00a0"}2{"\u00a0"}minutes.
+            Seedling Season: {totalLessons} short levels and a practice garden. About{"\u00a0"}4{"\u00a0"}minutes.
           </div>
           {!isFirstVisit && (
             <div className="text-[11px] text-amber-200/80">This ends the Run you&apos;re playing.</div>

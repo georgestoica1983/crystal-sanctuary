@@ -164,4 +164,110 @@ export const RUN_LESSONS: RunLesson[] = [
     success: "The Thorn cost 8 ❤️ Life but its +8 more than doubled your points. On a long line a Thorn is often worth it. Just keep some Life for the next lines.",
     failHint: "Take the Thorn (+8) on a long line.",
   },
+  {
+    id: "berries",
+    title: "Berries heal",
+    icon: "🍓",
+    learn: "",
+    steps: ["Cross the Thorn without wilting. You only have 4 ❤️."],
+    goalLabel: "Cross the Thorn",
+    hero: hero(4),
+    grid: board("L7", [
+      ". . . . .",
+      ". R5 . . .",
+      "H G1 B6 G1 A",
+      ". . . . .",
+      ". . . . .",
+    ]),
+    solution: path([2, 0], [1, 1], [2, 2], [2, 3], [2, 4]),
+    checkGoal: (sim) => {
+      const thorn = visits(sim, "ENEMY").length > 0;
+      return {
+        ok: reached(sim) && thorn,
+        detail: !thorn ? "Take the Thorn on your way" : sim.survives ? "Across ✓" : "Not enough Life",
+      };
+    },
+    success: "The Berry gave back 5 ❤️ Life, so the Thorn's 6 didn't wilt you. Eat Berries just before a thorny stretch.",
+    failHint: "Lines can go diagonally. Eat the Berry first, then take the Thorn.",
+  },
+  {
+    id: "gloves",
+    title: "Gloves block",
+    icon: "🧤",
+    learn: "",
+    steps: ["Cross both Thorns. You only have 5 ❤️."],
+    goalLabel: "Cross both Thorns",
+    hero: hero(5),
+    grid: board("L8", [
+      ". . . . .",
+      ". D5 . . .",
+      "H G1 B4 B4 A",
+      ". . . . .",
+      ". . . . .",
+    ]),
+    solution: path([2, 0], [1, 1], [2, 2], [2, 3], [2, 4]),
+    checkGoal: (sim) => {
+      const thorns = visits(sim, "ENEMY").length;
+      return {
+        ok: reached(sim) && thorns >= 2,
+        detail: thorns < 2 ? `${thorns} of 2 Thorns` : sim.survives ? "Both crossed ✓" : "Not enough Life",
+      };
+    },
+    success: "The Gloves soaked up 5 Thorn damage before your Life did. Pick them up before the Thorns, and spare ones carry over to your next line.",
+    failHint: "Pick up the 🧤 Gloves first, then take both Thorns.",
+  },
+  {
+    id: "shears",
+    title: "Shears cut",
+    icon: "✂️",
+    learn: "",
+    steps: ["Cross the big Thorn and lose no ❤️ Life."],
+    goalLabel: "Lose no Life",
+    hero: hero(5),
+    grid: board("L9", [
+      ". . . . .",
+      ". S3 . . .",
+      "H G1 B8 G1 A",
+      ". . . . .",
+      ". . . . .",
+    ]),
+    solution: path([2, 0], [1, 1], [2, 2], [2, 3], [2, 4]),
+    checkGoal: (sim, _b, start) => {
+      const thorn = visits(sim, "ENEMY").length > 0;
+      const lost = start.hp - sim.finalStats.hp;
+      return {
+        ok: reached(sim) && thorn && lost <= 0,
+        detail: !thorn ? "Take the Thorn on your way" : sim.survives ? `Life lost: ${Math.max(0, lost)}` : "Not enough Life",
+      };
+    },
+    success: "The Shears cut the next Thorn clean: no Life lost, and you still got its 8 points.",
+    failHint: "Pick up the ✂️ Shears first. They cut the next Thorn.",
+  },
+  {
+    id: "spikes",
+    title: "Spikes",
+    icon: "⚠️",
+    learn: "",
+    steps: ["Take the Spike's points and lose no ❤️ Life."],
+    goalLabel: "Lose no Life",
+    hero: hero(10),
+    grid: board("L10", [
+      ". . . . .",
+      ". . T5 . .",
+      "H G2 G2 G2 A",
+      ". . . . .",
+      ". . . . .",
+    ]),
+    solution: path([2, 0], [2, 1], [1, 2], [2, 3], [2, 4]),
+    checkGoal: (sim, _b, start) => {
+      const spike = visits(sim, "TRAP").length > 0;
+      const lost = start.hp - sim.finalStats.hp;
+      return {
+        ok: reached(sim) && spike && lost <= 0,
+        detail: !spike ? "Take the Spike on your way" : `Life lost: ${Math.max(0, lost)}`,
+      };
+    },
+    success: "Step onto a Spike diagonally ↗ and it can't hurt you. Straight on, it costs its number in Life.",
+    failHint: "Step onto the Spike diagonally ↗, not straight on.",
+  },
 ];

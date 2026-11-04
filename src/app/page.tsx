@@ -221,6 +221,8 @@ import {
   RunHelpMenu,
   RunLessonCoach,
   RunLessonGoal,
+  SEEDLING_LEVELS,
+  PRACTICE_HINTS,
   RunLessonControls,
   RunLessonResult,
 } from "@/components/RunTutorialUI";
@@ -932,7 +934,8 @@ export default function OneStrokeTacticianPage() {
       setShowGoalCard(false);
       return;
     }
-    if (mode !== "RUN" || lessonIndex !== null || !runGarden) return;
+    // The Practice Garden opens with its own card instead
+    if (mode !== "RUN" || lessonIndex !== null || !runGarden || practiceStep) return;
     if (runGarden.gardenIndex !== 0 || runGarden.score > 0 || phase !== "PLANNING") return;
     if (goalCardRunRef.current === dungeon.seedKey) return;
     try {
@@ -957,7 +960,7 @@ export default function OneStrokeTacticianPage() {
     }
     setGoalCardViews(views);
     setShowGoalCard(true);
-  }, [mode, lesson, lessonIndex, runGarden, phase, dungeon.seedKey]);
+  }, [mode, lesson, lessonIndex, runGarden, phase, dungeon.seedKey, practiceStep]);
 
   useEffect(() => setTipsOn(loadTipsOn()), []);
   // A Life-out explanation goes away once the next line starts
@@ -2545,6 +2548,7 @@ export default function OneStrokeTacticianPage() {
       text: status.ok ? lesson.success : `${lesson.failHint} (${status.detail})`,
       scoreLine: `${breakdown.chips} Value × ${breakdown.mult} Length = ${breakdown.total.toLocaleString()} · Life ${lesson.hero.hp} → ${sim.finalStats.hp}`,
       isLast: lessonIndex === RUN_LESSONS.length - 1,
+      level: lessonIndex + 1,
     });
   };
   const lessonResolvedRef = useRef(lessonResolved);
@@ -4071,11 +4075,12 @@ export default function OneStrokeTacticianPage() {
         runCard={
           lesson && lessonIndex !== null ? (
             // A lesson sits where a Run shows its bed, so the board keeps its size
-            <RunLessonCoach lesson={lesson} index={lessonIndex} total={RUN_LESSONS.length} />
+            <RunLessonCoach lesson={lesson} index={lessonIndex} total={SEEDLING_LEVELS} />
           ) : mode === "RUN" && !isInteractiveTutorial && !lesson && runGarden && !(phase === "DEFEAT" && runOver === null) ? (
             <div className="relative">
             <RunHudStrip
               bare
+              label={practiceStep ? `Seedling Season · Level ${SEEDLING_LEVELS}` : undefined}
               onBossPreview={(id) => setBossIntro({ id, preview: true })}
               garden={runGarden}
                   previewScore={
@@ -4498,6 +4503,8 @@ export default function OneStrokeTacticianPage() {
               {artify(
 lesson
                 ? ""
+                : practiceStep && PRACTICE_HINTS[practiceStep] && phase === "PLANNING"
+                ? PRACTICE_HINTS[practiceStep]!
                 : phase === "RESOLVING"
                 ? "Tap the board to skip ⏩"
                 : runNoSafeLine
@@ -5000,17 +5007,7 @@ lesson
           </div>
           )}
 
-          {practiceStep && !isPracticeOverlayStep(practiceStep) && !isGuideOpen && !helpMenu && !isRunLeaderboardOpen && (
-            <PracticeCoach
-              step={practiceStep}
-              collapsed={practiceCollapsed}
-              onToggleCollapsed={() => setPracticeCollapsed((v) => !v)}
-              onButton={() => {
-                if (practiceStep === "intro") setPracticeStep("draw");
-              }}
-              onQuit={() => backToRunOrNew()}
-            />
-          )}
+
 
           {/* Long-term progress: the Sanctuary mosaic (not in the Run-only game) */}
           {!RUN_ONLY && !isInteractiveTutorial && (
@@ -5223,9 +5220,10 @@ lesson
       {practiceStep && isPracticeOverlayStep(practiceStep) && !isGuideOpen && !helpMenu && !isRunLeaderboardOpen && (
         <PracticeCoach
           step={practiceStep}
-          collapsed={practiceCollapsed && practiceStep !== "done"}
+          collapsed={practiceCollapsed && practiceStep !== "done" && practiceStep !== "intro"}
           onToggleCollapsed={() => setPracticeCollapsed((v) => !v)}
           onButton={() => {
+            if (practiceStep === "intro") setPracticeStep("draw");
             if (practiceStep === "done") backToRunOrNew();
           }}
           onQuit={() => backToRunOrNew()}

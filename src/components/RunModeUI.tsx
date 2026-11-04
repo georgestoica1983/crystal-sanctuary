@@ -56,7 +56,10 @@ export function RunHudStrip({
   upcomingBoss = null,
   bare = false,
   onBossPreview,
+  label,
 }: {
+  /** Shown instead of the Season and bed (the Practice Garden, Seedling Season's last level) */
+  label?: string;
   /** Tapping the coming Boss on the Season dots shows its card */
   onBossPreview?: (id: BossRuleId) => void;
   /** Drawn inside the top card (no border or background of its own) */
@@ -102,6 +105,9 @@ export function RunHudStrip({
     >
       <div className="flex items-center justify-between gap-2 min-w-0">
         <div className="min-w-0">
+          {label ? (
+            <div className="text-[13px] font-semibold text-lime-200/85 whitespace-nowrap truncate">{label}</div>
+          ) : (
           <div className="text-[13px] font-semibold text-white/75 whitespace-nowrap">
             Season {garden.season}
             {garden.season > RUN_FINAL_SEASON ? " · Endless" : ""} ·{" "}
@@ -120,6 +126,7 @@ export function RunHudStrip({
               </span>
             )}
           </div>
+          )}
         </div>
         <div
           className="shrink-0 flex items-center gap-1"
