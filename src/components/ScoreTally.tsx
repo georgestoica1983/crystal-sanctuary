@@ -218,8 +218,8 @@ export default function ScoreTally({
   };
   const valueTop = top(chipLines);
   const lengthTop = top(multLines);
-  const detailRow = (line: ScoreSource, tone: string) => (
-    <div key={line.label} className={`flex items-center justify-between gap-2 text-[16px] leading-snug ${tone}`}>
+  const detailRow = (line: ScoreSource, tone: string, i: number) => (
+    <div key={`${line.label}-${i}`} className={`flex items-center justify-between gap-2 text-[16px] leading-snug ${tone}`}>
       <span className="min-w-0 flex items-center gap-1.5">
         <SourceArt art={line.art} size={18} />
         <span className="truncate">{line.label}</span>
@@ -326,7 +326,7 @@ export default function ScoreTally({
           <div className="space-y-2.5 pb-2 pt-1">
             <div className="space-y-1">
               <div className="text-[14px] font-semibold text-sky-300/90">Value {fmt(breakdown.chips)}</div>
-              {valueTop.shown.map((l) => detailRow(l, "text-sky-50/90"))}
+              {valueTop.shown.map((l, i) => detailRow(l, "text-sky-50/90", i))}
               {valueTop.more > 0 && (
                 <div className="text-[14px] text-white/60">
                   + {valueTop.more} more (+{valueTop.moreValue})
@@ -335,7 +335,7 @@ export default function ScoreTally({
             </div>
             <div className="space-y-1">
               <div className="text-[14px] font-semibold text-emerald-300/90">Length {fmt(breakdown.mult)}</div>
-              {lengthTop.shown.map((l) => detailRow(l, "text-emerald-50/90"))}
+              {lengthTop.shown.map((l, i) => detailRow(l, "text-emerald-50/90", i))}
               {lengthTop.more > 0 && (
                 <div className="text-[14px] text-white/60">
                   + {lengthTop.more} more (+{lengthTop.moreValue})
@@ -344,9 +344,10 @@ export default function ScoreTally({
             </div>
             {breakdown.xMultSources.length > 0 && (
               <div className="flex flex-wrap gap-1.5">
-                {breakdown.xMultSources.map((x) => (
+                {breakdown.xMultSources.map((x, i) => (
                   <span
-                    key={x.label}
+                    // Two of the same (e.g. two Radiant tiles) share a label
+                    key={`${x.label}-${i}`}
                     className="inline-flex items-center gap-1.5 rounded-lg border border-violet-300/40 bg-violet-500/10 px-2 py-1 text-[14px] font-semibold text-violet-100"
                   >
                     <SourceArt art={x.art} size={18} />
