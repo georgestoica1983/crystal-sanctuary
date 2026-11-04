@@ -106,7 +106,7 @@ export default function AscensionPicker({
         <div className="flex items-center justify-between">
           <div>
             <div className="text-[16px] font-bold">New Garden Run</div>
-            <div className="text-[11.5px] text-white/55">Pick a companion. Each one plays differently.</div>
+            <div className="text-[12px] text-white/55">Pick a companion. Each one plays differently.</div>
           </div>
         </div>
 
@@ -127,9 +127,9 @@ export default function AscensionPicker({
               autoCapitalize="characters"
               autoComplete="off"
               spellCheck={false}
-              className="w-full rounded-lg border border-white/15 bg-black/30 px-2.5 py-2 font-mono text-[16px] tracking-wider text-white placeholder:text-white/25 outline-none focus:border-teal-300/70"
+              className="w-full rounded-lg border border-white/15 bg-black/30 px-2.5 py-2 tabular-nums text-[16px] tracking-wider text-white placeholder:text-white/25 outline-none focus:border-teal-300/70"
             />
-            <div className="text-[11.5px] leading-snug text-white/55">
+            <div className="text-[12px] leading-snug text-white/55">
               {code
                 ? "Same beds, Shops and Bosses as theirs. Code gardens stay off the leaderboard."
                 : codeTyped
@@ -151,7 +151,7 @@ export default function AscensionPicker({
           <button
             type="button"
             onClick={() => setCodeOpen(true)}
-            className="w-full text-left text-[12.5px] font-semibold text-teal-200/85 px-1"
+            className="w-full text-left text-[12px] font-semibold text-teal-200/85 px-1"
           >
             🌱 Play a friend&apos;s garden code
           </button>
@@ -180,13 +180,13 @@ export default function AscensionPicker({
                 <span className="flex items-center gap-1.5">
                   <EntityIcon type="HERO" companionId={id} size={30} />
                   <span className="min-w-0">
-                    <span className="block text-[13px] font-bold leading-tight">{def.sanctuaryShortName ?? def.shortName}</span>
-                    <span className="block text-[10.5px] text-white/55 font-mono">{companionStartText(id)}</span>
+                    <span className="block text-[14px] font-bold leading-tight">{def.sanctuaryShortName ?? def.shortName}</span>
+                    <span className="block text-[10px] text-white/55 tabular-nums">{companionStartText(id)}</span>
                   </span>
                 </span>
-                <span className="block mt-1 text-[11px] leading-snug text-white/70">{COMPANION_RULES[id]}</span>
+                <span className="block mt-1 text-[12px] leading-snug text-white/70">{COMPANION_RULES[id]}</span>
                 {locked && (
-                  <span className="block mt-0.5 text-[11px] font-semibold text-white/60">
+                  <span className="block mt-0.5 text-[12px] font-semibold text-white/60">
                     <Badge id="lock" /> {companionUnlockFor(id).needText}
                   </span>
                 )}
@@ -232,7 +232,7 @@ export default function AscensionPicker({
                   ) : (
                     <Backpack className="h-8 w-8 p-1 text-white/75" aria-hidden="true" />
                   )}
-                  <span className={`text-[11px] font-semibold leading-none ${locked ? "text-white/45" : "text-white/85"}`}>{name}</span>
+                  <span className={`text-[12px] font-semibold leading-none ${locked ? "text-white/45" : "text-white/85"}`}>{name}</span>
                   {locked && (
                     <span className="absolute top-0.5 right-0.5">
                       <Badge id="lock" />
@@ -242,7 +242,7 @@ export default function AscensionPicker({
               );
             })}
           </div>
-          <div className="text-[11.5px] leading-snug text-white/65 min-h-[2.4em]">
+          <div className="text-[12px] leading-snug text-white/65 min-h-[2.4em]">
             {bagPeek ? (
               <>
                 <b className="text-white/85">{STARTING_BAGS[bagPeek].name}:</b> {STARTING_BAGS[bagPeek].text}{" "}
@@ -263,7 +263,7 @@ export default function AscensionPicker({
         </div>
 
         {unlocked === 0 ? (
-          <div className="text-[11px] text-white/45"><Badge id="lock" /> Harder Ascension levels: clear the Season 3 Boss.</div>
+          <div className="text-[12px] text-white/45"><Badge id="lock" /> Harder Ascension levels: clear the Season 3 Boss.</div>
         ) : (
         <div className="space-y-1.5">
           <div className="text-[12px] font-semibold text-white/60">Difficulty · each level keeps the ones below it</div>
@@ -288,10 +288,10 @@ export default function AscensionPicker({
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={ascensionArt(l.level)} alt="" aria-hidden="true" draggable={false} className={`h-9 w-9 shrink-0 object-contain ${locked ? "opacity-50 grayscale" : ""}`} />
                 <span className="min-w-0 flex-1">
-                  <span className="block text-[13.5px] font-bold">
+                  <span className="block text-[14px] font-bold">
                     {l.level === 0 ? "Normal" : `Ascension ${l.level}`}
                   </span>
-                  <span className="block text-[11.5px] text-white/60 leading-snug">
+                  <span className="block text-[12px] text-white/60 leading-snug">
                     {locked ? <><Badge id="lock" /> Clear the Season 3 Boss on Ascension {l.level - 1}</> : l.adds}
                   </span>
                 </span>
@@ -303,7 +303,7 @@ export default function AscensionPicker({
 
         {/* Pinned, so Start stays in reach while the code field or the levels are open */}
         <div className="card-footer space-y-2 bg-[#1B281F]" style={{ bottom: "-0.75rem", marginBottom: "-0.75rem", paddingBottom: "0.75rem" }}>
-          {runInProgress && <div className="text-center text-[11.5px] text-amber-200/80">Starting ends the Run in progress.</div>}
+          {runInProgress && <div className="text-center text-[12px] text-amber-200/80">Starting ends the Run in progress.</div>}
           <button
             type="button"
             disabled={codeTyped && !code}

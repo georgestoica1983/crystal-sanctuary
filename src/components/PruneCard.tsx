@@ -108,7 +108,7 @@ export default function PruneSheet({
         <GrabBar />
         <div className="flex items-start gap-3">
           <div className="min-w-0 flex-1">
-            <h2 className="font-display text-[22px] font-bold leading-tight">Prune a tile</h2>
+            <h2 className="font-display text-[20px] font-bold leading-tight">Prune a tile</h2>
             <p className="text-[14px] leading-snug text-white/70">
               Take one tile out of your bag for the rest of the Run. {bag.length} tiles in the bag.
             </p>
@@ -135,7 +135,7 @@ export default function PruneSheet({
                   <span className="text-[14px] font-bold leading-none">
                     {TILE_NAMES[g.type]} {g.value}
                   </span>
-                  <span className="text-[13px] leading-none text-white/60">×{g.count}</span>
+                  <span className="text-[14px] leading-none text-white/60">×{g.count}</span>
                 </button>
               );
             })}
@@ -144,7 +144,7 @@ export default function PruneSheet({
 
         {screens > 1 && <Pager at={at} count={screens} onGo={(d) => setScreen(at + d)} />}
 
-        <p className="text-[13px] leading-snug text-white/55">Numbers are base values. Thorns and Spikes grow each Season.</p>
+        <p className="text-[14px] leading-snug text-white/55">Numbers are base values. Thorns and Spikes grow each Season.</p>
 
         <button
           type="button"

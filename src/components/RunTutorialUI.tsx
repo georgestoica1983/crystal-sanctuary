@@ -30,7 +30,7 @@ export function RunLessonGoal({ lesson, status }: { lesson: RunLesson; status: L
       }`}
     >
       <span className="font-semibold">🎯 {lesson.goalLabel}</span>
-      <span className="font-mono text-[11px] text-right">
+      <span className="tabular-nums text-[12px] text-right">
         {status ? (status.ok ? "✓ let go!" : status.detail) : ""}
       </span>
     </div>
@@ -51,18 +51,8 @@ export function RunLessonCoach({ lesson, index, total }: { lesson: RunLesson; in
         <div className="min-w-0 text-[12px] font-semibold text-white/60 truncate">
           <span className="text-lime-200/85">🪴 Seedling Season</span> · Level {index + 1} of {total}
         </div>
-        <div className="flex shrink-0 gap-1" aria-hidden="true">
-          {Array.from({ length: total }, (_, i) => (
-            <span
-              key={i}
-              className={`w-2.5 h-1.5 rounded-full ${
-                i < index ? "bg-teal-300" : i === index ? "bg-amber-300" : "bg-white/15"
-              }`}
-            />
-          ))}
-        </div>
       </div>
-      <div className="text-[17px] leading-snug font-extrabold text-white">{lesson.steps[0]}</div>
+      <div className="text-[16px] leading-snug font-extrabold text-white">{lesson.steps[0]}</div>
     </div>
   );
 }
@@ -152,20 +142,20 @@ export function RunLessonResult({
         ) : (
           <div className="text-xl font-black">Not quite</div>
         )}
-        <p className="text-[13px] leading-snug text-white/90">{info.text}</p>
+        <p className="text-[14px] leading-snug text-white/90">{info.text}</p>
         {info.ok ? (
           <div className="grid grid-cols-[1fr_2fr] gap-2">
             <button
               type="button"
               onClick={onRetry}
-              className="py-2.5 rounded-xl bg-white/10 border border-white/20 text-xs font-mono font-bold"
+              className="py-2.5 rounded-xl bg-white/10 border border-white/20 text-xs tabular-nums font-bold"
             >
               Again
             </button>
             <button
               type="button"
               onClick={onNext}
-              className="py-2.5 rounded-xl bg-emerald-300 text-slate-950 text-xs font-mono font-black flex items-center justify-center gap-1.5"
+              className="py-2.5 rounded-xl bg-emerald-300 text-slate-950 text-xs tabular-nums font-black flex items-center justify-center gap-1.5"
             >
               {info.isLast ? `Level ${SEEDLING_LEVELS}: Practice garden` : `Level ${info.level + 1}`}
               <ArrowRight className="w-4 h-4 shrink-0" />
@@ -175,7 +165,7 @@ export function RunLessonResult({
           <button
             type="button"
             onClick={onRetry}
-            className="w-full py-2.5 rounded-xl bg-amber-300 text-slate-950 text-xs font-mono font-black"
+            className="w-full py-2.5 rounded-xl bg-amber-300 text-slate-950 text-xs tabular-nums font-black"
           >
             Try again
           </button>
@@ -285,7 +275,7 @@ export function PracticeCoach({
         className="pointer-events-auto w-full max-w-[430px] rounded-xl border-2 border-emerald-300/70 bg-[#0D1F24] shadow-[0_0_24px_rgba(52,211,153,0.35)] p-2.5 text-white space-y-1.5"
       >
         <div className="flex items-center justify-between gap-2">
-          <div className="text-[10px] font-mono font-black uppercase tracking-wider text-emerald-300">
+          <div className="text-[12px] font-bold text-emerald-300">
             <GraduationCap className="w-4 h-4 mr-1 inline-block align-[-3px]" aria-hidden="true" />Practice · {copy.title}
           </div>
           {!isModal && (
@@ -293,14 +283,14 @@ export function PracticeCoach({
               <button
                 type="button"
                 onClick={onToggleCollapsed}
-                className="h-8 text-[11px] font-mono font-bold px-2.5 rounded-md bg-white/10"
+                className="h-8 text-[12px] tabular-nums font-bold px-2.5 rounded-md bg-white/10"
               >
                 {collapsed ? "Show" : "Hide"}
               </button>
               <button
                 type="button"
                 onClick={onQuit}
-                className="h-8 text-[11px] font-mono font-bold px-2.5 rounded-md bg-white/10"
+                className="h-8 text-[12px] tabular-nums font-bold px-2.5 rounded-md bg-white/10"
               >
                 Leave
               </button>
@@ -318,7 +308,7 @@ export function PracticeCoach({
               <button
                 type="button"
                 onClick={onButton}
-                className="w-full py-2 rounded-lg bg-emerald-300 text-slate-950 text-xs font-mono font-black"
+                className="w-full py-2 rounded-lg bg-emerald-300 text-slate-950 text-xs tabular-nums font-black"
               >
                 {copy.button}
               </button>
@@ -370,7 +360,7 @@ export function RunHelpMenu({
         <div className="text-center space-y-0.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={tileArt("ENEMY", { bloomed: true }) ?? ""} alt="" aria-hidden="true" draggable={false} className="mx-auto h-14 w-14 object-contain" />
-          <div className="text-[22px] font-display font-semibold">
+          <div className="text-[20px] font-display font-semibold">
             {isFirstVisit ? "Welcome to Bloomline" : "Help"}
           </div>
           <p className="text-[12px] text-indigo-100/80 [text-wrap:balance]">
@@ -386,7 +376,7 @@ export function RunHelpMenu({
             className={`${option} border-amber-300/70 bg-amber-400/10`}
           >
             <div className="text-sm font-black">▶ Continue lessons ({lessonsProgress + 1}/{totalLessons})</div>
-            <div className="text-[11px] text-amber-100/80">Pick up where you left off.</div>
+            <div className="text-[12px] text-amber-100/80">Pick up where you left off.</div>
           </button>
         )}
         <button
@@ -397,18 +387,18 @@ export function RunHelpMenu({
           <div className="text-sm font-black">
             <GraduationCap className="w-4 h-4 mr-1 inline-block align-[-3px]" aria-hidden="true" />Learn by playing {isFirstVisit && <span className="text-emerald-300">(recommended)</span>}
           </div>
-          <div className="text-[11px] text-emerald-100/80">
+          <div className="text-[12px] text-emerald-100/80">
             Seedling Season: {totalLessons} short levels and a practice garden. About{"\u00a0"}4{"\u00a0"}minutes.
           </div>
           {!isFirstVisit && (
-            <div className="text-[11px] text-amber-200/80">This ends the Run you&apos;re playing.</div>
+            <div className="text-[12px] text-amber-200/80">This ends the Run you&apos;re playing.</div>
           )}
         </button>
         <button type="button" onClick={onGuide} className={`${option} border-white/15 bg-white/5`}>
           <div className="text-sm font-black">
             <BookOpen className="w-4 h-4 mr-1 inline-block align-[-3px]" aria-hidden="true" />Rules at a glance
           </div>
-          <div className="text-[11px] text-indigo-100/75">Every tile, rule and relic in short.</div>
+          <div className="text-[12px] text-indigo-100/75">Every tile, rule and relic in short.</div>
         </button>
         <DoneButton onClick={onClose} label={isFirstVisit ? "Skip and start a Run" : "Back to my Run"} />
       </motion.div>

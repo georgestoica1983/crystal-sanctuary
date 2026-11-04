@@ -219,7 +219,7 @@ export default function ScoreTally({
   const valueTop = top(chipLines);
   const lengthTop = top(multLines);
   const detailRow = (line: ScoreSource, tone: string) => (
-    <div key={line.label} className={`flex items-center justify-between gap-2 text-[15px] leading-snug ${tone}`}>
+    <div key={line.label} className={`flex items-center justify-between gap-2 text-[16px] leading-snug ${tone}`}>
       <span className="min-w-0 flex items-center gap-1.5">
         <SourceArt art={line.art} size={18} />
         <span className="truncate">{line.label}</span>
@@ -244,7 +244,7 @@ export default function ScoreTally({
       >
         {/* Where we are, and the Boss if it fell */}
         <div className="text-center">
-          <div className="text-[13px] font-semibold text-emerald-300/90">{floorLabel}</div>
+          <div className="text-[14px] font-semibold text-emerald-300/90">{floorLabel}</div>
           {boss && (
             <motion.div
               initial={{ scale: 1.4, opacity: 0 }}
@@ -256,7 +256,7 @@ export default function ScoreTally({
             </motion.div>
           )}
           {starFlags.length > 0 && (
-            <div className="flex items-center justify-center gap-1.5 mt-1 text-[22px]">
+            <div className="flex items-center justify-center gap-1.5 mt-1 text-[20px]">
               {starFlags.map((earned, i) => (
                 <Badge key={i} id="star" size={22} className={earned ? "" : "opacity-20 grayscale"} />
               ))}
@@ -274,7 +274,7 @@ export default function ScoreTally({
           >
             {stage >= 4 ? fmt(Math.round(totalShown)) : "?"}
           </motion.div>
-          <div className="mt-1.5 text-[15px] text-white/80">
+          <div className="mt-1.5 text-[16px] text-white/80">
             {runningTotalLabel}{" "}
             <b className="tabular-nums text-white">{fmt(stage >= 4 ? Math.round(runShown) : runTotalBefore)}</b>
             {targetScore != null && <span className="text-white/60"> of {fmt(targetScore)}</span>}
@@ -288,7 +288,7 @@ export default function ScoreTally({
                 initial={{ y: 0, opacity: 1, scale: 0.8 }}
                 animate={{ y: -60, opacity: 0, scale: 1.3 }}
                 transition={{ duration: 1.2, ease: "easeOut" }}
-                className="pointer-events-none absolute inset-x-0 top-0 text-[24px] font-black text-amber-100"
+                className="pointer-events-none absolute inset-x-0 top-0 text-[26px] font-black text-amber-100"
               >
                 +{formatScore(breakdown.total)}
               </motion.div>
@@ -297,12 +297,12 @@ export default function ScoreTally({
         </div>
 
         {/* 2. One equation */}
-        <div className="text-center text-[18px] font-semibold tabular-nums">
+        <div className="text-center text-[20px] font-semibold tabular-nums">
           <span className="text-sky-200">{fmt(Math.round(chipsShown))}</span>
-          <span className="text-white/55 text-[15px] font-normal"> value </span>
+          <span className="text-white/55 text-[16px] font-normal"> value </span>
           <span className="text-white/45">×</span>{" "}
           <span className="text-emerald-200">{fmt(Math.round(multShown))}</span>
-          <span className="text-white/55 text-[15px] font-normal"> length</span>
+          <span className="text-white/55 text-[16px] font-normal"> length</span>
           {xShown !== 1 && (
             <>
               {" "}
@@ -312,20 +312,20 @@ export default function ScoreTally({
         </div>
 
         {payoffOn && relicBonus != null && stage >= 4 && (
-          <div className="rounded-xl border border-violet-300/40 bg-violet-500/10 px-3 py-2 text-center text-[15px] text-violet-100">
+          <div className="rounded-xl border border-violet-300/40 bg-violet-500/10 px-3 py-2 text-center text-[16px] text-violet-100">
             ✨ Your relics and boosts added <b className="text-white">+{fmt(relicBonus)}</b> to this line
           </div>
         )}
 
         {/* 3. How it added up, folded */}
         <details className="group rounded-xl border border-white/10 bg-white/[0.03] px-3 py-1.5">
-          <summary className="flex h-10 cursor-pointer list-none items-center justify-between text-[15px] font-semibold text-white/80">
+          <summary className="flex h-10 cursor-pointer list-none items-center justify-between text-[16px] font-semibold text-white/80">
             See how
             <span className="text-white/45 transition group-open:rotate-180" aria-hidden="true">▾</span>
           </summary>
           <div className="space-y-2.5 pb-2 pt-1">
             <div className="space-y-1">
-              <div className="text-[13px] font-semibold text-sky-300/90">Value {fmt(breakdown.chips)}</div>
+              <div className="text-[14px] font-semibold text-sky-300/90">Value {fmt(breakdown.chips)}</div>
               {valueTop.shown.map((l) => detailRow(l, "text-sky-50/90"))}
               {valueTop.more > 0 && (
                 <div className="text-[14px] text-white/55">
@@ -334,7 +334,7 @@ export default function ScoreTally({
               )}
             </div>
             <div className="space-y-1">
-              <div className="text-[13px] font-semibold text-emerald-300/90">Length {fmt(breakdown.mult)}</div>
+              <div className="text-[14px] font-semibold text-emerald-300/90">Length {fmt(breakdown.mult)}</div>
               {lengthTop.shown.map((l) => detailRow(l, "text-emerald-50/90"))}
               {lengthTop.more > 0 && (
                 <div className="text-[14px] text-white/55">

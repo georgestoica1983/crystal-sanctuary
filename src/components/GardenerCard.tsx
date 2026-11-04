@@ -57,8 +57,8 @@ export default function GardenerCard({
         <div className="text-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={miscArt("gardener")} alt="" aria-hidden="true" draggable={false} className="mx-auto h-20 w-20 object-contain" />
-          <div className="mt-1 text-[13px] font-semibold text-amber-200/90">Season {season} begins</div>
-          <h2 className="font-display text-[24px] font-semibold leading-tight">The Wandering Gardener</h2>
+          <div className="mt-1 text-[14px] font-semibold text-amber-200/90">Season {season} begins</div>
+          <h2 className="font-display text-[26px] font-semibold leading-tight">The Wandering Gardener</h2>
           <p className="mt-1 text-[14px] leading-snug text-white/75">
             A visitor stops by your garden with three gifts. Keep one.
           </p>
@@ -78,7 +78,7 @@ export default function GardenerCard({
                 <span className="shrink-0">{art(g)}</span>
                 <span className="min-w-0">
                   <span className="block text-[16px] font-bold leading-tight">{name}</span>
-                  <span className="block text-[13px] leading-snug text-white/70">{artify(text)}</span>
+                  <span className="block text-[14px] leading-snug text-white/70">{artify(text)}</span>
                 </span>
               </button>
             );

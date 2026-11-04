@@ -137,7 +137,7 @@ export default function LineMeter({
             );
           })}
         </span>
-        <span className="shrink-0 text-white/45 font-mono">
+        <span className="shrink-0 text-white/45 tabular-nums">
           {next ? `${next.minTiles - tiles} → ${next.name}` : "top tier"}
         </span>
       </span>
@@ -154,8 +154,8 @@ export default function LineMeter({
       {!drawing && intro ? (
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 shrink-0 flex items-center justify-center">{intro.icon}</div>
-          <div className="min-w-0 flex-1 text-[13px] leading-snug text-white/85">
-            <span className="text-[10px] font-semibold uppercase tracking-wide text-teal-200/80 block">
+          <div className="min-w-0 flex-1 text-[14px] leading-snug text-white/85">
+            <span className="text-[12px] font-semibold text-teal-200/80 block">
               {intro.label ?? "New tile"}{intro.total > 1 ? ` · ${intro.total - 1} more` : ""}
             </span>
             <b className="text-white">{intro.name}</b> {intro.text}
@@ -185,7 +185,7 @@ export default function LineMeter({
               initial={{ scale: 1.12 }}
               animate={{ scale: 1 }}
               transition={{ duration: 0.18 }}
-              className={`origin-left text-[30px] font-display font-semibold tabular-nums leading-none ${
+              className={`origin-left text-[32px] font-display font-semibold tabular-nums leading-none ${
                 wilts ? "text-rose-300/70 line-through" : reachesArchway ? "text-amber-200" : "text-amber-200/60"
               }`}
               style={fire > 0 ? { textShadow: FIRE_GLOW[fire] } : undefined}
@@ -193,14 +193,14 @@ export default function LineMeter({
               {fmt(points)}
             </motion.div>
             <div className="min-w-0 flex flex-col leading-tight">
-              <span className="font-mono text-[12px] text-white/65 whitespace-nowrap">
+              <span className="tabular-nums text-[12px] text-white/65 whitespace-nowrap">
                 <span className="text-sky-300 font-black">{fmt(chips)}</span> value ×{" "}
                 <span className="text-emerald-300 font-black">{fmt(mult)}</span> length
                 {xMult !== 1 && <span className="text-fuchsia-300 font-black"> ×{Math.round(xMult * 100) / 100}</span>}
               </span>
               {toGo !== undefined && toGo > 0 && !wilts && (
                 <span
-                  className={`text-[12.5px] font-bold whitespace-nowrap ${
+                  className={`text-[12px] font-bold whitespace-nowrap ${
                     clears ? "text-amber-200" : enough ? "text-lime-200" : "text-white/55"
                   }`}
                 >
@@ -210,7 +210,7 @@ export default function LineMeter({
             </div>
           </div>
 
-          <div className="flex items-center gap-2 mt-1 text-[12px] font-mono leading-none">
+          <div className="flex items-center gap-2 mt-1 text-[12px] tabular-nums leading-none">
             <AnimatePresence mode="popLayout">
               <motion.span
                 key={tiles}
@@ -244,7 +244,7 @@ export default function LineMeter({
             initial={{ scale: 0.6, opacity: 0, y: 4 }}
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
-            className="pointer-events-none absolute top-1.5 right-2 px-2.5 py-0.5 rounded-full text-[11px] font-black text-slate-950"
+            className="pointer-events-none absolute top-1.5 right-2 px-2.5 py-0.5 rounded-full text-[12px] font-black text-slate-950"
             style={{ backgroundColor: getLineTier(tiles).color }}
           >
             {tierUp}!

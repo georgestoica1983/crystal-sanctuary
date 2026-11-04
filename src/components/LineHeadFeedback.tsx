@@ -128,17 +128,17 @@ export default function LineHeadFeedback({
         style={{ left: `${bubbleX}%`, top: `${bubbleY}%` }}
       >
         <div
-          className={`flex items-baseline gap-1 rounded-full px-2.5 py-1 shadow-lg shadow-black/40 font-mono whitespace-nowrap ${
+          className={`flex items-baseline gap-1 rounded-full px-2.5 py-1 shadow-lg shadow-black/40 tabular-nums whitespace-nowrap ${
             live.wilts ? "bg-slate-800/95 text-white/60 line-through" : "bg-slate-950/90 text-amber-200"
           } border border-white/15`}
         >
-          <span className="text-[15px] font-black leading-none">{fmt(live.points)}</span>
+          <span className="text-[16px] font-black leading-none">{fmt(live.points)}</span>
           {live.gain > 0 && !live.wilts && (
             <motion.span
               key={path.length}
               initial={{ y: 4, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              className="text-[11px] font-black text-emerald-300 leading-none"
+              className="text-[12px] font-black text-emerald-300 leading-none"
             >
               +{fmt(live.gain)}
             </motion.span>

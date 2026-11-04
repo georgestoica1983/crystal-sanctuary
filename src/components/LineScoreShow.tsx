@@ -403,7 +403,7 @@ export default function LineScoreShow({
               >
                 <RelicIcon id={id} size={15} />
                 {n > 1 && (
-                  <span className="absolute -bottom-1 -right-1.5 rounded-full bg-amber-300 px-[3px] text-[8px] font-black leading-[11px] text-slate-950">×{n}</span>
+                  <span className="absolute -bottom-1 -right-1.5 rounded-full bg-amber-300 px-[3px] text-[10px] font-black leading-[11px] text-slate-950">×{n}</span>
                 )}
               </motion.span>
             );
@@ -414,30 +414,30 @@ export default function LineScoreShow({
       {/* Bottom-aligned, so × sits on the numbers' line, not between label and number */}
       <div className="flex items-end gap-1.5 min-w-0">
         <div className="flex flex-col items-center min-w-[40px]">
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-sky-300/80">Value</span>
-          <motion.span key={`v${pulse?.box === "value" ? pulse.key : 0}`} animate={pop("value")} className="text-[22px] font-display font-semibold tabular-nums leading-none text-sky-100">
+          <span className="text-[12px] font-semibold text-sky-300/80">Value</span>
+          <motion.span key={`v${pulse?.box === "value" ? pulse.key : 0}`} animate={pop("value")} className="text-[20px] font-display font-semibold tabular-nums leading-none text-sky-100">
             {fmt(value)}
           </motion.span>
         </div>
-        <span className="pb-[3px] text-[15px] leading-none text-white/35 font-black">×</span>
+        <span className="pb-[3px] text-[16px] leading-none text-white/35 font-black">×</span>
         <div className="flex flex-col items-center min-w-[36px]">
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-emerald-300/80">Length</span>
-          <motion.span key={`l${pulse?.box === "length" ? pulse.key : 0}`} animate={pop("length")} className="text-[22px] font-display font-semibold tabular-nums leading-none text-emerald-100">
+          <span className="text-[12px] font-semibold text-emerald-300/80">Length</span>
+          <motion.span key={`l${pulse?.box === "length" ? pulse.key : 0}`} animate={pop("length")} className="text-[20px] font-display font-semibold tabular-nums leading-none text-emerald-100">
             {fmt(length)}
           </motion.span>
         </div>
         {xMult !== 1 && (
           // A column like Value and Length: label on top, the number the same size and on the same line
           <>
-            <span className="pb-[3px] text-[15px] leading-none text-white/35 font-black">×</span>
+            <span className="pb-[3px] text-[16px] leading-none text-white/35 font-black">×</span>
             <div className="flex flex-col items-center min-w-[36px]">
-              <span className="text-[11px] font-semibold uppercase tracking-wide text-fuchsia-300/80">Bonus</span>
+              <span className="text-[12px] font-semibold text-fuchsia-300/80">Bonus</span>
               <motion.span
                 key={`x${pulse?.box === "x" ? pulse.key : 0}`}
                 initial={{ scale: 1.6, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring", stiffness: 420, damping: 16 }}
-                className="whitespace-nowrap text-[22px] font-display font-semibold tabular-nums leading-none text-fuchsia-100"
+                className="whitespace-nowrap text-[20px] font-display font-semibold tabular-nums leading-none text-fuchsia-100"
               >
                 {Math.round(xMult * 100) / 100}
               </motion.span>
@@ -461,7 +461,7 @@ export default function LineScoreShow({
                     }
               }
               transition={{ duration: 0.45 + tierLevel * 0.08 }}
-              className={`shrink-0 whitespace-nowrap ${tierLevel >= 3 ? "text-[32px]" : "text-[28px]"} font-display font-semibold tabular-nums leading-none text-amber-200`}
+              className={`shrink-0 whitespace-nowrap ${tierLevel >= 3 ? "text-[32px]" : "text-[26px]"} font-display font-semibold tabular-nums leading-none text-amber-200`}
               style={fire > 0 ? { textShadow: FIRE_GLOW[fire] } : undefined}
             >
               {fmt(shownTotal || total)}
@@ -469,7 +469,7 @@ export default function LineScoreShow({
           )}
         </AnimatePresence>
       </div>
-      <div className="mt-1.5 h-[16px] flex items-center gap-1.5 text-[11.5px] font-semibold overflow-hidden whitespace-nowrap">
+      <div className="mt-1.5 h-[16px] flex items-center gap-1.5 text-[12px] font-semibold overflow-hidden whitespace-nowrap">
         {/* One caption at a time: the old one leaves before the next comes in */}
         <AnimatePresence mode="wait">
           {caption ? (

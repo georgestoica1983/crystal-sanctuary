@@ -33,7 +33,7 @@ function Row({ row }: { row: RunLeaderboardRow }) {
           : "odd:bg-white/[0.03] border border-transparent"
       }`}
     >
-      <span className="flex justify-center font-mono font-black text-[13px] text-amber-200">
+      <span className="flex justify-center tabular-nums font-black text-[14px] text-amber-200">
         {PODIUM[row.rank - 1] ? (
           <span className={`flex h-6 w-6 items-center justify-center rounded-full text-[12px] ${PODIUM[row.rank - 1]}`}>{row.rank}</span>
         ) : (
@@ -41,7 +41,7 @@ function Row({ row }: { row: RunLeaderboardRow }) {
         )}
       </span>
       <div className="min-w-0">
-        <div className="text-[13px] font-bold text-white truncate">
+        <div className="text-[14px] font-bold text-white truncate">
           {row.hero && HERO_CLASS_REGISTRY[row.hero as HeroClassId] && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -53,15 +53,15 @@ function Row({ row }: { row: RunLeaderboardRow }) {
           )}
           {row.name}
           {!!row.asc && (
-            <span className="ml-1.5 rounded bg-orange-400/15 px-1 text-[10.5px] font-bold text-orange-200"><Badge id="flame" />A{row.asc}</span>
+            <span className="ml-1.5 rounded bg-orange-400/15 px-1 text-[10px] font-bold text-orange-200"><Badge id="flame" />A{row.asc}</span>
           )}
-          {row.isYou && <span className="ml-1 text-[10px] font-mono text-emerald-300">(you)</span>}
+          {row.isYou && <span className="ml-1 text-[10px] tabular-nums text-emerald-300">(you)</span>}
         </div>
-        <div className="text-[10px] font-mono text-indigo-200/75 truncate">
+        <div className="text-[10px] tabular-nums text-indigo-200/75 truncate">
           Reached {getRunGardenLabel(row.gardenIndex)}
         </div>
       </div>
-      <span className="font-mono font-black text-[13px] text-amber-100">
+      <span className="tabular-nums font-black text-[14px] text-amber-100">
         {row.score.toLocaleString()}
       </span>
     </div>
@@ -135,15 +135,15 @@ export default function RunLeaderboardModal({
         {/* Header */}
         <div className="px-3 pt-2 pb-2 border-b border-white/10 space-y-1">
           <BackButton onClick={onClose} label="Back to the game" />
-          <div className="flex items-center gap-1.5 text-lg font-black">
+          <div className="flex items-center gap-1.5 text-xl font-black">
             <Trophy className="w-5 h-5 text-amber-300" /> Leaderboard
           </div>
-          <div className="text-[11px] text-indigo-100/80">
+          <div className="text-[12px] text-indigo-100/80">
             {board && !board.configured
               ? "The online leaderboard opens soon. Until then, this shows your best Run on this phone."
               : "Every player's best Run, ranked by points. Scores are sent automatically when a garden is cleared and when a Run ends."}
           </div>
-          <div className="flex items-center gap-1.5 text-[10px] font-mono text-indigo-200/70">
+          <div className="flex items-center gap-1.5 text-[10px] tabular-nums text-indigo-200/70">
             {board?.configured ? (
               <>
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -180,7 +180,7 @@ export default function RunLeaderboardModal({
                 <button
                   type="button"
                   onClick={() => void saveName()}
-                  className="h-9 px-3 rounded-lg bg-emerald-300 text-slate-950 text-xs font-mono font-black"
+                  className="h-9 px-3 rounded-lg bg-emerald-300 text-slate-950 text-xs tabular-nums font-black"
                 >
                   Save
                 </button>
@@ -198,7 +198,7 @@ export default function RunLeaderboardModal({
                   setNameDraft(getRunPlayerName());
                   setEditingName(true);
                 }}
-                className="h-9 shrink-0 text-[11px] font-mono font-bold px-2.5 rounded-lg bg-white/10"
+                className="h-9 shrink-0 text-[12px] tabular-nums font-bold px-2.5 rounded-lg bg-white/10"
               >
                 <span className="inline-flex items-center gap-1">
                   <Pencil className="w-3.5 h-3.5" /> Change name

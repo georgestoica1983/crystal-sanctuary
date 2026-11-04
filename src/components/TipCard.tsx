@@ -37,15 +37,15 @@ export default function TipCard({ tip, onDone }: { tip: Tip; onDone: () => void 
           animate={still ? undefined : { rotate: [-4, 4, -4], y: [0, -3, 0] }}
           transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
         />
-        <div className={`mt-2 text-[13px] font-semibold ${tip.kind === "GAME" ? "text-amber-200/90" : "text-lime-200/90"}`}>
+        <div className={`mt-2 text-[14px] font-semibold ${tip.kind === "GAME" ? "text-amber-200/90" : "text-lime-200/90"}`}>
           {tip.label ?? (tip.kind === "GAME" ? "Game tip" : "Gardening tip")}
         </div>
-        <p className="mt-1 font-hand text-[18px] leading-snug text-white/90">{artify(tip.text)}</p>
+        <p className="mt-1 font-hand text-[20px] leading-snug text-white/90">{artify(tip.text)}</p>
         <button
           type="button"
           onClick={onDone}
           autoFocus
-          className="mt-4 h-11 w-full rounded-xl bg-teal-300 text-[15px] font-bold text-slate-950 active:scale-[0.98] transition"
+          className="mt-4 h-11 w-full rounded-xl bg-teal-300 text-[16px] font-bold text-slate-950 active:scale-[0.98] transition"
         >
           Continue
         </button>

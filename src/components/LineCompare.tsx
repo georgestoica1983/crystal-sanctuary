@@ -87,7 +87,7 @@ export default function LineCompare({
       <div className="grid grid-cols-2 gap-2">
         <figure className="flex flex-col items-center gap-0.5">
           <MiniBoard grid={grid} path={yourPath} color={yourTier.color} />
-          <figcaption className="text-center text-[10px] font-mono leading-tight">
+          <figcaption className="text-center text-[10px] tabular-nums leading-tight">
             <div className="text-white font-black">Your line</div>
             <div className="text-indigo-200/80">
               {yourPath.length} tiles · {yourScore.toLocaleString()}
@@ -99,11 +99,11 @@ export default function LineCompare({
           {bestPath ? (
             <MiniBoard grid={grid} path={bestPath} color={bestTier?.color ?? "#FBBF24"} />
           ) : (
-            <div className="w-[112px] h-[112px] rounded-lg bg-white/5 flex items-center justify-center text-[10px] font-mono text-indigo-200/70">
+            <div className="w-[112px] h-[112px] rounded-lg bg-white/5 flex items-center justify-center text-[10px] tabular-nums text-indigo-200/70">
               Finding…
             </div>
           )}
-          <figcaption className="text-center text-[10px] font-mono leading-tight">
+          <figcaption className="text-center text-[10px] tabular-nums leading-tight">
             <div className="text-amber-200 font-black">A long line here</div>
             <div className="text-indigo-200/80">
               {bestPath && bestScore != null
@@ -114,7 +114,7 @@ export default function LineCompare({
         </figure>
       </div>
       {bestPath && bestScore != null && bestScore > yourScore && (
-        <div className="text-center text-[11px] leading-snug text-amber-50">
+        <div className="text-center text-[12px] leading-snug text-amber-50">
           {bestPath.length - yourPath.length > 0
             ? `${bestPath.length - yourPath.length} more tiles would have scored `
             : "This route would have scored "}

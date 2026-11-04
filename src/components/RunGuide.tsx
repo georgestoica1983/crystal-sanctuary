@@ -75,14 +75,14 @@ function Tile({
       <EntityIcon type={type} size={size * 0.62} glow />
       {value !== undefined && (
         <span
-          className="absolute -bottom-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] font-mono font-black flex items-center justify-center border"
+          className="absolute -bottom-1 -right-1 min-w-[18px] h-[18px] px-1 rounded-full text-[10px] tabular-nums font-black flex items-center justify-center border"
           style={badge}
         >
           {value}
         </span>
       )}
       {label && (
-        <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 px-1 rounded text-[8px] font-mono font-black bg-amber-300 text-slate-950">
+        <span className="absolute -top-1.5 left-1/2 -translate-x-1/2 px-1 rounded text-[10px] tabular-nums font-black bg-amber-300 text-slate-950">
           {label}
         </span>
       )}
@@ -103,7 +103,7 @@ function Row({
     <div className="flex gap-3 items-start rounded-xl bg-white/[0.04] border border-white/10 p-2.5">
       <div className="pt-0.5">{icon}</div>
       <div className="min-w-0 flex-1">
-        <div className="text-[13px] font-black text-white">{title}</div>
+        <div className="text-[14px] font-black text-white">{title}</div>
         <div className="text-[12px] leading-snug text-indigo-100/85 space-y-1">{children}</div>
       </div>
     </div>
@@ -113,7 +113,7 @@ function Row({
 function Example({ title, children }: { title: string; children: React.ReactNode }) {
   return artify(
     <div className="rounded-xl border border-amber-300/40 bg-amber-400/[0.07] p-2.5">
-      <div className="text-[10px] font-mono font-black uppercase tracking-wider text-amber-200 mb-1">
+      <div className="text-[12px] font-bold text-amber-200 mb-1">
         {title}
       </div>
       <div className="text-[12px] leading-snug text-amber-50/90 space-y-1">{children}</div>
@@ -122,7 +122,7 @@ function Example({ title, children }: { title: string; children: React.ReactNode
 }
 
 function P({ children }: { children: React.ReactNode }) {
-  return <p className="text-[13px] leading-relaxed text-indigo-50/90">{children}</p>;
+  return <p className="text-[14px] leading-relaxed text-indigo-50/90">{children}</p>;
 }
 
 function B({ children }: { children: React.ReactNode }) {
@@ -142,7 +142,7 @@ function MiniLine({
           <div key={i} className="relative">
             <Tile type={c.type} value={c.value} label={c.label} size={48} />
             {c.step !== undefined && (
-              <span className="absolute -top-1 -left-1 w-[18px] h-[18px] rounded-full bg-cyan-300 text-slate-950 text-[10px] font-mono font-black flex items-center justify-center">
+              <span className="absolute -top-1 -left-1 w-[18px] h-[18px] rounded-full bg-cyan-300 text-slate-950 text-[10px] tabular-nums font-black flex items-center justify-center">
                 {c.step}
               </span>
             )}
@@ -243,7 +243,7 @@ function buildPages(): GuidePage[] {
       icon: "⭐",
       body: (
         <>
-          <div className="rounded-xl border-2 border-amber-300/70 bg-amber-400/10 p-2.5 text-center font-mono font-black text-amber-100">
+          <div className="rounded-xl border-2 border-amber-300/70 bg-amber-400/10 p-2.5 text-center tabular-nums font-black text-amber-100">
             <span className="text-sky-300">Value</span> × <span className="text-emerald-300">Length</span>
           </div>
           <Bullets
@@ -297,7 +297,7 @@ function buildPages(): GuidePage[] {
               <><GuideArt src={upgradeArt("MARKET_DAY")} /> Each Season the Shop offers one garden upgrade (6 🌱) that lasts the whole Run: a bigger interest cap, cheaper Shops or stronger Fertilizer. Each has a second, stronger tier.</>,
             ]}
           />
-          <div className="rounded-xl border border-white/10 overflow-hidden text-[12px] font-mono">
+          <div className="rounded-xl border border-white/10 overflow-hidden text-[12px] tabular-nums">
             <div className="grid grid-cols-4 bg-white/10 font-black text-white">
               <span className="px-2 py-1">Season</span>
               <span className="px-2 py-1">Small</span>
@@ -335,7 +335,7 @@ function buildPages(): GuidePage[] {
                 .map((r) => (
                   <div key={r.id} className="flex gap-2.5 items-start">
                     <RelicIcon id={r.id} size={28} />
-                    <div className="text-[13px] leading-snug text-white/80">
+                    <div className="text-[14px] leading-snug text-white/80">
                       <B>{r.name}</B> · {r.cost ?? 10} 🌱{r.scaling ? " 📈" : ""}
                       <div className="text-white/60">{r.description}</div>
                     </div>
@@ -347,7 +347,7 @@ function buildPages(): GuidePage[] {
           {legendaryRelics.map((r) => (
             <div key={r.id} className="flex gap-2.5 items-start">
               <RelicIcon id={r.id} size={28} />
-              <div className="text-[13px] leading-snug text-white/80">
+              <div className="text-[14px] leading-snug text-white/80">
                 <B>{r.name}</B>
                 <div className="text-white/60">{r.description}</div>
               </div>
@@ -390,7 +390,7 @@ export default function RunGuide({
           <button
             type="button"
             onClick={() => setShowIndex((v) => !v)}
-            className="h-9 text-[12px] font-mono font-bold text-emerald-200 px-3 rounded-lg bg-white/5 border border-white/10"
+            className="h-9 text-[12px] tabular-nums font-bold text-emerald-200 px-3 rounded-lg bg-white/5 border border-white/10"
             aria-expanded={showIndex}
             aria-label={`Rules page ${page + 1} of ${pages.length}: all pages`}
           >
@@ -450,8 +450,8 @@ export default function RunGuide({
               transition={{ duration: 0.18 }}
               className="space-y-3"
             >
-              <h2 className="text-lg font-black text-emerald-100 flex items-center gap-2">
-                <span className="text-2xl">{current.icon}</span>
+              <h2 className="text-xl font-black text-emerald-100 flex items-center gap-2">
+                <span className="text-[26px]">{current.icon}</span>
                 {current.title}
               </h2>
               {current.body}
@@ -462,7 +462,7 @@ export default function RunGuide({
         {/* Footer */}
         <div className="p-3 border-t border-white/10 space-y-2">
           {!isLast && (
-            <div className="text-[11px] font-mono text-indigo-200/70 text-center leading-snug">
+            <div className="text-[12px] tabular-nums text-indigo-200/70 text-center leading-snug">
               Up next: <span className="text-emerald-100 font-bold">{pages[page + 1].title}</span>
             </div>
           )}
@@ -471,7 +471,7 @@ export default function RunGuide({
               type="button"
               disabled={page === 0}
               onClick={() => setPage((p) => Math.max(0, p - 1))}
-              className="h-11 rounded-xl bg-white/10 border border-white/15 text-xs font-mono font-bold disabled:opacity-30 flex items-center justify-center gap-1.5"
+              className="h-11 rounded-xl bg-white/10 border border-white/15 text-xs tabular-nums font-bold disabled:opacity-30 flex items-center justify-center gap-1.5"
             >
               <ArrowLeft className="w-4 h-4 shrink-0" />
               Back
@@ -479,7 +479,7 @@ export default function RunGuide({
             <button
               type="button"
               onClick={() => (isLast ? close() : setPage((p) => p + 1))}
-              className="h-11 rounded-xl bg-emerald-300 text-slate-950 text-xs font-mono font-black flex items-center justify-center gap-1.5"
+              className="h-11 rounded-xl bg-emerald-300 text-slate-950 text-xs tabular-nums font-black flex items-center justify-center gap-1.5"
             >
               {isLast ? "Start playing 🌸" : <>Next<ArrowRight className="w-4 h-4 shrink-0" /></>}
             </button>

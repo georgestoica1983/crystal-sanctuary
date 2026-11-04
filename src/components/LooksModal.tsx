@@ -70,7 +70,7 @@ export default function LooksModal({
         {/* Title and your rank in one row */}
         <div className="flex items-baseline justify-between gap-2">
           <div className="text-[16px] font-bold">Companions &amp; looks</div>
-          <div className="min-w-0 truncate text-[13px] text-amber-100">
+          <div className="min-w-0 truncate text-[14px] text-amber-100">
             <UnlockIcon item={rank} /> {rank.name} · <Badge id="star" /> {progress.stars}
             {loadBestClearedAscension() > 0 && <span className="text-orange-200"> · <Badge id="flame" />A{loadBestClearedAscension()}</span>}
           </div>
@@ -91,7 +91,7 @@ export default function LooksModal({
               role="tab"
               aria-selected={tab === k}
               onClick={() => setTab(k)}
-              className={`flex-1 h-9 rounded-lg text-[13.5px] font-bold transition ${tab === k ? "bg-white/[0.12] text-white" : "text-white/55"}`}
+              className={`flex-1 h-9 rounded-lg text-[14px] font-bold transition ${tab === k ? "bg-white/[0.12] text-white" : "text-white/55"}`}
             >
               {label}
             </button>
@@ -120,17 +120,17 @@ export default function LooksModal({
                   <EntityIcon type="HERO" companionId={id} size={30} className="mt-0.5" />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-1.5">
-                      <span className="text-[13px] font-bold">{def.sanctuaryShortName ?? def.shortName}</span>
-                      <span className="text-[10.5px] font-mono text-white/55">{companionStartText(id)}</span>
+                      <span className="text-[14px] font-bold">{def.sanctuaryShortName ?? def.shortName}</span>
+                      <span className="text-[10px] tabular-nums text-white/55">{companionStartText(id)}</span>
                       {isNext && unlocked && (
                         <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-100">
                           Next run
                         </span>
                       )}
                     </div>
-                    <div className="text-[11.5px] leading-snug text-white/70">{COMPANION_RULES[id]}</div>
+                    <div className="text-[12px] leading-snug text-white/70">{COMPANION_RULES[id]}</div>
                     {!unlocked && (
-                      <div className="text-[11px] text-white/60"><Badge id="lock" /> {companionUnlockFor(id).needText}</div>
+                      <div className="text-[12px] text-white/60"><Badge id="lock" /> {companionUnlockFor(id).needText}</div>
                     )}
                   </div>
                 </div>
@@ -161,7 +161,7 @@ export default function LooksModal({
                     style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }}
                     aria-hidden="true"
                   />
-                  <span className="text-[10.5px] font-bold leading-tight mt-1">{u.name.replace(" line", "")}</span>
+                  <span className="text-[10px] font-bold leading-tight mt-1">{u.name.replace(" line", "")}</span>
                   {!unlocked && <LockLine full={u.needText} short={shortNeedText(u)} />}
                 </button>
               );
@@ -185,7 +185,7 @@ export default function LooksModal({
                   className={tile(selected, unlocked)}
                 >
                   <UnlockIcon item={u} size={44} />
-                  <span className="text-[10.5px] font-bold leading-tight mt-0.5">{u.name.replace(" board", "")}</span>
+                  <span className="text-[10px] font-bold leading-tight mt-0.5">{u.name.replace(" board", "")}</span>
                   {!unlocked && <LockLine full={u.needText} short={shortNeedText(u)} />}
                 </button>
               );
@@ -205,7 +205,7 @@ export default function LooksModal({
 /** A locked tile's requirement (the tile is dimmed): a short label, the full sentence on hover and for screen readers */
 function LockLine({ full, short }: { full: string; short: string }) {
   return (
-    <span className="w-full text-[10.5px] leading-tight text-white/60" title={full} aria-label={`Locked: ${full}`}>
+    <span className="w-full text-[10px] leading-tight text-white/60" title={full} aria-label={`Locked: ${full}`}>
       {short}
     </span>
   );

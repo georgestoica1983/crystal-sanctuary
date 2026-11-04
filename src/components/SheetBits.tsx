@@ -69,7 +69,7 @@ export function DoneButton({ onClick, label = "Done" }: { onClick: () => void; l
     <button
       type="button"
       onClick={onClick}
-      className="h-12 w-full shrink-0 rounded-xl border border-white/10 bg-white/[0.07] text-[15px] font-semibold text-white/90 active:scale-[0.98] transition"
+      className="h-12 w-full shrink-0 rounded-xl border border-white/10 bg-white/[0.07] text-[16px] font-semibold text-white/90 active:scale-[0.98] transition"
     >
       {label}
     </button>
@@ -82,9 +82,9 @@ export function BackButton({ onClick, label = "Back" }: { onClick: () => void; l
     <button
       type="button"
       onClick={onClick}
-      className="h-11 -ml-2 pl-2 pr-3 shrink-0 rounded-xl flex items-center gap-1 text-[15px] font-semibold text-white/85 active:bg-white/[0.08]"
+      className="h-11 -ml-2 pl-2 pr-3 shrink-0 rounded-xl flex items-center gap-1 text-[16px] font-semibold text-white/85 active:bg-white/[0.08]"
     >
-      <span aria-hidden="true" className="text-[22px] leading-none">‹</span>
+      <span aria-hidden="true" className="text-[20px] leading-none">‹</span>
       {label}
     </button>
   );

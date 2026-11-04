@@ -271,14 +271,14 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
         <BackButton onClick={onClose} label="Back to the game" />
         <div className="flex items-start justify-between gap-2">
           <div>
-            <h2 className="text-[24px] font-display font-semibold text-amber-50 leading-tight">Garden Journal</h2>
-            <div className="text-[12.5px] text-white/60">
+            <h2 className="text-[26px] font-display font-semibold text-amber-50 leading-tight">Garden Journal</h2>
+            <div className="text-[12px] text-white/60">
               {total} of {all.length} found · {pct}%
-              {pct >= 25 && <span className="ml-1.5 inline-flex items-center gap-1 rounded-full bg-amber-300/15 px-1.5 py-px text-[11px] font-semibold text-amber-100"><UnlockIcon item={{ id: "j-botanist", icon: "📖" }} size={14} /> Botanist</span>}
+              {pct >= 25 && <span className="ml-1.5 inline-flex items-center gap-1 rounded-full bg-amber-300/15 px-1.5 py-px text-[12px] font-semibold text-amber-100"><UnlockIcon item={{ id: "j-botanist", icon: "📖" }} size={14} /> Botanist</span>}
               {pct >= 100 && <span className="ml-1 text-amber-200">✨ complete</span>}
             </div>
             {pct < 100 && (
-              <div className="text-[11px] text-white/45">
+              <div className="text-[12px] text-white/45">
                 {pct < 25 ? "25%: Botanist title" : pct < 50 ? "50%: Pressed Petal line" : pct < 75 ? "75%: Herbarium board" : "100%: Golden Leaf line"}
               </div>
             )}
@@ -345,7 +345,7 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
               </span>
               {/* New since last visit: the same small dot as on the page chips, in the corner clear of the art */}
               {isNew(e) && <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-lime-300" aria-label="new" />}
-              <span className={`w-full line-clamp-2 text-center text-[9.5px] leading-tight ${e.found ? "text-white/75" : "text-white/30"}`}>
+              <span className={`w-full line-clamp-2 text-center text-[10px] leading-tight ${e.found ? "text-white/75" : "text-white/30"}`}>
                 {e.found ? e.name : "?"}
               </span>
             </motion.button>
@@ -367,7 +367,7 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
             className="absolute inset-x-0 bottom-16 mx-auto w-[calc(100%-2rem)] max-w-[398px] rounded-2xl border border-white/10 bg-[#1F2E24] px-4 py-3 text-white shadow-2xl"
           >
             <div className="font-display text-[16px] font-bold">{picked.found ? picked.name : "Not found yet"}</div>
-            <div className="font-hand text-[13px] leading-snug text-white/75">{artify(picked.found ? picked.text : picked.hint)}</div>
+            <div className="font-hand text-[14px] leading-snug text-white/75">{artify(picked.found ? picked.text : picked.hint)}</div>
             {picked.found && picked.record && <div className="mt-0.5 text-[12px] font-semibold text-amber-200">{picked.record}</div>}
           </motion.div>
         )}

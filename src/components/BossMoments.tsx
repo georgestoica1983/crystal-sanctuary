@@ -175,13 +175,13 @@ export function BossIntro({ id, preview = false, onDone }: { id: BossRuleId; pre
         transition={{ delay: still ? 0 : 0.6 }}
         className="relative mt-4"
       >
-        <div className="text-[14px] font-semibold uppercase tracking-[0.18em]" style={{ color: look.color }}>
+        <div className="text-[14px] font-semibold" style={{ color: look.color }}>
           Boss bed
         </div>
         <div className="mt-1 font-display text-[32px] font-bold leading-tight">{boss.name}</div>
-        <div className="mx-auto mt-2 max-w-[320px] text-[17px] leading-snug text-white/85">{boss.description}</div>
-        <div className="mt-3 text-[15px] font-semibold text-amber-200"><Badge id="crown" /> Beat it for a Legendary relic</div>
-        <div className="mt-6 text-[13px] text-white/45">{preview ? "Tap to close" : "Tap to begin"}</div>
+        <div className="mx-auto mt-2 max-w-[320px] text-[16px] leading-snug text-white/85">{boss.description}</div>
+        <div className="mt-3 text-[16px] font-semibold text-amber-200"><Badge id="crown" /> Beat it for a Legendary relic</div>
+        <div className="mt-6 text-[14px] text-white/45">{preview ? "Tap to close" : "Tap to begin"}</div>
       </motion.div>
     </motion.button>
   );
@@ -242,13 +242,13 @@ export function BossBeaten({ id, legendary, onDone }: { id: BossRuleId; legendar
         )}
       </div>
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: still ? 0 : 0.8 }}>
-        <div className="mt-4 font-display text-[30px] font-bold leading-tight">{boss.name} is beaten!</div>
+        <div className="mt-4 font-display text-[32px] font-bold leading-tight">{boss.name} is beaten!</div>
         {relic && (
-          <div className="mt-2 text-[17px] text-amber-200">
+          <div className="mt-2 text-[16px] text-amber-200">
             <Badge id="crown" /> Legendary relic: <b>{relic.name}</b>
           </div>
         )}
-        <div className="mt-6 text-[13px] text-white/45">Tap to continue</div>
+        <div className="mt-6 text-[14px] text-white/45">Tap to continue</div>
       </motion.div>
     </motion.button>
   );

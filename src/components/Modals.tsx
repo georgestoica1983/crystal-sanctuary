@@ -89,7 +89,7 @@ export function RelicDraftModal({
       <div className="w-full max-w-[430px] bg-gradient-to-b from-[#1A261E] via-[#141C17] to-[#0C120E] border-2 border-violet-400/60 rounded-2xl p-5 text-white shadow-[0_0_50px_rgba(139,92,246,0.35)] space-y-4 my-auto">
         {/* Header */}
         <div className="text-center space-y-1">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 font-mono text-[10px] font-extrabold uppercase tracking-wider">
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-400/50 text-emerald-300 tabular-nums text-[10px] font-extrabold uppercase tracking-wider">
             <span>
               {isSanctuary ? "Garden" : "Floor"} {clearedFloorNumber}/
               {totalFloors} {isSanctuary ? "Bloomed" : "Cleared"}
@@ -100,7 +100,7 @@ export function RelicDraftModal({
               {"☆".repeat(3 - floorStars.totalStars)}
             </span>
           </div>
-          <h2 className="text-lg font-sans font-extrabold uppercase tracking-tight text-white">
+          <h2 className="text-xl font-sans font-extrabold uppercase tracking-tight text-white">
             {isFixedBlessing
               ? "Today's Blessing"
               : isSanctuary
@@ -151,13 +151,13 @@ export function RelicDraftModal({
                         {relic.name}
                       </span>
                       {currentStacks > 0 && (
-                        <span className="text-[9px] font-mono font-black px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-400/50 text-amber-300">
+                        <span className="text-[10px] tabular-nums font-black px-1.5 py-0.5 rounded bg-amber-500/20 border border-amber-400/50 text-amber-300">
                           STACK ×{currentStacks + 1}
                         </span>
                       )}
                     </div>
                     <span
-                      className="text-[9px] font-mono font-extrabold px-1.5 py-0.5 rounded bg-[#18241C] border border-white/10 shrink-0"
+                      className="text-[10px] tabular-nums font-extrabold px-1.5 py-0.5 rounded bg-[#18241C] border border-white/10 shrink-0"
                       style={{ color: relic.accentColor }}
                     >
                       {relic.shortTag}
@@ -172,7 +172,7 @@ export function RelicDraftModal({
           })}
         </div>
 
-        <div className="text-center text-[10px] font-mono text-indigo-300/60">
+        <div className="text-center text-[10px] tabular-nums text-indigo-300/60">
           {isFixedBlessing
             ? `Tap the Blessing to walk on to Garden ${clearedFloorNumber + 1}`
             : isSanctuary
@@ -313,7 +313,7 @@ export function RunSummaryModal({
           <div>
             <div className="flex flex-wrap items-center gap-1.5">
               <span
-                className={`inline-block text-[10px] font-mono font-extrabold uppercase px-2 py-0.5 rounded border ${
+                className={`inline-block text-[10px] tabular-nums font-extrabold uppercase px-2 py-0.5 rounded border ${
                   survived
                     ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-300"
                     : "bg-[#F43F5E]/20 border-[#F43F5E]/50 text-[#F43F5E]"
@@ -325,12 +325,12 @@ export function RunSummaryModal({
                     : `${totalFloors}/${totalFloors} FLOORS CLEARED`
                   : `${gardensRestored}/${totalFloors} GARDENS RESTORED`}
               </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-amber-500/15 border border-amber-400/40 text-amber-300">
+              <span className="inline-flex items-center gap-1 text-[10px] tabular-nums font-bold px-2 py-0.5 rounded bg-amber-500/15 border border-amber-400/40 text-amber-300">
                 <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
                 {totalRunStars}/{maxStars} STARS
               </span>
               <span
-                className="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#0A0C0B] border border-white/15"
+                className="inline-flex items-center gap-1 text-[10px] tabular-nums font-bold px-2 py-0.5 rounded bg-[#0A0C0B] border border-white/15"
                 style={{ color: heroClassDef.accentColor }}
               >
                 {heroClassDef.emblem}{" "}
@@ -346,7 +346,7 @@ export function RunSummaryModal({
                   : "VICTORY ARCHIVED"
                 : "See You Tomorrow 🍃"}
             </h2>
-            <p className="text-xs text-zinc-400 font-mono">
+            <p className="text-xs text-zinc-400 tabular-nums">
               {gardenDisplay.title} · {modifierDisplayName}
             </p>
           </div>
@@ -362,7 +362,7 @@ export function RunSummaryModal({
         {/* Active Relics Summary */}
         {activeRelics.length > 0 && (
           <div className="flex flex-wrap items-center gap-1.5 bg-[#0A0C0B] border border-[#262E29] rounded-xl p-2.5">
-            <span className="text-[10px] font-mono uppercase text-zinc-400 mr-1">
+            <span className="text-[10px] tabular-nums uppercase text-zinc-400 mr-1">
               {isSanctuary ? "Blessings:" : "Relics:"}
             </span>
             {activeRelics.map((rId, idx) => {
@@ -370,7 +370,7 @@ export function RunSummaryModal({
               return (
                 <span
                   key={`${rId}-${idx}`}
-                  className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[#141815] border border-white/10 text-zinc-200"
+                  className="text-[10px] tabular-nums font-bold px-2 py-0.5 rounded bg-[#141815] border border-white/10 text-zinc-200"
                 >
                   {r.icon} {r.name}
                 </span>
@@ -392,7 +392,7 @@ export function RunSummaryModal({
         )}
 
         {/* Score Breakdown Card */}
-        <div className="bg-[#0A0C0B] border border-[#262E29] rounded-xl p-3.5 space-y-2 font-mono text-xs">
+        <div className="bg-[#0A0C0B] border border-[#262E29] rounded-xl p-3.5 space-y-2 tabular-nums text-xs">
           <div className="text-[10px] text-zinc-500 leading-snug">
             Each {isSanctuary ? "garden" : "floor"} scores{" "}
             <span className="text-sky-300 font-bold">Chips</span> ×{" "}
@@ -426,7 +426,7 @@ export function RunSummaryModal({
             <span className="text-zinc-200 font-sans font-bold uppercase">
               {isSanctuary ? "Today's Score" : "Final Tactical Score"}
             </span>
-            <span className="text-xl font-mono font-black text-white">
+            <span className="text-xl tabular-nums font-black text-white">
               {finalScore.toLocaleString()}
             </span>
           </div>
@@ -512,14 +512,14 @@ export function RunSummaryModal({
         {/* Spoiler-free share card (results only) */}
         <div className="bg-[#0A0C0B] border border-[#262E29] rounded-xl p-3 space-y-2.5">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] font-sans font-bold uppercase text-zinc-300 flex items-center gap-1.5">
+            <span className="text-[12px] font-sans font-bold uppercase text-zinc-300 flex items-center gap-1.5">
               <Share2 className="w-3.5 h-3.5 text-violet-400" />
               {isSanctuary ? "Share Your Garden" : "Spoiler-Free 5×5 Share Map"}
             </span>
             <button
               type="button"
               onClick={handleCopyShare}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-violet-600 hover:bg-violet-500 text-white font-mono text-xs font-bold transition shadow"
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-violet-600 hover:bg-violet-500 text-white tabular-nums text-xs font-bold transition shadow"
             >
               {copied ? (
                 <>
@@ -534,7 +534,7 @@ export function RunSummaryModal({
               )}
             </button>
           </div>
-          <pre className="text-[11px] font-mono leading-snug text-zinc-200 bg-[#141815] border border-[#262E29] rounded-lg p-2.5 whitespace-pre-wrap break-words">
+          <pre className="text-[12px] tabular-nums leading-snug text-zinc-200 bg-[#141815] border border-[#262E29] rounded-lg p-2.5 whitespace-pre-wrap break-words">
             {shareText}
           </pre>
         </div>
@@ -551,18 +551,18 @@ export function RunSummaryModal({
               onChange={(e) => setCallsign(e.target.value)}
               maxLength={16}
               placeholder={isSanctuary ? "YOUR NAME" : "CALLSIGN"}
-              className="flex-1 bg-transparent px-2 py-1 text-xs font-mono font-bold uppercase text-white focus:outline-none"
+              className="flex-1 bg-transparent px-2 py-1 text-xs tabular-nums font-bold uppercase text-white focus:outline-none"
             />
             <button
               type="submit"
               disabled={submitting}
-              className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-mono text-xs font-extrabold transition"
+              className="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 tabular-nums text-xs font-extrabold transition"
             >
               {submitting ? "POSTING..." : "POST TO LEADERBOARD"}
             </button>
           </form>
         ) : (
-          <div className="text-center py-1.5 px-3 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs font-mono">
+          <div className="text-center py-1.5 px-3 rounded-xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-xs tabular-nums">
             ✓ Score posted to {isSanctuary ? "today's garden board" : "Daily Leaderboard"}{" "}
             ({leaderboard.length} entries)
           </div>
@@ -573,7 +573,7 @@ export function RunSummaryModal({
           <button
             type="button"
             onClick={onRetryRun}
-            className="py-2.5 px-3 rounded-xl bg-white text-[#0A0C0B] font-mono text-xs font-black uppercase hover:bg-zinc-200 transition flex items-center justify-center gap-1.5"
+            className="py-2.5 px-3 rounded-xl bg-white text-[#0A0C0B] tabular-nums text-xs font-black uppercase hover:bg-zinc-200 transition flex items-center justify-center gap-1.5"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>{isSanctuary ? "Play Again" : "Replay Dungeon"}</span>
@@ -581,7 +581,7 @@ export function RunSummaryModal({
           <button
             type="button"
             onClick={onNewSandbox}
-            className="py-2.5 px-3 rounded-xl bg-[#0A0C0B] border border-[#262E29] hover:border-zinc-600 text-white font-mono text-xs font-bold uppercase transition flex items-center justify-center gap-1.5"
+            className="py-2.5 px-3 rounded-xl bg-[#0A0C0B] border border-[#262E29] hover:border-zinc-600 text-white tabular-nums text-xs font-bold uppercase transition flex items-center justify-center gap-1.5"
           >
             <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
             <span>{isSanctuary ? "Free Play" : "New Sandbox"}</span>
@@ -591,7 +591,7 @@ export function RunSummaryModal({
         <button
           type="button"
           onClick={onOpenCrafter}
-          className="w-full py-2 px-3 rounded-xl bg-violet-500/15 hover:bg-violet-500/25 border border-violet-500/40 text-violet-200 font-mono text-xs font-bold flex items-center justify-center gap-1.5 transition"
+          className="w-full py-2 px-3 rounded-xl bg-violet-500/15 hover:bg-violet-500/25 border border-violet-500/40 text-violet-200 tabular-nums text-xs font-bold flex items-center justify-center gap-1.5 transition"
         >
           <Crown className="w-3.5 h-3.5 text-amber-300" />
           <span>
@@ -633,15 +633,15 @@ function GardenCalendar({
   }
   return (
     <div className="bg-[#0A0C0B] border border-[#262E29] rounded-xl p-3 space-y-2">
-      <div className="flex items-center justify-between text-[11px] font-sans font-bold text-zinc-200">
+      <div className="flex items-center justify-between text-[12px] font-sans font-bold text-zinc-200">
         <span>Your garden calendar</span>
-        <span className="font-mono text-amber-300">
+        <span className="tabular-nums text-amber-300">
           <Badge id="flame" /> {currentStreak} · best {bestStreak}
         </span>
       </div>
-      <div className="grid grid-cols-7 gap-1 text-center font-mono">
+      <div className="grid grid-cols-7 gap-1 text-center tabular-nums">
         {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
-          <span key={i} className="text-[9px] text-zinc-500">
+          <span key={i} className="text-[10px] text-zinc-500">
             {d}
           </span>
         ))}
@@ -657,7 +657,7 @@ function GardenCalendar({
                   ? `${key}: ${stars}★ · ${record.score.toLocaleString()}`
                   : key
               }
-              className={`aspect-square rounded-md flex flex-col items-center justify-center text-[9px] leading-none border ${
+              className={`aspect-square rounded-md flex flex-col items-center justify-center text-[10px] leading-none border ${
                 key === todayKey
                   ? "border-amber-300/70"
                   : "border-transparent"
@@ -675,7 +675,7 @@ function GardenCalendar({
             >
               <span>{day}</span>
               {record && (
-                <span className="text-[8px] mt-0.5">
+                <span className="text-[10px] mt-0.5">
                   {perfect ? "✦" : `${stars}★`}
                 </span>
               )}
@@ -714,7 +714,7 @@ export function LeaderboardModal({
               <h2 className="text-base font-sans font-extrabold uppercase tracking-tight">
                 {isSanctuary ? "Today's Garden Board" : "Daily Leaderboard"}
               </h2>
-              <p className="text-[11px] font-mono text-zinc-400">
+              <p className="text-[12px] tabular-nums text-zinc-400">
                 {isSanctuary ? "Everyone's Garden" : "Global Seed"} · {dateKey}
               </p>
             </div>
@@ -731,7 +731,7 @@ export function LeaderboardModal({
         <div className="bg-[#0A0C0B] border border-[#262E29] rounded-xl overflow-hidden">
           <div className="divide-y divide-[#262E29] max-h-[340px] overflow-y-auto pb-6 [mask-image:linear-gradient(to_bottom,black_82%,transparent_100%)]">
             {entries.length === 0 && (
-              <div className="px-3.5 py-6 text-center font-mono text-xs text-zinc-500">
+              <div className="px-3.5 py-6 text-center tabular-nums text-xs text-zinc-500">
                 {isSanctuary
                   ? "No one has shared a score for today's garden yet. Be the first!"
                   : "No scores posted for this seed yet. Be the first!"}
@@ -740,7 +740,7 @@ export function LeaderboardModal({
             {entries.map((entry, idx) => (
               <div
                 key={entry.id}
-                className="px-3.5 py-2.5 flex items-center justify-between font-mono text-xs"
+                className="px-3.5 py-2.5 flex items-center justify-between tabular-nums text-xs"
               >
                 <div className="flex items-center gap-2.5">
                   <span
@@ -771,7 +771,7 @@ export function LeaderboardModal({
                   <div className="font-black text-emerald-400">
                     {entry.score.toLocaleString()}
                   </div>
-                  <div className="text-[9px] text-zinc-500 uppercase">
+                  <div className="text-[10px] text-zinc-500 uppercase">
                     {entry.survived
                       ? isSanctuary
                         ? "BLOOMED"
@@ -1003,7 +1003,7 @@ export function PassAndCrafterModal({
               <h2 className="text-base font-sans font-extrabold uppercase tracking-tight">
                 {copy.title}
               </h2>
-              <p className="text-[11px] font-mono text-indigo-300/75">
+              <p className="text-[12px] tabular-nums text-indigo-300/75">
                 {copy.subtitle}
               </p>
             </div>
@@ -1028,18 +1028,18 @@ export function PassAndCrafterModal({
         {DEV_SIMULATOR_ENABLED && (
           <div className="bg-amber-500/10 border border-dashed border-amber-500/40 rounded-xl p-2.5 flex items-center justify-between gap-3">
             <div>
-              <div className="text-[11px] font-mono font-bold text-amber-300 flex items-center gap-1.5">
+              <div className="text-[12px] tabular-nums font-bold text-amber-300 flex items-center gap-1.5">
                 <Zap className="w-3.5 h-3.5" />
                 <span>Dev only: simulate purchase</span>
               </div>
-              <p className="text-[10px] font-mono text-zinc-400">
+              <p className="text-[10px] tabular-nums text-zinc-400">
                 Hidden and ignored in production builds
               </p>
             </div>
             <button
               type="button"
               onClick={onToggleDevSimulate}
-              className={`px-3 py-1.5 rounded-lg font-mono text-xs font-extrabold transition flex items-center gap-1 shrink-0 ${
+              className={`px-3 py-1.5 rounded-lg tabular-nums text-xs font-extrabold transition flex items-center gap-1 shrink-0 ${
                 monetization.devSimulatePass
                   ? "bg-emerald-400 text-slate-950"
                   : "bg-zinc-800 text-zinc-300 hover:bg-zinc-700"
@@ -1064,31 +1064,31 @@ export function PassAndCrafterModal({
         <div className="bg-gradient-to-b from-[#1F2F24] via-[#17201A] to-[#0D140F] border-2 border-violet-400/60 rounded-2xl p-4 space-y-3.5 shadow-[0_0_30px_rgba(139,92,246,0.25)]">
           <div className="flex items-center justify-between gap-2">
             <div>
-              <span className="inline-block text-[10px] font-mono font-extrabold uppercase px-2 py-0.5 rounded bg-violet-500/25 border border-violet-400/50 text-violet-200">
+              <span className="inline-block text-[10px] tabular-nums font-extrabold uppercase px-2 py-0.5 rounded bg-violet-500/25 border border-violet-400/50 text-violet-200">
                 {copy.badge}
               </span>
-              <h3 className="text-lg font-sans font-extrabold text-white mt-1">
+              <h3 className="text-xl font-sans font-extrabold text-white mt-1">
                 {copy.cardTitle}
               </h3>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-mono font-black text-white">
+              <div className="text-[26px] tabular-nums font-black text-white">
                 $3.99
               </div>
-              <div className="text-[10px] font-mono text-emerald-300">
+              <div className="text-[10px] tabular-nums text-emerald-300">
                 {copy.priceNote}
               </div>
             </div>
           </div>
-          <p className="text-[11px] font-sans text-indigo-200/80 -mt-1">
+          <p className="text-[12px] font-sans text-indigo-200/80 -mt-1">
             {copy.dailyFree}
           </p>
 
           {/* Companions / Hero Classes */}
           <div className="space-y-1.5">
-            <div className="text-[11px] font-sans font-bold uppercase tracking-wider text-cyan-300 flex items-center justify-between gap-2">
+            <div className="text-[12px] font-sans font-bold uppercase tracking-wider text-cyan-300 flex items-center justify-between gap-2">
               <span>{copy.companionsHeading}</span>
-              <span className="text-[10px] font-mono normal-case text-indigo-300/75">
+              <span className="text-[10px] tabular-nums normal-case text-indigo-300/75">
                 {isExpansionOwned ? copy.ownedHint : copy.trialHint}
               </span>
             </div>
@@ -1108,18 +1108,18 @@ export function PassAndCrafterModal({
                       <div className="flex items-center justify-between">
                         <span className="text-sm">{cls.emblem}</span>
                         <span
-                          className="text-[9px] font-mono font-bold"
+                          className="text-[10px] tabular-nums font-bold"
                           style={{ color: cls.accentColor }}
                         >
                           {cls.startingHp} {copy.hpUnit}
                         </span>
                       </div>
-                      <div className="font-sans font-extrabold text-[11px] text-white mt-0.5 truncate">
+                      <div className="font-sans font-extrabold text-[12px] text-white mt-0.5 truncate">
                         {isSanctuary
                           ? cls.sanctuaryShortName ?? cls.shortName
                           : cls.shortName}
                       </div>
-                      <div className="text-[9px] font-mono text-indigo-200/75 leading-tight mt-0.5">
+                      <div className="text-[10px] tabular-nums text-indigo-200/75 leading-tight mt-0.5">
                         {isSanctuary
                           ? cls.sanctuaryPassiveName ?? cls.passiveName
                           : cls.passiveName.replace(/\s*\(.*\)$/, "")}
@@ -1131,7 +1131,7 @@ export function PassAndCrafterModal({
                         onSelectHeroClass(cls.id, !isExpansionOwned);
                         onClose();
                       }}
-                      className="w-full py-1 rounded-md bg-white/10 hover:bg-white/20 text-[9px] font-mono font-extrabold text-white transition"
+                      className="w-full py-1 rounded-md bg-white/10 hover:bg-white/20 text-[10px] tabular-nums font-extrabold text-white transition"
                     >
                       {isSelected
                         ? copy.activeBtn
@@ -1163,7 +1163,7 @@ export function PassAndCrafterModal({
                 onLaunchGauntlet();
                 onClose();
               }}
-              className="px-2.5 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white font-mono text-[10px] font-extrabold shrink-0 transition flex items-center gap-1"
+              className="px-2.5 py-1.5 rounded-lg bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white tabular-nums text-[10px] font-extrabold shrink-0 transition flex items-center gap-1"
             >
               <Play className="w-3 h-3 fill-current" />
               <span>{copy.trailBtn}</span>
@@ -1175,7 +1175,7 @@ export function PassAndCrafterModal({
             type="button"
             disabled={isExpansionOwned || isCheckoutPending}
             onClick={onUnlockExpansion}
-            className={`w-full py-2.5 px-4 rounded-xl font-mono text-xs font-black uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-lg disabled:cursor-default ${
+            className={`w-full py-2.5 px-4 rounded-xl tabular-nums text-xs font-black uppercase tracking-wider transition flex items-center justify-center gap-2 shadow-lg disabled:cursor-default ${
               isExpansionOwned
                 ? "bg-emerald-500/20 border border-emerald-400/60 text-emerald-300"
                 : "bg-gradient-to-r from-amber-400 via-yellow-400 to-amber-500 hover:from-amber-300 hover:to-yellow-300 text-slate-950 shadow-[0_0_25px_rgba(250,204,21,0.45)] disabled:opacity-70"
@@ -1193,14 +1193,14 @@ export function PassAndCrafterModal({
 
           {!isExpansionOwned && (
             <div className="space-y-1.5">
-              <p className="text-[10px] font-mono text-indigo-300/60 text-center">
+              <p className="text-[10px] tabular-nums text-indigo-300/60 text-center">
                 {copy.finePrint}
               </p>
               {!showRestore ? (
                 <button
                   type="button"
                   onClick={() => setShowRestore(true)}
-                  className="w-full text-[11px] font-sans text-cyan-300 hover:text-cyan-200 underline underline-offset-2"
+                  className="w-full text-[12px] font-sans text-cyan-300 hover:text-cyan-200 underline underline-offset-2"
                 >
                   {copy.restoreLink}
                 </button>
@@ -1216,12 +1216,12 @@ export function PassAndCrafterModal({
                       value={restoreEmail}
                       onChange={(e) => setRestoreEmail(e.target.value)}
                       placeholder="you@example.com"
-                      className="flex-1 min-w-0 bg-[#18241C] border border-indigo-500/30 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-cyan-400"
+                      className="flex-1 min-w-0 bg-[#18241C] border border-indigo-500/30 rounded-lg px-2.5 py-1.5 text-xs tabular-nums text-white focus:outline-none focus:border-cyan-400"
                     />
                     <button
                       type="submit"
                       disabled={isSendingRestore}
-                      className="px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 disabled:opacity-40 text-slate-950 font-mono text-xs font-extrabold transition shrink-0"
+                      className="px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 disabled:opacity-40 text-slate-950 tabular-nums text-xs font-extrabold transition shrink-0"
                     >
                       {copy.restoreBtn}
                     </button>
@@ -1240,12 +1240,12 @@ export function PassAndCrafterModal({
               <span>{copy.archiveHeading}</span>
             </span>
             {!isExpansionOwned && (
-              <span className="text-[10px] font-mono text-amber-400 flex items-center gap-1">
+              <span className="text-[10px] tabular-nums text-amber-400 flex items-center gap-1">
                 <Lock className="w-3 h-3" /> {copy.lockedLabel}
               </span>
             )}
           </div>
-          <p className="text-[11px] font-sans text-indigo-200/75 leading-snug">
+          <p className="text-[12px] font-sans text-indigo-200/75 leading-snug">
             {copy.archiveBody}
           </p>
 
@@ -1255,7 +1255,7 @@ export function PassAndCrafterModal({
               max={todayKey}
               value={archiveDate}
               onChange={(e) => setArchiveDate(e.target.value)}
-              className="flex-1 min-w-0 bg-[#18241C] border border-indigo-500/30 rounded-lg px-2.5 py-1.5 text-xs font-mono text-white focus:outline-none focus:border-cyan-400"
+              className="flex-1 min-w-0 bg-[#18241C] border border-indigo-500/30 rounded-lg px-2.5 py-1.5 text-xs tabular-nums text-white focus:outline-none focus:border-cyan-400"
             />
             <button
               type="button"
@@ -1264,7 +1264,7 @@ export function PassAndCrafterModal({
                 onLaunchArchiveDate(archiveDate);
                 onClose();
               }}
-              className="px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 disabled:opacity-40 text-slate-950 font-mono text-xs font-extrabold transition shrink-0"
+              className="px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 disabled:opacity-40 text-slate-950 tabular-nums text-xs font-extrabold transition shrink-0"
             >
               {copy.archiveBtn}
             </button>
@@ -1282,7 +1282,7 @@ export function PassAndCrafterModal({
                     onLaunchArchiveDate(dKey);
                     onClose();
                   }}
-                  className="px-2 py-1.5 rounded-lg bg-[#18241C] hover:bg-[#213026] disabled:opacity-45 border border-indigo-500/20 text-left font-mono text-[10px] flex items-center justify-between transition"
+                  className="px-2 py-1.5 rounded-lg bg-[#18241C] hover:bg-[#213026] disabled:opacity-45 border border-indigo-500/20 text-left tabular-nums text-[10px] flex items-center justify-between transition"
                 >
                   <span className="text-indigo-200">{dKey.slice(5)}</span>
                   <span className="text-amber-400 font-bold">
@@ -1303,7 +1303,7 @@ export function PassAndCrafterModal({
               <Palette className="w-4 h-4 text-yellow-400" />
               <span>{copy.cosmeticsHeading}</span>
             </span>
-            <span className="text-[11px] font-mono font-bold text-yellow-400">
+            <span className="text-[12px] tabular-nums font-bold text-yellow-400">
               {copy.cosmeticsCurrency} {totalBankedGold} {copy.cosmeticsCurrencyLabel}
             </span>
           </div>
@@ -1327,7 +1327,7 @@ export function PassAndCrafterModal({
                       emblemId: emblem.id as HeroEmblemId,
                     })
                   }
-                  className={`py-1.5 px-1.5 rounded-lg border font-mono text-[10px] flex flex-col items-center gap-0.5 transition ${
+                  className={`py-1.5 px-1.5 rounded-lg border tabular-nums text-[10px] flex flex-col items-center gap-0.5 transition ${
                     selected
                       ? "bg-cyan-500/20 border-cyan-400 text-white"
                       : unlocked
@@ -1362,7 +1362,7 @@ export function PassAndCrafterModal({
                       trailId: trail.id as TrailSkinId,
                     })
                   }
-                  className={`py-1.5 px-1.5 rounded-lg border font-mono text-[10px] flex flex-col items-center gap-1 transition ${
+                  className={`py-1.5 px-1.5 rounded-lg border tabular-nums text-[10px] flex flex-col items-center gap-1 transition ${
                     selected
                       ? "bg-violet-500/20 border-white text-white"
                       : unlocked
@@ -1398,12 +1398,12 @@ export function PassAndCrafterModal({
               <Wand2 className="w-4 h-4 text-violet-400" />
               <span>{copy.crafterHeading}</span>
             </span>
-            <span className="text-[10px] font-mono text-violet-300 flex items-center gap-1">
+            <span className="text-[10px] tabular-nums text-violet-300 flex items-center gap-1">
               {!isExpansionOwned && <Lock className="w-3 h-3" />}
               {copy.crafterTag}
             </span>
           </div>
-          <p className="text-[11px] font-sans text-indigo-200/75 leading-snug -mt-1">
+          <p className="text-[12px] font-sans text-indigo-200/75 leading-snug -mt-1">
             {copy.crafterBody}
           </p>
 
@@ -1413,7 +1413,7 @@ export function PassAndCrafterModal({
             maxLength={200}
             onChange={(e) => setCustomPrompt(e.target.value)}
             placeholder={copy.crafterPlaceholder}
-            className="w-full bg-[#18241C] border border-indigo-500/30 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-violet-500"
+            className="w-full bg-[#18241C] border border-indigo-500/30 rounded-lg px-3 py-2 text-xs tabular-nums text-white focus:outline-none focus:border-violet-500"
           />
 
           <div className="flex flex-wrap gap-1.5">
@@ -1422,7 +1422,7 @@ export function PassAndCrafterModal({
                 key={preset}
                 type="button"
                 onClick={() => setCustomPrompt(preset)}
-                className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#18241C] hover:bg-zinc-800 border border-indigo-500/20 text-zinc-300"
+                className="text-[10px] tabular-nums px-2 py-0.5 rounded bg-[#18241C] hover:bg-zinc-800 border border-indigo-500/20 text-zinc-300"
               >
                 {preset}
               </button>
@@ -1435,7 +1435,7 @@ export function PassAndCrafterModal({
               onChange={(e) =>
                 setSelectedModifier(e.target.value as ModifierId | "AUTO")
               }
-              className="flex-1 min-w-0 bg-[#18241C] border border-indigo-500/30 rounded-lg px-2 py-1.5 text-xs font-mono text-zinc-200 focus:outline-none"
+              className="flex-1 min-w-0 bg-[#18241C] border border-indigo-500/30 rounded-lg px-2 py-1.5 text-xs tabular-nums text-zinc-200 focus:outline-none"
             >
               <option value="AUTO">{copy.crafterAuto}</option>
               {MODIFIER_LIST.map((mod) => {
@@ -1451,7 +1451,7 @@ export function PassAndCrafterModal({
             <button
               type="submit"
               disabled={!isExpansionOwned || isGeneratingAi}
-              className="py-1.5 px-3 rounded-lg bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 disabled:opacity-40 text-white font-mono text-xs font-black uppercase transition flex items-center gap-1.5 shrink-0"
+              className="py-1.5 px-3 rounded-lg bg-gradient-to-r from-violet-600 to-cyan-600 hover:from-violet-500 hover:to-cyan-500 disabled:opacity-40 text-white tabular-nums text-xs font-black uppercase transition flex items-center gap-1.5 shrink-0"
             >
               <Sparkles className="w-3.5 h-3.5" />
               <span>{isGeneratingAi ? copy.crafterBusy : copy.crafterBtn}</span>

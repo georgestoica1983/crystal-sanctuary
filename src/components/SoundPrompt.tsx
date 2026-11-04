@@ -58,8 +58,8 @@ export default function SoundPrompt({ ready, onChoose }: { ready: boolean; onCho
               <Music className="h-5 w-5 text-lime-200" />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-[15px] font-bold leading-tight">Play with sound?</div>
-              <div className="text-[12.5px] text-white/65 leading-snug mt-0.5">
+              <div className="text-[16px] font-bold leading-tight">Play with sound?</div>
+              <div className="text-[12px] text-white/65 leading-snug mt-0.5">
                 Calm garden music and soft sounds as your line grows. You can change it any time in ☰.
               </div>
             </div>

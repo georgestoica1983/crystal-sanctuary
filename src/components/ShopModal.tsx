@@ -109,7 +109,7 @@ interface ShopModalProps {
 function PriceChip({ sold, blocked, affordable, cost, deal = false }: { sold: boolean; blocked: boolean; affordable: boolean; cost: number; deal?: boolean }) {
   return (
     <span
-      className={`absolute top-1 right-1 flex items-center gap-0.5 rounded-md px-1 text-[10.5px] leading-[15px] font-mono font-black ${
+      className={`absolute top-1 right-1 flex items-center gap-0.5 rounded-md px-1 text-[10px] leading-[15px] tabular-nums font-black ${
         sold
           ? "text-white/50"
           : deal && !blocked
@@ -313,7 +313,7 @@ function ShopCoach({
           style={below ? { top: box.y + box.h + 12 } : { bottom: box.cardH - box.y + 12 }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="text-[13px] font-semibold text-amber-200/90">
+          <div className="text-[14px] font-semibold text-amber-200/90">
             {step + 1} of {texts.length}
           </div>
           <p className="mt-0.5 text-[16px] leading-snug">{artify(texts[step])}</p>
@@ -321,7 +321,7 @@ function ShopCoach({
             <button type="button" onClick={onDone} className="h-11 flex-1 rounded-xl bg-white/[0.07] text-[14px] font-semibold text-white/80">
               Skip
             </button>
-            <button type="button" onClick={next} className="h-11 flex-[2] rounded-xl bg-amber-300 text-[15px] font-bold text-slate-950">
+            <button type="button" onClick={next} className="h-11 flex-[2] rounded-xl bg-amber-300 text-[16px] font-bold text-slate-950">
               {last ? "Got it" : "Next"}
             </button>
           </div>
@@ -507,11 +507,11 @@ export default function ShopModal({
           </div>
           <div className="min-w-0 flex-1">
             <div className="flex flex-wrap items-center gap-1">
-              <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded ${rarity.className}`}>Yours · {rarity.label}</span>
+              <span className={`text-[12px] font-semibold px-1.5 py-0.5 rounded ${rarity.className}`}>Yours · {rarity.label}</span>
               {getRelicTags(id).map((t) => <TagChip key={t} tag={t} />)}
             </div>
-            <div className="mt-0.5 text-[15px] font-black leading-tight">{info.name}</div>
-            <div className="text-[13px] leading-snug text-white/80">
+            <div className="mt-0.5 text-[16px] font-black leading-tight">{info.name}</div>
+            <div className="text-[14px] leading-snug text-white/80">
               {info.description}
               {growth && <span className="text-emerald-300 font-semibold"> ({growth})</span>}
             </div>
@@ -527,14 +527,14 @@ export default function ShopModal({
             <RelicIcon id={legendary.id} size={44} />
             <div className="min-w-0">
               <div className="text-[12px] font-semibold text-amber-200"><Badge id="crown" /> Boss beaten · Legendary relic</div>
-              <div className="text-[15px] font-black">{legendary.name}</div>
-              <div className="text-[13px] leading-snug text-amber-50/90">{legendary.description.replace(/^Legendary: /, "")}</div>
+              <div className="text-[16px] font-black">{legendary.name}</div>
+              <div className="text-[14px] leading-snug text-amber-50/90">{legendary.description.replace(/^Legendary: /, "")}</div>
             </div>
           </div>
         );
       }
       return (
-        <div className="text-[13.5px] leading-snug text-teal-50">
+        <div className="text-[14px] leading-snug text-teal-50">
           <b className="text-white">Spend 🌱 Seeds on relics</b>: lasting powers for this Garden Run. Or save them:
           every {RUN_INTEREST_STEP} you keep earns +1 more after each bed (up to +{RUN_INTEREST_MAX}).
           <span className="block mt-1 text-white/60">Tap an offer to see what it does.</span>
@@ -552,7 +552,7 @@ export default function ShopModal({
         type="button"
         disabled={sold || blocked || !affordable}
         onClick={() => onBuy(offer)}
-        className="h-11 w-full rounded-xl bg-amber-300 text-slate-950 font-bold text-[15px] active:scale-95 transition disabled:bg-white/10 disabled:text-white/45"
+        className="h-11 w-full rounded-xl bg-amber-300 text-slate-950 font-bold text-[16px] active:scale-95 transition disabled:bg-white/10 disabled:text-white/45"
       >
         {sold
           ? "Bought"
@@ -576,18 +576,18 @@ export default function ShopModal({
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1">
-            <span className={`text-[11px] font-semibold px-1.5 py-0.5 rounded ${info.kindClass}`}>{info.kindLabel}</span>
+            <span className={`text-[12px] font-semibold px-1.5 py-0.5 rounded ${info.kindClass}`}>{info.kindLabel}</span>
             {offer.relicId && getRelicTags(offer.relicId).map((t) => <TagChip key={t} tag={t} />)}
           </div>
-          <div className="mt-0.5 text-[15px] font-black leading-tight">{info.name}</div>
+          <div className="mt-0.5 text-[16px] font-black leading-tight">{info.name}</div>
           {offer.kind === "FERT" && (
-            <div className="text-[13px] font-semibold" style={{ color: info.accent }}>
+            <div className="text-[14px] font-semibold" style={{ color: info.accent }}>
               {info.tag}
             </div>
           )}
-          <div className="text-[13px] leading-snug text-white/80">{info.description}</div>
+          <div className="text-[14px] leading-snug text-white/80">{info.description}</div>
           {progress.length > 0 && !sold && (
-            <div className="text-[12.5px] font-semibold text-lime-200">
+            <div className="text-[12px] font-semibold text-lime-200">
               ✓ Fits your build ·{" "}
               {progress
                 .map(({ tag, after }) => {
@@ -599,7 +599,7 @@ export default function ShopModal({
             </div>
           )}
           {preview !== undefined && !sold && (
-            <div className={`text-[12.5px] font-mono font-black ${preview > 0 ? "text-emerald-300" : "text-white/55"}`}>
+            <div className={`text-[12px] tabular-nums font-black ${preview > 0 ? "text-emerald-300" : "text-white/55"}`}>
               {preview > 0
                 ? `≈ +${preview.toLocaleString()}${gainPct(preview) ? ` (+${gainPct(preview)}%)` : ""} on your best line`
                 : offer.relicId && RELIC_REGISTRY[offer.relicId]?.category === "XMULT"
@@ -608,7 +608,7 @@ export default function ShopModal({
             </div>
           )}
           {blocked && !sold && (
-            <div className="text-[12.5px] font-semibold text-amber-200">
+            <div className="text-[12px] font-semibold text-amber-200">
               {offer.kind === "TOOL"
                 ? `You already hold ${MAX_TOOLS} tools. Use one on a tile first.`
                 : offer.kind === "PACKET"
@@ -638,7 +638,7 @@ export default function ShopModal({
               {/* On a short screen a rare moment sits here instead of its banner */}
               {moment && <span className="hidden [@media(max-height:700px)]:inline text-rose-200"> · Rare Shop: {SHOP_MOMENTS[moment].name}</span>}
             </div>
-            <h2 className="whitespace-nowrap text-[22px] font-display font-semibold leading-tight">{isSanctuary ? "Garden Shop" : "Sanctuary Shop"}</h2>
+            <h2 className="whitespace-nowrap text-[20px] font-display font-semibold leading-tight">{isSanctuary ? "Garden Shop" : "Sanctuary Shop"}</h2>
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
             <button
@@ -655,7 +655,7 @@ export default function ShopModal({
               key={gems}
               initial={{ scale: 1.2 }}
               animate={{ scale: 1 }}
-              className="rounded-xl px-3 py-1.5 border border-amber-300/40 bg-amber-400/10 text-[18px] font-mono font-black text-amber-200"
+              className="rounded-xl px-3 py-1.5 border border-amber-300/40 bg-amber-400/10 text-[20px] tabular-nums font-black text-amber-200"
               aria-label={`Your Seeds: ${gems}`}
             >
               <Badge id="seed" size={20} className="mr-1 align-[-3px]" />{gems}
@@ -700,12 +700,12 @@ export default function ShopModal({
                 } ${sold ? "opacity-45" : ""}`}
               >
                 {offerIcon(offer, 26)}
-                <span className="w-full text-center text-[10.5px] font-bold leading-tight line-clamp-2">{name}</span>
+                <span className="w-full text-center text-[10px] font-bold leading-tight line-clamp-2">{name}</span>
                 {/* What it does, at a glance */}
-                <span className="w-full text-center text-[9.5px] leading-[1.2] text-white/65 line-clamp-3 [@media(max-height:700px)]:line-clamp-2">{artify(glanceOf(offer, info))}</span>
+                <span className="w-full text-center text-[10px] leading-[1.2] text-white/65 line-clamp-3 [@media(max-height:700px)]:line-clamp-2">{artify(glanceOf(offer, info))}</span>
                 {/* Top row, above the art: what it adds to your best line (or New) on the left, the price on the right */}
                 {!sold && gainPct(scorePreview?.[offer.id] ?? 0) > 0 ? (
-                  <span className="absolute top-1 left-1 rounded-md bg-emerald-400/20 px-1 text-[10px] leading-[15px] font-mono font-black text-emerald-200">
+                  <span className="absolute top-1 left-1 rounded-md bg-emerald-400/20 px-1 text-[10px] leading-[15px] tabular-nums font-black text-emerald-200">
                     {/* Short enough to sit beside the price: +45%, or ×2.9 from double up */}
                     {gainPct(scorePreview?.[offer.id] ?? 0) >= 100
                       ? `×${(1 + gainPct(scorePreview?.[offer.id] ?? 0) / 100).toFixed(1)}`
@@ -714,7 +714,7 @@ export default function ShopModal({
                 ) : (
                   newKinds?.includes(offer.kind) &&
                   !sold && (
-                    <span className="absolute top-1 left-1 rounded-md bg-lime-300 px-1 text-[9px] leading-[15px] font-black uppercase text-slate-950">New</span>
+                    <span className="absolute top-1 left-1 rounded-md bg-lime-300 px-1 text-[10px] leading-[15px] font-black text-slate-950">New</span>
                   )
                 )}
                 <PriceChip sold={sold} blocked={blocked} affordable={affordable} cost={offer.cost} deal={offer.wasCost !== undefined} />
@@ -732,7 +732,7 @@ export default function ShopModal({
         {/* Your relics: tap one to see it or sell it */}
         <div className="shrink-0">
           {/* Legendary relics sit on the label line, so they never need a row of their own */}
-          <div className="mb-1 text-[11px] font-semibold text-white/55 truncate">
+          <div className="mb-1 text-[12px] font-semibold text-white/55 truncate">
             Your relics · {commonOwned.length}/{MAX_COMMON_RELICS}
             {legendaryOwned.length > 0 && (
               <span className="text-amber-200">
@@ -769,7 +769,7 @@ export default function ShopModal({
           <div className="shrink-0 flex items-center gap-2.5 rounded-xl border border-rose-300/25 bg-rose-500/[0.08] px-2.5 py-2">
             <BossIcon id={bossReroll.id} size={36} className="shrink-0" />
             <div className="min-w-0 flex-1 leading-tight">
-              <div className="text-[11.5px] text-rose-100/70 whitespace-nowrap">
+              <div className="text-[12px] text-rose-100/70 whitespace-nowrap">
                 {bossReroll.isNext ? "Up next: Boss Garden" : `Season ${bossReroll.season} Boss`}
               </div>
               <div className="text-[14px] font-semibold text-rose-50">{BOSS_RULE_REGISTRY[bossReroll.id].name}</div>
@@ -786,7 +786,7 @@ export default function ShopModal({
               >
                 <img src={miscArt("boss-reroll")} alt="" aria-hidden="true" draggable={false} className="h-7 w-7 object-contain" />
                 <span className="flex flex-col items-start leading-[1.1]">
-                  <span className="text-[12.5px] font-semibold">New Boss</span>
+                  <span className="text-[12px] font-semibold">New Boss</span>
                   <span className="text-[12px] text-white/70">{bossReroll.cost} 🌱</span>
                 </span>
               </button>
@@ -797,7 +797,7 @@ export default function ShopModal({
         {/* Up next, in one line */}
         {nextFloorTitle && !(bossReroll?.isNext) && (
           // On a short screen the Boss row says what's coming, so this line steps aside
-          <div className={`text-[12.5px] leading-snug ${nextBoss ? "text-rose-100" : "text-white/65"} ${bossReroll ? "[@media(max-height:700px)]:hidden" : ""}`}>
+          <div className={`text-[12px] leading-snug ${nextBoss ? "text-rose-100" : "text-white/65"} ${bossReroll ? "[@media(max-height:700px)]:hidden" : ""}`}>
             Up next:{" "}
             <b>
               {nextBoss && nextBossRuleId ? (
@@ -833,7 +833,7 @@ export default function ShopModal({
             <RefreshCw className="w-4 h-4 shrink-0" />
             {canPrune ? (
               <span className="flex flex-col items-start leading-[1.1]">
-                <span className="text-[13px]">Reroll</span>
+                <span className="text-[14px]">Reroll</span>
                 <span className="text-[12px] text-white/65">{rerollCost} 🌱</span>
               </span>
             ) : (
@@ -853,7 +853,7 @@ export default function ShopModal({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={tileArt("WEAPON") ?? ""} alt="" aria-hidden="true" draggable={false} className="h-6 w-6 shrink-0 object-contain" />
               <span className="flex flex-col items-start leading-[1.1]">
-                <span className="text-[13px]">{pruned ? "Pruned" : "Prune"}</span>
+                <span className="text-[14px]">{pruned ? "Pruned" : "Prune"}</span>
                 <span className="text-[12px] text-white/65">{pruned ? "✓" : `${RUN_PRUNE_COST} 🌱`}</span>
               </span>
             </button>
@@ -861,7 +861,7 @@ export default function ShopModal({
           <button
             type="button"
             onClick={onLeave}
-            className="h-12 rounded-xl px-2 bg-teal-300 text-slate-950 font-bold text-[15px] flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 transition"
+            className="h-12 rounded-xl px-2 bg-teal-300 text-slate-950 font-bold text-[16px] flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 transition"
           >
             {canPrune ? "Next bed" : boughtAnything ? "Continue" : "Skip the Shop"}
             <ArrowRight className="w-4 h-4" />
@@ -883,10 +883,10 @@ export default function ShopModal({
                   <img src={tileArt("WEAPON") ?? ""} alt="" aria-hidden="true" draggable={false} className="h-[52px] w-[52px] object-contain" />
                 )}
               </div>
-              <div className="text-[13px] font-semibold text-amber-200/90">New in the Shop</div>
+              <div className="text-[14px] font-semibold text-amber-200/90">New in the Shop</div>
               <div className="text-[20px] font-display font-semibold leading-tight">{SHOP_GUIDE[firstCard].name}</div>
-              <p className="text-[14.5px] leading-snug text-white/85">{artify(SHOP_GUIDE[firstCard].what)}</p>
-              <p className="text-[13.5px] leading-snug text-white/65">{artify(SHOP_GUIDE[firstCard].how)}</p>
+              <p className="text-[14px] leading-snug text-white/85">{artify(SHOP_GUIDE[firstCard].what)}</p>
+              <p className="text-[14px] leading-snug text-white/65">{artify(SHOP_GUIDE[firstCard].how)}</p>
               <div className="flex gap-2 pt-1">
                 <button
                   type="button"
@@ -898,7 +898,7 @@ export default function ShopModal({
                 >
                   Every item
                 </button>
-                <button type="button" onClick={closeFirstCard} className="h-11 flex-[1.4] rounded-xl bg-amber-300 text-[15px] font-bold text-slate-950">
+                <button type="button" onClick={closeFirstCard} className="h-11 flex-[1.4] rounded-xl bg-amber-300 text-[16px] font-bold text-slate-950">
                   Got it
                 </button>
               </div>
@@ -930,7 +930,7 @@ export default function ShopModal({
                   setGuideOpen(false);
                   setCoach(0);
                 }}
-                className="w-full rounded-xl border border-amber-300/40 bg-amber-400/10 px-3 py-2 text-left text-[13.5px] font-semibold text-amber-100"
+                className="w-full rounded-xl border border-amber-300/40 bg-amber-400/10 px-3 py-2 text-left text-[14px] font-semibold text-amber-100"
               >
                 Show me around this Shop →
               </button>
@@ -947,16 +947,16 @@ export default function ShopModal({
                       )}
                     </div>
                     <div className="min-w-0 space-y-0.5">
-                      <div className="text-[14.5px] font-bold">{g.name}</div>
-                      <p className="text-[13px] leading-snug text-white/80">{artify(g.what)}</p>
-                      <p className="text-[12.5px] leading-snug text-white/55">{artify(g.how)}</p>
+                      <div className="text-[14px] font-bold">{g.name}</div>
+                      <p className="text-[14px] leading-snug text-white/80">{artify(g.what)}</p>
+                      <p className="text-[12px] leading-snug text-white/55">{artify(g.how)}</p>
                     </div>
                   </div>
                 );
               })}
               <div className="pt-1 text-[12px] font-semibold text-white/55">Also in the Shop</div>
               {SHOP_GUIDE_MORE.map((m) => (
-                <p key={m.name} className="text-[13px] leading-snug text-white/75">
+                <p key={m.name} className="text-[14px] leading-snug text-white/75">
                   <b className="text-white/90">{m.name}:</b> {artify(m.text)}
                 </p>
               ))}

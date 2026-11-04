@@ -335,7 +335,7 @@ export function CompanionDrawerModal({
               <h2 className="text-sm font-sans font-extrabold uppercase tracking-tight">
                 {isSanctuary ? "Choose Your Companion" : "Select Hero Class"}
               </h2>
-              <p className="text-[10px] font-mono text-indigo-300">
+              <p className="text-[10px] tabular-nums text-indigo-300">
                 {isSanctuary
                   ? "Each companion has a unique passive ability"
                   : "Passive archetype combat superpowers"}
@@ -389,12 +389,12 @@ export function CompanionDrawerModal({
                             : cls.name}
                         </span>
                         {isSelected && (
-                          <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-cyan-400 text-slate-950">
+                          <span className="px-1.5 py-0.5 rounded text-[10px] tabular-nums font-bold bg-cyan-400 text-slate-950">
                             ACTIVE
                           </span>
                         )}
                       </div>
-                      <p className="text-[10px] font-mono text-indigo-300">
+                      <p className="text-[10px] tabular-nums text-indigo-300">
                         {isSanctuary
                           ? cls.sanctuaryTitle || cls.title
                           : cls.title}
@@ -402,7 +402,7 @@ export function CompanionDrawerModal({
                     </div>
                   </div>
 
-                  <div className="text-right text-[10px] font-mono shrink-0">
+                  <div className="text-right text-[10px] tabular-nums shrink-0">
                     <span
                       className="font-bold px-1.5 py-0.5 rounded bg-black/40 border border-white/10 whitespace-nowrap"
                       style={{ color: cls.accentColor }}
@@ -412,9 +412,9 @@ export function CompanionDrawerModal({
                   </div>
                 </div>
 
-                <div className="text-[11px] font-sans text-indigo-100/90 bg-black/30 rounded-lg p-2 border border-white/5">
+                <div className="text-[12px] font-sans text-indigo-100/90 bg-black/30 rounded-lg p-2 border border-white/5">
                   <span
-                    className="font-mono font-bold uppercase mr-1"
+                    className="tabular-nums font-bold uppercase mr-1"
                     style={{ color: cls.accentColor }}
                   >
                     {isSanctuary
@@ -431,7 +431,7 @@ export function CompanionDrawerModal({
 
                 <div className="flex items-center justify-end gap-2 pt-1">
                   {isSelected ? (
-                    <span className="text-[10px] font-mono font-bold text-cyan-300">
+                    <span className="text-[10px] tabular-nums font-bold text-cyan-300">
                       {isSanctuary ? "✓ With you" : "✓ Equipped"}
                     </span>
                   ) : isUnlocked ? (
@@ -441,7 +441,7 @@ export function CompanionDrawerModal({
                         onSelectClass(cls.id, false);
                         onClose();
                       }}
-                      className="px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-mono text-[10px] font-extrabold transition active:scale-95"
+                      className="px-3 py-1.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-slate-950 tabular-nums text-[10px] font-extrabold transition active:scale-95"
                     >
                       {isSanctuary
                         ? `Choose ${cls.sanctuaryShortName ?? cls.shortName}`
@@ -455,7 +455,7 @@ export function CompanionDrawerModal({
                           onSelectClass(cls.id, true);
                           onClose();
                         }}
-                        className="px-2.5 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/60 text-emerald-200 font-mono text-[10px] font-extrabold transition flex items-center gap-1"
+                        className="px-2.5 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/60 text-emerald-200 tabular-nums text-[10px] font-extrabold transition flex items-center gap-1"
                       >
                         <Zap className="w-3 h-3 text-emerald-400" />
                         <span>
@@ -468,7 +468,7 @@ export function CompanionDrawerModal({
                           onClose();
                           onOpenPassModal();
                         }}
-                        className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 text-white font-mono text-[10px] font-extrabold transition flex items-center gap-1 shadow"
+                        className="px-2.5 py-1.5 rounded-lg bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 text-white tabular-nums text-[10px] font-extrabold transition flex items-center gap-1 shadow"
                       >
                         <Crown className="w-3 h-3 text-amber-300" />
                         <span>Unlock ($3.99)</span>
@@ -484,7 +484,7 @@ export function CompanionDrawerModal({
         <button
           type="button"
           onClick={onClose}
-          className="w-full py-2 rounded-xl bg-white/10 hover:bg-white/20 text-indigo-100 font-mono text-xs font-bold transition"
+          className="w-full py-2 rounded-xl bg-white/10 hover:bg-white/20 text-indigo-100 tabular-nums text-xs font-bold transition"
         >
           Close
         </button>
@@ -816,7 +816,7 @@ export function TopHUD({
               >
                 {/* The picture says what it is: no word under it */}
                 {st.icon}
-                <span className={`text-[18px] font-extrabold tabular-nums leading-none ${st.color}`}>{st.value}</span>
+                <span className={`text-[20px] font-extrabold tabular-nums leading-none ${st.color}`}>{st.value}</span>
               </motion.div>
             ))}
           </div>
@@ -844,14 +844,14 @@ export function TopHUD({
                 ))}
               </span>
               <span className="text-[12px] font-bold tabular-nums text-white/80">{activeRelics.length}</span>
-              {relicSetTags.length > 0 && <span className="text-[11px] font-black text-amber-200">×{RELIC_SET_X}</span>}
+              {relicSetTags.length > 0 && <span className="text-[12px] font-black text-amber-200">×{RELIC_SET_X}</span>}
             </motion.button>
           )}
           <button
             type="button"
             onClick={() => setShowRunMenu(true)}
             aria-label="Menu"
-            className="relative h-10 w-10 shrink-0 rounded-full flex items-center justify-center text-white/70 text-lg active:scale-95 transition"
+            className="relative h-10 w-10 shrink-0 rounded-full flex items-center justify-center text-white/70 text-xl active:scale-95 transition"
           >
             <span aria-hidden="true">☰</span>
           </button>
@@ -859,11 +859,11 @@ export function TopHUD({
           {showRelics && relicCounts.length > 0 && (
             <div className="absolute left-0 right-0 top-full mt-1 z-40 rounded-xl bg-[#203226] border border-white/[0.12] shadow-xl p-2 space-y-1.5 max-h-[calc(60dvh/var(--ui-zoom,1))] overflow-y-auto">
               <div className="flex items-center justify-between px-1">
-                <span className="text-[11px] font-semibold text-white/50">Your relics</span>
+                <span className="text-[12px] font-semibold text-white/50">Your relics</span>
                 <button
                   type="button"
                   onClick={() => setShowRelics(false)}
-                  className="h-9 px-3 rounded-lg bg-white/[0.08] text-[13px] font-semibold text-white/85"
+                  className="h-9 px-3 rounded-lg bg-white/[0.08] text-[14px] font-semibold text-white/85"
                 >
                   Done
                 </button>
@@ -885,7 +885,7 @@ export function TopHUD({
                   <div key={relicId} className={`flex gap-2.5 px-1 py-0.5 rounded-lg ${lit ? "bg-teal-300/15" : ""}`}>
                     <RelicIcon id={relicId} size={30} />
                     <div className="min-w-0">
-                      <div className="text-[13px] font-bold text-white">
+                      <div className="text-[14px] font-bold text-white">
                         {rDef.name}
                         {count > 1 && <span className="text-teal-300"> ×{count}</span>}
                       </div>
@@ -951,7 +951,7 @@ export function TopHUD({
                           <span className="flex items-center gap-1.5 text-[14px] font-bold text-amber-100">
                             <UnlockIcon item={rank} size={26} /> {rank.name}
                             {flame > 0 && (
-                              <span className="ml-1.5 rounded bg-orange-400/15 px-1 text-[11px] text-orange-200"><Badge id="flame" />A{flame}</span>
+                              <span className="ml-1.5 rounded bg-orange-400/15 px-1 text-[12px] text-orange-200"><Badge id="flame" />A{flame}</span>
                             )}
                           </span>
                           {next && (
@@ -961,15 +961,15 @@ export function TopHUD({
                           )}
                         </span>
                         <span className="shrink-0 flex flex-col items-end leading-none" aria-label={`${totalStars} stars`}>
-                          <span className="text-[16px] font-mono font-black text-amber-200"><Badge id="star" /> {totalStars}</span>
-                          <span className="mt-0.5 text-[10.5px] text-white/50">stars</span>
+                          <span className="text-[16px] tabular-nums font-black text-amber-200"><Badge id="star" /> {totalStars}</span>
+                          <span className="mt-0.5 text-[10px] text-white/50">stars</span>
                         </span>
                       </div>
                     );
                   })()}
 
                   {gardenUpgradeList.length > 0 && (
-                    <div className="rounded-xl bg-emerald-400/[0.06] border border-emerald-300/20 px-3 py-1.5 text-[12.5px] text-white/85">
+                    <div className="rounded-xl bg-emerald-400/[0.06] border border-emerald-300/20 px-3 py-1.5 text-[12px] text-white/85">
                       {gardenUpgradeList.map((u) => (
                         <div key={u.name} className="truncate">
                           <SupplyIcon kind="upgrade" id={u.id} size={20} className="mr-0.5 align-[-5px]" /> <b>{u.name}:</b> <span className="text-white/60">{u.text}</span>
@@ -1143,8 +1143,8 @@ export function TopHUD({
           <span
             className={
               runOnly
-                ? "text-[12px] min-[360px]:text-[13px] font-sans font-extrabold text-white whitespace-nowrap"
-                : "text-[11px] font-sans font-black tracking-wide uppercase text-white whitespace-nowrap"
+                ? "text-[12px] min-[360px]:text-[14px] font-sans font-extrabold text-white whitespace-nowrap"
+                : "text-[12px] font-sans font-black tracking-wide uppercase text-white whitespace-nowrap"
             }
           >
             {isSanctuary ? "Bloomline" : "1-Stroke Tactician"}
@@ -1159,7 +1159,7 @@ export function TopHUD({
               onClick={onOpenGuide}
               title="Help: lessons and the full guide"
               aria-label="Help"
-              className="flex items-center gap-1 h-9 min-w-9 justify-center px-1.5 min-[360px]:px-2 rounded-lg bg-emerald-400/15 hover:bg-emerald-400/25 border border-emerald-300/40 text-[11px] font-mono font-extrabold text-emerald-100 active:scale-95 transition"
+              className="flex items-center gap-1 h-9 min-w-9 justify-center px-1.5 min-[360px]:px-2 rounded-lg bg-emerald-400/15 hover:bg-emerald-400/25 border border-emerald-300/40 text-[12px] tabular-nums font-extrabold text-emerald-100 active:scale-95 transition"
             >
               <span aria-hidden="true">❓</span>
               <span className="hidden min-[360px]:inline">Help</span>
@@ -1184,7 +1184,7 @@ export function TopHUD({
               type="button"
               onClick={onOpenSanctuaryGallery}
               title="Open Sanctuary Seed Mosaic Gallery"
-              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-300/40 text-[10px] font-mono font-extrabold text-amber-200 shadow-[0_0_10px_rgba(251,191,36,0.2)] active:scale-95 transition"
+              className="flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-500/15 hover:bg-amber-500/25 border border-amber-300/40 text-[10px] tabular-nums font-extrabold text-amber-200 shadow-[0_0_10px_rgba(251,191,36,0.2)] active:scale-95 transition"
             >
               <span>🌰</span>
               <span className="hidden xs:inline">Gallery</span>
@@ -1201,7 +1201,7 @@ export function TopHUD({
                 : "Switch to the Garden board skin"
             }
             aria-label={isSanctuarySkin ? "Board skin: Garden" : "Board skin: Night"}
-            className={`${runOnly ? "h-9 min-w-9 justify-center px-1.5" : "px-2 py-1"} rounded-lg border text-[10px] font-mono font-bold transition active:scale-95 flex items-center gap-1 ${
+            className={`${runOnly ? "h-9 min-w-9 justify-center px-1.5" : "px-2 py-1"} rounded-lg border text-[10px] tabular-nums font-bold transition active:scale-95 flex items-center gap-1 ${
               isSanctuarySkin
                 ? "bg-amber-400/20 border-amber-300/50 text-amber-100"
                 : "bg-cyan-500/20 border-cyan-400/50 text-cyan-200"
@@ -1232,7 +1232,7 @@ export function TopHUD({
           {!runOnly && (
           <div
             title="Daily Streak"
-            className="flex items-center gap-1 px-1.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/25 text-amber-400 text-[10px] font-mono font-bold"
+            className="flex items-center gap-1 px-1.5 py-1 rounded-lg bg-amber-500/10 border border-amber-500/25 text-amber-400 text-[10px] tabular-nums font-bold"
           >
             <Flame className="w-3 h-3 fill-amber-400/25 text-amber-400" />
             <span>{playerStats.currentStreak}</span>
@@ -1266,7 +1266,7 @@ export function TopHUD({
             onToggleTutorial(false);
             onSwitchMode("DAILY");
           }}
-          className={`flex-1 py-1 sm:py-1.5 text-center rounded-lg text-[10px] font-mono font-bold transition active:scale-95 ${
+          className={`flex-1 py-1 sm:py-1.5 text-center rounded-lg text-[10px] tabular-nums font-bold transition active:scale-95 ${
             !isAnyTutorialActive && (mode === "DAILY" || mode === "ARCHIVE")
               ? "bg-cyan-400 text-slate-950 font-black shadow-[0_0_12px_rgba(34,211,238,0.45)]"
               : "text-indigo-200/70 hover:text-white hover:bg-white/5"
@@ -1282,7 +1282,7 @@ export function TopHUD({
             onToggleTutorial(false);
             onSwitchMode("SANDBOX");
           }}
-          className={`flex-1 py-1 sm:py-1.5 text-center rounded-lg text-[10px] font-mono font-bold transition active:scale-95 ${
+          className={`flex-1 py-1 sm:py-1.5 text-center rounded-lg text-[10px] tabular-nums font-bold transition active:scale-95 ${
             !isAnyTutorialActive && mode === "SANDBOX"
               ? "bg-cyan-400 text-slate-950 font-black shadow-[0_0_12px_rgba(34,211,238,0.45)]"
               : "text-indigo-200/70 hover:text-white hover:bg-white/5"
@@ -1298,7 +1298,7 @@ export function TopHUD({
             onToggleTutorial(false);
             onSwitchMode("RUN");
           }}
-          className={`flex-1 py-1 sm:py-1.5 text-center rounded-lg text-[10px] font-mono font-bold transition active:scale-95 ${
+          className={`flex-1 py-1 sm:py-1.5 text-center rounded-lg text-[10px] tabular-nums font-bold transition active:scale-95 ${
             !isAnyTutorialActive && mode === "RUN"
               ? "bg-gradient-to-r from-emerald-400 to-cyan-400 text-slate-950 font-black shadow-[0_0_12px_rgba(52,211,153,0.45)]"
               : "text-emerald-300/90 hover:text-white hover:bg-white/5"
@@ -1318,7 +1318,7 @@ export function TopHUD({
               onOpenPassModal();
             }
           }}
-          className={`flex-1 py-1 sm:py-1.5 text-center rounded-lg text-[10px] font-mono font-bold transition active:scale-95 flex items-center justify-center gap-0.5 ${
+          className={`flex-1 py-1 sm:py-1.5 text-center rounded-lg text-[10px] tabular-nums font-bold transition active:scale-95 flex items-center justify-center gap-0.5 ${
             !isAnyTutorialActive && mode === "GAUNTLET"
               ? "bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white font-black shadow-[0_0_12px_rgba(168,85,247,0.45)]"
               : "text-violet-300 hover:text-white hover:bg-white/5"
@@ -1334,7 +1334,7 @@ export function TopHUD({
           type="button"
           disabled={isResolving}
           onClick={() => onToggleTutorial(!isAnyTutorialActive)}
-          className={`flex-1 py-1 sm:py-1.5 text-center rounded-lg text-[10px] font-mono font-bold transition active:scale-95 ${
+          className={`flex-1 py-1 sm:py-1.5 text-center rounded-lg text-[10px] tabular-nums font-bold transition active:scale-95 ${
             isAnyTutorialActive
               ? "bg-cyan-400 text-slate-950 font-black shadow-[0_0_12px_rgba(34,211,238,0.45)]"
               : "text-cyan-300/80 hover:text-cyan-200 hover:bg-white/5"
@@ -1357,13 +1357,13 @@ export function TopHUD({
               className="relative h-11 rounded-lg bg-[#131D16] border border-amber-400/40 flex items-center justify-center active:scale-95 transition"
             >
               <EntityIcon type="HERO" companionId={heroClassId} size={22} />
-              <span className="absolute bottom-0.5 right-1 text-[9px] leading-none text-amber-200/80" aria-hidden="true">▾</span>
+              <span className="absolute bottom-0.5 right-1 text-[10px] leading-none text-amber-200/80" aria-hidden="true">▾</span>
             </button>
             {[
               {
                 key: "magic",
                 label: "Life",
-                icon: <span className="text-[13px] leading-none">❤️</span>,
+                icon: <span className="text-[14px] leading-none">❤️</span>,
                 value: (
                   <>
                     {hero.hp}
@@ -1404,7 +1404,7 @@ export function TopHUD({
               >
                 <div className="flex items-center gap-1 leading-none">
                   {st.icon}
-                  <span className={`text-[15px] font-mono font-black leading-none ${st.color}`}>
+                  <span className={`text-[16px] tabular-nums font-black leading-none ${st.color}`}>
                     {st.value}
                   </span>
                 </div>
@@ -1422,11 +1422,11 @@ export function TopHUD({
           <div className="flex items-center gap-1.5 shrink-0">
             {/* Floor Stepper */}
             {isInteractiveTutorial ? (
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-cyan-500/25 border border-cyan-400 text-white shadow-[0_0_8px_rgba(34,211,238,0.35)]">
+              <span className="px-1.5 py-0.5 rounded text-[10px] tabular-nums font-bold bg-cyan-500/25 border border-cyan-400 text-white shadow-[0_0_8px_rgba(34,211,238,0.35)]">
                 T{tutorialStageNumber}/7
               </span>
             ) : (
-              <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-violet-500/25 border border-violet-400 text-white shadow-[0_0_8px_rgba(139,92,246,0.35)]">
+              <span className="px-1.5 py-0.5 rounded text-[10px] tabular-nums font-bold bg-violet-500/25 border border-violet-400 text-white shadow-[0_0_8px_rgba(139,92,246,0.35)]">
                 {isSanctuary ? "G" : "F"}
                 {currentFloorIndex + 1}
                 {mode === "RUN" ? "" : `/${totalFloors}`}
@@ -1461,7 +1461,7 @@ export function TopHUD({
               type="button"
               onClick={() => setShowModifierDetail((prev) => !prev)}
               title="Tap for modifier details & tactical tips"
-              className="flex-1 min-w-0 flex items-center justify-between gap-1 px-2 py-0.5 rounded-lg bg-[#0C120E]/80 border border-white/10 hover:border-indigo-400/40 text-[10px] font-mono transition"
+              className="flex-1 min-w-0 flex items-center justify-between gap-1 px-2 py-0.5 rounded-lg bg-[#0C120E]/80 border border-white/10 hover:border-indigo-400/40 text-[10px] tabular-nums transition"
             >
               <div className="flex items-center gap-1.5 truncate">
                 <span
@@ -1491,7 +1491,7 @@ export function TopHUD({
                 ? "Today's Daily is played with the Keeper. Other companions play in Free Play."
                 : "Switch Companion"
             }
-            className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[#131D16] hover:bg-[#1C2B21] border border-amber-400/35 text-[10px] font-mono font-bold text-amber-200 transition active:scale-95 shrink-0"
+            className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-[#131D16] hover:bg-[#1C2B21] border border-amber-400/35 text-[10px] tabular-nums font-bold text-amber-200 transition active:scale-95 shrink-0"
           >
             <EntityIcon type="HERO" companionId={heroClassId} size={13} />
             <span className="truncate max-w-[65px]">
@@ -1500,7 +1500,7 @@ export function TopHUD({
             {isDailyCompanionLocked ? (
               <Lock className="w-2.5 h-2.5 opacity-70" />
             ) : (
-              <span className="text-[8px] opacity-70">▾</span>
+              <span className="text-[10px] opacity-70">▾</span>
             )}
           </button>
         </div>
@@ -1518,14 +1518,14 @@ export function TopHUD({
             }`}
           >
             <div className="flex items-center gap-1">
-              <span className="text-[11px] leading-none">{isSanctuary ? "❤️" : "❤️"}</span>
-              <span className="text-[9px] font-sans font-bold uppercase opacity-80">
+              <span className="text-[12px] leading-none">{isSanctuary ? "❤️" : "❤️"}</span>
+              <span className="text-[10px] font-sans font-bold uppercase opacity-80">
                 {isSanctuary ? "LIFE" : "HP"}
               </span>
             </div>
-            <span className="text-xs font-mono font-black text-white">
+            <span className="text-xs tabular-nums font-black text-white">
               {hero.hp}
-              <span className="text-[9px] opacity-50">/{hero.maxHp}</span>
+              <span className="text-[10px] opacity-50">/{hero.maxHp}</span>
             </span>
           </div>
 
@@ -1539,11 +1539,11 @@ export function TopHUD({
           >
             <div className="flex items-center gap-1">
               <EntityIcon type="SHIELD" size={13} />
-              <span className="text-[9px] font-sans font-bold uppercase opacity-80">
+              <span className="text-[10px] font-sans font-bold uppercase opacity-80">
                 {isSanctuary ? "SHIELD" : "SHD"}
               </span>
             </div>
-            <span className="text-xs font-mono font-black text-[#38BDF8]">
+            <span className="text-xs tabular-nums font-black text-[#38BDF8]">
               {heroClassId === "VAMPIRE"
                 ? isSanctuary
                   ? "–"
@@ -1562,11 +1562,11 @@ export function TopHUD({
           >
             <div className="flex items-center gap-1">
               <EntityIcon type="WEAPON" size={13} />
-              <span className="text-[9px] font-sans font-bold uppercase opacity-80">
+              <span className="text-[10px] font-sans font-bold uppercase opacity-80">
                 {isSanctuary ? "SUN" : "WPN"}
               </span>
             </div>
-            <span className="text-xs font-mono font-black text-[#FBBF24]">
+            <span className="text-xs tabular-nums font-black text-[#FBBF24]">
               {hero.weapon}
             </span>
           </div>
@@ -1582,11 +1582,11 @@ export function TopHUD({
           >
             <div className="flex items-center gap-1">
               <EntityIcon type="GOLD" size={13} />
-              <span className="text-[9px] font-sans font-bold uppercase opacity-80">
+              <span className="text-[10px] font-sans font-bold uppercase opacity-80">
                 {isSanctuary ? "GEMS" : "GLD"}
               </span>
             </div>
-            <span className="text-xs font-mono font-black text-[#FACC15]">
+            <span className="text-xs tabular-nums font-black text-[#FACC15]">
               {hero.gold}
             </span>
           </div>
@@ -1615,7 +1615,7 @@ export function TopHUD({
         {showModifierDetail && !isInteractiveTutorial && (
           <div className="pt-1.5 border-t border-indigo-500/20 text-[10px] space-y-0.5">
             <p className="text-white font-sans">{modifier.description}</p>
-            <p className="font-mono text-cyan-300">
+            <p className="tabular-nums text-cyan-300">
               TIP: {modifier.tacticalHint}
             </p>
           </div>
@@ -1623,7 +1623,7 @@ export function TopHUD({
 
         {/* Optional 3-Star Targets Tooltip */}
         {showStarBreakdown && !showTutorial && (
-          <div className="pt-1.5 border-t border-amber-500/20 text-[10px] font-mono space-y-0.5">
+          <div className="pt-1.5 border-t border-amber-500/20 text-[10px] tabular-nums space-y-0.5">
             {starFlags.map((st, idx) => (
               <div
                 key={idx}
@@ -1645,7 +1645,7 @@ export function TopHUD({
         {/* Active Drafted Relics Row (shown only when 1+ Relics are active) */}
         {!isInteractiveTutorial && relicCounts.length > 0 && (
           <div className="flex items-center gap-1 overflow-x-auto no-scrollbar pt-1 border-t border-indigo-500/15">
-            <span className="text-[10px] font-mono font-bold uppercase text-indigo-300/70 shrink-0">
+            <span className="text-[10px] tabular-nums font-bold uppercase text-indigo-300/70 shrink-0">
               {runOnly ? "Relics" : isSanctuary ? "BLESSINGS:" : "RELICS:"}
             </span>
             {relicCounts.map(([relicId, count]) => {
@@ -1654,7 +1654,7 @@ export function TopHUD({
                 <div
                   key={relicId}
                   title={rDef.description}
-                  className="inline-flex items-center gap-1 px-1.5 py-1 rounded-md bg-[#0C120E] border border-white/10 text-[10px] font-mono font-bold text-white shrink-0 whitespace-nowrap"
+                  className="inline-flex items-center gap-1 px-1.5 py-1 rounded-md bg-[#0C120E] border border-white/10 text-[10px] tabular-nums font-bold text-white shrink-0 whitespace-nowrap"
                 >
                   <span>{rDef.icon}</span>
                   <span>{rDef.name}</span>
@@ -1703,7 +1703,7 @@ export function TopHUD({
                   <div className="text-[10px] font-sans font-bold text-white truncate leading-tight">
                     {stepNarratorText}
                   </div>
-                  <div className="text-[9px] font-mono truncate leading-tight">
+                  <div className="text-[10px] tabular-nums truncate leading-tight">
                     {simulation.firstDeathCoord ? (
                       <span
                         className={
@@ -1732,7 +1732,7 @@ export function TopHUD({
               </div>
 
               {/* Projected Stats */}
-              <div className="flex items-center gap-1 shrink-0 font-mono text-[11px] font-black">
+              <div className="flex items-center gap-1 shrink-0 tabular-nums text-[12px] font-black">
                 <span
                   className={`px-1.5 py-0.5 rounded border ${
                     simulation.projectedHp <= 0
@@ -1751,7 +1751,7 @@ export function TopHUD({
               </div>
             </>
           ) : isResolving ? (
-            <div className="w-full flex items-center justify-between text-xs font-mono text-cyan-300">
+            <div className="w-full flex items-center justify-between text-xs tabular-nums text-cyan-300">
               <span className="animate-pulse font-bold">
                 {isSanctuary
                   ? "🌸 BLOOMING CRYSTAL PATH..."
@@ -1760,7 +1760,7 @@ export function TopHUD({
               <span>{isSanctuary ? "" : "180ms / STEP"}</span>
             </div>
           ) : (
-            <div className="w-full flex items-center justify-between text-xs font-mono">
+            <div className="w-full flex items-center justify-between text-xs tabular-nums">
               <span>❤️ {retractNotice}</span>
               <span className="text-[10px] text-amber-300/80">Re-draw</span>
             </div>
@@ -1845,7 +1845,7 @@ export function BottomControls({
           type="button"
           disabled={isResolving}
           onClick={onResetFloorStroke}
-          className={mode === "RUN" ? "h-11 [@media(min-height:800px)]:h-14 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[13px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-35" : "flex-1 h-10 px-2 rounded-xl whitespace-nowrap bg-[#17221B]/80 hover:bg-[#233328]/90 border border-indigo-500/40 text-[11px] font-mono font-bold text-indigo-200 hover:text-white shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition disabled:opacity-40"}
+          className={mode === "RUN" ? "h-11 [@media(min-height:800px)]:h-14 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[14px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-35" : "flex-1 h-10 px-2 rounded-xl whitespace-nowrap bg-[#17221B]/80 hover:bg-[#233328]/90 border border-indigo-500/40 text-[12px] tabular-nums font-bold text-indigo-200 hover:text-white shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition disabled:opacity-40"}
         >
           {mode === "RUN" ? (
             <span className="inline-flex items-center gap-1.5">
@@ -1862,7 +1862,7 @@ export function BottomControls({
             disabled={swap.disabled || (swap.left <= 0 && !swap.active)}
             onClick={swap.active && (swap.picked ?? 0) > 0 && swap.onConfirm ? swap.onConfirm : swap.onToggle}
             aria-pressed={swap.active}
-            className={`h-11 [@media(min-height:800px)]:h-14 rounded-xl border text-[13px] font-semibold transition active:scale-95 disabled:opacity-35 ${
+            className={`h-11 [@media(min-height:800px)]:h-14 rounded-xl border text-[14px] font-semibold transition active:scale-95 disabled:opacity-35 ${
               swap.active
                 ? "bg-lime-300 text-slate-950 border-lime-200"
                 : swap.urge === "strong"
@@ -1894,7 +1894,7 @@ export function BottomControls({
             disabled={isResolving}
             onClick={skip.onToggle}
             aria-pressed={skip.open}
-            className={`h-11 [@media(min-height:800px)]:h-14 rounded-xl border text-[13px] font-semibold transition active:scale-95 disabled:opacity-35 ${
+            className={`h-11 [@media(min-height:800px)]:h-14 rounded-xl border text-[14px] font-semibold transition active:scale-95 disabled:opacity-35 ${
               skip.open ? "bg-amber-300 text-slate-950 border-amber-200" : "bg-white/[0.05] border-amber-300/30 text-amber-100/90"
             }`}
           >
@@ -1909,7 +1909,7 @@ export function BottomControls({
           disabled={isResolving || hintsRemaining <= 0}
           onClick={onRequestHint}
           title="Highlight 3 safe steps of a winning path for 5 seconds"
-          className={mode === "RUN" ? "h-11 [@media(min-height:800px)]:h-14 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[13px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-35 flex items-center gap-1.5" : "h-10 px-2 rounded-xl whitespace-nowrap bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/50 text-[11px] font-mono font-extrabold text-amber-300 hover:text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.2)] active:scale-95 transition disabled:opacity-35 flex items-center gap-1.5"}
+          className={mode === "RUN" ? "h-11 [@media(min-height:800px)]:h-14 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[14px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-35 flex items-center gap-1.5" : "h-10 px-2 rounded-xl whitespace-nowrap bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/50 text-[12px] tabular-nums font-extrabold text-amber-300 hover:text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.2)] active:scale-95 transition disabled:opacity-35 flex items-center gap-1.5"}
         >
           <Sparkles className={mode === "RUN" ? "w-4 h-4 text-amber-300" : "w-3.5 h-3.5 text-amber-400"} />
           <span>
@@ -1923,7 +1923,7 @@ export function BottomControls({
           type="button"
           disabled={isResolving}
           onClick={onRestartRun}
-          className="h-10 px-2 rounded-xl whitespace-nowrap bg-[#17221B]/80 hover:bg-[#233328]/90 border border-indigo-500/40 text-[11px] font-mono font-bold text-indigo-200 hover:text-white shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition flex items-center justify-center gap-1 disabled:opacity-40"
+          className="h-10 px-2 rounded-xl whitespace-nowrap bg-[#17221B]/80 hover:bg-[#233328]/90 border border-indigo-500/40 text-[12px] tabular-nums font-bold text-indigo-200 hover:text-white shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition flex items-center justify-center gap-1 disabled:opacity-40"
         >
           <RefreshCw className="w-3 h-3 text-cyan-400" />
           <span>{isSanctuary ? "RESTART" : "RESET"}</span>
@@ -1933,7 +1933,7 @@ export function BottomControls({
           type="button"
           disabled={isResolving}
           onClick={onForfeitRun}
-          className="h-10 px-2 rounded-xl whitespace-nowrap bg-[#17221B]/80 hover:bg-[#2A1526]/90 border border-indigo-500/40 hover:border-red-500/50 text-[11px] font-mono font-bold text-indigo-200 hover:text-red-200 shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition disabled:opacity-40 flex items-center"
+          className="h-10 px-2 rounded-xl whitespace-nowrap bg-[#17221B]/80 hover:bg-[#2A1526]/90 border border-indigo-500/40 hover:border-red-500/50 text-[12px] tabular-nums font-bold text-indigo-200 hover:text-red-200 shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition disabled:opacity-40 flex items-center"
         >
           {isSanctuary ? "END VISIT" : "END RUN"}
         </button>
@@ -1945,7 +1945,7 @@ export function BottomControls({
             type="button"
             disabled={isResolving}
             onClick={onNewSandboxDungeon}
-            className="h-10 px-2 rounded-xl whitespace-nowrap bg-[#17221B]/80 hover:bg-[#233328]/90 border border-indigo-500/40 text-[11px] font-mono font-bold text-indigo-200 hover:text-white shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition flex items-center justify-center gap-1 disabled:opacity-40"
+            className="h-10 px-2 rounded-xl whitespace-nowrap bg-[#17221B]/80 hover:bg-[#233328]/90 border border-indigo-500/40 text-[12px] tabular-nums font-bold text-indigo-200 hover:text-white shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition flex items-center justify-center gap-1 disabled:opacity-40"
           >
             <Sparkles className="w-3 h-3 text-violet-400" />
             <span>{isSanctuary ? "NEW GARDEN" : "SEED"}</span>

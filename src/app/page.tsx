@@ -4052,11 +4052,11 @@ export default function OneStrokeTacticianPage() {
                     className="pointer-events-none absolute inset-0 z-30 rounded-xl border border-amber-300/50 bg-[#1F2922] px-3 flex items-center justify-between gap-2"
                     role="status"
                   >
-                    <span className="text-[22px] font-mono font-black text-amber-200 leading-none">
+                    <span className="text-[20px] tabular-nums font-black text-amber-200 leading-none">
                       +{formatScore(lineToast.points)}
                     </span>
-                    <span className="text-right text-[11px] leading-tight text-white/75">
-                      <span className="font-mono font-black text-white">
+                    <span className="text-right text-[12px] leading-tight text-white/75">
+                      <span className="tabular-nums font-black text-white">
                         {formatScore(lineToast.score)} / {formatScore(lineToast.target)}
                       </span>
                       <br />
@@ -4083,8 +4083,8 @@ export default function OneStrokeTacticianPage() {
                       className="w-full h-full rounded-xl px-4 flex flex-col items-center justify-center text-center shadow-[0_0_40px_rgba(0,0,0,0.5)] border-2 border-white/70"
                       style={{ backgroundColor: lineCallout.color }}
                     >
-                      <div className="text-[24px] font-black leading-none text-slate-950">{lineCallout.name}!</div>
-                      <div className="mt-0.5 text-[12px] font-mono font-black text-slate-900/80">
+                      <div className="text-[26px] font-black leading-none text-slate-950">{lineCallout.name}!</div>
+                      <div className="mt-0.5 text-[12px] tabular-nums font-black text-slate-900/80">
                         {lineCallout.tiles} tiles · {lineCallout.points.toLocaleString()} points
                       </div>
                     </div>
@@ -4119,7 +4119,7 @@ export default function OneStrokeTacticianPage() {
       <div className="rotate-hint fixed inset-0 z-[90] bg-[#101813] flex-col items-center justify-center gap-3 text-center px-6">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={miscArt("rotate-phone")} alt="" aria-hidden="true" draggable={false} className="h-20 w-20 object-contain" />
-        <div className="text-lg font-black text-white">Turn your phone upright</div>
+        <div className="text-xl font-black text-white">Turn your phone upright</div>
         <p className="text-sm text-indigo-100/80 max-w-xs">
           Bloomline is played in portrait so the whole garden fits on screen.
         </p>
@@ -4127,7 +4127,7 @@ export default function OneStrokeTacticianPage() {
 
       {/* Training Complete Toast Banner */}
       {trainingToastBanner && (
-        <div className="w-full max-w-game mx-auto mb-1.5 rounded-xl px-3 py-2 bg-emerald-500/20 border border-emerald-400 text-emerald-100 font-mono text-xs font-extrabold text-center shadow-[0_0_24px_rgba(16,185,129,0.45)] animate-pulse">
+        <div className="w-full max-w-game mx-auto mb-1.5 rounded-xl px-3 py-2 bg-emerald-500/20 border border-emerald-400 text-emerald-100 tabular-nums text-xs font-extrabold text-center shadow-[0_0_24px_rgba(16,185,129,0.45)] animate-pulse">
           ✨ {trainingToastBanner}
         </div>
       )}
@@ -4194,7 +4194,7 @@ export default function OneStrokeTacticianPage() {
           ) : (meterBusy || noticeInCard) && runGarden && !lesson ? (
             <>
               {/* What the card hides while scoring, in one slim row (a notice takes the whole card) */}
-              <div className={`${noticeInCard ? "hidden" : "flex"} items-center gap-2 px-1 text-[13px] text-white/75 whitespace-nowrap overflow-hidden`}>
+              <div className={`${noticeInCard ? "hidden" : "flex"} items-center gap-2 px-1 text-[14px] text-white/75 whitespace-nowrap overflow-hidden`}>
                 {/* Life follows the line: where it ends while you draw, tile by tile while it scores */}
                 {(() => {
                   const start = floorStartHero.hp;
@@ -4230,7 +4230,7 @@ export default function OneStrokeTacticianPage() {
                 <div
                   role="status"
                   onClick={noticeSticky && retractNotice ? () => (setRetractNotice(null), setNoticeSticky(false)) : undefined}
-                  className={`min-h-0 flex-1 rounded-lg px-3 py-2 flex flex-col justify-center gap-1.5 text-[12.5px] leading-snug font-bold border overflow-hidden ${
+                  className={`min-h-0 flex-1 rounded-lg px-3 py-2 flex flex-col justify-center gap-1.5 text-[12px] leading-snug font-bold border overflow-hidden ${
                     retractNotice ? "bg-[#1F1A10] border-amber-300/50 text-amber-50" : "bg-[#2A1018] border-rose-300/50 text-rose-50"
                   } ${noticeSticky && retractNotice ? "cursor-pointer" : ""}`}
                 >
@@ -4432,7 +4432,7 @@ export default function OneStrokeTacticianPage() {
           {/* First-visit coach on the real Daily */}
           {!isInteractiveTutorial && coachStep !== null && (
             <div className="w-full max-w-game min-w-0 rounded-xl px-3 py-2 bg-[#223629]/95 border border-amber-300/40 flex items-start gap-2.5 shadow-[0_0_20px_rgba(251,191,36,0.15)]">
-              <span className="text-lg leading-none mt-0.5">
+              <span className="text-xl leading-none mt-0.5">
                 {coachStep === 0 ? "🐱" : coachStep === 1 ? "✨" : "⭐"}
               </span>
               <p className="flex-1 min-w-0 text-xs font-sans leading-snug text-amber-50">
@@ -4453,7 +4453,7 @@ export default function OneStrokeTacticianPage() {
                     // Ignore storage errors
                   }
                 }}
-                className="shrink-0 text-[10px] font-mono font-bold px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-amber-100"
+                className="shrink-0 text-[10px] tabular-nums font-bold px-2 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-amber-100"
               >
                 {coachStep === 2 ? "Got it" : "Skip"}
               </button>
@@ -4493,10 +4493,10 @@ export default function OneStrokeTacticianPage() {
                 {BOSS_RULE_REGISTRY[currentFloor.bossRuleId].icon}
               </span>
               <div className="min-w-0">
-                <div className="text-[13px] font-bold text-rose-100 leading-snug">
+                <div className="text-[14px] font-bold text-rose-100 leading-snug">
                   {BOSS_RULE_REGISTRY[currentFloor.bossRuleId].description}
                 </div>
-                <div className="text-[11px] leading-snug text-rose-50/65">
+                <div className="text-[12px] leading-snug text-rose-50/65">
                   Boss · {BOSS_RULE_REGISTRY[currentFloor.bossRuleId].name}
                   {currentFloorIndex < dungeon.floors.length - 1 &&
                     <> · <Badge id="crown" /> Legendary relic if cleared</>}
@@ -4510,7 +4510,7 @@ export default function OneStrokeTacticianPage() {
               <button
                 type="button"
                 onClick={() => requestNewRun()}
-                className="w-full max-w-game rounded-xl py-2 bg-emerald-300 text-slate-950 font-mono text-xs font-black"
+                className="w-full max-w-game rounded-xl py-2 bg-emerald-300 text-slate-950 tabular-nums text-xs font-black"
               >
                 Garden Run over. Start a new one
               </button>
@@ -4540,14 +4540,14 @@ export default function OneStrokeTacticianPage() {
                   <button
                     type="button"
                     onClick={handleSkipBed}
-                    className="flex-1 h-12 rounded-xl bg-amber-300 text-slate-950 text-[15px] font-bold active:scale-95"
+                    className="flex-1 h-12 rounded-xl bg-amber-300 text-slate-950 text-[16px] font-bold active:scale-95"
                   >
                     Skip for the Tag
                   </button>
                   <button
                     type="button"
                     onClick={() => setSkipOpen(false)}
-                    className="flex-1 h-12 rounded-xl bg-white/[0.06] border border-white/10 text-[15px] font-semibold text-white/85"
+                    className="flex-1 h-12 rounded-xl bg-white/[0.06] border border-white/10 text-[16px] font-semibold text-white/85"
                   >
                     Keep playing
                   </button>
@@ -4715,7 +4715,7 @@ lesson
             {phase === "FLOOR_CLEARED" && isInteractiveTutorial && (
               <div className="absolute inset-0 z-40 flex items-center justify-center pointer-events-none">
                 <div className="bg-[#0A0C0B]/95 border-2 border-emerald-400 rounded-2xl px-6 py-4 text-center shadow-[0_0_40px_rgba(16,185,129,0.5)] animate-bounce">
-                  <div className="text-xs font-mono font-bold uppercase text-emerald-400 tracking-widest">
+                  <div className="text-xs tabular-nums font-bold uppercase text-emerald-400 tracking-widest">
                     {isInteractiveTutorial
                       ? isSanctuary
                         ? `GARDEN LESSON ${activeTutorialStage.stageNumber}/${TUTORIAL_STAGES.length}`
@@ -4724,7 +4724,7 @@ lesson
                       ? "GARDEN RESTORED 🌸"
                       : "SECTOR SECURED"}
                   </div>
-                  <div className="text-lg font-sans font-extrabold text-white mt-0.5">
+                  <div className="text-xl font-sans font-extrabold text-white mt-0.5">
                     {isInteractiveTutorial
                       ? activeTutorialStage.stageNumber === TUTORIAL_STAGES.length
                         ? isSanctuary
@@ -4765,7 +4765,7 @@ lesson
                       const lastRecord = floorHistory[floorHistory.length - 1];
                       if (!lastRecord?.parScore) {
                         return (
-                          <div className="text-[11px] font-mono text-indigo-300/70">
+                          <div className="text-[12px] tabular-nums text-indigo-300/70">
                             Finding today&apos;s par…
                           </div>
                         );
@@ -4775,7 +4775,7 @@ lesson
                       );
                       return (
                         <div
-                          className={`text-xs font-mono font-bold ${
+                          className={`text-xs tabular-nums font-bold ${
                             pct >= 100 ? "text-amber-300" : "text-cyan-300"
                           }`}
                         >
@@ -4785,7 +4785,7 @@ lesson
                         </div>
                       );
                     })()}
-                  <div className="text-[11px] font-mono text-violet-300 mt-1">
+                  <div className="text-[12px] tabular-nums text-violet-300 mt-1">
                     {isInteractiveTutorial
                       ? activeTutorialStage.stageNumber === TUTORIAL_STAGES.length
                         ? isSanctuary
@@ -4833,18 +4833,18 @@ lesson
                   className="w-full max-w-[320px] rounded-2xl border border-amber-300/40 bg-[#1B281F] p-4 text-center text-white"
                 >
                   <div className="text-[12px] font-semibold text-amber-200">How to score big</div>
-                  <div className="mt-1 flex items-end justify-center gap-4 font-mono font-black">
+                  <div className="mt-1 flex items-end justify-center gap-4 tabular-nums font-black">
                     <span className="flex flex-col items-center">
-                      <span className="text-[11px] font-sans font-semibold text-white/55">Short way</span>
-                      <span className="text-[22px] text-white/70">{demoScores?.short.toLocaleString()}</span>
+                      <span className="text-[12px] font-sans font-semibold text-white/55">Short way</span>
+                      <span className="text-[20px] text-white/70">{demoScores?.short.toLocaleString()}</span>
                     </span>
-                    <span className="pb-1 text-[13px] text-white/40">vs</span>
+                    <span className="pb-1 text-[14px] text-white/40">vs</span>
                     <span className="flex flex-col items-center">
-                      <span className="text-[11px] font-sans font-semibold text-white/55">Long way</span>
-                      <span className="text-[30px] text-amber-200">{demoScores?.long.toLocaleString()}</span>
+                      <span className="text-[12px] font-sans font-semibold text-white/55">Long way</span>
+                      <span className="text-[32px] text-amber-200">{demoScores?.long.toLocaleString()}</span>
                     </span>
                   </div>
-                  <div className="mt-2 text-[13px] leading-snug text-white/85">
+                  <div className="mt-2 text-[14px] leading-snug text-white/85">
                     Points = <b>Value × Length</b>. Longer lines through good tiles multiply your points.
                   </div>
                   <button
@@ -4863,10 +4863,10 @@ lesson
                 aria-label="Skip the demo"
                 className="absolute inset-0 z-[60] flex items-start justify-between rounded-2xl p-2 text-left"
               >
-                <span className="rounded-full bg-black/60 px-2.5 py-1 text-[11.5px] font-semibold text-amber-100">
+                <span className="rounded-full bg-black/60 px-2.5 py-1 text-[12px] font-semibold text-amber-100">
                   ▶ Demo · {lessonDemo === "short" ? "the short way" : "the long way"}
                 </span>
-                <span className="rounded-full bg-black/60 px-2.5 py-1 text-[11.5px] font-semibold text-white/80">
+                <span className="rounded-full bg-black/60 px-2.5 py-1 text-[12px] font-semibold text-white/80">
                   Skip ›
                 </span>
               </button>
@@ -4973,15 +4973,15 @@ lesson
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={packetArt(runPackets[packetAsk])} alt="" aria-hidden="true" draggable={false} className="mx-auto h-20 w-20 object-contain" />
-                <div className="text-[18px] font-display font-semibold">{SEED_PACKETS[runPackets[packetAsk]].name}</div>
+                <div className="text-[20px] font-display font-semibold">{SEED_PACKETS[runPackets[packetAsk]].name}</div>
                 <p className="text-[14px] leading-snug text-white/80">{artify(SEED_PACKETS[runPackets[packetAsk]].text)}</p>
-                <p className="text-[11.5px] text-white/50">
+                <p className="text-[12px] text-white/50">
                   {SEED_PACKETS[runPackets[packetAsk]].nextLine ? "It waits for your next line." : "It works right away."} One use.
                 </p>
                 <button
                   type="button"
                   onClick={() => handleUsePacket(packetAsk)}
-                  className="w-full h-11 rounded-xl bg-fuchsia-300 text-slate-950 text-[15px] font-bold active:scale-[0.98]"
+                  className="w-full h-11 rounded-xl bg-fuchsia-300 text-slate-950 text-[16px] font-bold active:scale-[0.98]"
                 >
                   Use it
                 </button>
@@ -5115,14 +5115,14 @@ lesson
               <button
                 type="button"
                 onClick={() => setIsFinishConfirmOpen(false)}
-                className="py-2 rounded-xl bg-white text-slate-950 font-mono text-xs font-black"
+                className="py-2 rounded-xl bg-white text-slate-950 tabular-nums text-xs font-black"
               >
                 KEEP PLAYING
               </button>
               <button
                 type="button"
                 onClick={handleEndVisit}
-                className="py-2 rounded-xl bg-white/10 border border-white/20 text-white font-mono text-xs font-bold"
+                className="py-2 rounded-xl bg-white/10 border border-white/20 text-white tabular-nums text-xs font-bold"
               >
                 END VISIT
               </button>

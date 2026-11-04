@@ -995,7 +995,7 @@ export default function GridCanvas({
                     >
                       {/* What it adds, so a special tile never reads as the Exit or YOU */}
                       <span
-                        className="tile-tag absolute top-0.5 left-0.5 rounded-full bg-black/55 px-1 text-[9.5px] font-black leading-[14px] whitespace-nowrap"
+                        className="tile-tag absolute top-0.5 left-0.5 rounded-full bg-black/55 px-1 text-[10px] font-black leading-[14px] whitespace-nowrap"
                         aria-hidden="true"
                       >
                         ✦ {EDITION_LOOK[cell.bagTile.ed].short}
@@ -1013,7 +1013,7 @@ export default function GridCanvas({
                       className="tile-tag absolute bottom-0.5 left-0.5 z-20 flex items-center gap-px rounded-full bg-black/55 px-1 text-[10px] leading-[14px] text-amber-100 pointer-events-none select-none"
                     >
                       {cell.bagTile.enh && <SupplyIcon kind="tool" id={cell.bagTile.enh} size={13} />}
-                      {cell.bagTile.enh === "DEW" && <span className="text-[8.5px] font-black text-sky-200">{cell.bagTile.dew}</span>}
+                      {cell.bagTile.enh === "DEW" && <span className="text-[10px] font-black text-sky-200">{cell.bagTile.dew}</span>}
                       {cell.bagTile.echo && <SupplyIcon kind="tool" id="ECHO" size={13} />}
                     </span>
                   )}
@@ -1045,7 +1045,7 @@ export default function GridCanvas({
 
                   {/* Restored Blooming Tile Sparkle Accents during Resolution */}
                   {isResolvedInPlayback && isSanctuary && (
-                    <span className="absolute top-0.5 left-1 text-[9px] pointer-events-none select-none z-20">
+                    <span className="absolute top-0.5 left-1 text-[10px] pointer-events-none select-none z-20">
                       🌸
                     </span>
                   )}
@@ -1067,7 +1067,7 @@ export default function GridCanvas({
                           transition={{ duration: 0.65, ease: "easeOut" }}
                           className="absolute inset-0 flex items-center justify-center pointer-events-none z-40"
                         >
-                          <span className="px-2 py-0.5 rounded-full bg-amber-300/95 text-slate-950 font-mono text-[10px] font-black shadow-[0_0_20px_rgba(251,191,36,0.95)] flex items-center gap-0.5">
+                          <span className="px-2 py-0.5 rounded-full bg-amber-300/95 text-slate-950 tabular-nums text-[10px] font-black shadow-[0_0_20px_rgba(251,191,36,0.95)] flex items-center gap-0.5">
                             {artify(cell.type === "GOLD" ? "🌰" : "🌸")} +{cell.value || 1}
                           </span>
                         </motion.div>
@@ -1082,7 +1082,7 @@ export default function GridCanvas({
                           ? "#FDE047"
                           : heroClassDef.accentColor,
                       }}
-                      className="tile-tag absolute top-0.5 left-1/2 -translate-x-1/2 whitespace-nowrap text-slate-950 font-mono font-black text-[9px] px-1.5 py-0.5 rounded shadow leading-none pointer-events-none z-20"
+                      className="tile-tag absolute top-0.5 left-1/2 -translate-x-1/2 whitespace-nowrap text-slate-950 tabular-nums font-black text-[10px] px-1.5 py-0.5 rounded shadow leading-none pointer-events-none z-20"
                     >
                       {isSanctuary ? "YOU" : heroClassDef.shortName.toUpperCase()}
                     </span>
@@ -1092,7 +1092,7 @@ export default function GridCanvas({
                     <motion.span
                       initial={{ opacity: 0, x: "-50%", y: 6, scale: 0.8 }}
                       animate={{ opacity: 1, x: "-50%", y: 0, scale: 1 }}
-                      className="tile-tag absolute bottom-0.5 left-1/2 whitespace-nowrap rounded-full bg-amber-200 px-1.5 py-0.5 text-[9px] font-black text-slate-950 shadow-[0_0_14px_rgba(251,191,36,0.8)] pointer-events-none z-40"
+                      className="tile-tag absolute bottom-0.5 left-1/2 whitespace-nowrap rounded-full bg-amber-200 px-1.5 py-0.5 text-[10px] font-black text-slate-950 shadow-[0_0_14px_rgba(251,191,36,0.8)] pointer-events-none z-40"
                     >
                       ✓ Bloom
                     </motion.span>
@@ -1100,7 +1100,7 @@ export default function GridCanvas({
                   {teachSpike && cell.id === firstSpikeId && <SpikeLesson />}
                   {isExitCell && !stepSim && (
                     <span
-                      className={`tile-tag absolute top-0.5 left-1/2 -translate-x-1/2 whitespace-nowrap font-mono font-black text-[9px] px-1.5 py-0.5 rounded shadow leading-none pointer-events-none z-20 ${
+                      className={`tile-tag absolute top-0.5 left-1/2 -translate-x-1/2 whitespace-nowrap tabular-nums font-black text-[10px] px-1.5 py-0.5 rounded shadow leading-none pointer-events-none z-20 ${
                         isSanctuary
                           ? "bg-amber-200 text-slate-950"
                           : "bg-purple-500 text-white"
@@ -1111,14 +1111,14 @@ export default function GridCanvas({
                   )}
 
                   {hintStepNum !== undefined && !stepSim && !isHeroCell && (
-                    <span className="absolute top-1 left-1 bg-amber-400 text-slate-950 font-mono font-black text-[9px] px-1 py-0.5 rounded shadow leading-none pointer-events-none z-20">
+                    <span className="absolute top-1 left-1 bg-amber-400 text-slate-950 tabular-nums font-black text-[10px] px-1 py-0.5 rounded shadow leading-none pointer-events-none z-20">
                       💡{hintCoords.length > 1 ? hintStepNum : ""}
                     </span>
                   )}
 
                   {stepSim && (stepSim.stepIndex > 0 || crossSim) && (!calmWhileDrawing || isFirstDeathCell) && (
                     <span
-                      className={`tile-tag absolute top-1 right-1 whitespace-nowrap text-[9px] font-mono font-bold px-1.5 py-0.5 rounded leading-none pointer-events-none z-20 ${
+                      className={`tile-tag absolute top-1 right-1 whitespace-nowrap text-[10px] tabular-nums font-bold px-1.5 py-0.5 rounded leading-none pointer-events-none z-20 ${
                         isFirstDeathCell
                           ? isSanctuary
                             ? "bg-amber-300 text-slate-950 font-black shadow-[0_0_8px_#FDE047]"
@@ -1153,7 +1153,7 @@ export default function GridCanvas({
                     <motion.span
                       initial={{ scale: 0.5, y: 4, opacity: 0 }}
                       animate={{ scale: 1, y: 0, opacity: 1 }}
-                      className="tile-tag absolute -top-2 left-1 whitespace-nowrap bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 text-slate-950 font-mono font-black text-[9px] px-1.5 py-0.5 rounded-full border border-white/70 shadow-[0_0_12px_rgba(250,204,21,0.95)] leading-none pointer-events-none z-30"
+                      className="tile-tag absolute -top-2 left-1 whitespace-nowrap bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 text-slate-950 tabular-nums font-black text-[10px] px-1.5 py-0.5 rounded-full border border-white/70 shadow-[0_0_12px_rgba(250,204,21,0.95)] leading-none pointer-events-none z-30"
                     >
                       {isSanctuary
                         ? artify(<>🌰<span className="tile-tag-long"> ACORN</span> x{stepSim.goldComboCount}</>)
@@ -1564,7 +1564,7 @@ export default function GridCanvas({
                     x="0"
                     y="4"
                     textAnchor="middle"
-                    className="fill-white font-mono font-black text-[11px]"
+                    className="fill-white tabular-nums font-black text-[12px]"
                   >
                     ✦
                   </text>
@@ -1624,7 +1624,7 @@ export default function GridCanvas({
                 x="0"
                 y="5"
                 textAnchor="middle"
-                className="fill-slate-950 font-mono font-black text-[14px]"
+                className="fill-slate-950 tabular-nums font-black text-[14px]"
               >
                 {activeEmblemSymbol}
               </text>
@@ -1652,22 +1652,22 @@ function StepFloatingBadge({
       return artify(
         <span
           aria-label={`Needs ${needed} more Life`}
-          className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-amber-300 text-slate-950 border border-white/60 shadow-[0_0_12px_rgba(251,191,36,0.95)] tracking-tight whitespace-nowrap"
+          className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-amber-300 text-slate-950 border border-white/60 shadow-[0_0_12px_rgba(251,191,36,0.95)] tracking-tight whitespace-nowrap"
         >
           ❤️ +{needed}
         </span>
       );
     }
     return artify(
-      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-[#F43F5E] text-white border border-white/40 shadow-[0_0_12px_rgba(244,63,94,0.95)] tracking-tighter uppercase whitespace-nowrap">
-        💀 {step.hpDelta} HP
+      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-[#F43F5E] text-white border border-white/40 shadow-[0_0_12px_rgba(244,63,94,0.95)] tracking-tighter uppercase whitespace-nowrap">
+        ❤️ {step.hpDelta}
       </span>
     );
   }
 
   if (step.shatteredShield) {
     return artify(
-      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold bg-[#CFEA8F] text-slate-950 shadow-[0_0_10px_rgba(207,234,143,0.8)] whitespace-nowrap">
+      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-bold bg-[#CFEA8F] text-slate-950 shadow-[0_0_10px_rgba(207,234,143,0.8)] whitespace-nowrap">
         {isSanctuary ? <>🧤 0<span className="tile-tag-long"> GLOVES</span></> : "❄️ 0 SHD"}
       </span>
     );
@@ -1675,7 +1675,7 @@ function StepFloatingBadge({
 
   if (step.trapDodgedDiagonally) {
     return artify(
-      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-bold bg-emerald-300 text-slate-950 shadow-[0_0_10px_rgba(52,211,153,0.85)] whitespace-nowrap">
+      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-bold bg-emerald-300 text-slate-950 shadow-[0_0_10px_rgba(52,211,153,0.85)] whitespace-nowrap">
         {isSanctuary ? <>🌸<span className="tile-tag-long"> HOPPED!</span></> : "⚡ DODGED"}
       </span>
     );
@@ -1683,7 +1683,7 @@ function StepFloatingBadge({
 
   if (step.spikedBootsTriggered) {
     return artify(
-      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-amber-400 text-slate-950 shadow-[0_0_10px_rgba(245,158,11,0.9)] whitespace-nowrap">
+      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-amber-400 text-slate-950 shadow-[0_0_10px_rgba(245,158,11,0.9)] whitespace-nowrap">
         🥾 +{step.weaponDelta} {isSanctuary ? "✂️" : "WPN"}
       </span>
     );
@@ -1694,7 +1694,7 @@ function StepFloatingBadge({
     if (isSanctuary) {
       return artify(
         <span
-          className={`tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold shadow-md whitespace-nowrap ${
+          className={`tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold shadow-md whitespace-nowrap ${
             dmg < 0
               ? "bg-rose-400 text-slate-950 border border-white/40 shadow-[0_0_10px_rgba(251,113,133,0.75)]"
               : "bg-emerald-300 text-slate-950 shadow-[0_0_10px_rgba(52,211,153,0.85)]"
@@ -1706,7 +1706,7 @@ function StepFloatingBadge({
     }
     return artify(
       <span
-        className={`tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold shadow-md whitespace-nowrap ${
+        className={`tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold shadow-md whitespace-nowrap ${
           dmg < 0
             ? "bg-[#F43F5E] text-white border border-red-300/40 shadow-[0_0_10px_rgba(244,63,94,0.75)]"
             : dmg > 0
@@ -1724,13 +1724,13 @@ function StepFloatingBadge({
   if (step.cell.type === "SHIELD") {
     if (step.vampireTransmuteWeapon && step.vampireTransmuteWeapon > 0) {
       return artify(
-        <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-rose-500 text-white shadow-[0_0_10px_rgba(244,63,94,0.85)] whitespace-nowrap">
+        <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-rose-500 text-white shadow-[0_0_10px_rgba(244,63,94,0.85)] whitespace-nowrap">
           🩸 +{step.vampireTransmuteWeapon} WPN
         </span>
       );
     }
     return artify(
-      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-sky-300 text-slate-950 shadow-[0_0_10px_rgba(56,189,248,0.8)] whitespace-nowrap">
+      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-sky-300 text-slate-950 shadow-[0_0_10px_rgba(56,189,248,0.8)] whitespace-nowrap">
         +{step.shieldDelta} {isSanctuary ? "🧤" : "SHD"}
       </span>
     );
@@ -1738,7 +1738,7 @@ function StepFloatingBadge({
 
   if (step.cell.type === "WEAPON") {
     return artify(
-      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-amber-300 text-slate-950 shadow-[0_0_10px_rgba(251,191,36,0.85)] whitespace-nowrap">
+      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-amber-300 text-slate-950 shadow-[0_0_10px_rgba(251,191,36,0.85)] whitespace-nowrap">
         +{step.weaponDelta} {isSanctuary ? "✂️" : "WPN"}
       </span>
     );
@@ -1747,7 +1747,7 @@ function StepFloatingBadge({
   if (step.cell.type === "POTION") {
     return artify(
       <span
-        className={`tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold shadow-md whitespace-nowrap ${
+        className={`tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold shadow-md whitespace-nowrap ${
           step.hpDelta < 0
             ? "bg-rose-400 text-slate-950 shadow-[0_0_10px_rgba(244,63,94,0.8)]"
             : step.hpDelta === 0
@@ -1768,7 +1768,7 @@ function StepFloatingBadge({
 
   if (step.cell.type === "GOLD") {
     return artify(
-      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-[#FDE047] text-slate-950 shadow-[0_0_10px_rgba(250,204,21,0.85)] whitespace-nowrap">
+      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-[#FDE047] text-slate-950 shadow-[0_0_10px_rgba(250,204,21,0.85)] whitespace-nowrap">
         +{step.goldDelta} {isSanctuary ? "🌰" : "GLD"}
         {step.shieldDelta > 0 ? ` +${step.shieldDelta}🧤` : ""}
         {step.hpDelta > 0 ? ` +${step.hpDelta}❤️` : ""}
@@ -1778,7 +1778,7 @@ function StepFloatingBadge({
 
   if (step.cell.type === "TRAP") {
     return artify(
-      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-rose-400 text-slate-950 shadow-[0_0_10px_rgba(251,113,133,0.8)] whitespace-nowrap">
+      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-rose-400 text-slate-950 shadow-[0_0_10px_rgba(251,113,133,0.8)] whitespace-nowrap">
         {step.hpDelta} {isSanctuary ? "❤️" : "HP"}
       </span>
     );
@@ -1786,7 +1786,7 @@ function StepFloatingBadge({
 
   if (step.cell.type === "EXIT") {
     return artify(
-      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[9px] font-mono font-extrabold bg-amber-200 text-slate-950 border border-white/50 shadow-[0_0_12px_rgba(244,114,182,0.9)] whitespace-nowrap">
+      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-amber-200 text-slate-950 border border-white/50 shadow-[0_0_12px_rgba(244,114,182,0.9)] whitespace-nowrap">
         {isSanctuary ? "🌈 EXIT ✓" : "EXIT ✓"}
       </span>
     );
@@ -2024,7 +2024,7 @@ function TileIconWithValue({
       )}
       {type === "TRAP" && (
         <span
-          className="tile-tag absolute -top-1.5 -left-2 text-[11px] leading-none font-black text-slate-200 select-none pointer-events-none"
+          className="tile-tag absolute -top-1.5 -left-2 text-[12px] leading-none font-black text-slate-200 select-none pointer-events-none"
           aria-hidden="true"
           title="Step on it diagonally to dodge"
         >
@@ -2036,7 +2036,7 @@ function TileIconWithValue({
         <img src={`/art/icons/lawn-fringe-${fringe}.webp`} alt="" aria-hidden="true" draggable={false} className="lawn-fringe" />
       )}
       <span
-        className="absolute z-[2] -bottom-1 -right-1.5 min-w-[clamp(22px,6.4cqw,32px)] h-[clamp(21px,6.2cqw,31px)] px-1 flex items-center justify-center rounded-full font-mono font-extrabold text-[clamp(13px,4cqw,19px)] leading-none border select-none pointer-events-none"
+        className="absolute z-[2] -bottom-1 -right-1.5 min-w-[clamp(22px,6.4cqw,32px)] h-[clamp(21px,6.2cqw,31px)] px-1 flex items-center justify-center rounded-full tabular-nums font-extrabold text-[clamp(13px,4cqw,19px)] leading-none border select-none pointer-events-none"
         style={style}
       >
         {/* A shape as well as a colour (colour-blind friendly): a thorn on
@@ -2378,7 +2378,7 @@ function InspectorCard({
             {info.name}
           </span>
           <span
-            className={`font-mono font-extrabold text-[10px] px-2 py-0.5 rounded-full border shrink-0 ${
+            className={`tabular-nums font-extrabold text-[10px] px-2 py-0.5 rounded-full border shrink-0 ${
               isSanctuary
                 ? "bg-amber-400/20 border-amber-300/60 text-amber-200"
                 : "bg-cyan-500/20 border-cyan-400/60 text-cyan-200"
@@ -2387,7 +2387,7 @@ function InspectorCard({
             {info.valueLabel}
           </span>
         </div>
-        <p className="text-[11px] font-sans mt-1 leading-snug text-zinc-200">
+        <p className="text-[12px] font-sans mt-1 leading-snug text-zinc-200">
           {info.explanation}
         </p>
       </div>
@@ -2423,7 +2423,7 @@ function GuideHand({ path }: { path: GridCoord[] }) {
         Start here
       </div>
       <motion.div
-        className="absolute text-[30px] leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
+        className="absolute text-[32px] leading-none drop-shadow-[0_2px_4px_rgba(0,0,0,0.6)]"
         style={{ marginLeft: -6, marginTop: -4 }}
         initial={{ left: xs[0], top: ys[0], opacity: 0 }}
         animate={{

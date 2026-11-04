@@ -109,9 +109,9 @@ export function RunHudStrip({
       <div className="flex items-center justify-between gap-2 min-w-0">
         <div className="min-w-0">
           {label ? (
-            <div className="text-[13px] font-semibold text-lime-200/85 whitespace-nowrap truncate">{label}</div>
+            <div className="text-[14px] font-semibold text-lime-200/85 whitespace-nowrap truncate">{label}</div>
           ) : (
-          <div className="text-[13px] font-semibold text-white/75 whitespace-nowrap">
+          <div className="text-[14px] font-semibold text-white/75 whitespace-nowrap">
             Season {garden.season}
             {garden.season > RUN_FINAL_SEASON ? " · Endless" : ""} ·{" "}
             <span className={isBoss ? "text-rose-200" : "text-white/90"}>
@@ -139,7 +139,7 @@ export function RunHudStrip({
               onBossTap={() => (onBossPreview && upcomingBoss ? onBossPreview(upcomingBoss) : setBossOpen((v) => !v))}
             />
             {asc > 0 && (
-              <span className="ml-1.5 rounded-md bg-orange-400/15 px-1 py-px text-[10.5px] font-bold text-orange-200" title={`Ascension ${asc}`}>
+              <span className="ml-1.5 rounded-md bg-orange-400/15 px-1 py-px text-[10px] font-bold text-orange-200" title={`Ascension ${asc}`}>
                 <Badge id="flame" className="mr-px" />A{asc}
               </span>
             )}
@@ -157,8 +157,8 @@ export function RunHudStrip({
               className={`w-2.5 h-2.5 rounded-full ${i < strokesUsed ? "bg-white/15" : "bg-teal-300"}`}
             />
           ))}
-          <span className="ml-0.5 text-[13px] text-white/70">
-            <span className="font-mono font-black text-white/85">{garden.strokesLeft}</span>
+          <span className="ml-0.5 text-[14px] text-white/70">
+            <span className="tabular-nums font-black text-white/85">{garden.strokesLeft}</span>
             {/* The dots say it on a phone; the word joins where there's room */}
             <span className="hidden min-[480px]:inline"> {garden.strokesLeft === 1 ? "line" : "lines"}</span>
           </span>
@@ -171,7 +171,7 @@ export function RunHudStrip({
           <button
             type="button"
             onClick={() => setRuleOpen(false)}
-            className={`absolute left-0 right-0 top-1 z-40 rounded-xl border px-3 py-2 text-left text-[13px] leading-snug shadow-xl ${
+            className={`absolute left-0 right-0 top-1 z-40 rounded-xl border px-3 py-2 text-left text-[14px] leading-snug shadow-xl ${
               boss ? "border-rose-300/40 bg-[#2a1d22] text-rose-100" : "border-white/15 bg-[#203226] text-white/90"
             }`}
           >
@@ -221,9 +221,9 @@ export function RunHudStrip({
             style={{ left: `${pct}%`, width: `${previewPct}%` }}
           />
         )}
-        <div className="absolute inset-0 flex items-center px-2.5 text-[15px] [@media(max-height:640px)]:text-[13px] font-mono font-black text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">
+        <div className="absolute inset-0 flex items-center px-2.5 text-[16px] [@media(max-height:640px)]:text-[14px] tabular-nums font-black text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">
           {shortScore(garden.score)} / {shortScore(garden.target)}
-          {garden.score >= garden.target && <span className="ml-1.5 text-[12.5px] text-lime-100">Bloomed ✓</span>}
+          {garden.score >= garden.target && <span className="ml-1.5 text-[12px] text-lime-100">Bloomed ✓</span>}
         </div>
       </div>
       {/* Bloom bar: buds at half, three quarters and full open as the bed fills (the line you draw previews it) */}
@@ -251,7 +251,7 @@ export function RunHudStrip({
       {weedOutActive && (
         // Swapping: what to do here, and Cancel; the Swap button below confirms
         <div className="flex items-center gap-1.5 h-8">
-          <div className="flex-1 text-[12.5px] text-lime-100 leading-tight">
+          <div className="flex-1 text-[12px] text-lime-100 leading-tight">
             Tap up to {RUN_WEEDOUT_MAX_TILES} tiles to swap ({weedOutCount}/{RUN_WEEDOUT_MAX_TILES})
           </div>
           {(weedOutCount ?? 0) > 0 && (
@@ -396,14 +396,14 @@ export function BagPanel({
     >
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         {shown.map((t) => (
-          <span key={t} className="flex items-center gap-1 text-[12px] font-mono font-black text-white/90">
+          <span key={t} className="flex items-center gap-1 text-[12px] tabular-nums font-black text-white/90">
             <EntityIcon type={t} size={16} />
             {counts.get(t)}
           </span>
         ))}
-        {shown.length === 0 && <span className="text-[11px] text-white/60">The bag is empty.</span>}
+        {shown.length === 0 && <span className="text-[12px] text-white/60">The bag is empty.</span>}
       </div>
-      <div className="mt-1 text-[10.5px] leading-snug text-white/50">
+      <div className="mt-1 text-[10px] leading-snug text-white/50">
         Next tiles to refill the board.
         {garden.discardPile.length > 0 &&
           ` Then your ${garden.discardPile.length} used tiles get shuffled back in.`}
@@ -411,7 +411,7 @@ export function BagPanel({
       </div>
       {/* Garden levels: what Fertilizer has grown so far this Run */}
       <div className="mt-2 border-t border-white/10 pt-1.5">
-        <div className="text-[11px] font-semibold text-white/60">Garden levels</div>
+        <div className="text-[12px] font-semibold text-white/60">Garden levels</div>
         <div className="mt-1 grid grid-cols-3 gap-1">
           {levels.map(({ t, lv }) => (
             <div
@@ -420,8 +420,8 @@ export function BagPanel({
             >
               <EntityIcon type={t} size={16} />
               <span className="min-w-0 leading-tight">
-                <span className="block text-[11px] font-black">Lv {lv + 1}</span>
-                <span className="block text-[9.5px]">{lv > 0 ? `+${FERTILIZER[t].perLevel * lv} each` : "base"}</span>
+                <span className="block text-[12px] font-black">Lv {lv + 1}</span>
+                <span className="block text-[10px]">{lv > 0 ? `+${FERTILIZER[t].perLevel * lv} each` : "base"}</span>
               </span>
             </div>
           ))}
@@ -480,12 +480,12 @@ function SeasonMap({
         <React.Fragment key={k}>
           {i > 0 && <span className={`h-0.5 w-6 rounded-full ${i <= done ? "bg-emerald-300" : "bg-white/15"}`} />}
           <span
-            className={`flex flex-col items-center gap-0.5 text-[9px] font-mono font-bold ${
+            className={`flex flex-col items-center gap-0.5 text-[10px] tabular-nums font-bold ${
               i <= done ? "text-emerald-200" : i === done + 1 ? "text-white/80" : "text-white/35"
             }`}
           >
             <span
-              className={`w-7 h-7 rounded-full flex items-center justify-center text-[13px] border ${
+              className={`w-7 h-7 rounded-full flex items-center justify-center text-[14px] border ${
                 i <= done
                   ? "bg-emerald-400/25 border-emerald-300"
                   : i === done + 1
@@ -507,7 +507,7 @@ function SeasonMap({
         </React.Fragment>
       ))}
     </div>
-      {done === 2 && <div className="mt-1 text-center text-[10.5px] text-white/50">Next: Season {season + 1}</div>}
+      {done === 2 && <div className="mt-1 text-center text-[10px] text-white/50">Next: Season {season + 1}</div>}
     </div>
   );
 }
@@ -583,8 +583,8 @@ function LineDemo({ cells, label, score, delay }: { cells: number[][]; label: st
           transition={still ? { duration: 0 } : { duration: 0.25 * cells.length, delay, repeat: Infinity, repeatDelay: 1.6, ease: "linear" }}
         />
       </svg>
-      <div className="text-[13px] text-white/70">{label}</div>
-      <div className="text-[22px] font-extrabold leading-none text-amber-200 tabular-nums">{score}</div>
+      <div className="text-[14px] text-white/70">{label}</div>
+      <div className="text-[20px] font-extrabold leading-none text-amber-200 tabular-nums">{score}</div>
     </div>
   );
 }
@@ -614,8 +614,8 @@ export function RunGoalCard({
         onClick={(e) => e.stopPropagation()}
         className="fit-card w-full max-w-[400px] rounded-2xl border border-white/10 bg-[#1B281F] px-5 pt-4 pb-4 text-white"
       >
-        <h2 className="text-center font-display text-[24px] font-bold leading-tight text-balance">Draw one line to the gate</h2>
-        <p className="mt-2 text-center text-[15.5px] leading-snug text-white/85">
+        <h2 className="text-center font-display text-[26px] font-bold leading-tight text-balance">Draw one line to the gate</h2>
+        <p className="mt-2 text-center text-[16px] leading-snug text-white/85">
           Every tile you pass adds to your score, and <b className="text-amber-200">longer lines score far more</b>.
         </p>
 
@@ -623,9 +623,9 @@ export function RunGoalCard({
           <LineDemo cells={DEMO_SHORT} label="3 tiles" score="27" delay={0} />
           <LineDemo cells={DEMO_LONG} label="9 tiles" score="243" delay={0.2} />
         </div>
-        <p className="mt-2 text-center text-[13px] text-white/65">3 times the length, 9 times the points.</p>
+        <p className="mt-2 text-center text-[14px] text-white/65">3 times the length, 9 times the points.</p>
 
-        <p className="mt-3 [@media(max-height:640px)]:mt-2 text-center text-[15px] leading-snug text-white/85">
+        <p className="mt-3 [@media(max-height:640px)]:mt-2 text-center text-[16px] leading-snug text-white/85">
           Thorns and Spikes cost Life, so plan your path. Reach <b className="text-amber-200">{fmt(target)}</b> in{" "}
           <b>{lines} lines</b> to clear this bed.
         </p>
@@ -720,7 +720,7 @@ export function RunGardenClearModal({
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 260, damping: 14 }}
-            className="text-[28px] leading-tight font-display font-semibold text-amber-100"
+            className="text-[26px] leading-tight font-display font-semibold text-amber-100"
           >
             {kind === "BOSS" ? "Boss bed beaten!" : BLOOM_HEADLINE[stars] ?? "Bed bloomed!"}
           </motion.div>
@@ -736,7 +736,7 @@ export function RunGardenClearModal({
               </motion.span>
             ))}
           </div>
-          <div className="mt-2 text-[15px] font-semibold text-emerald-100">{bloomBrag(info.score, info.target, info.strokesLeft)}</div>
+          <div className="mt-2 text-[16px] font-semibold text-emerald-100">{bloomBrag(info.score, info.target, info.strokesLeft)}</div>
           {info.newBestStars && (
             <div className="mt-1 inline-flex items-center gap-1 rounded-full bg-amber-300/15 px-2.5 py-0.5 text-[12px] font-bold text-amber-100">
               <Sparkles className="w-3.5 h-3.5" /> Your best on this bed
@@ -775,7 +775,7 @@ export function RunGardenClearModal({
             }`}
           >
             {info.nextBed.boss && <BossIcon id={info.nextBed.boss} size={36} />}
-            <div className="min-w-0 flex-1 text-[13px] leading-snug">
+            <div className="min-w-0 flex-1 text-[14px] leading-snug">
               <div className={info.nextBed.boss ? "font-bold text-rose-100" : "font-bold text-white/90"}>
                 {info.nextBed.boss ? `Boss ahead: ${BOSS_RULE_REGISTRY[info.nextBed.boss].name}` : `Up next: ${info.nextBed.label}`}
               </div>
@@ -791,12 +791,12 @@ export function RunGardenClearModal({
           <motion.div
             initial={{ scale: 0.7, opacity: 0 }}
             animate={{ scale: [0.7, 1.12, 1], opacity: 1, transition: { delay: 0.45, duration: 0.45 } }}
-            className="text-center text-[15px] font-bold text-lime-200"
+            className="text-center text-[16px] font-bold text-lime-200"
           >
             💮 Full bloom! +{info.fullBloomBonus} 🌱
           </motion.div>
         ) : info.fullBloomAt ? (
-          <div className="text-center text-[12.5px] text-white/55">
+          <div className="text-center text-[12px] text-white/55">
             Full bloom at {fmt(info.fullBloomAt)} pays +{FULL_BLOOM_SEEDS} 🌱 more
           </div>
         ) : null}
@@ -809,17 +809,17 @@ export function RunGardenClearModal({
           <div className="mt-1.5 space-y-1">
             <div className="flex justify-between gap-2">
               <span>Bed score</span>
-              <span className="font-mono font-bold text-white/85">{fmt(info.score)} / {fmt(info.target)}</span>
+              <span className="tabular-nums font-bold text-white/85">{fmt(info.score)} / {fmt(info.target)}</span>
             </div>
             {lines.map((l, i) => (
               <div key={i} className="flex justify-between items-start gap-2 leading-snug">
                 <span className="min-w-0">{l.label}</span>
-                <span className="font-mono font-black shrink-0 whitespace-nowrap text-amber-100">+{l.value} 🌱</span>
+                <span className="tabular-nums font-black shrink-0 whitespace-nowrap text-amber-100">+{l.value} 🌱</span>
               </div>
             ))}
             <div className="border-t border-white/10 pt-1 flex justify-between font-bold text-white/80">
               <span>Your Seeds</span>
-              <span className="font-mono">{info.gemsBefore} → {info.gemsBefore + info.total} 🌱</span>
+              <span className="tabular-nums">{info.gemsBefore} → {info.gemsBefore + info.total} 🌱</span>
             </div>
           </div>
         </details>
@@ -842,12 +842,12 @@ export function RunGardenClearModal({
                 </span>
               ))}
             </div>
-            <div className="text-[10.5px] text-white/60">See it in ☰ → Companions &amp; looks</div>
+            <div className="text-[10px] text-white/60">See it in ☰ → Companions &amp; looks</div>
           </motion.div>
         )}
 
         {info.nextUnlock && (
-          <div className="text-center text-[11.5px] text-white/60">
+          <div className="text-center text-[12px] text-white/60">
             <Badge id="star" /> {info.nextUnlock.have} · next: <span className="font-semibold text-white/85">
               {info.nextUnlock.id && <UnlockIcon item={{ id: info.nextUnlock.id, icon: info.nextUnlock.icon ?? "" }} />} {info.nextUnlock.text}
             </span> at{" "}
@@ -863,7 +863,7 @@ export function RunGardenClearModal({
                 Legendary relic earned: <span className="font-black">{legendary.name}</span>
               </span>
             </span>
-            <div className="text-[11px] opacity-85">{legendary.description}</div>
+            <div className="text-[12px] opacity-85">{legendary.description}</div>
           </div>
         )}
 
@@ -871,7 +871,7 @@ export function RunGardenClearModal({
           <button
             type="button"
             onClick={onContinue}
-            className="w-full rounded-xl py-3 font-bold text-[15px] bg-teal-300 text-slate-950 active:scale-95 flex items-center justify-center gap-1.5"
+            className="w-full rounded-xl py-3 font-bold text-[16px] bg-teal-300 text-slate-950 active:scale-95 flex items-center justify-center gap-1.5"
           >
             {finishLabel ?? <>Enter the Shop · {info.gemsBefore + info.total} 🌱 to spend</>}
             <ArrowRight className="w-4 h-4 shrink-0" />
@@ -880,7 +880,7 @@ export function RunGardenClearModal({
             <button
               type="button"
               onClick={onStop}
-              className="mt-2 w-full rounded-xl py-2.5 text-[13px] font-semibold border border-white/10 bg-white/[0.05] text-white/80 active:scale-[0.98]"
+              className="mt-2 w-full rounded-xl py-2.5 text-[14px] font-semibold border border-white/10 bg-white/[0.05] text-white/80 active:scale-[0.98]"
             >
               Stop here, resume later
             </button>
@@ -917,11 +917,11 @@ export function RunSavedRest({
           Season {season} is done and your Run is saved on this device. Open Bloomline any time and you&apos;ll pick up
           right here, before the Shop.
         </p>
-        <p className="text-[13px] text-white/50">You can close the game now.</p>
+        <p className="text-[14px] text-white/50">You can close the game now.</p>
         <button
           type="button"
           onClick={onKeepPlaying}
-          className="w-full rounded-xl py-3 font-bold text-[15px] bg-teal-300 text-slate-950 active:scale-[0.98]"
+          className="w-full rounded-xl py-3 font-bold text-[16px] bg-teal-300 text-slate-950 active:scale-[0.98]"
         >
           Keep playing
         </button>
@@ -999,13 +999,13 @@ function GardenCodeRow({ code, fromCode, reached, score }: { code: string; fromC
   return (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2">
       <div className="flex-1">
-        <div className="text-[11px] text-white/45">{fromCode ? "Garden code (a friend's)" : "Garden code"}</div>
-        <div className="whitespace-nowrap font-mono text-[14px] font-bold text-teal-100">{code}</div>
+        <div className="text-[12px] text-white/45">{fromCode ? "Garden code (a friend's)" : "Garden code"}</div>
+        <div className="whitespace-nowrap tabular-nums text-[14px] font-bold text-teal-100">{code}</div>
       </div>
       <button
         type="button"
         onClick={share}
-        className="ml-auto shrink-0 rounded-lg border border-teal-300/40 bg-teal-300/10 px-2.5 py-1.5 text-[12.5px] font-bold text-teal-100 active:scale-[0.97]"
+        className="ml-auto shrink-0 rounded-lg border border-teal-300/40 bg-teal-300/10 px-2.5 py-1.5 text-[12px] font-bold text-teal-100 active:scale-[0.97]"
       >
         {copied ? "Copied!" : "Challenge a friend"}
       </button>
@@ -1035,7 +1035,7 @@ function DailyResultCard({ dateKey, record, streak }: { dateKey: string; record:
   const [copied, setCopied] = useState(false);
   if (!record) {
     return (
-      <div className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-center text-[12.5px] text-white/65">
+      <div className="rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-center text-[12px] text-white/65">
         This was a practice replay. Today&apos;s first try is the one you can share.
       </div>
     );
@@ -1050,7 +1050,7 @@ function DailyResultCard({ dateKey, record, streak }: { dateKey: string; record:
   };
   return (
     <div className="rounded-xl border-2 border-amber-300/50 bg-amber-400/10 px-3 py-2.5 text-center">
-      <div className="text-[11px] font-semibold text-amber-200/85">
+      <div className="text-[12px] font-semibold text-amber-200/85">
         Daily Garden{streak > 1 ? ` · 🔥 ${streak} days in a row` : ""}
       </div>
       {/* The same grid as the share text, painted: one row per Season */}
@@ -1063,7 +1063,7 @@ function DailyResultCard({ dateKey, record, streak }: { dateKey: string; record:
           </div>
         ))}
       </div>
-      <div className="mt-1.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[11px] text-white/50">
+      <div className="mt-1.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[12px] text-white/50">
         {DAILY_LEGEND.filter(([cell]) => dailyGridRows(record).some((row) => row.includes(cell))).map(([cell, text]) => (
           <span key={cell} className="inline-flex items-center gap-0.5">
             <DailyCell cell={cell} size={14} /> {text}
@@ -1073,7 +1073,7 @@ function DailyResultCard({ dateKey, record, streak }: { dateKey: string; record:
       <button
         type="button"
         onClick={share}
-        className="mt-2 w-full rounded-lg py-2 text-[13.5px] font-bold border border-amber-300/50 bg-amber-300/15 text-amber-50 active:scale-[0.98]"
+        className="mt-2 w-full rounded-lg py-2 text-[14px] font-bold border border-amber-300/50 bg-amber-300/15 text-amber-50 active:scale-[0.98]"
       >
         {copied ? "Copied! Paste it anywhere" : "Share your garden"}
       </button>
@@ -1184,7 +1184,7 @@ export function RunOverModal({
             transition={{ type: "spring", stiffness: 180, damping: 12, delay: 0.1 }}
             className="mx-auto h-12 w-12 object-contain"
           />
-          <div className="mt-1 text-[22px] font-display font-semibold text-amber-100">
+          <div className="mt-1 text-[20px] font-display font-semibold text-amber-100">
             {info.reason === "DAILY_DONE"
               ? "Today's garden bloomed!"
               : info.daily
@@ -1193,14 +1193,14 @@ export function RunOverModal({
               ? `Only ${fmt(shortBy)} short!`
               : "The garden rests"}
           </div>
-          <p className="text-[13px] text-white/70 leading-snug mt-1">
+          <p className="text-[14px] text-white/70 leading-snug mt-1">
             {nearMiss ? `You reached ${getRunGardenLabel(info.gardenIndex)}. One more Run could bloom it.` : why}
           </p>
         </div>
 
         {info.isNewBest && (
           <div className="rounded-xl border-2 border-amber-300 bg-amber-400/15 px-3 py-2 text-center text-amber-100">
-            <div className="flex items-center justify-center gap-1 text-[13px] font-black">
+            <div className="flex items-center justify-center gap-1 text-[14px] font-black">
               <Sparkles className="w-4 h-4" /> Your best Garden Run yet!
             </div>
             <div className="text-[12px] font-semibold text-amber-100/80">{getRunGardenLabel(info.best.gardenIndex)}</div>
@@ -1218,15 +1218,15 @@ export function RunOverModal({
             transition={{ type: "spring", stiffness: 260, damping: 18, delay: 0.2 }}
             className="rounded-xl border-2 border-teal-300/60 bg-teal-300/10 px-3 py-2.5"
           >
-            <div className="text-[11px] font-semibold text-teal-200/80">Next goal</div>
+            <div className="text-[12px] font-semibold text-teal-200/80">Next goal</div>
             <div className="mt-0.5 flex items-center gap-2">
               {goal.art ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={goal.art} alt="" aria-hidden="true" draggable={false} className="h-8 w-8 shrink-0 object-contain" />
               ) : (
-                <span className="text-[22px] leading-none">{goal.icon}</span>
+                <span className="text-[20px] leading-none">{goal.icon}</span>
               )}
-              <span className="text-[15px] font-bold text-white leading-tight">{goal.title}</span>
+              <span className="text-[16px] font-bold text-white leading-tight">{goal.title}</span>
             </div>
             <p className="mt-1 text-[12px] text-white/65 leading-snug">{goal.detail}</p>
             {goal.need !== undefined && goal.have !== undefined && (
@@ -1252,8 +1252,8 @@ export function RunOverModal({
           </motion.div>
         )}
 
-        <div className="rounded-xl border border-white/10 bg-white/[0.04] p-2.5 space-y-1.5 text-[12.5px]">
-          <div className="text-[11px] font-semibold text-white/45">Your harvest</div>
+        <div className="rounded-xl border border-white/10 bg-white/[0.04] p-2.5 space-y-1.5 text-[12px]">
+          <div className="text-[12px] font-semibold text-white/45">Your harvest</div>
           {harvest.map((h, i) => (
             <motion.div
               key={h.label}
@@ -1281,7 +1281,7 @@ export function RunOverModal({
           )}
           {relicCounts.size > 0 && (
             <div className="pt-1">
-              <div className="text-[11px] text-white/45 mb-1">
+              <div className="text-[12px] text-white/45 mb-1">
                 Relics gathered{newSet.size > 0 ? ` · ${newSet.size} found for the first time` : ""}
               </div>
               <div className="flex flex-wrap gap-1.5">
@@ -1297,9 +1297,9 @@ export function RunOverModal({
                     title={RELIC_REGISTRY[id]?.name}
                   >
                     <RelicIcon id={id} size={26} />
-                    {count > 1 && <span className="absolute -bottom-1 -right-1 text-[9px] font-black text-teal-200">×{count}</span>}
+                    {count > 1 && <span className="absolute -bottom-1 -right-1 text-[10px] font-black text-teal-200">×{count}</span>}
                     {newSet.has(id) && (
-                      <span className="absolute -top-1.5 -right-1.5 rounded-full bg-amber-300 px-1 text-[8px] font-black text-slate-950">
+                      <span className="absolute -top-1.5 -right-1.5 rounded-full bg-amber-300 px-1 text-[10px] font-black text-slate-950">
                         NEW
                       </span>
                     )}
@@ -1344,7 +1344,7 @@ export function RunOverModal({
             <button
               type="button"
               onClick={onPlantAgain}
-              className={`w-full py-3 rounded-xl bg-teal-300 text-slate-950 text-[15px] font-bold active:scale-[0.98] transition flex items-center justify-center gap-1.5 ${
+              className={`w-full py-3 rounded-xl bg-teal-300 text-slate-950 text-[16px] font-bold active:scale-[0.98] transition flex items-center justify-center gap-1.5 ${
                 nearMiss ? "shadow-[0_0_18px_rgba(94,234,212,0.55)]" : ""
               }`}
             >
@@ -1354,7 +1354,7 @@ export function RunOverModal({
             <button
               type="button"
               onClick={onNewRun}
-              className="w-full py-1 text-[12.5px] font-semibold text-white/60 underline underline-offset-2"
+              className="w-full py-1 text-[12px] font-semibold text-white/60 underline underline-offset-2"
             >
               Change Companion or Ascension
             </button>
@@ -1363,7 +1363,7 @@ export function RunOverModal({
           <button
             type="button"
             onClick={onNewRun}
-            className="w-full py-3 rounded-xl bg-teal-300 text-slate-950 text-[15px] font-bold active:scale-[0.98] transition"
+            className="w-full py-3 rounded-xl bg-teal-300 text-slate-950 text-[16px] font-bold active:scale-[0.98] transition"
           >
             {newRunLabel}
           </button>
@@ -1372,7 +1372,7 @@ export function RunOverModal({
           <button
             type="button"
             onClick={onClose}
-            className="py-2.5 rounded-xl bg-white/[0.05] border border-white/10 text-white/80 text-[13px] font-semibold"
+            className="py-2.5 rounded-xl bg-white/[0.05] border border-white/10 text-white/80 text-[14px] font-semibold"
           >
             Look at the board
           </button>
@@ -1380,7 +1380,7 @@ export function RunOverModal({
             <button
               type="button"
               onClick={onOpenLeaderboard}
-              className="py-2.5 rounded-xl px-2 text-[12.5px] font-semibold border border-amber-300/40 bg-amber-400/10 text-amber-100 truncate"
+              className="py-2.5 rounded-xl px-2 text-[12px] font-semibold border border-amber-300/40 bg-amber-400/10 text-amber-100 truncate"
             >
               <span className="inline-flex items-center gap-1.5">
                 <Trophy className="w-4 h-4 shrink-0 text-amber-300" />
