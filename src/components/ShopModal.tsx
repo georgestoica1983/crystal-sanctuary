@@ -645,9 +645,10 @@ export default function ShopModal({
               type="button"
               onClick={() => setGuideOpen(true)}
               aria-label="Shop guide: what everything does"
-              className="h-10 w-10 rounded-xl border border-white/10 bg-white/[0.05] text-[16px] font-bold text-white/70"
+              className="h-10 w-10 rounded-xl border border-white/10 bg-white/[0.05] flex items-center justify-center active:scale-95"
             >
-              ?
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={miscArt("shop-guide")} alt="" aria-hidden="true" draggable={false} className="h-7 w-7 object-contain" />
             </button>
             <motion.div
               ref={seedsRef}
@@ -909,7 +910,11 @@ export default function ShopModal({
         {guideOpen && (
           <div className="absolute inset-0 z-20 flex flex-col rounded-2xl bg-[#1B281F]" role="dialog" aria-label="Shop guide">
             <div className="flex items-center justify-between gap-2 px-3.5 pt-3.5 pb-2">
-              <h3 className="text-[20px] font-display font-semibold">Shop guide</h3>
+              <h3 className="text-[20px] font-display font-semibold flex items-center gap-2">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={miscArt("shop-guide")} alt="" aria-hidden="true" draggable={false} className="h-8 w-8 object-contain" />
+                Shop guide
+              </h3>
               <button
                 type="button"
                 onClick={() => setGuideOpen(false)}

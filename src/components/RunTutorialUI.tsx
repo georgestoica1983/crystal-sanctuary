@@ -16,7 +16,7 @@ import {
   RUN_REROLL_BASE_COST,
   MAX_COMMON_RELICS,
 } from "@/lib/engine";
-import { tileArt } from "@/lib/art";
+import { miscArt, tileArt } from "@/lib/art";
 import { artify } from "@/components/ArtText";
 
 /** The lesson's goal, live while a line is drawn */
@@ -49,7 +49,7 @@ export function RunLessonCoach({ lesson, index, total }: { lesson: RunLesson; in
       {/* On a short screen the level row steps aside, so two lines of instruction still fit */}
       <div className="flex items-center justify-between gap-2 [@media(max-height:700px)]:hidden">
         <div className="min-w-0 text-[12px] font-semibold text-white/60 truncate">
-          <span className="text-lime-200/85">Seedling Season</span> · Level {index + 1} of {total}
+          <span className="text-lime-200/85">🪴 Seedling Season</span> · Level {index + 1} of {total}
         </div>
         <div className="flex shrink-0 gap-1" aria-hidden="true">
           {Array.from({ length: total }, (_, i) => (
@@ -143,7 +143,15 @@ export function RunLessonResult({
             : "border-amber-300/70 bg-gradient-to-b from-[#2A1F0E] to-[#140F0A]"
         }`}
       >
-        <div className="text-xl font-black">{info.ok ? `✓ Level ${info.level} cleared!` : "Not quite"}</div>
+        {info.ok ? (
+          <div className="flex items-center gap-2.5">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={miscArt("level-cleared")} alt="" aria-hidden="true" draggable={false} className="h-12 w-12 shrink-0 object-contain" />
+            <div className="text-xl font-black">Level {info.level} cleared!</div>
+          </div>
+        ) : (
+          <div className="text-xl font-black">Not quite</div>
+        )}
         <p className="text-[13px] leading-snug text-white/90">{info.text}</p>
         {info.ok ? (
           <div className="grid grid-cols-[1fr_2fr] gap-2">

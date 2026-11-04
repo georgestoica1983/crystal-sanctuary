@@ -1,7 +1,7 @@
 "use client";
 
 import SupplyIcon from "@/components/SupplyIcon";
-import { badgeArt, tileAfterArt, tileArt, type TileAfterId } from "@/lib/art";
+import { badgeArt, icon, tileAfterArt, tileArt, type TileAfterId } from "@/lib/art";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Cat, Crown, Sparkles, Compass } from "lucide-react";
@@ -794,12 +794,17 @@ export default function GridCanvas({
                     data-row={r}
                     data-col={c}
                     aria-label="Bare ground: nothing grows here this bed"
-                    className="relative rounded-xl pointer-events-none overflow-hidden border border-[#5a4026]/50 shadow-[inset_0_2px_10px_rgba(0,0,0,0.65)]"
-                    style={{ background: "radial-gradient(circle at 35% 30%, #4a3420 0%, #2f2014 55%, #20150d 100%)" }}
+                    className="relative rounded-xl pointer-events-none flex items-center justify-center"
                   >
-                    <span aria-hidden="true" className="absolute left-[22%] top-[30%] h-[9%] w-[9%] rounded-full bg-[#6b4e30]/70" />
-                    <span aria-hidden="true" className="absolute left-[58%] top-[55%] h-[7%] w-[7%] rounded-full bg-[#6b4e30]/60" />
-                    <span aria-hidden="true" className="absolute left-[40%] top-[70%] h-[6%] w-[6%] rounded-full bg-[#7a5a38]/50" />
+                    {/* Two looks of dug soil, alternating, so a bare patch never looks stamped */}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={icon((r + c) % 2 === 0 ? "tile-bare-a" : "tile-bare-b")}
+                      alt=""
+                      aria-hidden="true"
+                      draggable={false}
+                      className="w-full h-full object-contain drop-shadow-[0_2px_3px_rgba(0,0,0,0.5)]"
+                    />
                   </div>
                 );
               }

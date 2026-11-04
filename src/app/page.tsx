@@ -2122,7 +2122,7 @@ export default function OneStrokeTacticianPage() {
       const bagNext = wilder ? growWilderBag(runBag, dungeon.seedKey, Math.floor(nextIndex / 3) + 1) : runBag;
       if (wilder) {
         setRunBag(bagNext);
-        window.setTimeout(() => handleNotice("🌿 A new Season: the garden grows wilder. 2 Thorns and a Spike joined your bag."), 900);
+        window.setTimeout(() => handleNotice("🥀 A new Season: the garden grows wilder. 2 Thorns and a Spike joined your bag."), 900);
       }
       const next = createNextRunGarden({
         stats: baseStats,
@@ -2563,7 +2563,7 @@ export default function OneStrokeTacticianPage() {
           relics: activeRelics,
         });
         if (refill.grid.some((row) => row.some((c) => c.bare)) && !strokeGrid.some((row) => row.some((c) => c.bare))) {
-          noticeOnce(BARE_NOTICE_KEY, "🪨 Some tiles stayed bare. From Season 4, about a third of the tiles a line uses don't regrow this bed.");
+          noticeOnce(BARE_NOTICE_KEY, "🟫 Some tiles stayed bare. From Season 4, about a third of the tiles a line uses don't regrow this bed.");
         }
         if (practiceStep === "intro" || practiceStep === "draw") {
           setPracticeStep("regrow");
@@ -4944,7 +4944,11 @@ lesson
                 ) : !usedOnce.packet && runPackets.length > 0 ? (
                   <span className="text-fuchsia-200/85">Tap a packet to use it</span>
                 ) : (
-                  <span className="text-white/40">Your pocket</span>
+                  <span className="text-white/40">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={miscArt("pocket")} alt="" aria-hidden="true" draggable={false} className="mr-1 inline-block h-5 w-5 align-[-5px] object-contain opacity-80" />
+                    Your pocket
+                  </span>
                 )}
               </span>
               {toolArmed !== null && (

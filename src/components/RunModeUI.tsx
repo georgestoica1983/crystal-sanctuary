@@ -678,7 +678,7 @@ export function RunGardenClearModal({
   const lines = [
     { label: `${getRunGardenKindLabel(kind)} cleared`, value: info.clearReward },
     ...(info.fullBloomBonus
-      ? [{ label: <span className="text-lime-200">🌸 Full bloom (1.5× the target)</span>, value: info.fullBloomBonus }]
+      ? [{ label: <span className="text-lime-200">💮 Full bloom (1.5× the target)</span>, value: info.fullBloomBonus }]
       : []),
     {
       label: (
@@ -793,7 +793,7 @@ export function RunGardenClearModal({
             animate={{ scale: [0.7, 1.12, 1], opacity: 1, transition: { delay: 0.45, duration: 0.45 } }}
             className="text-center text-[15px] font-bold text-lime-200"
           >
-            🌸 Full bloom! +{info.fullBloomBonus} 🌱
+            💮 Full bloom! +{info.fullBloomBonus} 🌱
           </motion.div>
         ) : info.fullBloomAt ? (
           <div className="text-center text-[12.5px] text-white/55">
