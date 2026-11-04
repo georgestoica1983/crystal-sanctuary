@@ -3943,6 +3943,28 @@ export default function OneStrokeTacticianPage() {
   const runCardShown =
     mode === "RUN" && !isInteractiveTutorial && !lesson && !!runGarden && !(phase === "DEFEAT" && runOver === null);
   const noticeInCard = !!runNoticeText && runCardShown && drawnPath.length < 2 && !lineShow && !lineToast && !lineCallout;
+  // One message at a time: a notice in the top card speaks first, then the
+  // line above the board, then the pocket's how-to (only when nothing else does)
+  const boardHint =
+    lesson
+      ? ""
+      : phase === "RESOLVING"
+      ? "Tap the board to skip ⏩"
+      : noticeInCard || drawnPath.length >= 2
+      ? "" // the notice, or the live meter while a line is drawn, has the floor
+      : toolArmed !== null && runTools[toolArmed]
+      ? `Tap a tile for ${GARDEN_TOOLS[runTools[toolArmed]].name}: ${GARDEN_TOOLS[runTools[toolArmed]].tag}.`
+      : practiceStep && PRACTICE_HINTS[practiceStep] && phase === "PLANNING"
+      ? PRACTICE_HINTS[practiceStep]!
+      : runNoSafeLine
+      ? "No safe line on this board. 🔄 Swap can change up to 3 tiles."
+      : swapSuggested
+      ? "Tough board. Try 🔄 Swap to change up to 3 tiles."
+      : // The main rule, while it is new: only the very first bed of a player's first Run
+      runsStarted() <= 1 && (runGarden?.gardenIndex ?? 0) === 0
+      ? "Longer lines score far more."
+      : "";
+  const pocketMayTalk = !noticeInCard && !boardHint;
   const meterBusy =
     drawnPath.length >= 2 ||
     (phase === "PLANNING" && (tileIntroQueue.length > 0 || showStartGlovesIntro || showFertilizedIntro)) ||
@@ -4230,7 +4252,7 @@ export default function OneStrokeTacticianPage() {
                 <div
                   role="status"
                   onClick={noticeSticky && retractNotice ? () => (setRetractNotice(null), setNoticeSticky(false)) : undefined}
-                  className={`min-h-0 flex-1 rounded-lg px-3 py-2 flex flex-col justify-center gap-1.5 text-[12px] leading-snug font-bold border overflow-hidden ${
+                  className={`my-auto max-h-full rounded-lg px-3 py-2.5 flex flex-col justify-center gap-1.5 text-[14px] leading-snug font-bold border overflow-hidden ${
                     retractNotice ? "bg-[#1F1A10] border-amber-300/50 text-amber-50" : "bg-[#2A1018] border-rose-300/50 text-rose-50"
                   } ${noticeSticky && retractNotice ? "cursor-pointer" : ""}`}
                 >
@@ -4563,22 +4585,7 @@ export default function OneStrokeTacticianPage() {
             // Takes the top spacer's place: it grows like the spacer under the
             // board, so the board sits centred between the top card and the buttons
             <p data-area="hint" className="ui-zoom w-full max-w-game grow basis-0 !shrink min-h-[20px] flex items-end justify-center text-center text-[14px] leading-snug text-amber-200/90">
-              {artify(
-lesson
-                ? ""
-                : practiceStep && PRACTICE_HINTS[practiceStep] && phase === "PLANNING"
-                ? PRACTICE_HINTS[practiceStep]!
-                : phase === "RESOLVING"
-                ? "Tap the board to skip ⏩"
-                : runNoSafeLine
-                ? "No safe line on this board. 🔄 Swap can change up to 3 tiles."
-                : swapSuggested
-                ? "Tough board. Try 🔄 Swap to change up to 3 tiles."
-                : // The main rule, while it is new: only the very first bed of a player's first Run
-                runsStarted() <= 1 && (runGarden?.gardenIndex ?? 0) === 0
-                ? "Longer lines score far more."
-                : ""
-              )}
+              {artify(boardHint)}
             </p>
           )}
 
@@ -4936,12 +4943,13 @@ lesson
               {/* What's going on in the pocket, in a few words */}
               <span className="min-w-0 flex-1 truncate text-[12px] font-semibold leading-tight">
                 {toolArmed !== null && runTools[toolArmed] ? (
-                  <span className="text-amber-100">Tap a tile: {GARDEN_TOOLS[runTools[toolArmed]].name} ({GARDEN_TOOLS[runTools[toolArmed]].tag})</span>
+                  // The instruction itself is in the line above the board
+                  <span className="text-amber-100">{GARDEN_TOOLS[runTools[toolArmed]].name}</span>
                 ) : armedPacket ? (
                   <span className="text-lime-100">✓ {SEED_PACKETS[armedPacket].name} on your next line</span>
-                ) : !usedOnce.tool && runTools.length > 0 ? (
+                ) : pocketMayTalk && !usedOnce.tool && runTools.length > 0 ? (
                   <span className="text-white/60">Tap a tool, then a tile</span>
-                ) : !usedOnce.packet && runPackets.length > 0 ? (
+                ) : pocketMayTalk && !usedOnce.packet && runPackets.length > 0 ? (
                   <span className="text-white/60">Tap a packet to use it</span>
                 ) : (
                   <span className="text-white/40">
