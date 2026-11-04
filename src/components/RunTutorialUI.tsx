@@ -16,26 +16,36 @@ import {
 import { tileArt } from "@/lib/art";
 import { artify } from "@/components/ArtText";
 
-/** Lesson card above the board: what you learn, what to do, live goal check */
-export function RunLessonCoach({
-  lesson,
-  index,
-  total,
-  status,
-}: {
-  lesson: RunLesson;
-  index: number;
-  total: number;
-  status: LessonGoalStatus | null;
-}) {
+/** The lesson's goal, live while a line is drawn */
+export function RunLessonGoal({ lesson, status }: { lesson: RunLesson; status: LessonGoalStatus | null }) {
   return artify(
-    <div className="ui-zoom w-full max-w-game min-w-0 rounded-xl border border-white/[0.08] bg-white/[0.04] px-3 py-2.5 space-y-2">
+    <div
+      className={`rounded-lg px-2.5 py-1.5 border text-[12px] flex items-center justify-between gap-2 ${
+        status?.ok
+          ? "border-teal-300 bg-teal-300/15 text-teal-50"
+          : "border-white/[0.1] bg-white/[0.03] text-white/70"
+      }`}
+    >
+      <span className="font-semibold">🎯 {lesson.goalLabel}</span>
+      <span className="font-mono text-[11px] text-right">
+        {status ? (status.ok ? "✓ let go!" : status.detail) : ""}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * The lesson inside the top card (where a Run shows its bed): the goal and
+ * the step dots, then what to do. While a line is drawn the live meter covers
+ * the card as it does in a Run, so the board keeps the same size.
+ */
+export function RunLessonCoach({ lesson, index, total }: { lesson: RunLesson; index: number; total: number }) {
+  return artify(
+    // As tall as a Run's bed rows (Season, score bar, to go), so the board matches
+    <div className="min-h-[72px] min-[600px]:min-h-[75.5px] px-1 pt-1 pb-0.5 space-y-1">
       <div className="flex items-center justify-between gap-2">
-        <div className="text-[12px] font-semibold text-white/55 flex items-center gap-1.5">
-          <span aria-hidden="true">{lesson.icon}</span>
-          {lesson.title}
-        </div>
-        <div className="flex gap-1" aria-label={`Step ${index + 1} of ${total}`}>
+        <div className="text-[12px] font-semibold text-white/60 truncate">🎯 {lesson.goalLabel}</div>
+        <div className="flex shrink-0 gap-1" aria-label={`Step ${index + 1} of ${total}`}>
           {Array.from({ length: total }, (_, i) => (
             <span
               key={i}
@@ -46,19 +56,7 @@ export function RunLessonCoach({
           ))}
         </div>
       </div>
-      <div className="text-[18px] leading-snug font-extrabold text-white">{lesson.steps[0]}</div>
-      <div
-        className={`rounded-lg px-2.5 py-1.5 border text-[12px] flex items-center justify-between gap-2 ${
-          status?.ok
-            ? "border-teal-300 bg-teal-300/15 text-teal-50"
-            : "border-white/[0.1] bg-white/[0.03] text-white/70"
-        }`}
-      >
-        <span className="font-semibold">🎯 {lesson.goalLabel}</span>
-        <span className="font-mono text-[11px] text-right">
-          {status ? (status.ok ? "✓ let go!" : status.detail) : ""}
-        </span>
-      </div>
+      <div className="text-[17px] leading-snug font-extrabold text-white">{lesson.steps[0]}</div>
     </div>
   );
 }
@@ -80,7 +78,8 @@ export function RunLessonControls({
   disabled: boolean;
 }) {
   const btn =
-    "h-11 px-1.5 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[12px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-40 whitespace-nowrap";
+    // Same height as a Run's buttons, so the board keeps its size
+    "h-11 [@media(min-height:800px)]:h-14 px-1.5 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[12px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-40 whitespace-nowrap";
   return artify(
     <div className="ui-zoom w-full max-w-game grid grid-cols-4 gap-1.5">
       <button type="button" disabled={disabled} onClick={onClear} className={btn}>

@@ -220,6 +220,7 @@ import {
   PracticeStep,
   RunHelpMenu,
   RunLessonCoach,
+  RunLessonGoal,
   RunLessonControls,
   RunLessonResult,
 } from "@/components/RunTutorialUI";
@@ -3861,8 +3862,8 @@ export default function OneStrokeTacticianPage() {
   const isSanctuarySkin = visualTheme === "SANCTUARY";
   const totalSanctuaryGems = (playerStats.totalBankedGold || 0) + hero.gold;
 
-  // The live meter: shown in the lessons above the board, and in a Garden Run
-  // over the top card whenever it has something to say (it never moves the board)
+  // The live meter: over the top card (a Run's bed or a lesson) whenever it
+  // has something to say, so it never moves the board
   const meterOn =
     mode === "RUN" &&
     !isInteractiveTutorial &&
@@ -3899,9 +3900,7 @@ export default function OneStrokeTacticianPage() {
                   tilesOnBoard={lineMeter.tilesOnBoard}
                   toGo={bedToGo}
                   idleText={
-                    lesson
-                      ? "Your points show here as you draw."
-                      : runNoSafeLine
+                    runNoSafeLine
                       ? "No safe line on this board. 🔄 Swap can change up to 3 tiles."
                       : swapSuggested
                       ? "Tough board. Even the best line falls short, so try 🔄 Swap to change up to 3 tiles."
@@ -4070,7 +4069,10 @@ export default function OneStrokeTacticianPage() {
       <div data-area="hud" className="contents">
       <TopHUD
         runCard={
-          mode === "RUN" && !isInteractiveTutorial && !lesson && runGarden && !(phase === "DEFEAT" && runOver === null) ? (
+          lesson && lessonIndex !== null ? (
+            // A lesson sits where a Run shows its bed, so the board keeps its size
+            <RunLessonCoach lesson={lesson} index={lessonIndex} total={RUN_LESSONS.length} />
+          ) : mode === "RUN" && !isInteractiveTutorial && !lesson && runGarden && !(phase === "DEFEAT" && runOver === null) ? (
             <div className="relative">
             <RunHudStrip
               bare
@@ -4105,7 +4107,23 @@ export default function OneStrokeTacticianPage() {
         }
         runCardBoss={mode === "RUN" && runGarden?.kind === "BOSS"}
         runCardOverlay={
-          (meterBusy || noticeInCard) && runGarden && !lesson ? (
+          lesson && meterBusy ? (
+            <>
+              <div className="relative min-h-0 flex-1">{meterInner}</div>
+              <RunLessonGoal
+                lesson={lesson}
+                status={
+                  drawnPath.length >= 2 && !lessonDemo
+                    ? lesson.checkGoal(
+                        simulation,
+                        calculateFloorScoreBreakdown(simulation, lesson.hero, drawnPath.length, []),
+                        lesson.hero
+                      )
+                    : null
+                }
+              />
+            </>
+          ) : (meterBusy || noticeInCard) && runGarden && !lesson ? (
             <>
               {/* What the card hides while scoring, in one slim row (a notice takes the whole card) */}
               <div className={`${noticeInCard ? "hidden" : "flex"} items-center gap-2 px-1 text-[13px] text-white/75 whitespace-nowrap overflow-hidden`}>
@@ -4327,7 +4345,7 @@ export default function OneStrokeTacticianPage() {
       <div
         aria-hidden="true"
         data-area="spacer"
-        className={`grow basis-0 !shrink min-h-0${meterOn && !lesson && !showTutorial ? " hidden" : ""}`}
+        className={`grow basis-0 !shrink min-h-0${meterOn && !showTutorial ? " hidden" : ""}`}
       />
 
       {showTutorial ? (
@@ -4419,24 +4437,6 @@ export default function OneStrokeTacticianPage() {
             </div>
           )}
 
-          {/* Run mode: Season, target, score, strokes and weed-outs */}
-          {lesson && lessonIndex !== null && (
-            <RunLessonCoach
-              lesson={lesson}
-              index={lessonIndex}
-              total={RUN_LESSONS.length}
-              status={
-                drawnPath.length >= 2 && !lessonDemo
-                  ? lesson.checkGoal(
-                      simulation,
-                      calculateFloorScoreBreakdown(simulation, lesson.hero, drawnPath.length, []),
-                      lesson.hero
-                    )
-                  : null
-              }
-            />
-          )}
-
           {mode === "RUN" && !isInteractiveTutorial && !lesson && runGarden && (
             phase === "DEFEAT" && runOver === null ? (
               <button
@@ -4491,17 +4491,14 @@ export default function OneStrokeTacticianPage() {
 
           {/* Above the board: one quiet line. The live meter itself floats over
               the top card while a line is drawn (or a score or tile tip shows) */}
-          {meterOn && lesson && (
-            <div className="ui-zoom relative w-full max-w-game min-w-0">
-{meterInner}
-            </div>
-          )}
-          {meterOn && !lesson && (
+          {meterOn && (
             // Takes the top spacer's place: it grows like the spacer under the
             // board, so the board sits centred between the top card and the buttons
             <p data-area="hint" className="ui-zoom w-full max-w-game grow basis-0 !shrink min-h-[20px] flex items-end justify-center text-center text-[14px] leading-snug text-amber-200/90">
               {artify(
-phase === "RESOLVING"
+lesson
+                ? ""
+                : phase === "RESOLVING"
                 ? "Tap the board to skip ⏩"
                 : runNoSafeLine
                 ? "No safe line on this board. 🔄 Swap can change up to 3 tiles."
