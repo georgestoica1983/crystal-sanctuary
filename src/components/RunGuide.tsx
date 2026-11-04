@@ -32,6 +32,13 @@ import {
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import { RELIC_SET_SIZE, RELIC_SET_X } from "@/lib/relicTags";
 import { bedTargetPreview, RUN_LOG_VERSION } from "@/lib/runReplay";
+import { bagArt, shopMomentArt, tagArt, toolArt, upgradeArt } from "@/lib/art";
+
+/** A small picture at the start of a guide line, sized like the text */
+function GuideArt({ src }: { src: string }) {
+  // eslint-disable-next-line @next/next/no-img-element
+  return <img src={src} alt="" aria-hidden="true" draggable={false} className="inline-block h-[1.35em] w-[1.35em] align-[-0.3em] object-contain" />;
+}
 import RelicIcon from "@/components/RelicIcon";
 import { artify } from "@/components/ArtText";
 
@@ -282,12 +289,12 @@ function buildPages(): GuidePage[] {
               <>Clearing a Garden Bed pays 🌱 Seeds: {RUN_CLEAR_REWARD.SMALL}/{RUN_CLEAR_REWARD.BIG}/{RUN_CLEAR_REWARD.BOSS}, +1 per unused line, +1 per {RUN_INTEREST_STEP} 🌱 you&apos;ve saved (max +{RUN_INTEREST_MAX}).</>,
               <>In the Shop: buy relics and boosts, or reroll ({RUN_REROLL_BASE_COST} 🌱). You can hold {MAX_COMMON_RELICS} relics.</>,
               <>🌱 Fertilizer levels up one tile type for the whole Run: every one of those tiles on a line adds more Value. It stacks.</>,
-              <>☀️ Garden tools (hold 2): tap one under the board, then a tile. The upgrade stays on that tile in your bag for the whole Run. 🔔 Echo makes a tile score twice and can join another upgrade.</>,
+              <><GuideArt src={toolArt("SUNLIT")} /> Garden tools (hold 2): tap one under the board, then a tile. The upgrade stays on that tile in your bag for the whole Run. <GuideArt src={toolArt("ECHO")} /> Echo makes a tile score twice and can join another upgrade.</>,
               <>✦ Shimmering tiles are special: Golden +30 Value, Iridescent +2 Length, Radiant ×1.25 on any line through them. Your bag starts with one; the Shop sometimes sells more.</>,
-              <>🎁 Before your first line on a Small bed you can skip it for a Tag. You lose its Seeds and Shop, and the Big bed after it gets 50% harder.</>,
-              <>✨ From Season 2 a Shop is sometimes rare: a Sale, a free reroll, or a relic for free.</>,
-              <>🎒 Earn starting bags by playing (Thorny, Acorn, Berry, Lean) and pick one on the New Run sheet. Each changes the tiles you grow.</>,
-              <>🏺 Each Season the Shop offers one garden upgrade (6 🌱) that lasts the whole Run: a bigger interest cap, cheaper Shops or stronger Fertilizer. Each has a second, stronger tier.</>,
+              <><GuideArt src={tagArt("RELIC")} /> Before your first line on a Small bed you can skip it for a Tag. You lose its Seeds and Shop, and the Big bed after it gets 50% harder.</>,
+              <><GuideArt src={shopMomentArt("SALE")} /> From Season 2 a Shop is sometimes rare: a Sale, a free reroll, or a relic for free.</>,
+              <><GuideArt src={bagArt("ACORN")} /> Earn starting bags by playing (Thorny, Acorn, Berry, Lean) and pick one on the New Run sheet. Each changes the tiles you grow.</>,
+              <><GuideArt src={upgradeArt("MARKET_DAY")} /> Each Season the Shop offers one garden upgrade (6 🌱) that lasts the whole Run: a bigger interest cap, cheaper Shops or stronger Fertilizer. Each has a second, stronger tier.</>,
             ]}
           />
           <div className="rounded-xl border border-white/10 overflow-hidden text-[12px] font-mono">
