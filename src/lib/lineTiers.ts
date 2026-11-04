@@ -10,8 +10,8 @@ export interface LineTier {
 }
 
 export const LINE_TIERS: LineTier[] = [
-  { level: 0, name: "Seedling", minTiles: 0, color: "#A5B4FC" },
-  { level: 1, name: "Sprout", minTiles: 6, color: "#34D399" },
+  { level: 0, name: "Bud", minTiles: 0, color: "#A5B4FC" },
+  { level: 1, name: "Shoot", minTiles: 6, color: "#34D399" },
   { level: 2, name: "Vine", minTiles: 10, color: "#2DD4BF" },
   { level: 3, name: "Blossom", minTiles: 15, color: "#F472B6" },
   { level: 4, name: "Grand garden", minTiles: 20, color: "#FBBF24" },
@@ -37,8 +37,8 @@ export const TILE_INTROS: Record<IntroTileType, { name: string; text: string }> 
   ENEMY: { name: "Thorn", text: "its red number with a thorn is points for your line, and it costs that much ❤️ Life. Often worth it on a long line." },
   GOLD: { name: "Acorn", text: "adds its number to your points." },
   WEAPON: { name: "Shears", text: "cut the next Thorn completely. Like every tile, its number adds points." },
-  POTION: { name: "Berries", text: "green number with a leaf: points, and gives that much ❤️ Life back." },
-  SHIELD: { name: "Gloves", text: "block that much Thorn damage, and they last." },
+  POTION: { name: "Berries", text: "their green number with a leaf is points, and they give back that much ❤️ Life." },
+  SHIELD: { name: "Gloves", text: "block that much Thorn damage until used up." },
   TRAP: { name: "Spike", text: "step onto it diagonally ↗ and it costs no Life. Straight on, it costs its number in ❤️ Life." },
 };
 export const SEEN_TILE_INTROS_KEY = "ost_seen_tile_intros_v1";

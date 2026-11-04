@@ -24,7 +24,7 @@ export const SHOP_GUIDE: Record<ShopGuideKind, ShopGuideEntry> = {
   RELIC: {
     name: "Relics",
     what: "Lasting powers for the whole Run. Some add to every line, others reward lines that follow their rule.",
-    how: `Hold up to ${MAX_COMMON_RELICS}. Tap one under Your relics to sell it for Seeds. Three relics of one family score every line ×${RELIC_SET_X}.`,
+    how: `Hold up to ${MAX_COMMON_RELICS}. Tap one under Your relics to sell it for Seeds. Three relics with the same tag make a set: every line scores ×${RELIC_SET_X}.`,
     sample: { id: "guide-relic", kind: "RELIC", relicId: "LADYBUG" as ShopOffer["relicId"], cost: 0 },
   },
   STAT: {
@@ -41,7 +41,7 @@ export const SHOP_GUIDE: Record<ShopGuideKind, ShopGuideEntry> = {
   },
   TOOL: {
     name: "Garden tools",
-    what: "Upgrade one tile in your bag for the rest of the Run.",
+    what: "Upgrade one tile in your bag for the rest of the Run (Dew dries after 3 lines).",
     how: `Hold up to ${MAX_TOOLS}. Under the board, tap the tool, then tap a tile.`,
     sample: { id: "guide-tool", kind: "TOOL", tool: "SUNLIT" as ShopOffer["tool"], cost: 0 },
   },
@@ -75,9 +75,9 @@ export const SHOP_GUIDE_ORDER: ShopGuideKind[] = ["RELIC", "STAT", "PACKET", "PR
 
 /** The rest of the Shop, in one line each */
 export const SHOP_GUIDE_MORE: Array<{ name: string; text: string }> = [
-  { name: "Seeds and interest", text: `Clear beds to earn 🌱. Seeds you keep earn +1 for every ${RUN_INTEREST_STEP}, up to +${RUN_INTEREST_MAX} after each bed.` },
+  { name: "Seeds and interest", text: `Clear beds to earn 🌱. Seeds you keep earn +1 for every ${RUN_INTEREST_STEP}, up to your interest cap (+${RUN_INTEREST_MAX} at the start) after each bed.` },
   { name: "Reroll", text: `New offers for ${RUN_REROLL_BASE_COST} 🌱, then 1 more each time in the same Shop.` },
-  { name: "New Boss", text: `Don't like the coming Boss? Swap it once per Season for ${BOSS_REROLL_COST} 🌱.` },
+  { name: "Boss reroll", text: `Don't like the coming Boss? Reroll it once per Season for ${BOSS_REROLL_COST} 🌱.` },
   { name: "Rare Shops", text: "From Season 2 a Shop is sometimes rare: a Sale, a free reroll, or a relic for free." },
 ];
 

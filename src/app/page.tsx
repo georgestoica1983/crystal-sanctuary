@@ -66,6 +66,7 @@ import {
   getRunInterestCap,
   RUN_INTEREST_MAX,
   EDITIONS,
+  withArticle,
   FERTILIZER,
   getFertLevel,
   isPerfectFloor,
@@ -1542,7 +1543,7 @@ export default function OneStrokeTacticianPage() {
       // Morning dew on the first board of the day's first morning Run (looks and sound only)
       if (!practice && takeMorningDew()) {
         setDewIds(pickDewTiles(first.floor.grid.flat()));
-        window.setTimeout(() => handleNotice("☀️ Good morning. There's dew on the garden, so draw through it."), 1200);
+        window.setTimeout(() => handleNotice("☀️ Good morning. There's dew on the garden today."), 1200);
       } else {
         setDewIds([]);
       }
@@ -1751,13 +1752,13 @@ export default function OneStrokeTacticianPage() {
       if (mode === "RUN" && !isInteractiveTutorial) {
         // A Run keeps its Companion; picking another one starts a new Run
         if (floorHistory.length > 0 && phase !== "DEFEAT") {
-          handleNotice("Your Companion is set for this run. End it to pick another.");
+          handleNotice("Your Companion is set for this Run. End it to pick another.");
           return;
         }
         startRun(nextClassId, isFreeTrial);
         soundEngine.playWeaponPickup();
         handleNotice(
-          `${clsDef.emblem} ${clsDef.sanctuaryName ?? clsDef.name} starts a new run!`
+          `${clsDef.emblem} ${clsDef.sanctuaryName ?? clsDef.name} starts a new Run!`
         );
         return;
       }
@@ -1934,11 +1935,11 @@ export default function OneStrokeTacticianPage() {
         if (newSets.length > 0) soundEngine.playSetComplete();
         else soundEngine.playShopBuy();
       } else if (offer.stat === "MAX_MAGIC") {
-        handleNotice(`${SHOP_STAT_BOOSTS.MAX_MAGIC.icon} +2 Max Life for this visit!`);
+        handleNotice(`${SHOP_STAT_BOOSTS.MAX_MAGIC.icon} +2 Max Life for this Run!`);
       } else if (offer.stat === "START_DEW") {
-        handleNotice(`${SHOP_STAT_BOOSTS.START_DEW.icon} +1 Gloves at the start of every garden!`);
+        handleNotice(`${SHOP_STAT_BOOSTS.START_DEW.icon} +1 Gloves at the start of every bed!`);
       } else if (offer.kind === "TILE" && offer.tile?.ed) {
-        handleNotice(`${{ GOLDEN: "💛", IRIDESCENT: "🔮", RADIANT: "💠" }[offer.tile.ed] ?? ""} A ${EDITIONS[offer.tile.ed].name} tile (${EDITIONS[offer.tile.ed].tag}) joins your bag. It shimmers when it's on the board.`);
+        handleNotice(`${{ GOLDEN: "💛", IRIDESCENT: "🔮", RADIANT: "💠" }[offer.tile.ed] ?? ""} ${withArticle(`${EDITIONS[offer.tile.ed].name} tile`)} (${EDITIONS[offer.tile.ed].tag}) joins your bag. It shimmers when it's on the board.`);
       } else if (offer.kind === "TOOL" && offer.tool) {
         handleNotice(`${GARDEN_TOOLS[offer.tool].icon} ${GARDEN_TOOLS[offer.tool].name} is in your tools. Tap it under the board, then a tile.`);
       } else if (offer.kind === "FERT" && offer.fert) {
@@ -2331,7 +2332,7 @@ export default function OneStrokeTacticianPage() {
     }
     if (garden.weedOutsLeft > 0) {
       setRunNoSafeLine(true);
-      handleNotice("No safe line on this board. Use a 🔄 Swap to change some tiles.");
+      handleNotice("No safe line on this board. Tap 🔄 Swap to change up to 3 tiles.");
       return false;
     }
     endRunMode("NO_SAFE_LINE", garden, history, stats);
@@ -2535,7 +2536,7 @@ export default function OneStrokeTacticianPage() {
           : null,
         target: garden.target,
         continueLabel: bloomed
-          ? "Garden Bed cleared!"
+          ? "Bed cleared!"
           : outOfStrokes
           ? "See the run"
           : "Next line",
@@ -2974,7 +2975,7 @@ export default function OneStrokeTacticianPage() {
     if (!tool) return;
     const used = applyGardenTool({ grid: currentFloor.grid, bag: runBag, coord, tool });
     if (!used) {
-      handleNotice("That tile can't take a tool. Pick one that isn't upgraded yet (not your companion or the gate).");
+      handleNotice("That tile can't take a tool. Pick one that isn't upgraded yet (not your Companion or the Exit).");
       return;
     }
     logRunAction({ k: "u", i: toolArmed, c: coord.row * 5 + coord.col });
@@ -2986,7 +2987,9 @@ export default function OneStrokeTacticianPage() {
     soundEngine.playShopBuy();
     track("tool_used", { tool, bed: runGarden.gardenIndex });
     recordSupply(`TOOL_${tool}`);
-    handleNotice(`${GARDEN_TOOLS[tool].icon} ${GARDEN_TOOLS[tool].name} (${GARDEN_TOOLS[tool].tag}) stays on that tile for the whole Run.`);
+    handleNotice(
+      `${GARDEN_TOOLS[tool].icon} ${GARDEN_TOOLS[tool].name} (${GARDEN_TOOLS[tool].tag}) stays on that tile ${tool === "DEW" ? "for its next 3 lines" : "for the whole Run"}.`
+    );
   };
 
   const handleConfirmWeedOut = () => {
@@ -3938,7 +3941,7 @@ export default function OneStrokeTacticianPage() {
   // Run notices (a warning about the line, no safe line) take the top card's
   // place like the meter does, so they never cover the board
   const runNoticeText = RUN_ONLY && (retractNotice || (runNoSafeLine && !weedOutMode))
-    ? retractNotice ?? "⛔ No safe line on this board. Tap 🔄 Swap to change some tiles."
+    ? retractNotice ?? "⛔ No safe line on this board. Tap 🔄 Swap to change up to 3 tiles."
     : null;
   const runCardShown =
     mode === "RUN" && !isInteractiveTutorial && !lesson && !!runGarden && !(phase === "DEFEAT" && runOver === null);
@@ -3957,9 +3960,9 @@ export default function OneStrokeTacticianPage() {
       : practiceStep && PRACTICE_HINTS[practiceStep] && phase === "PLANNING"
       ? PRACTICE_HINTS[practiceStep]!
       : runNoSafeLine
-      ? "No safe line on this board. 🔄 Swap can change up to 3 tiles."
+      ? "No safe line on this board. Tap 🔄 Swap to change up to 3 tiles."
       : swapSuggested
-      ? "Tough board. Try 🔄 Swap to change up to 3 tiles."
+      ? "Tough board. Tap 🔄 Swap to change up to 3 tiles."
       : // The main rule, while it is new: only the very first bed of a player's first Run
       runsStarted() <= 1 && (runGarden?.gardenIndex ?? 0) === 0
       ? "Longer lines score far more."
@@ -3990,7 +3993,7 @@ export default function OneStrokeTacticianPage() {
                   toGo={bedToGo}
                   idleText={
                     runNoSafeLine
-                      ? "No safe line on this board. 🔄 Swap can change up to 3 tiles."
+                      ? "No safe line on this board. Tap 🔄 Swap to change up to 3 tiles."
                       : swapSuggested
                       ? "Tough board. Even the best line falls short, so try 🔄 Swap to change up to 3 tiles."
                       : undefined
@@ -4351,7 +4354,7 @@ export default function OneStrokeTacticianPage() {
                 }
                 const def = HERO_CLASS_REGISTRY[heroClassId];
                 showLongNotice(
-                  `${def.sanctuaryEmblem ?? def.emblem} ${def.sanctuaryShortName ?? def.shortName}: ${COMPANION_RULES[heroClassId]}. Pick a companion when you start a new run.`
+                  `${def.sanctuaryEmblem ?? def.emblem} ${def.sanctuaryShortName ?? def.shortName}: ${COMPANION_RULES[heroClassId]}. Pick a Companion when you start a new Run.`
                 );
               }
             : undefined
@@ -4823,7 +4826,7 @@ export default function OneStrokeTacticianPage() {
                       : "bg-[#2A1018]/95 border-rose-300/60 text-rose-50"
                   }`}
                 >
-                  {artify(retractNotice ?? "⛔ No safe line on this board. Tap 🔄 Swap to change some tiles.")}
+                  {artify(retractNotice ?? "⛔ No safe line on this board. Tap 🔄 Swap to change up to 3 tiles.")}
                   {noticeSticky && retractNotice && (
                     <span className="mt-1.5 block">
                       <span className="inline-block rounded-lg bg-amber-300 px-3 py-1 text-[12px] font-black text-slate-950">Got it</span>
@@ -5149,6 +5152,13 @@ export default function OneStrokeTacticianPage() {
         offers={shopOffers}
         soldIds={shopSoldIds}
         ownedRelics={activeRelics}
+        interestCap={
+          getRunInterestCap(activeRelics) -
+          RUN_INTEREST_MAX +
+          (ascensionRules(runAscensionFor(runLogRef.current?.v ?? RUN_LOG_VERSION, runLogRef.current?.asc)).interestBase ??
+            RUN_INTEREST_MAX) +
+          upgradeInterestBonus(gardenUpgrades)
+        }
         relicSets={mode === "RUN" && runRulesUseRelicSets(runLogRef.current?.v ?? RUN_LOG_VERSION)}
         relicCounters={relicCounters}
         toolsHeld={runTools.length}

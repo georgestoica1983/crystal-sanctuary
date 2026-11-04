@@ -2293,7 +2293,7 @@ function getTileInspectionData(
         name: isSanctuary ? "Acorn" : "Tactical Gold",
         valueLabel: `+${cell.value} points`,
         explanation: isSanctuary
-          ? `Adds ${cell.value} to your line's value. (🌱 Seeds to spend come from clearing Garden Beds.)`
+          ? `Adds ${cell.value} to your line's Value. (🌱 Seeds to spend come from clearing beds.)`
           : `+${cell.value} Gold: adds ${cell.value} Value to this floor's score and buys upgrades in the Shop.`,
       };
     case "TRAP":

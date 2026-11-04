@@ -18,10 +18,10 @@ import { normalizeSeedCode } from "@/lib/seedCode";
 
 /** Each companion's rule in a Garden Run, in plain words */
 export const COMPANION_RULES: Record<HeroClassId, string> = {
-  KNIGHT: "+2 🧤 each bed · keeps half its spare Gloves",
-  ROGUE: "Each line may cross itself once · Thorns 2 softer from a diagonal",
-  VAMPIRE: "🌰 heal +1 · cut Thorns heal +2 · 🧤 turn into ✂️",
-  MAGE: "Each line may hop over one tile · 🍓 heal +2 more",
+  KNIGHT: "+2 🧤 each bed, keeps half its spare Gloves",
+  ROGUE: "Each line may cross itself once, and Thorns are 2 weaker from a diagonal",
+  VAMPIRE: "🌰 heal +1, every Thorn heals +2, 🧤 turn into ✂️",
+  MAGE: "Each line may hop over one tile, and 🍓 heal +2 more",
 };
 
 /** Starting stats line (a Run's Shears rule counts one starting cut) */
@@ -106,7 +106,7 @@ export default function AscensionPicker({
         <div className="flex items-center justify-between">
           <div>
             <div className="text-[16px] font-bold">New Garden Run</div>
-            <div className="text-[12px] text-white/60">Pick a companion. Each one plays differently.</div>
+            <div className="text-[12px] text-white/60">Pick a Companion. Each one plays differently.</div>
           </div>
         </div>
 
@@ -266,7 +266,7 @@ export default function AscensionPicker({
           <div className="text-[12px] text-white/60"><Badge id="lock" /> Harder Ascension levels: clear the Season 3 Boss.</div>
         ) : (
         <div className="space-y-1.5">
-          <div className="text-[12px] font-semibold text-white/60">Difficulty · each level keeps the ones below it</div>
+          <div className="text-[12px] font-semibold text-white/60">Difficulty: each level adds to the ones below it</div>
           {ASCENSION_LEVELS.map((l) => {
             const locked = l.level > unlocked;
             const selected = l.level === level;
@@ -310,12 +310,14 @@ export default function AscensionPicker({
             onClick={() => onStart(level, companion, code, bag)}
             className="w-full rounded-xl py-3 font-bold text-[14px] bg-teal-300 text-slate-950 active:scale-95 disabled:opacity-40 flex items-center justify-center gap-1.5"
           >
-            {code ? `Plant ${code} with ` : "Start with "}
-            {pickedDef.sanctuaryShortName ?? pickedDef.shortName}
-            {bag ? ` · ${STARTING_BAGS[bag].name}` : ""}
-            {level > 0 ? ` · Ascension ${level}` : ""}
+            {code ? `Plant ${code}` : "Start Run"}
             <ArrowRight className="w-4 h-4 shrink-0" />
           </button>
+          <div className="text-center text-[12px] text-white/60">
+            {pickedDef.sanctuaryShortName ?? pickedDef.shortName}
+            {bag ? `, ${STARTING_BAGS[bag].name}` : ""}
+            {level > 0 ? `, Ascension ${level}` : ""}
+          </div>
           <DoneButton onClick={onClose} label="Not now" />
         </div>
       </motion.div>

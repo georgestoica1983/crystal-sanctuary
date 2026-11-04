@@ -144,7 +144,7 @@ export default function PruneSheet({
 
         {screens > 1 && <Pager at={at} count={screens} onGo={(d) => setScreen(at + d)} />}
 
-        <p className="text-[14px] leading-snug text-white/60">Numbers are base values. Thorns and Spikes grow each Season.</p>
+        <p className="text-[14px] leading-snug text-white/60">Numbers are base values. Thorns grow each Season, Spikes every other Season.</p>
 
         <button
           type="button"

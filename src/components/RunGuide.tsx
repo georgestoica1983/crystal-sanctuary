@@ -31,7 +31,7 @@ import {
 } from "@/lib/engine";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import { RELIC_SET_SIZE, RELIC_SET_X } from "@/lib/relicTags";
-import { bedTargetPreview, RUN_LOG_VERSION } from "@/lib/runReplay";
+import { BOSS_REROLL_COST, bedTargetPreview, RUN_LOG_VERSION } from "@/lib/runReplay";
 import { bagArt, shopMomentArt, tagArt, toolArt, upgradeArt } from "@/lib/art";
 
 /** A small picture at the start of a guide line, sized like the text */
@@ -190,8 +190,8 @@ function buildPages(): GuidePage[] {
     getRelicDisplay(r, true)
   );
   const relicGroups: Array<{ category: RelicCategory; title: string }> = [
-    { category: "CHIPS", title: "More value" },
-    { category: "MULT", title: "More length" },
+    { category: "CHIPS", title: "More Value" },
+    { category: "MULT", title: "More Length" },
     { category: "XMULT", title: "Multipliers" },
     { category: "ECONOMY", title: "Seeds" },
     { category: "MAGIC", title: "Life and defence" },
@@ -213,11 +213,11 @@ function buildPages(): GuidePage[] {
           </div>
           <Bullets
             items={[
-              <>Draw one line from <B>YOU</B> to the <B>🌈 EXIT</B>: drag, tap tile by tile, or mix both.</>,
+              <>Draw one line from <B>YOU</B> to the <B>🌈 Exit</B>: drag, tap tile by tile, or mix both.</>,
               <><B>Longer lines score far more.</B></>,
               <>Don&apos;t run out of <B>❤️ Life</B>.</>,
-              <>Reach the garden&apos;s <B>target</B> in {RUN_STROKES_PER_GARDEN} lines.</>,
-              <>Clear Garden Beds, earn 🌱 Seeds, buy relics. It gets harder each Season.</>,
+              <>Reach the bed&apos;s <B>target</B> in {RUN_STROKES_PER_GARDEN} lines.</>,
+              <>Clear beds, earn 🌱 Seeds, buy relics. It gets harder each Season.</>,
             ]}
           />
         </>
@@ -230,8 +230,8 @@ function buildPages(): GuidePage[] {
         <div className="space-y-2.5">
           <TileLine type="ENEMY" value={5} name="Thorn" text="its red number with a thorn is points, and it costs that much ❤️ Life." />
           <TileLine type="WEAPON" value={5} name="Shears" text="cut the next Thorn completely." />
-          <TileLine type="SHIELD" value={5} name="Gloves" text="block Thorn damage, and last." />
-          <TileLine type="POTION" value={5} name="Berries" text="green number with a leaf: points, and gives that much ❤️ Life back." />
+          <TileLine type="SHIELD" value={5} name="Gloves" text="block Thorn damage until used up." />
+          <TileLine type="POTION" value={5} name="Berries" text="their green number with a leaf is points, and they give back that much ❤️ Life." />
           <TileLine type="GOLD" value={5} name="Acorn" text="adds points." />
           <TileLine type="TRAP" value={3} name="Spike" text="its grey number is points and costs that much ❤️ Life, unless you step on it diagonally ↗." />
           <P>Tap any tile on the board to read what it does.</P>
@@ -258,16 +258,16 @@ function buildPages(): GuidePage[] {
       ),
     },
     {
-      title: "A Garden Bed",
+      title: "A bed",
       icon: "🌸",
       body: (
         <Bullets
           items={[
             <>You get <B>{RUN_STROKES_PER_GARDEN} lines</B>. Each adds to the bar.</>,
             <>Used tiles are replaced with new ones from your Tile Bag.</>,
-            <>❤️ Life, 🧤 Gloves and ✂️ Shears carry over between lines. Clearing a Garden Bed gives back +3 ❤️.</>,
-            <><B>🔄 Swap</B> ({RUN_WEEDOUTS_PER_GARDEN} per garden): change up to {RUN_WEEDOUT_MAX_TILES} tiles.</>,
-            <><B>💡 Hint</B> (1 per garden): lights up a good route.</>,
+            <>❤️ Life, 🧤 Gloves and ✂️ Shears carry over between lines. Clearing a bed gives back +3 ❤️.</>,
+            <><B>🔄 Swap</B> ({RUN_WEEDOUTS_PER_GARDEN} per bed): change up to {RUN_WEEDOUT_MAX_TILES} tiles.</>,
+            <><B>💡 Hint</B> (1 per bed): lights up a good route.</>,
             <>If a line would run out of Life, it pulls back and shows why.</>,
           ]}
         />
@@ -280,16 +280,17 @@ function buildPages(): GuidePage[] {
         <>
           <Bullets
             items={[
-              <>Each Season: <B>Small</B>, <B>Big</B> and <B>Boss</B> garden.</>,
-              <>Targets rise every Season, and Thorns get stronger.</>,
-              <>Boss gardens have a twist. Beat one for a Legendary relic. Its icon shows on the Season dots ahead of time (tap it). Don't like it? The Shop can reroll it once per Season for 6 🌱.</>,
-              <>From Season 2 the targets climb every Season, and each new Season adds 2 Thorns and a Spike to your bag. Only a build that multiplies keeps up.</>,
-              <>💮 Clear a bed with 1.5× its target for a full bloom: +3 🌱. A bare clear pays a little less.</>,
+              <>Each Season: a <B>Small</B>, <B>Big</B> and <B>Boss</B> bed.</>,
+              <>Boss beds have a twist. Beat one for a Legendary relic.</>,
+              <>The Boss icon shows on the Season dots ahead of time: tap it to read its rule.</>,
+              <>Don&apos;t like the coming Boss? The Shop can reroll it once per Season for {BOSS_REROLL_COST} 🌱.</>,
+              <>Targets climb every Season and Thorns get stronger. From Season 2 each new Season also adds 2 Thorns and a Spike to your bag. Only a build that multiplies keeps up.</>,
+              <>💮 Clear a bed with 1.5× its target for a full bloom: +3 🌱. A bare clear pays 1 🌱 less.</>,
               <>🟫 From Season 4, about a third of the tiles a line uses stay bare for the rest of the bed, so plan your first line.</>,
-              <>Clearing a Garden Bed pays 🌱 Seeds: {RUN_CLEAR_REWARD.SMALL}/{RUN_CLEAR_REWARD.BIG}/{RUN_CLEAR_REWARD.BOSS}, +1 per unused line, +1 per {RUN_INTEREST_STEP} 🌱 you&apos;ve saved (max +{RUN_INTEREST_MAX}).</>,
+              <>Clearing a bed pays 🌱 Seeds: {RUN_CLEAR_REWARD.SMALL}/{RUN_CLEAR_REWARD.BIG}/{RUN_CLEAR_REWARD.BOSS}, +1 per unused line, +1 per {RUN_INTEREST_STEP} 🌱 you&apos;ve saved (up to your interest cap, +{RUN_INTEREST_MAX} at the start).</>,
               <>In the Shop: buy relics and boosts, or reroll ({RUN_REROLL_BASE_COST} 🌱). You can hold {MAX_COMMON_RELICS} relics.</>,
               <>🌱 Fertilizer levels up one tile type for the whole Run: every one of those tiles on a line adds more Value. It stacks.</>,
-              <><GuideArt src={toolArt("SUNLIT")} /> Garden tools (hold 2): tap one under the board, then a tile. The upgrade stays on that tile in your bag for the whole Run. <GuideArt src={toolArt("ECHO")} /> Echo makes a tile score twice and can join another upgrade.</>,
+              <><GuideArt src={toolArt("SUNLIT")} /> Garden tools (hold 2): tap one under the board, then a tile. The upgrade stays on that tile in your bag for the whole Run (Dew dries after 3 lines). <GuideArt src={toolArt("ECHO")} /> Echo makes a tile score twice and can join another upgrade.</>,
               <>✦ Shimmering tiles are special: Golden +30 Value, Iridescent +2 Length, Radiant ×1.25 on any line through them. Your bag starts with one; the Shop sometimes sells more.</>,
               <><GuideArt src={tagArt("RELIC")} /> Before your first line on a Small bed you can skip it for a Tag. You lose its Seeds and Shop, and the Big bed after it gets 50% harder.</>,
               <><GuideArt src={shopMomentArt("SALE")} /> From Season 2 a Shop is sometimes rare: a Sale, a free reroll, or a relic for free.</>,
@@ -322,7 +323,7 @@ function buildPages(): GuidePage[] {
       icon: "👑",
       body: (
         <>
-          <P>Lasting powers for your Run. Mix them and they multiply each other. 📈 = grows every Garden Bed.</P>
+          <P>Lasting powers for your Run. Value and Length relics add up; × relics multiply the total. 📈 = grows as you play.</P>
           <P>
             Each relic has a theme tag (🌺 Thorns, 🌰 Acorns…). Hold <B>{RELIC_SET_SIZE} relics with one tag</B> for a set:
             every line scores <B>×{RELIC_SET_X}</B>. ⭐ Any build relics never count.

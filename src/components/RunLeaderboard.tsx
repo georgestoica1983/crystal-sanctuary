@@ -141,7 +141,7 @@ export default function RunLeaderboardModal({
           <div className="text-[12px] text-indigo-100/80">
             {board && !board.configured
               ? "The online leaderboard opens soon. Until then, this shows your best Run on this phone."
-              : "Every player's best Run, ranked by points. Scores are sent automatically when a garden is cleared and when a Run ends."}
+              : "Every player's best Run, ranked by points. Scores are sent automatically when a bed is cleared and when a Run ends."}
           </div>
           <div className="flex items-center gap-1.5 text-[10px] tabular-nums text-indigo-200/70">
             {board?.configured ? (

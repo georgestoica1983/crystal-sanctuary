@@ -9,6 +9,7 @@ import type { HeroClassId } from "@/types/game";
 import {
   BOSS_RULE_REGISTRY,
   EDITIONS,
+  tileSingular,
   FERTILIZER,
   FERT_TILES,
   GARDEN_TOOLS,
@@ -142,7 +143,7 @@ function buildPages(): Record<PageId, Entry[]> {
       name: `Fertilizer · ${FERTILIZER[t].name}`,
       found: has(`FERT_${t}`),
       art: img(tileArt(t), 34),
-      text: `Each level adds Value to every ${FERTILIZER[t].name.replace(/s$/, "")} on a line.`,
+      text: `Each level adds Value to every ${tileSingular(t)} on a line.`,
       hint: "Buy it in the Shop.",
     })),
     ...TOOL_IDS_WITH_ECHO.map((t) => ({
@@ -150,7 +151,7 @@ function buildPages(): Record<PageId, Entry[]> {
       name: GARDEN_TOOLS[t].name,
       found: has(`TOOL_${t}`),
       art: img(toolArt(t), 40),
-      text: `Garden tool: ${GARDEN_TOOLS[t].tag}, for the whole Run.`,
+      text: t === "DEW" ? `Garden tool: ${GARDEN_TOOLS[t].tag}.` : `Garden tool: ${GARDEN_TOOLS[t].tag}, for the whole Run.`,
       hint: "Buy it in the Shop and use it on a tile.",
     })),
     ...(Object.keys(EDITIONS) as Array<keyof typeof EDITIONS>).map((e) => ({
@@ -188,7 +189,7 @@ function buildPages(): Record<PageId, Entry[]> {
       found: found.has(id),
       art: <EntityIcon type="HERO" companionId={id} size={38} />,
       text: COMPANION_RULES[id] ?? "",
-      hint: "Play a Run with this companion (unlock it with stars).",
+      hint: "Play a Run with this Companion.",
       record: rec ? `Best Run ${formatScore(rec.best)} · reached bed ${rec.deepest + 1}` : undefined,
     };
   });

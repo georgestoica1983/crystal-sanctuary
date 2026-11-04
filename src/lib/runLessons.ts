@@ -98,7 +98,7 @@ export const RUN_LESSONS: RunLesson[] = [
     title: "Drag to the Exit",
     icon: "✍️",
     learn: "",
-    steps: ["Drag or tap from YOU to the 🌈 EXIT."],
+    steps: ["Drag or tap from YOU to the 🌈 Exit."],
     goalLabel: "Reach the Exit",
     hero: hero(10),
     grid: board("L1", [
@@ -169,7 +169,7 @@ export const RUN_LESSONS: RunLesson[] = [
     title: "Berries heal",
     icon: "🍓",
     learn: "",
-    steps: ["Cross the Thorn without wilting. You only have 4 ❤️."],
+    steps: ["Cross the Thorn without running out of Life. You only have 4 ❤️."],
     goalLabel: "Cross the Thorn",
     hero: hero(4),
     grid: board("L7", [
@@ -187,7 +187,7 @@ export const RUN_LESSONS: RunLesson[] = [
         detail: !thorn ? "Take the Thorn on your way" : sim.survives ? "Across ✓" : "Not enough Life",
       };
     },
-    success: "The Berry gave back 5 ❤️ Life, so the Thorn's 6 didn't wilt you. Eat Berries just before a thorny stretch.",
+    success: "The Berry gave back 5 ❤️ Life, so the Thorn's 6 didn't use up your Life. Eat Berries just before a thorny stretch.",
     failHint: "Lines can go diagonally. Eat the Berry first, then take the Thorn.",
   },
   {

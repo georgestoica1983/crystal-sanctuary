@@ -122,11 +122,11 @@ export interface AscensionRules {
 export const ASCENSION_LEVELS: Array<{ level: number; icon: string; adds: string }> = [
   { level: 0, icon: "🌱", adds: "The normal game" },
   { level: 1, icon: "🌿", adds: "Score targets +25%" },
-  { level: 2, icon: "🌾", adds: "No welcome bonus · interest max +3" },
+  { level: 2, icon: "🌾", adds: "No welcome bonus. Interest caps at +3 🌱" },
   { level: 3, icon: "🌺", adds: "Thorns +1" },
-  { level: 4, icon: "🍃", adds: "2 Swaps per Garden Bed" },
-  { level: 5, icon: "❄️", adds: "Start with 8 ❤️ · +2 ❤️ per cleared bed" },
-  { level: 6, icon: "👑", adds: "Boss Garden Beds give 3 lines" },
+  { level: 4, icon: "🍃", adds: "2 Swaps per bed" },
+  { level: 5, icon: "❄️", adds: "Start with at most 8 ❤️, and +2 ❤️ per cleared bed" },
+  { level: 6, icon: "👑", adds: "Boss beds give 3 lines" },
 ];
 
 /** What a level changes (0 = the normal game); only for rules v8+ logs */
@@ -711,7 +711,7 @@ export const STARTING_BAGS: Record<BagId, { name: string; text: string }> = {
   THORNY: { name: "Thorny bag", text: "More and stronger Thorns, more Shears, fewer Acorns." },
   ACORN: { name: "Acorn bag", text: "Twice the Acorns, fewer Thorns and Berries." },
   BERRY: { name: "Berry bag", text: "Twice the Berries for long lines, fewer Acorns and Gloves." },
-  LEAN: { name: "Lean bag", text: "Only 30 tiles. Gloves, Shears, Berries and Acorns are 2 stronger. No room to Prune." },
+  LEAN: { name: "Lean bag", text: "Only 30 tiles, so no Pruning at first. Gloves, Shears, Berries and Acorns are 2 stronger." },
 };
 export const BAG_IDS = Object.keys(STARTING_BAGS) as BagId[];
 
@@ -744,13 +744,13 @@ const RAIN_DANCE_LIFE = 5;
 const ROSE_CHARM_SHEARS = 3;
 
 export const SEED_PACKETS: Record<PacketId, { name: string; short: string; text: string; nextLine: boolean }> = {
-  LONG_ROOT: { name: "Long Root", short: "Length ×2 on your next line", text: "Your next line's Length counts double.", nextLine: true },
+  LONG_ROOT: { name: "Tall Stem", short: "Base Length ×2 on your next line", text: "Your next line's base Length counts twice (relic Length doesn't).", nextLine: true },
   ROSE_CHARM: { name: "Rose Charm", short: "+3 ✂️ Shears now", text: `Gives you ${ROSE_CHARM_SHEARS} ✂️ Shears: your next ${ROSE_CHARM_SHEARS} Thorns are cut free.`, nextLine: false },
   ACORN_ECHO: { name: "Acorn Echo", short: "🌰 score 3× on your next line", text: "On your next line every Acorn counts its number three times.", nextLine: true },
-  CUTTING: { name: "Cutting", short: "Best tile scores twice next line", text: "On your next line, its highest-number tile counts twice.", nextLine: true },
+  CUTTING: { name: "Cutting", short: "Best tile scores twice next line", text: "On your next line, the highest-number tile counts twice.", nextLine: true },
   RAIN_DANCE: { name: "Rain Dance", short: `+${RAIN_DANCE_LIFE} ❤️ Life now`, text: `Gives back ${RAIN_DANCE_LIFE} ❤️ Life, up to your maximum.`, nextLine: false },
   GOLDEN_TOUCH: { name: "Golden Touch", short: `${GOLDEN_TOUCH_TILES} bag tiles turn Golden`, text: `${GOLDEN_TOUCH_TILES} tiles in your bag turn Golden (+30 Value each, for the rest of the Run).`, nextLine: false },
-  SECOND_WIND: { name: "Second Wind", short: "+1 line in this bed", text: "This Garden Bed gets one more line.", nextLine: false },
+  SECOND_WIND: { name: "Second Wind", short: "+1 line in this bed", text: "This bed gets one more line.", nextLine: false },
   CLEAN_SWEEP: { name: "Clean Sweep", short: "Swap every Spike now", text: "Every Spike on the board is swapped for a new tile from your bag.", nextLine: false },
 };
 export const PACKET_IDS = Object.keys(SEED_PACKETS) as PacketId[];
@@ -1010,7 +1010,7 @@ export const GARDENER_GOLDEN = 3;
 export const GARDENER_GIFTS: Record<GardenerGiftId, { name: string; icon: string; text: string }> = {
   RARE_RELIC: { name: "A Rare relic", icon: "🎁", text: "A Rare relic you don't have yet, free." },
   GOLDEN_TILES: { name: "Golden tiles", icon: "✨", text: `${GARDENER_GOLDEN} tiles in your bag turn Golden (+30 Value each).` },
-  MAX_LIFE: { name: "Stronger roots", icon: "❤️", text: `+${GARDENER_LIFE} max ❤️ Life for the rest of the Run.` },
+  MAX_LIFE: { name: "Heartwood", icon: "❤️", text: `+${GARDENER_LIFE} Max ❤️ Life for the rest of the Run.` },
   SEEDS: { name: "A purse of Seeds", icon: "🌱", text: `+${GARDENER_SEEDS} 🌱 Seeds right now.` },
 };
 

@@ -1029,7 +1029,7 @@ export function TopHUD({
                         }}
                       >
                         <span className={menuTileTop}><MessageCircle className="w-4 h-4 text-white/75" /> Feedback</span>
-                        <span className={menuTileSub}>2 minutes</span>
+                        <span className={menuTileSub}>1 minute</span>
                       </a>
                     )}
                   </div>
@@ -1909,7 +1909,7 @@ export function BottomControls({
           type="button"
           disabled={isResolving || hintsRemaining <= 0}
           onClick={onRequestHint}
-          title="Highlight 3 safe steps of a winning path for 5 seconds"
+          title="Show a good line to trace"
           className={mode === "RUN" ? "h-11 [@media(min-height:800px)]:h-14 rounded-2xl bg-white/[0.05] border border-white/[0.08] text-[14px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-35 flex items-center gap-1.5" : "h-10 px-2 rounded-xl whitespace-nowrap bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/50 text-[12px] tabular-nums font-extrabold text-amber-300 hover:text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.2)] active:scale-95 transition disabled:opacity-35 flex items-center gap-1.5"}
         >
           <Sparkles className={mode === "RUN" ? "w-4 h-4 text-amber-300" : "w-3.5 h-3.5 text-amber-400"} />

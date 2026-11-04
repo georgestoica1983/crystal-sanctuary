@@ -47,12 +47,12 @@ const SANCTUARY_RELIC_COPY: Partial<Record<
     icon: "🍃",
     shortTag: "12+ tiles: Thorns are 1 weaker",
     description:
-      "If your line is 12+ tiles long, every Thorn in this garden is 1 gentler.",
+      "If your line is 12+ tiles long, every Thorn on it is 1 weaker.",
   },
   GREED_CROWN: {
     name: "Flower Crown",
     icon: "🌼",
-    shortTag: "🌰 count double · +1 ❤️ each",
+    shortTag: "🌰 count double, +1 ❤️ each",
     description: "Acorns are worth double and each one restores +1 Life.",
   },
 };

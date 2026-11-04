@@ -225,7 +225,7 @@ export function RunHudStrip({
         )}
         <div className="absolute inset-0 flex items-center px-2.5 text-[16px] [@media(max-height:640px)]:text-[14px] tabular-nums font-black text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">
           {shortScore(garden.score)} / {shortScore(garden.target)}
-          {garden.score >= garden.target && <span className="ml-1.5 text-[12px] text-lime-100">Bloomed ✓</span>}
+          {garden.score >= garden.target && <span className="ml-1.5 text-[12px] text-lime-100">Cleared ✓</span>}
         </div>
       </div>
       {/* Bloom bar: buds at half, three quarters and full open as the bed fills (the line you draw previews it) */}
@@ -409,7 +409,7 @@ export function BagPanel({
         Next tiles to refill the board.
         {garden.discardPile.length > 0 &&
           ` Then your ${garden.discardPile.length} used tiles get shuffled back in.`}
-        {prunedCount > 0 && ` ✂️ ${prunedCount} tile${prunedCount === 1 ? "" : "s"} pruned this run.`}
+        {prunedCount > 0 && ` ✂️ ${prunedCount} tile${prunedCount === 1 ? "" : "s"} pruned this Run.`}
       </div>
       {/* Garden levels: what Fertilizer has grown so far this Run */}
       <div className="mt-2 border-t border-white/10 pt-1.5">
@@ -444,7 +444,7 @@ export function getRunBedStars(score: number, target: number, strokesLeft: numbe
 
 /** The card's headline, by how well the bed went */
 const BLOOM_HEADLINE: Record<number, string> = {
-  1: "Bed bloomed!",
+  1: "Bed cleared!",
   2: "Beautiful bed!",
   3: "Perfect bloom!",
 };
@@ -453,14 +453,14 @@ const BLOOM_HEADLINE: Record<number, string> = {
 function bloomBrag(score: number, target: number, linesLeft: number): string {
   const ratio = score / Math.max(1, target);
   if (ratio >= 2) return `${Math.floor(ratio * 10) / 10}× what it needed!`;
-  if (linesLeft > 0) return `Bloomed with ${linesLeft} ${linesLeft === 1 ? "line" : "lines"} to spare.`;
+  if (linesLeft > 0) return `Cleared with ${linesLeft} ${linesLeft === 1 ? "line" : "lines"} to spare.`;
   return "Just in time!";
 }
 
 const STAR_HINT: Record<number, string> = {
-  1: "⭐⭐ for a line to spare · ⭐⭐⭐ for 1.5× the target too",
+  1: "⭐⭐ for a line to spare, ⭐⭐⭐ for 1.5× the target too",
   2: "⭐⭐⭐ for 1.5× the target with a line to spare",
-  3: "Perfect Garden Bed!",
+  3: "Perfect bed!",
 };
 
 /** Small → Big → Boss beds of this Season, with the one just cleared */
@@ -605,7 +605,7 @@ export function RunGoalCard({
         onClick={(e) => e.stopPropagation()}
         className="fit-card w-full max-w-[400px] rounded-2xl border border-white/10 bg-[#1B281F] px-5 pt-4 pb-4 text-white"
       >
-        <h2 className="text-center font-display text-[26px] font-bold leading-tight text-balance">Draw one line to the gate</h2>
+        <h2 className="text-center font-display text-[26px] font-bold leading-tight text-balance">Draw one line to the Exit</h2>
         <p className="mt-2 text-center text-[16px] leading-snug text-white/85">
           Every tile you pass adds to your score, and <b className="text-amber-200">longer lines score far more</b>.
         </p>
@@ -713,7 +713,7 @@ export function RunGardenClearModal({
             transition={{ type: "spring", stiffness: 260, damping: 14 }}
             className="text-[26px] leading-tight font-display font-semibold text-amber-100"
           >
-            {kind === "BOSS" ? "Boss bed beaten!" : BLOOM_HEADLINE[stars] ?? "Bed bloomed!"}
+            {kind === "BOSS" ? "Boss bed beaten!" : BLOOM_HEADLINE[stars] ?? "Bed cleared!"}
           </motion.div>
           <div className="flex justify-center gap-2 mt-2" aria-label={`${stars} of 3 stars`}>
             {[1, 2, 3].map((n) => (
@@ -771,7 +771,7 @@ export function RunGardenClearModal({
                 {info.nextBed.boss ? `Boss ahead: ${BOSS_RULE_REGISTRY[info.nextBed.boss].name}` : `Up next: ${info.nextBed.label}`}
               </div>
               <div className="text-white/60">
-                {info.nextBed.boss ? BOSS_RULE_REGISTRY[info.nextBed.boss].description : `Reach ${fmt(info.nextBed.target)} to bloom it.`}
+                {info.nextBed.boss ? BOSS_RULE_REGISTRY[info.nextBed.boss].description : `Reach ${fmt(info.nextBed.target)} to clear it.`}
               </div>
             </div>
           </div>
@@ -823,7 +823,7 @@ export function RunGardenClearModal({
             className="rounded-xl border border-violet-300/50 bg-violet-500/15 px-3 py-2 text-center"
           >
             <div className="flex items-center justify-center gap-1 text-[12px] font-semibold text-violet-200">
-              <PartyPopper className="w-3.5 h-3.5" /> Unlocked
+              <PartyPopper className="w-3.5 h-3.5" /> New for you
             </div>
             <div className="mt-0.5 flex flex-wrap items-center justify-center text-[14px] font-black text-white leading-snug">
               {info.unlocked.map((u, i) => (
@@ -864,7 +864,7 @@ export function RunGardenClearModal({
             onClick={onContinue}
             className="w-full rounded-xl py-3 font-bold text-[16px] bg-teal-300 text-slate-950 active:scale-95 flex items-center justify-center gap-1.5"
           >
-            {finishLabel ?? <>Enter the Shop · {info.gemsBefore + info.total} 🌱 to spend</>}
+            {finishLabel ?? <>Open Shop · {info.gemsBefore + info.total} 🌱</>}
             <ArrowRight className="w-4 h-4 shrink-0" />
           </button>
           {onStop && !finishLabel && kind === "BOSS" && (
@@ -873,7 +873,7 @@ export function RunGardenClearModal({
               onClick={onStop}
               className="mt-2 w-full rounded-xl py-2.5 text-[14px] font-semibold border border-white/10 bg-white/[0.05] text-white/80 active:scale-[0.98]"
             >
-              Stop here, resume later
+              Save and quit
             </button>
           )}
         </div>
@@ -953,7 +953,7 @@ export interface RunOverInfo {
 const REST_COPY: Record<RunEndReason, string> = {
   MISSED_TARGET: "This bed wanted a few more points.",
   NO_SAFE_LINE: "No path was left through this bed. It will grow back next time.",
-  WILTED: "Your companion gave everything on that line and is resting now.",
+  WILTED: "Your Companion gave everything on that line and is resting now.",
   ENDED: "You let the garden rest for now.",
   DAILY_DONE: "All three Seasons bloomed. Come back tomorrow for a new garden.",
 };
@@ -1150,7 +1150,7 @@ export function RunOverModal({
   for (const r of info.relics ?? []) relicCounts.set(r, (relicCounts.get(r) ?? 0) + 1);
   const newSet = new Set(info.newRelics ?? []);
   const harvest: Array<{ label: string; value: React.ReactNode; tone?: string }> = [
-    { label: "Beds bloomed", value: info.gardensCleared, tone: "text-emerald-200" },
+    { label: "Beds cleared", value: info.gardensCleared, tone: "text-emerald-200" },
     ...(info.bestLine && info.bestLine.points > 0
       ? [{ label: "Best line", value: `${fmt(info.bestLine.points)} · ${info.bestLine.tiles} tiles`, tone: "text-amber-200" }]
       : []),
@@ -1185,7 +1185,7 @@ export function RunOverModal({
               : "The garden rests"}
           </div>
           <p className="text-[14px] text-white/70 leading-snug mt-1">
-            {nearMiss ? `You reached ${getRunGardenLabel(info.gardenIndex)}. One more Run could bloom it.` : why}
+            {nearMiss ? `You reached ${getRunGardenLabel(info.gardenIndex)}. One more Run could clear it.` : why}
           </p>
         </div>
 
@@ -1321,7 +1321,7 @@ export function RunOverModal({
             className="block rounded-xl border border-lime-300/40 bg-lime-300/10 px-3 py-2.5 text-center active:scale-[0.98] transition"
           >
             <span className="block text-[14px] font-bold text-lime-100">Tell us what you thought</span>
-            <span className="block text-[12px] text-white/60">One minute, it really helps</span>
+            <span className="block text-[12px] text-white/60">Takes a minute and really helps</span>
           </a>
         )}
 

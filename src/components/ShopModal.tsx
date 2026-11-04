@@ -30,6 +30,9 @@ import {
   RUN_INTEREST_MAX,
   RUN_INTEREST_STEP,
   SHOP_STAT_BOOSTS,
+  TILE_SINGULAR,
+  tileSingular,
+  withArticle,
 } from "@/lib/engine";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import PruneSheet from "@/components/PruneCard";
@@ -94,6 +97,8 @@ interface ShopModalProps {
   moment?: ShopMomentId | null;
   /** Rules v23+: the coming Boss (this Season's, or next Season's after a Boss bed) and its reroll */
   bossReroll?: { id: BossRuleId; season: number; isNext: boolean; cost: number; done: boolean; onReroll: () => void } | null;
+  /** The interest cap after each bed (Ascension, relics and upgrades change it) */
+  interestCap?: number;
   /** Selling relics (Run); hidden when omitted */
   onSell?: (relicId: RelicId) => void;
   /** Pruning Shears (Run, rules v9+): the Tile Bag; hidden when omitted */
@@ -148,15 +153,6 @@ const TOOL_DESCRIPTIONS: Record<string, string> = {
   ECHO: "Put it on any tile (even an upgraded one): its number, upgrade and shimmer count twice on every line, for the whole Run.",
 };
 
-const TILE_NAMES: Record<string, string> = {
-  ENEMY: "Thorn",
-  TRAP: "Spike",
-  GOLD: "Acorn",
-  POTION: "Berries",
-  SHIELD: "Gloves",
-  WEAPON: "Shears",
-};
-
 /** What an offer does, in a few words for its tile (the panel below has the full text) */
 function glanceOf(offer: ShopOffer, info: { tag: string }): string {
   if (offer.kind === "TOOL" && offer.tool) return `Tool: ${GARDEN_TOOLS[offer.tool].tag}`;
@@ -164,7 +160,7 @@ function glanceOf(offer: ShopOffer, info: { tag: string }): string {
   if (offer.kind === "TILE" && offer.tile?.ed) return `${EDITIONS[offer.tile.ed].tag} tile`;
   if (offer.kind === "FERT" && offer.fert) {
     const f = FERTILIZER[offer.fert];
-    return `+${f.perLevel} Value per ${f.name.replace(/s$/, "")}`;
+    return `+${f.perLevel} Value per ${tileSingular(offer.fert)}`;
   }
   if (offer.kind === "UPGRADE" && offer.upgrade) return GARDEN_UPGRADES[offer.upgrade].text;
   return info.tag;
@@ -177,7 +173,7 @@ function describeOffer(offer: ShopOffer, isSanctuary: boolean, counters?: RelicC
       icon: "🌱",
       name: p.name,
       tag: p.short,
-      description: `${p.text} ${p.nextLine ? "It waits for your next line." : "It works the moment you use it."} One use; hold up to ${MAX_PACKETS}.`,
+      description: `${p.text} ${p.nextLine ? "It waits for your next line." : "It works right away."} One use; hold up to ${MAX_PACKETS}.`,
       accent: "#F0ABFC",
       kindLabel: "Seed packet",
       kindClass: "bg-fuchsia-400/15 text-fuchsia-200",
@@ -199,9 +195,9 @@ function describeOffer(offer: ShopOffer, isSanctuary: boolean, counters?: RelicC
     const ed = EDITIONS[offer.tile.ed];
     return {
       icon: "✦",
-      name: `${ed.name} ${TILE_NAMES[offer.tile.type] ?? "tile"} ${offer.tile.value}`,
-      tag: `${ed.tag} · joins your bag`,
-      description: `A ${ed.name} ${TILE_NAMES[offer.tile.type] ?? "tile"} joins your Tile Bag: every line through it gets ${ed.tag}.`,
+      name: `${ed.name} ${TILE_SINGULAR[offer.tile.type as keyof typeof TILE_SINGULAR] ?? "tile"} ${offer.tile.value}`,
+      tag: `${ed.tag}, joins your bag`,
+      description: `${withArticle(`${ed.name} ${TILE_SINGULAR[offer.tile.type as keyof typeof TILE_SINGULAR] ?? ""} tile`.replace("  ", " "))} joins your Tile Bag: every line through it gets ${ed.tag}.`,
       accent: offer.tile.ed === "GOLDEN" ? "#FCD34D" : offer.tile.ed === "IRIDESCENT" ? "#C4B5FD" : "#FED7AA",
       kindLabel: "Special tile",
       kindClass: "bg-amber-400/15 text-amber-200",
@@ -212,7 +208,7 @@ function describeOffer(offer: ShopOffer, isSanctuary: boolean, counters?: RelicC
     return {
       icon: t.icon,
       name: t.name,
-      tag: `Garden tool · ${t.tag}`,
+      tag: `Garden tool: ${t.tag}`,
       description: TOOL_DESCRIPTIONS[offer.tool],
       accent: "#FCD34D",
       kindLabel: "Tool",
@@ -229,7 +225,7 @@ function describeOffer(offer: ShopOffer, isSanctuary: boolean, counters?: RelicC
         level > 0
           ? `${f.name} Lv ${level + 1} → Lv ${level + 2}: +${f.perLevel * (level + 1)} Value each`
           : `${f.name} → Lv 2: +${f.perLevel} Value each`,
-      description: `Every ${f.name.replace(/s$/, "")} on a line adds +${f.perLevel} more Value for the rest of this Garden Run. Stacks.`,
+      description: `Every ${tileSingular(offer.fert)} on a line adds +${f.perLevel} more Value for the rest of this Garden Run. Stacks.`,
       accent: "#A3E635",
       kindLabel: "Fertilizer",
       kindClass: "bg-lime-400/15 text-lime-200",
@@ -359,6 +355,7 @@ export default function ShopModal({
   packetsHeld = 0,
   bossReroll = null,
   moment = null,
+  interestCap = RUN_INTEREST_MAX,
   onSell,
   bag,
   pruned = false,
@@ -541,7 +538,7 @@ export default function ShopModal({
       return (
         <div className="text-[14px] leading-snug text-teal-50">
           <b className="text-white">Spend 🌱 Seeds on relics</b>: lasting powers for this Garden Run. Or save them:
-          every {RUN_INTEREST_STEP} you keep earns +1 more after each bed (up to +{RUN_INTEREST_MAX}).
+          every {RUN_INTEREST_STEP} you keep earns +1 more after each bed (up to +{interestCap}).
           <span className="block mt-1 text-white/60">Tap an offer to see what it does.</span>
         </div>
       );
@@ -643,7 +640,7 @@ export default function ShopModal({
               {/* On a short screen a rare moment sits here instead of its banner */}
               {moment && <span className="hidden [@media(max-height:700px)]:inline text-rose-200"> · Rare Shop: {SHOP_MOMENTS[moment].name}</span>}
             </div>
-            <h2 className="whitespace-nowrap text-[20px] font-display font-semibold leading-tight">{isSanctuary ? "Garden Shop" : "Sanctuary Shop"}</h2>
+            <h2 className="whitespace-nowrap text-[20px] font-display font-semibold leading-tight">{isSanctuary ? "Shop" : "Sanctuary Shop"}</h2>
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
             <button
@@ -759,7 +756,7 @@ export default function ShopModal({
                   type="button"
                   disabled={!id}
                   onClick={() => id && setPicked(on ? null : { kind: "OWNED", id })}
-                  aria-label={id ? `${RELIC_REGISTRY[id].name}. Tap to see or sell` : "Empty relic slot"}
+                  aria-label={id ? `${getRelicDisplay(RELIC_REGISTRY[id], isSanctuary).name}. Tap to see or sell` : "Empty relic slot"}
                   aria-pressed={on}
                   className={`h-11 [@media(max-height:700px)]:h-9 rounded-lg border flex items-center justify-center ${
                     id ? (on ? "border-amber-300 bg-amber-400/20" : "border-white/15 bg-white/[0.06]") : "border-dashed border-white/15"
@@ -778,7 +775,7 @@ export default function ShopModal({
             <BossIcon id={bossReroll.id} size={36} className="shrink-0" />
             <div className="min-w-0 flex-1 leading-tight">
               <div className="text-[12px] text-rose-100/70 whitespace-nowrap">
-                {bossReroll.isNext ? "Up next: Boss Garden" : `Season ${bossReroll.season} Boss`}
+                {bossReroll.isNext ? "Up next: Boss bed" : `Season ${bossReroll.season} Boss`}
               </div>
               <div className="text-[14px] font-semibold text-rose-50">{BOSS_RULE_REGISTRY[bossReroll.id].name}</div>
             </div>
@@ -794,7 +791,7 @@ export default function ShopModal({
               >
                 <img src={miscArt("boss-reroll")} alt="" aria-hidden="true" draggable={false} className="h-7 w-7 object-contain" />
                 <span className="flex flex-col items-start leading-[1.1]">
-                  <span className="text-[12px] font-semibold">New Boss</span>
+                  <span className="text-[12px] font-semibold">Reroll</span>
                   <span className="text-[12px] text-white/70">{bossReroll.cost} 🌱</span>
                 </span>
               </button>
@@ -811,7 +808,7 @@ export default function ShopModal({
               {nextBoss && nextBossRuleId ? (
                 <>
                   <BossIcon id={nextBossRuleId} size={18} className="mr-1 -mt-0.5 align-middle" />
-                  Boss Garden: {nextBoss.name}
+                  Boss bed: {nextBoss.name}
                 </>
               ) : (
                 nextFloorTitle
@@ -828,7 +825,7 @@ export default function ShopModal({
 
         {/* Actions, pinned: always in reach, even when a full Shop scrolls on a small phone */}
         <div
-          className={`card-footer grid ${canPrune ? "grid-cols-[1fr_1fr_1.5fr]" : "grid-cols-2"} gap-2 bg-[#1B281F]`}
+          className={`card-footer grid ${canPrune ? "grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1.7fr)]" : "grid-cols-2"} gap-2 bg-[#1B281F]`}
           style={{ bottom: "-0.875rem", marginBottom: "-0.875rem", paddingBottom: "0.875rem" }}
         >
           <button
@@ -986,7 +983,7 @@ export default function ShopModal({
                   ? `Relics are lasting powers for this Run. This one adds about +${p.toLocaleString()} to your best line.`
                   : "Relics are lasting powers for this Run. Tap any offer to see what it does.";
               })(),
-              `Seeds you keep earn interest: +1 for every ${RUN_INTEREST_STEP} 🌱 you keep, up to +${RUN_INTEREST_MAX} after each bed.`,
+              `Seeds you keep earn interest: +1 for every ${RUN_INTEREST_STEP} 🌱 you keep, up to +${interestCap} after each bed.`,
             ]}
             onStep={(n) => {
               if (n === 1) {

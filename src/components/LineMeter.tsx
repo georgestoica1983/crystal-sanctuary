@@ -204,7 +204,7 @@ export default function LineMeter({
                     clears ? "text-amber-200" : enough ? "text-lime-200" : "text-white/60"
                   }`}
                 >
-                  {fire >= 2 ? (fire === 5 ? "✓ Legendary bloom: 100× what's needed" : fire === 4 ? "✓ Mega bloom: 10× what's needed" : fire === 3 ? "✓ Wild bloom: 5× what's needed" : "✓ Double bloom: 2× what's needed") : clears ? "✓ Clears the bed" : enough ? "Enough! Head to the gate" : `${fmt(toGo - points)} to go`}
+                  {fire >= 2 ? (fire === 5 ? "✓ Legendary bloom: 100× what's needed" : fire === 4 ? "✓ Mega bloom: 10× what's needed" : fire === 3 ? "✓ Wild bloom: 5× what's needed" : "✓ Double bloom: 2× what's needed") : clears ? "✓ Clears the bed" : enough ? "Enough! Head to the Exit" : `${fmt(toGo - points)} to go`}
                 </span>
               )}
             </div>

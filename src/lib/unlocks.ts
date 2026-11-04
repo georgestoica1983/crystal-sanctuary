@@ -59,7 +59,7 @@ export const UNLOCKS: UnlockItem[] = [
   { id: "c-butterfly", kind: "COMPANION", target: "BUTTERFLY", icon: "🦋", name: "Crystal Butterfly", need: { season: 2 }, needText: "Reach Season 2" },
   { id: "c-fox", kind: "COMPANION", target: "FOX", icon: "🦊", name: "Starlight Fox", need: { stars: 20 }, needText: "20 ⭐" },
   { id: "t-cyan", kind: "TRAIL", target: "CYBER_CYAN", icon: "🌿", name: "Moss glow line", need: {}, needText: "From the start" },
-  { id: "t-gold", kind: "TRAIL", target: "SOLAR_GOLD", icon: "☀️", name: "Solar Gold line", need: { threeStar: true }, needText: "A ⭐⭐⭐ Garden Bed" },
+  { id: "t-gold", kind: "TRAIL", target: "SOLAR_GOLD", icon: "☀️", name: "Solar Gold line", need: { threeStar: true }, needText: "A ⭐⭐⭐ bed" },
   { id: "t-emerald", kind: "TRAIL", target: "EMERALD_FLAME", icon: "🌿", name: "Emerald Flame line", need: { season: 3 }, needText: "Reach Season 3" },
   { id: "t-violet", kind: "TRAIL", target: "PLASMA_VIOLET", icon: "💜", name: "Plasma Violet line", need: { stars: 40 }, needText: "40 ⭐" },
   { id: "t-rainbow", kind: "TRAIL", target: "RAINBOW", icon: "🌈", name: "Rainbow line", need: { season: 9 }, needText: "Reach Endless (Season 9)" },
@@ -210,7 +210,7 @@ export function pickNextGoal(asc = 0, p: UnlockProgress = loadUnlockProgress()):
       icon: stars.items[0].icon,
       art: unlockArt(stars.items[0].id),
       title: `${stars.stars - p.stars} more ⭐ for ${stars.items.map((u) => u.name).join(" and ")}`,
-      detail: "Bloom a bed with a line to spare for ⭐⭐, and reach 1.5× its target too for ⭐⭐⭐.",
+      detail: "Clear a bed with a line to spare for ⭐⭐, and reach 1.5× its target too for ⭐⭐⭐.",
       have: p.stars,
       need: stars.stars,
     };
@@ -224,14 +224,14 @@ export function pickNextGoal(asc = 0, p: UnlockProgress = loadUnlockProgress()):
     icon: u.icon,
     art: unlockArt(u.id),
     title: `Reach Season ${u.need.season}`,
-    detail: `Wakes ${u.name}.`,
+    detail: `Earns the ${u.name}.`,
   }));
   if (loadUnlockedAscension() === 0)
     seasonGoals.push({
       bed: ASCENSION_UNLOCK_BED + 1,
       icon: "🔥",
       title: "Beat the Season 3 Boss",
-      detail: "Opens Ascension: harder Runs with bigger rewards.",
+      detail: "Opens Ascension: harder Runs that earn new bags and looks.",
     });
   const season = seasonGoals.filter((g) => g.bed > reached).sort((a, b) => a.bed - b.bed)[0];
   if (season && season.bed - reached <= NEAR_BEDS) return season;
@@ -248,7 +248,7 @@ export function pickNextGoal(asc = 0, p: UnlockProgress = loadUnlockProgress()):
     return {
       icon: "🌸",
       art: dailyArt(3),
-      title: `Bloom past ${getRunGardenLabel(reached)}`,
+      title: `Get past ${getRunGardenLabel(reached)}`,
       detail: "That's the furthest bed you've reached. One more bed beats it.",
     };
   }

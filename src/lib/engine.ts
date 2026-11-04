@@ -423,7 +423,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     name: "Glove Lens",
     icon: "🔍",
     shortTag: "+2 Length per 🧤 left at the Exit",
-    description: "+2 Length for every Gloves you still hold when the line reaches the Exit.",
+    description: "+2 Length for each 🧤 Gloves you still hold when the line reaches the Exit.",
     accentColor: "#38BDF8",
     cost: 5,
     category: "MULT",
@@ -464,7 +464,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     name: "Oak Sapling",
     icon: "🪴",
     shortTag: "Grows +3 Length per bed cleared",
-    description: "Gains +3 Length every time a garden is cleared while you have it.",
+    description: "Gains +3 Length every time a bed is cleared while you have it.",
     accentColor: "#4ADE80",
     cost: 7,
     rarity: "UNCOMMON",
@@ -477,7 +477,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     icon: "🛢️",
     shortTag: "Grows +1 Length per unused Swap",
     description:
-      "Each time a garden is cleared, gains +1 Length for every Swap you didn't use there.",
+      "Each time a bed is cleared, gains +1 Length for every Swap you didn't use there.",
     accentColor: "#0EA5E9",
     cost: 5,
     category: "MULT",
@@ -512,7 +512,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     name: "Evening Lantern",
     icon: "🏮",
     shortTag: "×2 on a bed's last line",
-    description: "The last line of every garden scores ×2.",
+    description: "The last line of every bed scores ×2.",
     accentColor: "#F97316",
     cost: 8,
     rarity: "RARE",
@@ -535,7 +535,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     icon: "🌳",
     shortTag: "Grows ×0.1 per bed cleared",
     description:
-      "Starts at ×1 and grows by ×0.1 every time a garden is cleared while you have it.",
+      "Starts at ×1 and grows by ×0.1 every time a bed is cleared while you have it.",
     accentColor: "#16A34A",
     cost: 9,
     rarity: "RARE",
@@ -548,7 +548,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     name: "Squirrel's Stash",
     icon: "🐿️",
     shortTag: "Interest can reach +10 🌱",
-    description: "Interest can pay up to +10 🌱 per Garden Bed instead of +5.",
+    description: "Interest can pay up to +10 🌱 per bed instead of +5.",
     accentColor: "#B45309",
     cost: 6,
     rarity: "UNCOMMON",
@@ -559,7 +559,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     name: "Seed Purse",
     icon: "👛",
     shortTag: "+2 🌱 per bed cleared",
-    description: "Every Garden Bed you clear pays +2 🌱 more.",
+    description: "Every bed you clear pays +2 🌱 more.",
     accentColor: "#EAB308",
     cost: 4,
     category: "ECONOMY",
@@ -569,7 +569,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     name: "Garden Hat",
     icon: "👒",
     shortTag: "Unused lines pay 2 🌱 each",
-    description: "Each unused line pays 2 🌱 instead of 1 when a Garden Bed is cleared.",
+    description: "Each unused line pays 2 🌱 instead of 1 when a bed is cleared.",
     accentColor: "#F59E0B",
     cost: 4,
     category: "ECONOMY",
@@ -579,7 +579,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     name: "Wishing Well",
     icon: "⛲",
     shortTag: "First reroll in each Shop is free",
-    description: "The first Shop reroll after every garden is free.",
+    description: "The first Shop reroll after every bed is free.",
     accentColor: "#22D3EE",
     cost: 4,
     category: "ECONOMY",
@@ -589,8 +589,8 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     id: "DEEP_TAPROOT",
     name: "Deep Taproot",
     icon: "🥕",
-    shortTag: "+4 Max Life · +3 ❤️ each bed",
-    description: "+4 Max Life, and every new garden restores 3 Life.",
+    shortTag: "+4 Max Life, +3 ❤️ each bed",
+    description: "+4 Max Life, and every new bed restores 3 Life.",
     accentColor: "#FB923C",
     cost: 6,
     rarity: "UNCOMMON",
@@ -601,7 +601,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     name: "Sunflower",
     icon: "🌻",
     shortTag: "+1 ✂️ at the start of each bed",
-    description: "Start every garden with +1 ✂️ Shears.",
+    description: "Start every bed with +1 ✂️ Shears.",
     accentColor: "#FACC15",
     cost: 5,
     category: "MAGIC",
@@ -610,9 +610,9 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     id: "THORN_CROWN",
     name: "Crown of Thorns",
     icon: "🌹",
-    shortTag: "+5 Value per 🌺 · ×1.5",
+    shortTag: "+5 Value per 🌺, ×1.5",
     description:
-      "Legendary: every Thorn on your line adds +5 Value, and every garden's score is ×1.5.",
+      "Legendary: every Thorn on your line adds +5 Value, and every bed's score is ×1.5.",
     accentColor: "#F43F5E",
     rarity: "LEGENDARY",
   },
@@ -621,7 +621,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     name: "Rainbow Heart",
     icon: "🌈",
     shortTag: "×2 score",
-    description: "Legendary: every garden's score is ×2.",
+    description: "Legendary: every bed's score is ×2.",
     accentColor: "#C084FC",
     rarity: "LEGENDARY",
   },
@@ -631,7 +631,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     icon: "🌸",
     shortTag: "Full ❤️ at every bed",
     description:
-      "Legendary: start every garden with full Life, and every garden's score is ×1.25.",
+      "Legendary: start every bed with full Life, and every bed's score is ×1.25.",
     accentColor: "#34D399",
     rarity: "LEGENDARY",
   },
@@ -641,7 +641,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     name: "First Bloom",
     icon: "🌷",
     shortTag: "The first tile of every line scores twice",
-    description: "The first tile after your companion counts its number twice on every line.",
+    description: "The first tile after your Companion counts its number twice on every line.",
     accentColor: "#F9A8D4",
     cost: 6,
     rarity: "UNCOMMON",
@@ -674,7 +674,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     name: "Acorn Gate",
     icon: "🚪",
     shortTag: "The Exit counts as an Acorn (+8 Value)",
-    description: "The Exit gate adds +8 Value and counts as an 🌰 Acorn for your other relics.",
+    description: "The Exit adds +8 Value and counts as an 🌰 Acorn for Golden Bee, Acorn Pouch and Acorn Hoard.",
     accentColor: "#D97706",
     cost: 5,
     category: "CHIPS",
@@ -694,8 +694,8 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     id: "BRAMBLE_BERRIES",
     name: "Bramble Berries",
     icon: "🫐",
-    shortTag: "Berries count as Thorns for relics",
-    description: "Berries also count as 🌺 Thorns for your other relics (they still heal and never hurt).",
+    shortTag: "Berries count as Thorns for 2 relics",
+    description: "Berries also count as 🌺 Thorns for Thorn Press and Crown of Thorns (they still heal and never hurt).",
     accentColor: "#C084FC",
     cost: 6,
     rarity: "UNCOMMON",
@@ -762,7 +762,7 @@ export const RELIC_REGISTRY: Record<RelicId, RelicDefinition> = {
     name: "Light Step",
     icon: "🪶",
     shortTag: "+3 Length per ❤️ left at the gate",
-    description: "Your line gets +3 Length for every ❤️ Life you still have when it reaches the gate.",
+    description: "Your line gets +3 Length for every ❤️ Life you still have when it reaches the Exit.",
     accentColor: "#F5F5F4",
     cost: 6,
     category: "MULT",
@@ -1041,7 +1041,7 @@ export const SHOP_STAT_BOOSTS: Record<
     name: "Spare Gloves",
     icon: "🧤",
     shortTag: "+1 🧤 at the start of each bed",
-    description: "Start every Garden Bed with +1 extra 🧤 Gloves.",
+    description: "Start every bed with +1 extra 🧤 Gloves.",
     cost: 4,
     accentColor: "#06B6D4",
   },
@@ -1068,6 +1068,20 @@ export const FERTILIZER: Record<FertTile, { name: string; perLevel: number }> = 
   WEAPON: { name: "Shears", perLevel: 2 },
 };
 export const FERT_TILES = Object.keys(FERTILIZER) as FertTile[];
+/** One tile of each kind, for copy ("Every Berry on a line") */
+export const TILE_SINGULAR: Record<FertTile, string> = {
+  ENEMY: "Thorn",
+  TRAP: "Spike",
+  GOLD: "Acorn",
+  POTION: "Berry",
+  SHIELD: "Gloves",
+  WEAPON: "Shears",
+};
+/** "Thorn", "Berry", "Gloves tile", "Shears tile" (Gloves and Shears read as plurals on their own) */
+export const tileSingular = (t: FertTile): string =>
+  t === "SHIELD" || t === "WEAPON" ? `${TILE_SINGULAR[t]} tile` : TILE_SINGULAR[t];
+/** "A Golden tile" / "An Iridescent tile" */
+export const withArticle = (words: string): string => `${/^[aeiou]/i.test(words) ? "An" : "A"} ${words}`;
 
 /** Garden tools (rules v13+): used on a board tile, the upgrade stays on it in the bag */
 export const GARDEN_TOOLS: Record<ToolId, { name: string; icon: string; tag: string; cost: number }> = {
@@ -1264,7 +1278,7 @@ export const BOSS_RULE_REGISTRY: Record<BossRuleId, BossRuleDefinition> = {
     id: "FROST",
     name: "The Frost",
     icon: "❄️",
-    description: "🍓 Berries heal half.",
+    description: "🍓 Berries are worth half: they heal and score half.",
   },
   ACORN_THIEF: {
     id: "ACORN_THIEF",
@@ -1276,13 +1290,13 @@ export const BOSS_RULE_REGISTRY: Record<BossRuleId, BossRuleDefinition> = {
     id: "SPIKE_BLOOM",
     name: "Spike Bloom",
     icon: "🌵",
-    description: "🌰 Acorns worth 5+ turned into Spikes. Step on them diagonally ↗.",
+    description: "🌰 Acorns worth 5 or more turn into Spikes. Step on them diagonally ↗.",
   },
   EVEN_GARDEN: {
     id: "EVEN_GARDEN",
     name: "The Even Garden",
     icon: "⚖️",
-    description: "Every tile is 4 · Thorns and Spikes are 2.",
+    description: "Every tile is 4, but Thorns and Spikes are 2.",
   },
   NARROW_PATH: {
     id: "NARROW_PATH",
@@ -1332,8 +1346,8 @@ export const WEATHER_INFO: Record<RunWeather, { name: string; icon: string; text
   GOLDEN_HOUR: {
     name: "Golden Hour",
     icon: "☀️",
-    text: "Reach the gate with at least half your ❤️ Life and that line scores ×2.",
-    short: "Keep half your Life: ×2",
+    text: "Reach the Exit with at least half your Max ❤️ Life and that line scores ×2.",
+    short: "Half Max Life at the Exit: ×2",
   },
   THICK_BRAMBLES: {
     name: "Thick Brambles",
@@ -3652,7 +3666,7 @@ export function getRunGardenPosition(gardenIndex: number): {
 }
 
 export function getRunGardenKindLabel(kind: RunGardenKind): string {
-  return kind === "SMALL" ? "Small Garden Bed" : kind === "BIG" ? "Big Garden Bed" : "Boss Garden Bed";
+  return kind === "SMALL" ? "Small bed" : kind === "BIG" ? "Big bed" : "Boss bed";
 }
 
 /** e.g. "Season 2 · Big Garden" or "Season 9 (Endless) · Boss Garden" */
@@ -4109,7 +4123,7 @@ export function createRunGarden(params: {
         floorNumber: gardenIndex + 1,
         title: getRunGardenLabel(gardenIndex),
         subtitle: bossRuleId
-          ? `Boss Garden · ${BOSS_RULE_REGISTRY[bossRuleId].name}`
+          ? `Boss bed · ${BOSS_RULE_REGISTRY[bossRuleId].name}`
           : getRunGardenKindLabel(kind),
         grid,
         bossRuleId,

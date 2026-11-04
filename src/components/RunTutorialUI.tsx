@@ -190,7 +190,7 @@ const PRACTICE_COPY: Record<PracticeStep, { title: string; lines: string[]; butt
     lines: [
       `Reach ${PRACTICE_GARDEN_TARGET.toLocaleString()} points in 4 lines.`,
       "The bar at the top fills as you score.",
-      "❤️ Life comes back only when you clear a Garden Bed.",
+      "❤️ Life comes back only when you clear a bed.",
     ],
     button: "Let's go",
   },
@@ -201,7 +201,7 @@ const PRACTICE_COPY: Record<PracticeStep, { title: string; lines: string[]; butt
   regrow: {
     title: "New tiles",
     lines: [
-      "Used tiles were replaced. ❤️ Life comes back only when you clear the Garden Bed.",
+      "Used tiles were replaced. ❤️ Life comes back only when you clear the bed.",
       "Try 🔄 Swap: tap up to 3 tiles to change them.",
     ],
   },
@@ -211,7 +211,7 @@ const PRACTICE_COPY: Record<PracticeStep, { title: string; lines: string[]; butt
   },
   bloom: {
     title: "Seeds earned",
-    lines: ["Clear Garden Beds to earn 🌱 Seeds. Finish early or save them to earn more."],
+    lines: ["Clear beds to earn 🌱 Seeds. Spare lines pay 1 🌱 each, and Seeds you keep earn interest."],
   },
   shop: {
     title: "Shop",
@@ -365,7 +365,7 @@ export function RunHelpMenu({
           </div>
           <p className="text-[12px] text-indigo-100/80 [text-wrap:balance]">
             {isFirstVisit
-              ? "Draw lines, clear gardens, and see how far your Run can go. How would you like to start?"
+              ? "Draw lines, clear beds, and see how far your Run can go. How would you like to start?"
               : "Learn by playing, or read every rule. Your Run will wait."}
           </p>
         </div>
@@ -400,7 +400,7 @@ export function RunHelpMenu({
           </div>
           <div className="text-[12px] text-indigo-100/75">Every tile, rule and relic in short.</div>
         </button>
-        <DoneButton onClick={onClose} label={isFirstVisit ? "Skip and start a Run" : "Back to my Run"} />
+        <DoneButton onClick={onClose} label={isFirstVisit ? "Skip to Run" : "Back to my Run"} />
       </motion.div>
     </div>
   );

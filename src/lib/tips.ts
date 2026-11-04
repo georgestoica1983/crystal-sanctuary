@@ -63,11 +63,11 @@ const GAME_TIP_LIST: Array<{ id: string; text: Text; art: string; when?: When }>
     id: "life-carries",
     text: (c) =>
       c.clearLife > 0
-        ? `Reach the gate with Life to spare: it carries into the next bed, plus ${c.clearLife} ❤️ for clearing.`
-        : "Reach the gate with Life to spare: it carries into the next bed.",
+        ? `Reach the Exit with Life to spare: it carries into the next bed, plus ${c.clearLife} ❤️ for clearing.`
+        : "Reach the Exit with Life to spare: it carries into the next bed.",
     art: icon("stat-life"),
   },
-  { id: "thorn-number", text: "A Thorn's number is points for your line and Life off your companion. Big ones are worth it while you're healthy.", art: tile("ENEMY") },
+  { id: "thorn-number", text: "A Thorn's number is points for your line and Life off your Companion. Big ones are worth it while you're healthy.", art: tile("ENEMY") },
   { id: "spike-diagonal", text: "Come at a Spike diagonally and it can't hurt you.", art: tile("TRAP") },
   { id: "gloves", text: "Gloves soak up Thorn damage. Pick them up before a thorny stretch.", art: tile("SHIELD") },
   { id: "shears", text: "Shears cut the next Thorn clean: no Life lost, and you still get its points.", art: tile("WEAPON") },
@@ -136,7 +136,7 @@ const GAME_TIP_LIST: Array<{ id: string; text: Text; art: string; when?: When }>
   },
   { id: "otter", text: "The Otter can cross its own line once. Try a loop around a Thorn cluster.", art: companionArt("ROGUE"), when: has("ROGUE") },
   { id: "fox", text: "The Fox can hop over one tile per line. Jump a big Thorn instead of walking around it.", art: companionArt("MAGE"), when: has("MAGE") },
-  { id: "sprite", text: "The Butterfly has no Gloves, but cut Thorns heal it. Shears are its best friend.", art: companionArt("VAMPIRE"), when: has("VAMPIRE") },
+  { id: "sprite", text: "The Butterfly has no Gloves, but every Thorn it gets past heals it +2. Shears are its best friend.", art: companionArt("VAMPIRE"), when: has("VAMPIRE") },
   { id: "pulls-back", text: "If a line would run out of Life, it pulls back and shows you why. Try it: you lose nothing.", art: icon("theme-careful"), when: (c) => c.runs <= 3 },
   { id: FIRST_TIP_ID, text: "Plan the long way first, then trim the risky bits.", art: relicArt("LONG_STRIDE")},
   { id: "endless", text: "Finish Season 8 and the garden goes on forever in Endless.", art: relicArt("ETERNAL_SPRING"), when: (c) => c.highestBed >= 15 },
