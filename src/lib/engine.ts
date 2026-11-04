@@ -189,7 +189,7 @@ export function getNextFloorHeroStats(
     (r) => r === "ALCHEMIST_FLASK"
   ).length;
   const hasTaproot = activeRelics.includes("DEEP_TAPROOT");
-  // Shop "Deep Roots" boosts (and Deep Taproot) raise Max Life for the rest of the run
+  // Shop "Hardy Heart" boosts (and Deep Taproot) raise Max Life for the rest of the run
   const baseMaxHp = def.maxHp + upgrades.bonusMaxMagic + (hasTaproot ? 4 : 0);
   const maxAllowedHp = baseMaxHp + flaskStacks * 4;
   const restoredHp = prevStats.hp + (hasTaproot ? 3 : 0) + clearedLifeBonus;
@@ -1030,7 +1030,7 @@ export const SHOP_STAT_BOOSTS: Record<
   { name: string; icon: string; shortTag: string; description: string; cost: number; accentColor: string }
 > = {
   MAX_MAGIC: {
-    name: "Deep Roots",
+    name: "Hardy Heart",
     icon: "❤️",
     shortTag: "+2 Max Life",
     description: "+2 Max Life for the rest of this Garden Run, and +2 Life right now.",

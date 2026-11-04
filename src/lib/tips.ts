@@ -79,7 +79,7 @@ const GAME_TIP_LIST: Array<{ id: string; text: Text; art: string; when?: When }>
     text: `Don't like a corner of the board? Swap changes up to ${RUN_WEEDOUT_MAX_TILES} tiles, ${RUN_WEEDOUTS_PER_GARDEN} times a bed.`,
     art: icon("theme-growing"),
   },
-  { id: "hint", text: "Stuck? Hint lights up a good route once per bed. No shame in it.", art: relicArt("STARLIGHT_COMPASS")},
+  { id: "hint", text: "Stuck? Hint shows the first 4 steps of a strong line, once per bed. Then it's your call.", art: relicArt("STARLIGHT_COMPASS")},
   { id: "stars", text: "Clear with a line to spare for ⭐⭐. Reach 1.5× the target too for ⭐⭐⭐.", art: badgeArt("star")},
   {
     id: "interest",

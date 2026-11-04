@@ -356,6 +356,8 @@ function relicPayoff(b: FloorScoreBreakdown, relicCount: number): number | null 
 const GOAL_CARD_HIDE_AFTER = 3;
 const RUN_ONLY_NOTICE = "The Sanctuary is in Run mode for now. Gauntlet, past Dailies and the Crafter are resting.";
 
+/** A Hint shows this many steps of a strong line (the rest is the player's) */
+const HINT_STEPS = 4;
 /** The first bare ground of rules v26 gets one notice */
 const BARE_NOTICE_KEY = "ost_bare_ground_seen_v1";
 /** First use of a garden tool / Seed packet (their rows say how until then) */
@@ -3256,12 +3258,17 @@ export default function OneStrokeTacticianPage() {
         );
         return;
       }
-      // Show the whole best line as a ghost to trace (it stays until the board changes)
+      // A Hint teaches, it doesn't solve: the first steps of a strong line, as a
+      // ghost to follow (it stays until the board changes); the rest is yours
       setHintsRemaining((prev) => Math.max(0, prev - 1));
       setDrawnPath([]);
-      setHintLine(route);
+      setHintLine(route.slice(0, HINT_STEPS + 1));
       soundEngine.playHintReveal();
-      handleNotice("Here's a great line. Trace it, or use it as a guide for your own.");
+      handleNotice(
+        route.length > HINT_STEPS + 1
+          ? `Here's a strong start: the first ${HINT_STEPS} steps of a great line. Finish it your own way.`
+          : "Here's a great line. Trace it to the Exit."
+      );
     };
 
     requestParLine({

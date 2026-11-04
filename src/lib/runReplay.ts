@@ -1038,7 +1038,7 @@ export const GARDENER_GIFTS: Record<GardenerGiftId, { name: string; icon: string
   RARE_RELIC: { name: "A Rare relic", icon: "🎁", text: "A Rare relic you don't have yet, free." },
   GOLDEN_TILES: { name: "Golden tiles", icon: "✨", text: `${GARDENER_GOLDEN} tiles in your bag turn Golden (+30 Value each).` },
   MAX_LIFE: { name: "Heartwood", icon: "❤️", text: `+${GARDENER_LIFE} Max ❤️ Life for the rest of the Run.` },
-  SEEDS: { name: "A purse of Seeds", icon: "🌱", text: `+${GARDENER_SEEDS} 🌱 Seeds right now.` },
+  SEEDS: { name: "Windfall", icon: "🌱", text: `+${GARDENER_SEEDS} 🌱 Seeds right now.` },
 };
 
 /** A seeded Rare relic for the Gardener (null if none left) */

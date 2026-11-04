@@ -267,7 +267,7 @@ function buildPages(): GuidePage[] {
             <>Used tiles are replaced with new ones from your Tile Bag.</>,
             <>❤️ Life, 🧤 Gloves and ✂️ Shears carry over between lines. Clearing a bed gives back +3 ❤️.</>,
             <><B>🔄 Swap</B> ({RUN_WEEDOUTS_PER_GARDEN} per bed): change up to {RUN_WEEDOUT_MAX_TILES} tiles.</>,
-            <><B>💡 Hint</B> (1 per bed): lights up a good route.</>,
+            <><B>💡 Hint</B> (1 per bed): shows the first 4 steps of a strong line. The rest is up to you.</>,
             <>If a line would run out of Life, it pulls back and shows why.</>,
           ]}
         />
