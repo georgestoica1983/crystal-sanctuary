@@ -1306,6 +1306,50 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
   check(`v24 bot Runs through rare Shops replay (${seen} moments met)`, replays);
 }
 
+// Rules v25: a Shop shows 4 offers at most, with at least one relic
+{
+  const big: ShopOffer[] = [
+    { id: "r1", kind: "RELIC", relicId: "ACORN_POUCH", cost: 5 },
+    { id: "r2", kind: "RELIC", relicId: "ACORN_HOARD", cost: 9 },
+    { id: "t1", kind: "TOOL", tool: "SUNLIT" as never, cost: 6 },
+    { id: "f1", kind: "FERT", fert: "GOLD" as never, cost: 6 },
+    { id: "x1", kind: "TILE", tile: { type: "GOLD", value: 4, ed: "GOLDEN" }, cost: 6 },
+    { id: "f7-tag-relic", kind: "RELIC", relicId: "LODESTONE", cost: 0 },
+  ];
+  const finish = (seed: string, v: number, rerolls = 0) =>
+    finishShopOffers(big, { runSeed: seed, gardenIndex: 7, owned: [], boughtThisSeason: false, logVersion: v, rerolls });
+  let ok = true;
+  let tagKept = true;
+  for (let n = 0; n < 200; n++) {
+    const shop = finish(`four-${n}`, 25, n % 3);
+    if (shop.length !== 4 || !shop.some((o) => o.kind === "RELIC")) ok = false;
+    if (!shop.some((o) => o.id === "f7-tag-relic")) tagKept = false;
+  }
+  check("v25 Shops show 4 offers, at least one a relic", ok);
+  check("a skip Tag's free relic always stays in a v25 Shop", tagKept);
+  check("v24 Shops keep every offer", finish("four-0", 24).length > 4);
+  check("the same Shop draws the same 4", JSON.stringify(finish("four-9", 25)) === JSON.stringify(finish("four-9", 25)));
+  const sale = (() => {
+    for (let n = 0; n < 3000; n++) if (shopMomentFor(`m25-${n}`, 7, 25) === "SALE") return `m25-${n}`;
+    return null;
+  })()!;
+  check("a rare moment's deal always stays in a v25 Shop", finish(sale, 25).some((o) => o.wasCost !== undefined));
+  // Whole Runs under v25 still replay to the bot's score
+  let replays = true;
+  let maxOffers = 0;
+  for (let n = 1; n <= 3; n++) {
+    const bot = playBotRun(`four-run-${n}`, "KNIGHT", 9, 0, false, 25);
+    const r = createRunReplayer(`four-run-${n}`, "KNIGHT", 25);
+    for (const a of bot.log.a) {
+      if (r.state.phase === "SHOP") maxOffers = Math.max(maxOffers, r.state.shop.offers.length);
+      r.apply(a);
+    }
+    const replay = replayRun(JSON.parse(JSON.stringify(bot.log)));
+    if (!replay.ok || replay.score !== bot.expected) replays = false;
+  }
+  check(`v25 bot Runs replay (most offers seen in a Shop: ${maxOffers})`, replays && maxOffers <= 4);
+}
+
 // Daily Garden: today's seed, the Keeper, Ascension 0, and nothing after the Season 3 Boss
 {
   const d = "2026-11-03";

@@ -606,13 +606,15 @@ export default function ShopModal({
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: "spring", stiffness: 260, damping: 22 }}
         ref={cardRef}
-        className="relative w-full max-w-[430px] max-h-full overflow-y-auto overscroll-contain flex flex-col gap-2.5 rounded-2xl p-3.5 text-white border border-white/[0.08] bg-[#1B281F] shadow-2xl shadow-black/50"
+        className="relative w-full max-w-[430px] max-h-full overflow-y-auto overscroll-contain flex flex-col gap-2 [@media(max-height:700px)]:gap-1.5 rounded-2xl p-3.5 text-white border border-white/[0.08] bg-[#1B281F] shadow-2xl shadow-black/50"
       >
         {/* Header: one row */}
         <div className="flex items-center justify-between gap-2">
           <div className="min-w-0">
             <div className="text-[12px] font-semibold text-emerald-300/90 truncate">
               {headerLabel ?? `${isSanctuary ? "Garden" : "Floor"} ${clearedFloorNumber}/${totalFloors} cleared`}
+              {/* On a short screen a rare moment sits here instead of its banner */}
+              {moment && <span className="hidden [@media(max-height:700px)]:inline text-rose-200"> · Rare Shop: {SHOP_MOMENTS[moment].name}</span>}
             </div>
             <h2 className="whitespace-nowrap text-[22px] font-display font-semibold leading-tight">{isSanctuary ? "Garden Shop" : "Sanctuary Shop"}</h2>
           </div>
@@ -643,7 +645,7 @@ export default function ShopModal({
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="flex items-center gap-2.5 rounded-xl border border-rose-300/40 bg-rose-500/[0.12] px-2.5 py-2"
+            className="shrink-0 flex items-center gap-2.5 rounded-xl border border-rose-300/40 bg-rose-500/[0.12] px-2.5 py-2 [@media(max-height:700px)]:hidden"
           >
             <img src={shopMomentArt(moment)} alt="" aria-hidden="true" draggable={false} className="h-9 w-9 shrink-0 object-contain" />
             <div className="min-w-0 leading-tight">
@@ -696,22 +698,6 @@ export default function ShopModal({
               </button>
             );
           })}
-          {canPrune && (
-            <button
-              type="button"
-              onClick={() => setPruneOpen(true)}
-              aria-haspopup="dialog"
-              className={`relative h-[118px] [@media(max-height:700px)]:h-[100px] rounded-xl border flex flex-col items-center justify-start gap-0.5 px-1 pt-[19px] active:scale-95 border-white/15 bg-white/[0.035] ${
-                pruned ? "opacity-45" : ""
-              }`}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={tileArt("WEAPON") ?? ""} alt="" aria-hidden="true" draggable={false} className="h-[26px] w-[26px] object-contain" />
-              <span className="w-full text-center text-[10.5px] font-bold leading-tight line-clamp-2">Prune a tile</span>
-              <span className="w-full text-center text-[9.5px] leading-[1.2] text-white/65 line-clamp-3 [@media(max-height:700px)]:line-clamp-2">Take one tile out of your bag</span>
-              <PriceChip sold={pruned} blocked={false} affordable={gems >= RUN_PRUNE_COST} cost={RUN_PRUNE_COST} />
-            </button>
-          )}
         </div>
 
         {/* The tapped offer, in full */}
@@ -721,9 +707,16 @@ export default function ShopModal({
         </div>
 
         {/* Your relics: tap one to see it or sell it */}
-        <div>
-          <div className="mb-1 text-[11px] font-semibold text-white/55">
+        <div className="shrink-0">
+          {/* Legendary relics sit on the label line, so they never need a row of their own */}
+          <div className="mb-1 text-[11px] font-semibold text-white/55 truncate">
             Your relics · {commonOwned.length}/{MAX_COMMON_RELICS}
+            {legendaryOwned.length > 0 && (
+              <span className="text-amber-200">
+                {" · "}
+                <Badge id="crown" /> {legendaryOwned.map((id) => RELIC_REGISTRY[id].name).join(" · ")}
+              </span>
+            )}
           </div>
           <div className="grid grid-cols-5 gap-1.5">
             {Array.from({ length: MAX_COMMON_RELICS }, (_, i) => {
@@ -737,7 +730,7 @@ export default function ShopModal({
                   onClick={() => id && setPicked(on ? null : { kind: "OWNED", id })}
                   aria-label={id ? `${RELIC_REGISTRY[id].name}. Tap to see or sell` : "Empty relic slot"}
                   aria-pressed={on}
-                  className={`h-11 rounded-lg border flex items-center justify-center ${
+                  className={`h-11 [@media(max-height:700px)]:h-9 rounded-lg border flex items-center justify-center ${
                     id ? (on ? "border-amber-300 bg-amber-400/20" : "border-white/15 bg-white/[0.06]") : "border-dashed border-white/15"
                   }`}
                 >
@@ -747,15 +740,10 @@ export default function ShopModal({
             })}
           </div>
         </div>
-        {legendaryOwned.length > 0 && (
-          <div className="-mt-1 text-[12px] text-amber-200 truncate">
-            <Badge id="crown" /> {legendaryOwned.map((id) => RELIC_REGISTRY[id].name).join(" · ")}
-          </div>
-        )}
 
         {/* The coming Boss, rerollable once per Season (rules v23+) */}
         {bossReroll && (
-          <div className="flex items-center gap-2.5 rounded-xl border border-rose-300/25 bg-rose-500/[0.08] px-2.5 py-2">
+          <div className="shrink-0 flex items-center gap-2.5 rounded-xl border border-rose-300/25 bg-rose-500/[0.08] px-2.5 py-2">
             <BossIcon id={bossReroll.id} size={36} className="shrink-0" />
             <div className="min-w-0 flex-1 leading-tight">
               <div className="text-[11.5px] text-rose-100/70 whitespace-nowrap">
@@ -785,7 +773,8 @@ export default function ShopModal({
 
         {/* Up next, in one line */}
         {nextFloorTitle && !(bossReroll?.isNext) && (
-          <div className={`text-[12.5px] leading-snug ${nextBoss ? "text-rose-100" : "text-white/65"}`}>
+          // On a short screen the Boss row says what's coming, so this line steps aside
+          <div className={`text-[12.5px] leading-snug ${nextBoss ? "text-rose-100" : "text-white/65"} ${bossReroll ? "[@media(max-height:700px)]:hidden" : ""}`}>
             Up next:{" "}
             <b>
               {nextBoss && nextBossRuleId ? (
@@ -807,22 +796,51 @@ export default function ShopModal({
         )}
 
         {/* Actions, pinned: always in reach, even when a full Shop scrolls on a small phone */}
-        <div className="card-footer grid grid-cols-2 gap-2 bg-[#1B281F]" style={{ bottom: "-0.875rem", marginBottom: "-0.875rem", paddingBottom: "0.875rem" }}>
+        <div
+          className={`card-footer grid ${canPrune ? "grid-cols-[1fr_1fr_1.5fr]" : "grid-cols-2"} gap-2 bg-[#1B281F]`}
+          style={{ bottom: "-0.875rem", marginBottom: "-0.875rem", paddingBottom: "0.875rem" }}
+        >
           <button
             type="button"
             onClick={onReroll}
             disabled={gems < rerollCost}
+            aria-label={`Reroll the offers for ${rerollCost} Seeds`}
             className="h-12 rounded-xl px-2 border border-white/15 bg-white/[0.06] text-white/90 font-semibold text-[14px] flex items-center justify-center gap-1.5 active:scale-95 transition disabled:opacity-40"
           >
             <RefreshCw className="w-4 h-4 shrink-0" />
-            Reroll · {rerollCost} 🌱
+            {canPrune ? (
+              <span className="flex flex-col items-start leading-[1.1]">
+                <span className="text-[13px]">Reroll</span>
+                <span className="text-[12px] text-white/65">{rerollCost} 🌱</span>
+              </span>
+            ) : (
+              <>Reroll · {rerollCost} 🌱</>
+            )}
           </button>
+          {canPrune && (
+            // Pruning Shears: take one tile out of the bag (once per Shop)
+            <button
+              type="button"
+              onClick={() => setPruneOpen(true)}
+              disabled={pruned}
+              aria-haspopup="dialog"
+              aria-label={pruned ? "Pruned this Shop" : `Prune a tile from your bag for ${RUN_PRUNE_COST} Seeds`}
+              className="h-12 rounded-xl px-2 border border-white/15 bg-white/[0.06] text-white/90 font-semibold flex items-center justify-center gap-1.5 active:scale-95 transition disabled:opacity-40"
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={tileArt("WEAPON") ?? ""} alt="" aria-hidden="true" draggable={false} className="h-6 w-6 shrink-0 object-contain" />
+              <span className="flex flex-col items-start leading-[1.1]">
+                <span className="text-[13px]">{pruned ? "Pruned" : "Prune"}</span>
+                <span className="text-[12px] text-white/65">{pruned ? "✓" : `${RUN_PRUNE_COST} 🌱`}</span>
+              </span>
+            </button>
+          )}
           <button
             type="button"
             onClick={onLeave}
-            className="h-12 rounded-xl px-2 bg-teal-300 text-slate-950 font-bold text-[15px] flex items-center justify-center gap-1.5 active:scale-95 transition"
+            className="h-12 rounded-xl px-2 bg-teal-300 text-slate-950 font-bold text-[15px] flex items-center justify-center gap-1.5 whitespace-nowrap active:scale-95 transition"
           >
-            {boughtAnything ? "Continue" : "Skip the Shop"}
+            {canPrune ? "Next bed" : boughtAnything ? "Continue" : "Skip the Shop"}
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

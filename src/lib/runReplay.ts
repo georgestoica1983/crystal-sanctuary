@@ -547,20 +547,50 @@ export const upgradeInterestBonus = (owned: GardenUpgradeId[]) =>
 /**
  * The Shop after garden upgrades (rules v18+): this Season's upgrade joins
  * until one is bought this Season, and prices drop with Market Day / Almanac.
+ * From v25 the Shop then keeps 4 of them (pickFourOffers).
  */
 export function finishShopOffers(
   offers: ShopOffer[],
-  params: {
-    runSeed: string;
-    gardenIndex: number;
-    owned: GardenUpgradeId[];
-    boughtThisSeason: boolean;
-    /** The Run's rules version: from v21 upgrades only appear from Season 3 */
-    logVersion?: number;
-    /** Rerolls so far in this Shop (a Sale or Two for one only marks the first offers) */
-    rerolls?: number;
-  }
+  params: FinishShopParams
 ): ShopOffer[] {
+  const all = finishAllShopOffers(offers, params);
+  return runRulesUseFourOffers(params.logVersion ?? 0) ? pickFourOffers(all, params) : all;
+}
+
+/** v25: a Shop shows 4 offers at most, so it fits one screen */
+export const runRulesUseFourOffers = (logVersion: number) => logVersion >= 25;
+export const SHOP_OFFER_LIMIT = 4;
+
+/**
+ * The Shop's 4 offers, seeded: a free Tag relic and a rare moment's deal always
+ * stay, there is always at least one relic, and the rest are drawn at random.
+ * The order on screen stays as it was.
+ */
+function pickFourOffers(all: ShopOffer[], params: FinishShopParams): ShopOffer[] {
+  if (all.length <= SHOP_OFFER_LIMIT) return all;
+  const keep = new Set<ShopOffer>(all.filter((o) => o.wasCost !== undefined || o.id.endsWith("-tag-relic")));
+  const rng = mulberry32(hashStringToSeed(`shop4-${params.runSeed}-g${params.gardenIndex}-r${params.rerolls ?? 0}`));
+  const take = (pool: ShopOffer[]) => {
+    const left = pool.filter((o) => !keep.has(o));
+    if (left.length > 0 && keep.size < SHOP_OFFER_LIMIT) keep.add(left[Math.floor(rng() * left.length)]);
+  };
+  if (![...keep].some((o) => o.kind === "RELIC")) take(all.filter((o) => o.kind === "RELIC"));
+  while (keep.size < SHOP_OFFER_LIMIT && keep.size < all.length) take(all);
+  return all.filter((o) => keep.has(o)).slice(0, SHOP_OFFER_LIMIT);
+}
+
+interface FinishShopParams {
+  runSeed: string;
+  gardenIndex: number;
+  owned: GardenUpgradeId[];
+  boughtThisSeason: boolean;
+  /** The Run's rules version: from v21 upgrades only appear from Season 3 */
+  logVersion?: number;
+  /** Rerolls so far in this Shop (a Sale or Two for one only marks the first offers) */
+  rerolls?: number;
+}
+
+function finishAllShopOffers(offers: ShopOffer[], params: FinishShopParams): ShopOffer[] {
   const { owned } = params;
   // Rules v22+: one Seed packet in every Shop
   const withPacket = runRulesUsePackets(params.logVersion ?? 0)
@@ -1015,9 +1045,11 @@ export function getRunPathError(
  *      once per Season for Seeds.
  * v24: starting bags (Thorny, Acorn, Berry, Lean; the log's `bag`) and rare
  *      Shop moments from Season 2 (a Sale, a free reroll, two for one).
+ * v25: a Shop shows 4 offers at most (at least one relic), drawn from the
+ *      Season's full Shop, so it fits one screen.
  * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 24;
+export const RUN_LOG_VERSION = 25;
 export const RUN_LOG_MIN_VERSION = 2;
 /** Rule set of new Runs (the current version) */
 export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);
