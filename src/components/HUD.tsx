@@ -938,8 +938,9 @@ export function TopHUD({
               </div>
 
               {/* Both tabs share one grid cell: the sheet keeps the taller one's
-                  height, so switching tabs never makes it jump */}
-              <div className="grid [&>*]:[grid-area:1/1]">
+                  height, so switching tabs never makes it jump. The column never
+                  grows past the sheet, so long lines truncate instead of widening it */}
+              <div className="grid grid-cols-[minmax(0,1fr)] [&>*]:[grid-area:1/1] [&>*]:min-w-0">
                 <div className={`space-y-2.5 ${menuTab === "PLAY" ? "" : "invisible"}`} aria-hidden={menuTab !== "PLAY"}>
                   {totalStars !== undefined && (() => {
                     const { rank, next } = getGardenerRank();
