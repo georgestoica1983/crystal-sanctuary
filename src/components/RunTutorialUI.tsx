@@ -44,9 +44,10 @@ export function RunLessonGoal({ lesson, status }: { lesson: RunLesson; status: L
  */
 export function RunLessonCoach({ lesson, index, total }: { lesson: RunLesson; index: number; total: number }) {
   return artify(
-    // As tall as a Run's bed rows (Season, score bar, to go), so the board matches
-    <div className="min-h-[72px] min-[600px]:min-h-[75.5px] px-1 pt-1 pb-0.5 space-y-1">
-      <div className="flex items-center justify-between gap-2">
+    // As tall as a Run's bed rows (Season and score bar), so the board matches
+    <div className="min-h-[56px] min-[600px]:min-h-[59.5px] px-1 pt-1 pb-0.5 space-y-1">
+      {/* On a short screen the level row steps aside, so two lines of instruction still fit */}
+      <div className="flex items-center justify-between gap-2 [@media(max-height:700px)]:hidden">
         <div className="min-w-0 text-[12px] font-semibold text-white/60 truncate">
           <span className="text-lime-200/85">Seedling Season</span> · Level {index + 1} of {total}
         </div>

@@ -88,6 +88,8 @@ export function RunHudStrip({
   const strokesTotal = garden.strokesTotal ?? RUN_STROKES_PER_GARDEN;
   const strokesUsed = strokesTotal - garden.strokesLeft;
   const [bossOpen, setBossOpen] = useState(false);
+  // This bed's rule (its Boss or weather) folds into its picture; tap it to read
+  const [ruleOpen, setRuleOpen] = useState(false);
   // A weak board is told in the line meter and by the glowing Swap button now
   void noSafeLine;
   // The Swap button under the board confirms a swap now
@@ -112,7 +114,22 @@ export function RunHudStrip({
             Season {garden.season}
             {garden.season > RUN_FINAL_SEASON ? " · Endless" : ""} ·{" "}
             <span className={isBoss ? "text-rose-200" : "text-white/90"}>
-              {garden.bossRuleId && <BossIcon id={garden.bossRuleId} size={20} className="mr-1 -mt-0.5 align-middle" />}
+              {(boss || garden.weather) ? (
+                <button
+                  type="button"
+                  onClick={() => setRuleOpen((v) => !v)}
+                  aria-expanded={ruleOpen}
+                  aria-label={`${boss ? boss.name : WEATHER_INFO[garden.weather!].name}: tap to read the rule`}
+                  className="mr-1 -mt-0.5 align-middle rounded-full ring-1 ring-white/25 active:scale-95"
+                >
+                  {boss && garden.bossRuleId ? (
+                    <BossIcon id={garden.bossRuleId} size={20} />
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={weatherArt(garden.weather!)} alt="" aria-hidden="true" draggable={false} className="h-5 w-5 object-contain" />
+                  )}
+                </button>
+              ) : null}
               {BED_SHORT[garden.kind]}
             </span>
             <SeasonDots
@@ -140,29 +157,39 @@ export function RunHudStrip({
             />
           ))}
           <span className="ml-0.5 text-[13px] text-white/70">
-            <span className="font-mono font-black text-white/85">{garden.strokesLeft}</span>{" "}
-            {garden.strokesLeft === 1 ? "line" : "lines"}
+            <span className="font-mono font-black text-white/85">{garden.strokesLeft}</span>
+            {/* The dots say it on a phone; the word joins where there's room */}
+            <span className="hidden min-[480px]:inline"> {garden.strokesLeft === 1 ? "line" : "lines"}</span>
           </span>
         </div>
       </div>
 
-      {boss && (
-        <div className="text-[13px] leading-snug text-rose-100">
-          <b>{boss.name}:</b> {boss.description}{" "}
-          <span className="text-rose-50/60"><Badge id="crown" /> Legendary relic if cleared</span>
-        </div>
-      )}
-      {/* Garden weather (rules v20) */}
-      {garden.weather && (
-        <div className={`text-[13px] leading-snug ${
-            garden.weather === "GOLDEN_HOUR" ? "text-amber-100" : garden.weather === "SPRING_RAIN" || garden.weather === "FIREFLY_NIGHT" ? "text-sky-100" : "text-lime-100"
-          }`}>
-          <b>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={weatherArt(garden.weather)} alt="" aria-hidden="true" draggable={false} className="inline-block h-[1.35em] w-[1.35em] align-[-0.3em] object-contain" />{" "}
-            {WEATHER_INFO[garden.weather].name}:
-          </b>{" "}
-          {artify(WEATHER_INFO[garden.weather].short)}
+      {/* The bed's Boss or weather rule, over the board when its picture is tapped (it never moves the board) */}
+      {ruleOpen && (boss || garden.weather) && (
+        <div className="relative h-0 !mt-0">
+          <button
+            type="button"
+            onClick={() => setRuleOpen(false)}
+            className={`absolute left-0 right-0 top-1 z-40 rounded-xl border px-3 py-2 text-left text-[13px] leading-snug shadow-xl ${
+              boss ? "border-rose-300/40 bg-[#2a1d22] text-rose-100" : "border-white/15 bg-[#203226] text-white/90"
+            }`}
+          >
+            {boss ? (
+              <>
+                <b>{boss.name}:</b> {boss.description}{" "}
+                <span className="text-rose-50/60"><Badge id="crown" /> Legendary relic if cleared</span>
+              </>
+            ) : (
+              <>
+                <b>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={weatherArt(garden.weather!)} alt="" aria-hidden="true" draggable={false} className="inline-block h-[1.35em] w-[1.35em] align-[-0.3em] object-contain" />{" "}
+                  {WEATHER_INFO[garden.weather!].name}:
+                </b>{" "}
+                {artify(WEATHER_INFO[garden.weather!].short)}
+              </>
+            )}
+          </button>
         </div>
       )}
 
@@ -195,6 +222,7 @@ export function RunHudStrip({
         )}
         <div className="absolute inset-0 flex items-center px-2.5 text-[15px] [@media(max-height:640px)]:text-[13px] font-mono font-black text-white [text-shadow:0_1px_2px_rgba(0,0,0,0.8)]">
           {shortScore(garden.score)} / {shortScore(garden.target)}
+          {garden.score >= garden.target && <span className="ml-1.5 text-[12.5px] text-lime-100">Bloomed ✓</span>}
         </div>
       </div>
       {/* Bloom bar: buds at half, three quarters and full open as the bed fills (the line you draw previews it) */}
@@ -217,9 +245,6 @@ export function RunHudStrip({
             />
           );
         })}
-      </div>
-      <div className="!mt-1 text-right text-[12px] leading-none font-semibold text-white/70">
-        {garden.score >= garden.target ? "Bloomed ✓" : `${shortScore(garden.target - garden.score)} to go`}
       </div>
 
       {weedOutActive && (

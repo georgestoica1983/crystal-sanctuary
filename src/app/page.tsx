@@ -4849,70 +4849,77 @@ lesson
           )}
 
           {/* Garden tools (rules v13+): tap one, then a tile — the upgrade stays on it */}
-          {mode === "RUN" && !lesson && !isInteractiveTutorial && runTools.length > 0 && phase === "PLANNING" && (
-            <div className="w-full max-w-game flex items-center gap-1.5 min-h-[36px]">
-              {toolArmed !== null ? (
-                <>
-                  <span className="flex-1 text-[12px] font-semibold text-amber-100">
-                    <SupplyIcon kind="tool" id={runTools[toolArmed]} size={20} className="mr-1 align-[-5px]" />Tap a tile for {GARDEN_TOOLS[runTools[toolArmed]]?.name} (
-                    {GARDEN_TOOLS[runTools[toolArmed]]?.tag})
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setToolArmed(null)}
-                    className="h-8 px-3 rounded-lg bg-white/[0.06] border border-white/10 text-[12px] font-semibold text-white/80"
-                  >
-                    Cancel
-                  </button>
-                </>
-              ) : (
-                <>
-                  <span className={`min-w-0 truncate text-[11px] font-semibold ${usedOnce.tool ? "text-white/45" : "text-amber-200/85"}`}>{usedOnce.tool ? "Tools" : "Tap one, then a tile"}</span>
-                  {runTools.map((t, i) => (
-                    <button
-                      key={`${t}-${i}`}
-                      type="button"
-                      disabled={drawnPath.length > 1}
-                      onClick={() => {
-                        setDrawnPath([]);
-                        setToolArmed(i);
-                      }}
-                      className="shrink-0 h-8 pl-1.5 pr-2.5 rounded-lg border border-amber-300/40 bg-amber-400/10 text-[12px] font-semibold text-amber-100 active:scale-95 disabled:opacity-40 inline-flex items-center gap-1"
-                    >
-                      <SupplyIcon kind="tool" id={t} size={22} /> {GARDEN_TOOLS[t].name}
-                    </button>
-                  ))}
-                </>
-              )}
-            </div>
-          )}
-
-          {/* Seed packets (rules v22+): tap one to use it; a next-line packet waits, marked */}
-          {mode === "RUN" && !lesson && !isInteractiveTutorial && (runPackets.length > 0 || armedPacket) && phase === "PLANNING" && (
-            <div className="ui-zoom w-full max-w-game flex flex-wrap items-center gap-1.5 px-1">
-              <span className={`min-w-0 truncate text-[11px] font-semibold ${usedOnce.packet ? "text-white/45" : "text-fuchsia-200/85"}`}>{usedOnce.packet ? "Packets" : "Tap to use"}</span>
+          {/* The pocket: garden tools and Seed packets in one row of pictures (never more than one row,
+              so the board keeps its size). What a tapped one does shows beside them */}
+          {mode === "RUN" && !lesson && !isInteractiveTutorial && (runTools.length > 0 || runPackets.length > 0 || armedPacket) && phase === "PLANNING" && (
+            <div className="ui-zoom w-full max-w-game flex items-center gap-1.5 h-10 px-1 overflow-hidden">
+              {runTools.map((t, i) => (
+                <button
+                  key={`tool-${t}-${i}`}
+                  type="button"
+                  disabled={drawnPath.length > 1}
+                  onClick={() => {
+                    setDrawnPath([]);
+                    setToolArmed(toolArmed === i ? null : i);
+                  }}
+                  aria-label={`${GARDEN_TOOLS[t].name}: ${GARDEN_TOOLS[t].tag}. Tap, then tap a tile`}
+                  aria-pressed={toolArmed === i}
+                  className={`shrink-0 h-9 w-9 rounded-lg border flex items-center justify-center active:scale-95 disabled:opacity-40 ${
+                    toolArmed === i ? "border-amber-200 bg-amber-300/30 ring-2 ring-amber-200/70" : "border-amber-300/40 bg-amber-400/10"
+                  }`}
+                >
+                  <SupplyIcon kind="tool" id={t} size={26} />
+                </button>
+              ))}
               {armedPacket && (
-                <span className="h-8 pl-1 pr-2.5 rounded-lg border border-lime-300/60 bg-lime-300/15 text-[12px] font-semibold text-lime-100 inline-flex items-center gap-1">
+                <span
+                  className="relative shrink-0 h-9 w-9 rounded-lg border border-lime-300/70 bg-lime-300/20 ring-2 ring-lime-300/50 flex items-center justify-center"
+                  aria-label={`${SEED_PACKETS[armedPacket].name} on your next line`}
+                >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={packetArt(armedPacket)} alt="" aria-hidden="true" draggable={false} className="h-6 w-6 object-contain" />
-                  ✓ {SEED_PACKETS[armedPacket].name} on your next line
+                  <img src={packetArt(armedPacket)} alt="" aria-hidden="true" draggable={false} className="h-7 w-7 object-contain" />
+                  <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-lime-300 text-[10px] font-black leading-4 text-center text-slate-950">✓</span>
                 </span>
               )}
               {runPackets.map((p, i) => (
                 <button
-                  key={`${p}-${i}`}
+                  key={`packet-${p}-${i}`}
                   type="button"
                   disabled={drawnPath.length > 1}
                   onClick={() => setPacketAsk(i)}
-                  className="h-8 pl-1 pr-2.5 rounded-lg border border-fuchsia-300/40 bg-fuchsia-400/10 text-[12px] font-semibold text-fuchsia-50 active:scale-95 disabled:opacity-40 inline-flex items-center gap-1"
+                  aria-label={`${SEED_PACKETS[p].name}: tap to use`}
+                  className="shrink-0 h-9 w-9 rounded-lg border border-fuchsia-300/40 bg-fuchsia-400/10 flex items-center justify-center active:scale-95 disabled:opacity-40"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={packetArt(p)} alt="" aria-hidden="true" draggable={false} className="h-6 w-6 object-contain" />
-                  {SEED_PACKETS[p].name}
+                  <img src={packetArt(p)} alt="" aria-hidden="true" draggable={false} className="h-7 w-7 object-contain" />
                 </button>
               ))}
+              {/* What's going on in the pocket, in a few words */}
+              <span className="min-w-0 flex-1 truncate text-[12px] font-semibold leading-tight">
+                {toolArmed !== null && runTools[toolArmed] ? (
+                  <span className="text-amber-100">Tap a tile: {GARDEN_TOOLS[runTools[toolArmed]].name} ({GARDEN_TOOLS[runTools[toolArmed]].tag})</span>
+                ) : armedPacket ? (
+                  <span className="text-lime-100">✓ {SEED_PACKETS[armedPacket].name} on your next line</span>
+                ) : !usedOnce.tool && runTools.length > 0 ? (
+                  <span className="text-amber-200/85">Tap a tool, then a tile</span>
+                ) : !usedOnce.packet && runPackets.length > 0 ? (
+                  <span className="text-fuchsia-200/85">Tap a packet to use it</span>
+                ) : (
+                  <span className="text-white/40">Your pocket</span>
+                )}
+              </span>
+              {toolArmed !== null && (
+                <button
+                  type="button"
+                  onClick={() => setToolArmed(null)}
+                  className="shrink-0 h-8 px-2.5 rounded-lg bg-white/[0.06] border border-white/10 text-[12px] font-semibold text-white/80"
+                >
+                  Cancel
+                </button>
+              )}
             </div>
           )}
+
           {packetAsk !== null && runPackets[packetAsk] && (
             <div className="ui-zoom fixed inset-0 z-[60] bg-black/70 flex items-center justify-center p-6" onClick={() => setPacketAsk(null)}>
               <div
