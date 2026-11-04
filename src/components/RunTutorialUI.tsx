@@ -75,7 +75,7 @@ export function RunLessonControls({
 }) {
   const btn =
     // Same height as a Run's buttons, so the board keeps its size
-    "h-11 [@media(min-height:800px)]:h-14 px-1.5 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[12px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-40 whitespace-nowrap";
+    "h-11 [@media(min-height:800px)]:h-14 px-1.5 rounded-2xl bg-white/[0.05] border border-white/[0.08] text-[12px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-40 whitespace-nowrap";
   return artify(
     <div className="ui-zoom w-full max-w-game grid grid-cols-4 gap-1.5">
       <button type="button" disabled={disabled} onClick={onClear} className={btn}>

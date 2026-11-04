@@ -834,7 +834,7 @@ export function TopHUD({
                 relicLit
                   ? "bg-teal-300/25 border-teal-200"
                   : relicSetTags.length > 0
-                  ? "bg-amber-400/10 border-amber-300/50"
+                  ? "bg-white/[0.05] border-white/[0.12]"
                   : "bg-white/[0.04] border-white/[0.08]"
               }`}
             >
@@ -1845,7 +1845,7 @@ export function BottomControls({
           type="button"
           disabled={isResolving}
           onClick={onResetFloorStroke}
-          className={mode === "RUN" ? "h-11 [@media(min-height:800px)]:h-14 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[14px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-35" : "flex-1 h-10 px-2 rounded-xl whitespace-nowrap bg-[#17221B]/80 hover:bg-[#233328]/90 border border-indigo-500/40 text-[12px] tabular-nums font-bold text-indigo-200 hover:text-white shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition disabled:opacity-40"}
+          className={mode === "RUN" ? "h-11 [@media(min-height:800px)]:h-14 rounded-2xl bg-white/[0.05] border border-white/[0.08] text-[14px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-35" : "flex-1 h-10 px-2 rounded-xl whitespace-nowrap bg-[#17221B]/80 hover:bg-[#233328]/90 border border-indigo-500/40 text-[12px] tabular-nums font-bold text-indigo-200 hover:text-white shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition disabled:opacity-40"}
         >
           {mode === "RUN" ? (
             <span className="inline-flex items-center gap-1.5">
@@ -1862,7 +1862,7 @@ export function BottomControls({
             disabled={swap.disabled || (swap.left <= 0 && !swap.active)}
             onClick={swap.active && (swap.picked ?? 0) > 0 && swap.onConfirm ? swap.onConfirm : swap.onToggle}
             aria-pressed={swap.active}
-            className={`h-11 [@media(min-height:800px)]:h-14 rounded-xl border text-[14px] font-semibold transition active:scale-95 disabled:opacity-35 ${
+            className={`h-11 [@media(min-height:800px)]:h-14 rounded-2xl border text-[14px] font-semibold transition active:scale-95 disabled:opacity-35 ${
               swap.active
                 ? "bg-lime-300 text-slate-950 border-lime-200"
                 : swap.urge === "strong"
@@ -1894,7 +1894,7 @@ export function BottomControls({
             disabled={isResolving}
             onClick={skip.onToggle}
             aria-pressed={skip.open}
-            className={`h-11 [@media(min-height:800px)]:h-14 rounded-xl border text-[14px] font-semibold transition active:scale-95 disabled:opacity-35 ${
+            className={`h-11 [@media(min-height:800px)]:h-14 rounded-2xl border text-[14px] font-semibold transition active:scale-95 disabled:opacity-35 ${
               skip.open ? "bg-amber-300 text-slate-950 border-amber-200" : "bg-white/[0.05] border-amber-300/30 text-amber-100/90"
             }`}
           >
@@ -1909,7 +1909,7 @@ export function BottomControls({
           disabled={isResolving || hintsRemaining <= 0}
           onClick={onRequestHint}
           title="Highlight 3 safe steps of a winning path for 5 seconds"
-          className={mode === "RUN" ? "h-11 [@media(min-height:800px)]:h-14 rounded-xl bg-white/[0.05] border border-white/[0.08] text-[14px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-35 flex items-center gap-1.5" : "h-10 px-2 rounded-xl whitespace-nowrap bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/50 text-[12px] tabular-nums font-extrabold text-amber-300 hover:text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.2)] active:scale-95 transition disabled:opacity-35 flex items-center gap-1.5"}
+          className={mode === "RUN" ? "h-11 [@media(min-height:800px)]:h-14 rounded-2xl bg-white/[0.05] border border-white/[0.08] text-[14px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-35 flex items-center gap-1.5" : "h-10 px-2 rounded-xl whitespace-nowrap bg-amber-500/15 hover:bg-amber-500/25 border border-amber-400/50 text-[12px] tabular-nums font-extrabold text-amber-300 hover:text-amber-200 shadow-[0_0_15px_rgba(245,158,11,0.2)] active:scale-95 transition disabled:opacity-35 flex items-center gap-1.5"}
         >
           <Sparkles className={mode === "RUN" ? "w-4 h-4 text-amber-300" : "w-3.5 h-3.5 text-amber-400"} />
           <span>

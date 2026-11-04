@@ -4253,7 +4253,7 @@ export default function OneStrokeTacticianPage() {
                   role="status"
                   onClick={noticeSticky && retractNotice ? () => (setRetractNotice(null), setNoticeSticky(false)) : undefined}
                   className={`my-auto max-h-full rounded-lg px-3 py-2.5 flex flex-col justify-center gap-1.5 text-[14px] leading-snug font-bold border overflow-hidden ${
-                    retractNotice ? "bg-[#1F1A10] border-amber-300/50 text-amber-50" : "bg-[#2A1018] border-rose-300/50 text-rose-50"
+                    retractNotice ? "bg-[#243028] border-white/[0.12] text-white" : "bg-[#2A1018] border-rose-300/50 text-rose-50"
                   } ${noticeSticky && retractNotice ? "cursor-pointer" : ""}`}
                 >
                   <span className="min-h-0">{artify(runNoticeText)}</span>
@@ -4584,7 +4584,7 @@ export default function OneStrokeTacticianPage() {
           {meterOn && (
             // Takes the top spacer's place: it grows like the spacer under the
             // board, so the board sits centred between the top card and the buttons
-            <p data-area="hint" className="ui-zoom w-full max-w-game grow basis-0 !shrink min-h-[20px] flex items-end justify-center text-center text-[14px] leading-snug text-amber-200/90">
+            <p data-area="hint" className="ui-zoom w-full max-w-game grow basis-0 !shrink min-h-[20px] flex items-end justify-center text-center text-[14px] leading-snug text-white/75">
               {artify(boardHint)}
             </p>
           )}
@@ -4911,7 +4911,7 @@ export default function OneStrokeTacticianPage() {
                   aria-label={`${GARDEN_TOOLS[t].name}: ${GARDEN_TOOLS[t].tag}. Tap, then tap a tile`}
                   aria-pressed={toolArmed === i}
                   className={`shrink-0 h-9 w-9 rounded-lg border flex items-center justify-center active:scale-95 disabled:opacity-40 ${
-                    toolArmed === i ? "border-amber-200 bg-amber-300/30 ring-2 ring-amber-200/70" : "border-amber-300/40 bg-amber-400/10"
+                    toolArmed === i ? "border-amber-200 bg-amber-300/25 ring-2 ring-amber-200/70" : "border-white/[0.1] bg-white/[0.04]"
                   }`}
                 >
                   <SupplyIcon kind="tool" id={t} size={26} />
@@ -4934,7 +4934,7 @@ export default function OneStrokeTacticianPage() {
                   disabled={drawnPath.length > 1}
                   onClick={() => setPacketAsk(i)}
                   aria-label={`${SEED_PACKETS[p].name}: tap to use`}
-                  className="shrink-0 h-9 w-9 rounded-lg border border-fuchsia-300/40 bg-fuchsia-400/10 flex items-center justify-center active:scale-95 disabled:opacity-40"
+                  className="shrink-0 h-9 w-9 rounded-lg border border-white/[0.1] bg-white/[0.04] flex items-center justify-center active:scale-95 disabled:opacity-40"
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={packetArt(p)} alt="" aria-hidden="true" draggable={false} className="h-7 w-7 object-contain" />
