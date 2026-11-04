@@ -14,6 +14,7 @@ import {
   RunActionLog,
   scoreRunStroke,
   runRulesUseRelicSets,
+  firstLineOf,
 } from "@/lib/runReplay";
 import type {
   DungeonFloor,
@@ -205,7 +206,8 @@ export function rebuildRunFromSave(raw: unknown): { ok: true; run: RestoredRun }
           s.garden.bossRuleId,
           Boolean(s.garden.bossV20),
           s.garden.weather,
-          s.armedPacket
+          s.armedPacket,
+          firstLineOf(s.garden, log.v)
         );
         const error = run.apply(action);
         if (error) return { ok: false, error: `action ${i}: ${error}` };

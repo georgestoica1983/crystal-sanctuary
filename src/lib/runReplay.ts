@@ -195,6 +195,7 @@ export function startRunGarden(
     weather: runRulesUseWeather(logVersion),
     lateTargets: runRulesUseLateTargets(logVersion),
     earlyClimb: runRulesUseHarderSeasons(logVersion),
+    puzzleEase: runRulesUseEarlyPuzzle(logVersion),
     ...ascensionGardenParams(rules),
   });
   return { bag, hero, ...first };
@@ -221,7 +222,9 @@ export function scoreRunStroke(
   /** Rules v20 weather (RunGardenState.weather) */
   weather?: RunWeather,
   /** Rules v22: the Seed packet armed for this line */
-  packet?: PacketId | null
+  packet?: PacketId | null,
+  /** Rules v27: this is the bed's first line (firstLineOf) */
+  firstLine?: boolean
 ): { breakdown: FloorScoreBreakdown; afterStroke: HeroStats; countersAfter: RelicCounters } {
   const breakdown = calculateFloorScoreBreakdown(sim, startHero, path.length, relics, {
     counters,
@@ -230,6 +233,7 @@ export function scoreRunStroke(
     bossRuleId,
     weather,
     packet: packet ?? undefined,
+    ...(firstLine !== undefined ? { firstLine } : {}),
   });
   // The Toll: every line on its bed costs Seeds (rules v20: 1 for every tile past Length 10)
   const toll = bossRuleId !== "TOLL" ? 0 : bossV20 ? Math.max(0, path.length - TOLL_FREE_LENGTH) : TOLL_SEEDS;
@@ -546,13 +550,34 @@ export function growWilderBag(bag: SeedTile[], runSeed: string, season: number):
 export function bedTargetPreview(season: number, kind: RunGardenState["kind"], logVersion: number): number {
   return scaleRunTarget(
     getRunGardenTarget(season, kind, runRulesUseGentleStart(logVersion), runRulesUseHarderSeasons(logVersion)),
-    runLateTargetMult(season, runRulesUseLateTargets(logVersion), runRulesUseSteepTargets(logVersion), runRulesUseHarderSeasons(logVersion))
+    runLateTargetMult(
+      season,
+      runRulesUseLateTargets(logVersion),
+      runRulesUseSteepTargets(logVersion),
+      runRulesUseHarderSeasons(logVersion),
+      runRulesUseEarlyPuzzle(logVersion)
+    )
   );
 }
 
 /** From this Season some used tiles stay bare (rules v26+) */
 export const BARE_GROUND_SEASON = 4;
 export const BARE_GROUND_CHANCE = 1 / 3;
+
+/**
+ * v27: the puzzle starts earlier. Bare ground from Season 2 (1 in 8 of a
+ * line's tiles), Season 3 (1 in 5) and Season 4 on (1 in 3); Dawn Chorus
+ * counts the bed's real first line
+ */
+export const runRulesUseEarlyPuzzle = (logVersion: number) => logVersion >= 27;
+export function bareGroundChance(season: number, logVersion: number, kind?: RunGardenState["kind"]): number {
+  // Before Season 4 a Boss bed keeps its own twist only
+  if (runRulesUseEarlyPuzzle(logVersion)) return season >= 4 ? 1 / 3 : kind === "BOSS" ? 0 : season === 3 ? 1 / 5 : season === 2 ? 1 / 8 : 0;
+  return runRulesUseHarderSeasons(logVersion) && season >= BARE_GROUND_SEASON ? BARE_GROUND_CHANCE : 0;
+}
+/** v27: whether the next line is the bed's first (undefined under older rules) */
+export const firstLineOf = (garden: RunGardenState, logVersion: number): boolean | undefined =>
+  runRulesUseEarlyPuzzle(logVersion) ? garden.strokesLeft === (garden.strokesTotal ?? garden.strokesLeft) : undefined;
 /**
  * Refills the tiles a line used. Rules v26+, from Season 4: about one in three
  * of them stays bare ground for the rest of the bed, unless that would leave
@@ -570,12 +595,13 @@ export function refillAfterLine(params: {
 }): { grid: GridCell[][]; state: RunGardenState } {
   const { grid, path, garden, runSeed } = params;
   const refill = refillRunGarden(grid, path, garden, runSeed);
-  if (!runRulesUseHarderSeasons(params.logVersion) || garden.season < BARE_GROUND_SEASON) return refill;
+  const chance = bareGroundChance(garden.season, params.logVersion, garden.kind);
+  if (chance <= 0) return refill;
   const strokeNo = (garden.strokesTotal ?? RUN_STROKES_PER_GARDEN) - garden.strokesLeft;
   const rng = mulberry32(hashStringToSeed(`bare-${runSeed}-g${garden.gardenIndex}-l${strokeNo}`));
   const picked = path.filter((c) => {
     const t = grid[c.row]?.[c.col]?.type;
-    return t !== "HERO" && t !== "EXIT" && rng() < BARE_GROUND_CHANCE;
+    return t !== "HERO" && t !== "EXIT" && rng() < chance;
   });
   if (picked.length === 0) return refill;
   const bared = refill.grid.map((row) => row.map((cell) => cell));
@@ -988,6 +1014,7 @@ export function createNextRunGarden(params: {
     lateTargets: runRulesUseLateTargets(v),
     steepTargets: runRulesUseSteepTargets(v),
     earlyClimb: runRulesUseHarderSeasons(v),
+    puzzleEase: runRulesUseEarlyPuzzle(v),
     bossRerolled: Boolean(params.bossRerolls?.includes(getRunGardenPosition(params.gardenIndex).season)),
     ...ascensionGardenParams(rules),
   });
@@ -1132,9 +1159,13 @@ export function getRunPathError(
  *      steeper (×1.6, ×2.3), each Season adds 2 Thorns and a Spike to the bag,
  *      a full bloom (1.5× the target) pays +3 Seeds and a bare clear 1 less,
  *      and from Season 4 a third of a line's tiles stay bare for the bed.
+ * v27: the puzzle starts earlier (bare ground from Season 2: 1 in 8 tiles,
+ *      Season 3: 1 in 5, Season 4 on: 1 in 3; Seasons 2 and 3 targets ease
+ *      a little to match), and Dawn Chorus scores on
+ *      every bed's real first line (3-line Boss beds, after Second Wind).
  * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 26;
+export const RUN_LOG_VERSION = 27;
 export const RUN_LOG_MIN_VERSION = 2;
 /** Rule set of new Runs (the current version) */
 export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);
@@ -1419,7 +1450,8 @@ export function createRunReplayer(
         s.garden.bossRuleId,
         Boolean(s.garden.bossV20),
         s.garden.weather,
-        s.armedPacket
+        s.armedPacket,
+        firstLineOf(s.garden, logVersion)
       );
       s.counters = countersAfter;
       s.armedPacket = null;

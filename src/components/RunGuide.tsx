@@ -286,7 +286,7 @@ function buildPages(): GuidePage[] {
               <>Don&apos;t like the coming Boss? The Shop can reroll it once per Season for {BOSS_REROLL_COST} 🌱.</>,
               <>Targets climb every Season and Thorns get stronger. From Season 2 each new Season also adds 2 Thorns and a Spike to your bag. Only a build that multiplies keeps up.</>,
               <>💮 Clear a bed with 1.5× its target for a full bloom: +3 🌱. A bare clear pays 1 🌱 less.</>,
-              <>🟫 From Season 4, about a third of the tiles a line uses stay bare for the rest of the bed, so plan your first line.</>,
+              <>🟫 From Season 2, some tiles a line uses stay bare for the rest of the bed: 1 in 8, then 1 in 5, then 1 in 3 from Season 4. Boss beds skip it until Season 4. Plan your first line.</>,
               <>Clearing a bed pays 🌱 Seeds: {RUN_CLEAR_REWARD.SMALL}/{RUN_CLEAR_REWARD.BIG}/{RUN_CLEAR_REWARD.BOSS}, +1 per unused line, +1 per {RUN_INTEREST_STEP} 🌱 you&apos;ve saved (up to your interest cap, +{RUN_INTEREST_MAX} at the start).</>,
               <>In the Shop: buy relics and boosts, or reroll ({RUN_REROLL_BASE_COST} 🌱). You can hold {MAX_COMMON_RELICS} relics.</>,
               <>🌱 Fertilizer levels up one tile type for the whole Run: every one of those tiles on a line adds more Value. It stacks.</>,

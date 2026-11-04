@@ -62,6 +62,8 @@ import {
   STARTING_BAGS,
   shopMomentFor,
   applyRunShopReroll,
+  firstLineOf,
+  bareGroundChance,
   bedTargetPreview,
   growWilderBag,
   fullBloomTarget,
@@ -184,6 +186,7 @@ function playBotRun(seed: string, hero: HeroClassId, maxGardens: number, asc = 0
       bossRuleId: s.garden.bossRuleId,
       weather: s.garden.weather,
       packet: s.armedPacket ?? undefined,
+      ...(firstLineOf(s.garden, v) !== undefined ? { firstLine: firstLineOf(s.garden, v) } : {}),
     });
     if (best && best.score > 0) {
       expected += best.score;
@@ -1402,6 +1405,44 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
     }
     return true;
   })());
+}
+
+// Rules v27: the puzzle starts earlier, and Dawn Chorus counts the real first line
+{
+  // Dawn Chorus on a 3-line bed: v27 passes firstLine, older rules counted 4 lines left
+  const r = createRunReplayer("dawn-check", "KNIGHT", 27);
+  const st = r.state;
+  const line = searchBestFloorLine(st.grid, st.startHero, RUN_MODIFIER, st.classId, [], 20000, {});
+  if (line) {
+    const old = calculateFloorScoreBreakdown(line.sim, st.startHero, line.path.length, ["DAWN_CHORUS"], { strokesLeft: 3 });
+    const neu = calculateFloorScoreBreakdown(line.sim, st.startHero, line.path.length, ["DAWN_CHORUS"], { strokesLeft: 3, firstLine: true });
+    const later = calculateFloorScoreBreakdown(line.sim, st.startHero, line.path.length, ["DAWN_CHORUS"], { strokesLeft: 4, firstLine: false });
+    check("v27 Dawn Chorus fires on a 3-line bed's first line (+10 Length), not on later lines", neu.mult - old.mult === 10 && later.mult === old.mult);
+  } else check("Dawn Chorus: a scoring line exists", false);
+  check("v27 first line follows the bed's own line count", firstLineOf({ ...st.garden, strokesLeft: 3, strokesTotal: 3 }, 27) === true && firstLineOf({ ...st.garden, strokesLeft: 2, strokesTotal: 3 }, 27) === false && firstLineOf(st.garden, 26) === undefined);
+  // Bare ground ramp
+  check(
+    "v27 bare ground: S1 none, S2 1/8, S3 1/5, S4 1/3; early Boss beds none",
+    bareGroundChance(1, 27, "SMALL") === 0 && bareGroundChance(2, 27, "SMALL") === 1 / 8 && bareGroundChance(3, 27, "BIG") === 1 / 5 &&
+      bareGroundChance(4, 27, "BOSS") === 1 / 3 && bareGroundChance(3, 27, "BOSS") === 0
+  );
+  check("v26 keeps bare ground from Season 4 only", bareGroundChance(2, 26, "SMALL") === 0 && bareGroundChance(4, 26, "SMALL") === 1 / 3);
+  const t = (season: number, v: number) => bedTargetPreview(season, "SMALL", v);
+  check(`v27 eases Seasons 2-3 (S2 ${t(2, 26)} -> ${t(2, 27)}) and keeps Season 1 and 4+`, t(2, 27) < t(2, 26) && t(3, 27) < t(3, 26) && t(1, 27) === t(1, 26) && t(4, 27) === t(4, 26));
+  // Whole v27 Runs replay, with bare ground in Season 2-3
+  let replays = true;
+  let earlyBare = 0;
+  for (let n = 1; n <= 6; n++) {
+    const bot = playBotRun(`early-puzzle-${n}`, "KNIGHT", 9, 0, true, 27);
+    const rr = createRunReplayer(`early-puzzle-${n}`, "KNIGHT", 27);
+    for (const a of bot.log.a) {
+      rr.apply(a);
+      if (rr.state.phase === "PLAY" && rr.state.garden.season <= 3 && rr.state.grid.flat().some((c) => c.bare)) earlyBare++;
+    }
+    const replay = replayRun(JSON.parse(JSON.stringify(bot.log)));
+    if (!replay.ok || replay.score !== bot.expected) replays = false;
+  }
+  check(`v27 bot Runs replay (${earlyBare} boards with bare ground in Seasons 2-3)`, replays && earlyBare > 0);
 }
 
 // Daily Garden: today's seed, the Keeper, Ascension 0, and nothing after the Season 3 Boss

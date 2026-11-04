@@ -147,6 +147,8 @@ export interface RelicScoreContext {
   weather?: RunWeather;
   /** Rules v22+: a Seed packet armed for this line (Long Root, Acorn Echo, Cutting) */
   packet?: PacketId;
+  /** Rules v27+: this is the bed's first line (3-line Boss beds and Second Wind included) */
+  firstLine?: boolean;
 }
 
 /** Rules v22+: Seed packets, one-use items (some act at once, some on the next line) */

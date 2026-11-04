@@ -176,6 +176,7 @@ import {
   runRulesUseBossReroll,
   shopMomentFor,
   bedTargetPreview,
+  firstLineOf,
   refillAfterLine,
   growWilderBag,
   runRulesUseHarderSeasons,
@@ -936,8 +937,11 @@ export default function OneStrokeTacticianPage() {
             bossRuleId: runGarden?.bossRuleId,
             weather: runGarden?.weather,
             packet: armedPacket ?? undefined,
+            ...(runGarden && firstLineOf(runGarden, runLogRef.current?.v ?? RUN_LOG_VERSION) !== undefined
+              ? { firstLine: firstLineOf(runGarden, runLogRef.current?.v ?? RUN_LOG_VERSION) }
+              : {}),
           },
-    [isInteractiveTutorial, lesson, mode, relicCounters, runGarden?.strokesLeft, runGarden?.bossRuleId, runGarden?.weather, armedPacket]
+    [isInteractiveTutorial, lesson, mode, relicCounters, runGarden, armedPacket]
   );
 
   // Live Ghost Preview deterministic calculation with Hero Class & Active Relics
@@ -2360,7 +2364,8 @@ export default function OneStrokeTacticianPage() {
       garden.bossRuleId,
       Boolean(garden.bossV20),
       garden.weather,
-      armedPacket
+      armedPacket,
+      firstLineOf(garden, runLogRef.current?.v ?? RUN_LOG_VERSION)
     );
     setRelicCounters(countersAfter);
     setArmedPacket(null);
@@ -2564,7 +2569,7 @@ export default function OneStrokeTacticianPage() {
           relics: activeRelics,
         });
         if (refill.grid.some((row) => row.some((c) => c.bare)) && !strokeGrid.some((row) => row.some((c) => c.bare))) {
-          noticeOnce(BARE_NOTICE_KEY, "🟫 Some tiles stayed bare. From Season 4, about a third of the tiles a line uses don't regrow this bed.");
+          noticeOnce(BARE_NOTICE_KEY, "🟫 Some tiles stayed bare: they don't regrow this bed. It starts in Season 2 and grows each Season.");
         }
         if (practiceStep === "intro" || practiceStep === "draw") {
           setPracticeStep("regrow");

@@ -2404,7 +2404,8 @@ export function calculateFloorScoreBreakdown(
   addMult("DEW_LENS", sim.endsOnExit ? Math.max(0, sim.finalStats.shield) * 2 : 0);
   addMult("BERRY_BASKET", relicCountOf("POTION") * 2);
   addMult("ZIGZAG_KITE", diagonalSteps);
-  addMult("DAWN_CHORUS", ctx.strokesLeft === RUN_STROKES_PER_GARDEN ? 10 : 0);
+  // Rules v27 say which line is the bed's first; older Runs counted 4 lines left
+  addMult("DAWN_CHORUS", (ctx.firstLine ?? ctx.strokesLeft === RUN_STROKES_PER_GARDEN) ? 10 : 0);
   addMult("OAK_SAPLING", counter("OAK_SAPLING") * 3);
   addMult("RAIN_BARREL", counter("RAIN_BARREL"));
   // Fertilizer levels (rules v12+; the counters only hold them in v12 Runs)
@@ -3735,11 +3736,14 @@ export const RUN_STEEP_ENDLESS_GROWTH = 1.3;
  * this much each Season up to the last listed one; Endless grows as in v23
  */
 export const RUN_EARLY_CLIMB_STEP = 0.3;
-export const runLateTargetMult = (season: number, lateTargets: boolean, steep = false, earlyClimb = false) => {
+/** Rules v27: bare ground from Season 2 makes lines shorter, so Seasons 2 and 3 ease by this much */
+export const RUN_PUZZLE_EASE = 0.15;
+export const runLateTargetMult = (season: number, lateTargets: boolean, steep = false, earlyClimb = false, puzzleEase = false) => {
   if (earlyClimb) {
     const s = Math.floor(season);
     if (s <= 1) return 1;
-    const climb = 1 + RUN_EARLY_CLIMB_STEP * (Math.min(s, RUN_FINAL_SEASON) - 1);
+    const climb =
+      1 + RUN_EARLY_CLIMB_STEP * (Math.min(s, RUN_FINAL_SEASON) - 1) - (puzzleEase && (s === 2 || s === 3) ? RUN_PUZZLE_EASE : 0);
     return climb * Math.pow(RUN_STEEP_ENDLESS_GROWTH, Math.max(0, s - RUN_FINAL_SEASON));
   }
   if (!lateTargets || season < RUN_LATE_TARGET_SEASON) return 1;
@@ -4051,6 +4055,8 @@ export function createRunGarden(params: {
   bossRerolled?: boolean;
   /** Rules v26+: the climb from Season 2 and steeper Big and Boss beds */
   earlyClimb?: boolean;
+  /** Rules v27+: Seasons 2 and 3 ease a little (bare ground starts there) */
+  puzzleEase?: boolean;
   /** Rules v11+: gentler Season 1 targets */
   gentleStart?: boolean;
   /** Ascension (rules v8+): harder targets, stronger Thorns, fewer Swaps / Boss lines */
@@ -4105,7 +4111,7 @@ export function createRunGarden(params: {
         kind,
         target: scaleRunTarget(
           getRunGardenTarget(season, kind, params.gentleStart ?? false, params.earlyClimb),
-          (params.targetMult ?? 1) * runLateTargetMult(season, Boolean(params.lateTargets), params.steepTargets, params.earlyClimb)
+          (params.targetMult ?? 1) * runLateTargetMult(season, Boolean(params.lateTargets), params.steepTargets, params.earlyClimb, params.puzzleEase)
         ),
         score: 0,
         strokesLeft: kind === "BOSS" && params.bossLines ? params.bossLines : RUN_STROKES_PER_GARDEN,
