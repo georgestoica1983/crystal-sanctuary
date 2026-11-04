@@ -347,6 +347,10 @@ function relicPayoff(b: FloorScoreBreakdown, relicCount: number): number | null 
 const GOAL_CARD_HIDE_AFTER = 3;
 const RUN_ONLY_NOTICE = "The Sanctuary is in Run mode for now. Gauntlet, past Dailies and the Crafter are resting.";
 
+/** First use of a garden tool / Seed packet (their rows say how until then) */
+const TOOL_USED_KEY = "ost_tool_used_v1";
+const PACKET_USED_KEY = "ost_packet_used_v1";
+
 export default function OneStrokeTacticianPage() {
   // Initial deterministic daily dungeon so page loads instantaneously without layout shift
   const initialDungeon = useMemo(
@@ -412,6 +416,24 @@ export default function OneStrokeTacticianPage() {
   // Rules v22+: Seed packets held, the one armed for the next line, and the one being asked about
   const [runPackets, setRunPackets] = useState<PacketId[]>([]);
   const [armedPacket, setArmedPacket] = useState<PacketId | null>(null);
+  /** The tool and packet rows say how to use them until the first use */
+  const [usedOnce, setUsedOnce] = useState<{ tool: boolean; packet: boolean }>({ tool: true, packet: true });
+  useEffect(() => {
+    try {
+      setUsedOnce({ tool: !!window.localStorage.getItem(TOOL_USED_KEY), packet: !!window.localStorage.getItem(PACKET_USED_KEY) });
+    } catch {
+      // Ignore storage errors
+    }
+  }, []);
+  const markUsedOnce = (kind: "tool" | "packet") => {
+    if (usedOnce[kind]) return;
+    setUsedOnce((u) => ({ ...u, [kind]: true }));
+    try {
+      window.localStorage.setItem(kind === "tool" ? TOOL_USED_KEY : PACKET_USED_KEY, "1");
+    } catch {
+      // Ignore storage errors
+    }
+  };
   const [packetAsk, setPacketAsk] = useState<number | null>(null);
   /** Rules v17+: a Relic Tag's free Rare relic waits for the next Shop */
   const [freeRelicNext, setFreeRelicNext] = useState(false);
@@ -2888,6 +2910,7 @@ export default function OneStrokeTacticianPage() {
       return;
     }
     logRunAction({ k: "c", i });
+    markUsedOnce("packet");
     setDrawnPath([]);
     setRunGrid(runGarden.gardenIndex, used.grid);
     setRunGarden(used.garden);
@@ -2917,6 +2940,7 @@ export default function OneStrokeTacticianPage() {
       return;
     }
     logRunAction({ k: "u", i: toolArmed, c: coord.row * 5 + coord.col });
+    markUsedOnce("tool");
     setRunGrid(runGarden.gardenIndex, used.grid);
     setRunBag(used.bag);
     setRunTools((prev) => [...prev.slice(0, toolArmed), ...prev.slice(toolArmed + 1)]);
@@ -4843,7 +4867,7 @@ lesson
                 </>
               ) : (
                 <>
-                  <span className="text-[11px] font-semibold text-white/45">Tools</span>
+                  <span className={`min-w-0 truncate text-[11px] font-semibold ${usedOnce.tool ? "text-white/45" : "text-amber-200/85"}`}>{usedOnce.tool ? "Tools" : "Tap one, then a tile"}</span>
                   {runTools.map((t, i) => (
                     <button
                       key={`${t}-${i}`}
@@ -4853,7 +4877,7 @@ lesson
                         setDrawnPath([]);
                         setToolArmed(i);
                       }}
-                      className="h-8 pl-1.5 pr-2.5 rounded-lg border border-amber-300/40 bg-amber-400/10 text-[12px] font-semibold text-amber-100 active:scale-95 disabled:opacity-40 inline-flex items-center gap-1"
+                      className="shrink-0 h-8 pl-1.5 pr-2.5 rounded-lg border border-amber-300/40 bg-amber-400/10 text-[12px] font-semibold text-amber-100 active:scale-95 disabled:opacity-40 inline-flex items-center gap-1"
                     >
                       <SupplyIcon kind="tool" id={t} size={22} /> {GARDEN_TOOLS[t].name}
                     </button>
@@ -4866,7 +4890,7 @@ lesson
           {/* Seed packets (rules v22+): tap one to use it; a next-line packet waits, marked */}
           {mode === "RUN" && !lesson && !isInteractiveTutorial && (runPackets.length > 0 || armedPacket) && phase === "PLANNING" && (
             <div className="ui-zoom w-full max-w-game flex flex-wrap items-center gap-1.5 px-1">
-              <span className="text-[11px] font-semibold text-white/45">Packets</span>
+              <span className={`min-w-0 truncate text-[11px] font-semibold ${usedOnce.packet ? "text-white/45" : "text-fuchsia-200/85"}`}>{usedOnce.packet ? "Packets" : "Tap to use"}</span>
               {armedPacket && (
                 <span className="h-8 pl-1 pr-2.5 rounded-lg border border-lime-300/60 bg-lime-300/15 text-[12px] font-semibold text-lime-100 inline-flex items-center gap-1">
                   {/* eslint-disable-next-line @next/next/no-img-element */}

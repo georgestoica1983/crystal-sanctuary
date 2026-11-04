@@ -46,6 +46,7 @@ import {
 import RelicIcon from "@/components/RelicIcon";
 import { GARDEN_UPGRADES, MAX_PACKETS, RUN_PRUNE_COST, SEED_PACKETS, SHOP_MOMENTS } from "@/lib/runReplay";
 import { artify } from "@/components/ArtText";
+import { markKindExplained, nextUnexplainedKind, SHOP_GUIDE, SHOP_GUIDE_MORE, SHOP_GUIDE_ORDER, type ShopGuideKind } from "@/lib/shopGuide";
 
 /** Small build-theme chip (🌺 Thorns) */
 function TagChip({ tag }: { tag: RelicTag }) {
@@ -379,6 +380,27 @@ export default function ShopModal({
   useEffect(() => {
     if (isOpen && showIntro) setCoach(0);
   }, [isOpen, showIntro]);
+  // The Shop guide (the ? button) and one first-time card per visit for a kind not explained yet
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [firstCard, setFirstCard] = useState<ShopGuideKind | null>(null);
+  const firstCardDoneRef = useRef(false);
+  useEffect(() => {
+    if (!isOpen) {
+      firstCardDoneRef.current = false;
+      setFirstCard(null);
+      setGuideOpen(false);
+      return;
+    }
+    // Not over the first Shop's guided look; it explains relics itself
+    if (firstCardDoneRef.current || offers.length === 0 || showIntro) return;
+    firstCardDoneRef.current = true;
+    const present: ShopGuideKind[] = [...offers.map((o) => o.kind), ...(bag && onPrune ? (["PRUNE"] as const) : [])];
+    setFirstCard(nextUnexplainedKind(present));
+  }, [isOpen, offers, showIntro, bag, onPrune]);
+  const closeFirstCard = () => {
+    if (firstCard) markKindExplained(firstCard);
+    setFirstCard(null);
+  };
   // Kinds of offer this device hasn't seen in a Shop yet get a "New" label
   // (rules v21 opens them up by Season); worked out once, when the Shop opens
   const [newKinds, setNewKinds] = useState<string[] | null>(null);
@@ -621,8 +643,8 @@ export default function ShopModal({
           <div className="flex shrink-0 items-center gap-1.5">
             <button
               type="button"
-              onClick={() => setCoach(0)}
-              aria-label="How the Shop works"
+              onClick={() => setGuideOpen(true)}
+              aria-label="Shop guide: what everything does"
               className="h-10 w-10 rounded-xl border border-white/10 bg-white/[0.05] text-[16px] font-bold text-white/70"
             >
               ?
@@ -844,6 +866,99 @@ export default function ShopModal({
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
+        {/* First time a kind of offer shows up: what it is and how to use it */}
+        {firstCard && coach === null && !guideOpen && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center rounded-2xl bg-[#0b120d]/80 p-4" role="dialog" aria-label={`New in the Shop: ${SHOP_GUIDE[firstCard].name}`}>
+            <motion.div
+              initial={{ scale: 0.92, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="w-full rounded-2xl border border-amber-300/40 bg-[#24301f] p-4 text-center shadow-2xl space-y-2"
+            >
+              <div className="flex justify-center">
+                {SHOP_GUIDE[firstCard].sample ? (
+                  offerIcon(SHOP_GUIDE[firstCard].sample!, 52)
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={tileArt("WEAPON") ?? ""} alt="" aria-hidden="true" draggable={false} className="h-[52px] w-[52px] object-contain" />
+                )}
+              </div>
+              <div className="text-[13px] font-semibold text-amber-200/90">New in the Shop</div>
+              <div className="text-[20px] font-display font-semibold leading-tight">{SHOP_GUIDE[firstCard].name}</div>
+              <p className="text-[14.5px] leading-snug text-white/85">{artify(SHOP_GUIDE[firstCard].what)}</p>
+              <p className="text-[13.5px] leading-snug text-white/65">{artify(SHOP_GUIDE[firstCard].how)}</p>
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    closeFirstCard();
+                    setGuideOpen(true);
+                  }}
+                  className="h-11 flex-1 rounded-xl bg-white/[0.07] text-[14px] font-semibold text-white/80"
+                >
+                  Every item
+                </button>
+                <button type="button" onClick={closeFirstCard} className="h-11 flex-[1.4] rounded-xl bg-amber-300 text-[15px] font-bold text-slate-950">
+                  Got it
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* The Shop guide: every kind of offer, what it does and how to use it */}
+        {guideOpen && (
+          <div className="absolute inset-0 z-20 flex flex-col rounded-2xl bg-[#1B281F]" role="dialog" aria-label="Shop guide">
+            <div className="flex items-center justify-between gap-2 px-3.5 pt-3.5 pb-2">
+              <h3 className="text-[20px] font-display font-semibold">Shop guide</h3>
+              <button
+                type="button"
+                onClick={() => setGuideOpen(false)}
+                className="h-10 px-4 rounded-xl bg-white/[0.08] text-[14px] font-semibold text-white/85"
+              >
+                Done
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3.5 pb-3.5 space-y-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setGuideOpen(false);
+                  setCoach(0);
+                }}
+                className="w-full rounded-xl border border-amber-300/40 bg-amber-400/10 px-3 py-2 text-left text-[13.5px] font-semibold text-amber-100"
+              >
+                Show me around this Shop →
+              </button>
+              {SHOP_GUIDE_ORDER.map((k) => {
+                const g = SHOP_GUIDE[k];
+                return (
+                  <div key={k} className="flex gap-2.5 rounded-xl border border-white/[0.08] bg-white/[0.03] px-2.5 py-2">
+                    <div className="shrink-0 pt-0.5">
+                      {g.sample ? (
+                        offerIcon(g.sample, 34)
+                      ) : (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={tileArt("WEAPON") ?? ""} alt="" aria-hidden="true" draggable={false} className="h-[34px] w-[34px] object-contain" />
+                      )}
+                    </div>
+                    <div className="min-w-0 space-y-0.5">
+                      <div className="text-[14.5px] font-bold">{g.name}</div>
+                      <p className="text-[13px] leading-snug text-white/80">{artify(g.what)}</p>
+                      <p className="text-[12.5px] leading-snug text-white/55">{artify(g.how)}</p>
+                    </div>
+                  </div>
+                );
+              })}
+              <div className="pt-1 text-[12px] font-semibold text-white/55">Also in the Shop</div>
+              {SHOP_GUIDE_MORE.map((m) => (
+                <p key={m.name} className="text-[13px] leading-snug text-white/75">
+                  <b className="text-white/90">{m.name}:</b> {artify(m.text)}
+                </p>
+              ))}
+            </div>
+          </div>
+        )}
+
         {coach !== null && (
           <ShopCoach
             step={coach}
