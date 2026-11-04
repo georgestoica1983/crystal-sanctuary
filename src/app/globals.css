@@ -68,6 +68,11 @@ h6 {
 body {
   font-size-adjust: 0.5;
 }
+/* The handwriting font keeps its own size: some phone browsers read a wrong
+   x-height for it and blew the tip text up many times over */
+.font-hand {
+  font-size-adjust: none;
+}
 
 /* Text and controls grow on bigger screens (scale set by src/lib/uiScale.ts).
    Heights in dvh inside a .ui-zoom element divide by --ui-zoom to stay on screen */
