@@ -10,7 +10,7 @@ import { BagId, HeroClassId } from "@/types/game";
 import { HERO_CLASS_REGISTRY } from "@/lib/engine";
 import { ASCENSION_LEVELS, STARTING_BAGS } from "@/lib/runReplay";
 import { bagUnlockFor, companionUnlockFor, RUN_BAG_ORDER, RUN_COMPANION_ORDER } from "@/lib/unlocks";
-import { bagArt } from "@/lib/art";
+import { ascensionArt, bagArt } from "@/lib/art";
 import EntityIcon from "@/components/EntityIcon";
 import { artify } from "@/components/ArtText";
 import { TodaysGardenButton } from "@/components/RunModeUI";
@@ -285,7 +285,8 @@ export default function AscensionPicker({
                     : "border-white/15 bg-white/[0.04]"
                 }`}
               >
-                <span className="text-[20px] w-7 text-center" aria-hidden="true">{l.icon}</span>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={ascensionArt(l.level)} alt="" aria-hidden="true" draggable={false} className={`h-9 w-9 shrink-0 object-contain ${locked ? "opacity-50 grayscale" : ""}`} />
                 <span className="min-w-0 flex-1">
                   <span className="block text-[13.5px] font-bold">
                     {l.level === 0 ? "Normal" : `Ascension ${l.level}`}

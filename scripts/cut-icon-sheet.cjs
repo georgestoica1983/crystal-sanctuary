@@ -17,6 +17,7 @@
 //      or:  node scripts/cut-icon-sheet.cjs design/gemini-relic-sheet-4.webp relics4  (4 × 2 relic families)
 //      or:  node scripts/cut-icon-sheet.cjs design/gemini-bags-shop.webp bagsshop     (4 × 2 starting bags, Boss reroll, Shop moments)
 //      or:  node scripts/cut-icon-sheet.cjs design/gemini-seasons-learning.webp seasons (4 × 2 bare ground, harder Seasons, learning)
+//      or:  node scripts/cut-icon-sheet.cjs design/gemini-ascension.webp ascension (4 × 2 Ascension seals, Best line wreath)
 const sharp = require("sharp");
 const path = require("path");
 
@@ -105,6 +106,11 @@ const SEASONS_NAMES = [
   "tile-bare-a", "tile-bare-b", "misc-full-bloom", "misc-wilder",
   "misc-seedling", "misc-level-cleared", "misc-pocket", "misc-shop-guide",
 ];
+// Sheet H: 4 × 2 Ascension seals 0–6 and the Best line wreath
+const ASCENSION_NAMES = [
+  "asc-0", "asc-1", "asc-2", "asc-3",
+  "asc-4", "asc-5", "asc-6", "badge-best-line",
+];
 // Small badges: 4 × 2, in the order of the badges prompt
 const BADGE_NAMES = ["star", "crown", "flame", "lock", "golden", "iridescent", "radiant", "seed"].map((n) => `badge-${n}`);
 // Lawn board pieces: 4 × 2. Each cell has its own background shade, and pieces keep their own shape
@@ -146,8 +152,9 @@ const OUT = 256;
     : mode === "relics4" ? RELIC_NAMES_4
     : mode === "bagsshop" ? BAGS_SHOP_NAMES
     : mode === "seasons" ? SEASONS_NAMES
+    : mode === "ascension" ? ASCENSION_NAMES
     : ICON_NAMES;
-  const COLS = mode === "relics2" || mode === "decor" || mode === "bosses" || mode === "badges" || mode === "lawn" || mode === "moments" || mode === "weatherdaily" || mode === "tilesafter" || mode === "packets" || mode === "relics4" || mode === "bagsshop" || mode === "seasons" ? 4 : mode === "relics3" ? 3 : mode === "supplies" || mode === "rankslooks" ? 5 : Math.round(Math.sqrt(NAMES.length));
+  const COLS = mode === "relics2" || mode === "decor" || mode === "bosses" || mode === "badges" || mode === "lawn" || mode === "moments" || mode === "weatherdaily" || mode === "tilesafter" || mode === "packets" || mode === "relics4" || mode === "bagsshop" || mode === "seasons" || mode === "ascension" ? 4 : mode === "relics3" ? 3 : mode === "supplies" || mode === "rankslooks" ? 5 : Math.round(Math.sqrt(NAMES.length));
   const ROWS = Math.ceil(NAMES.length / COLS);
   const { data, info } = await sharp(src).raw().toBuffer({ resolveWithObject: true });
   const { width: W, height: H, channels: C } = info;
@@ -156,7 +163,7 @@ const OUT = 256;
   for (let n = 0; n < NAMES.length; n++) {
     const col = n % COLS, row = Math.floor(n / COLS);
     // The garden sheet has faint grid lines: step a few pixels inside each cell
-    const inset = mode === "garden" ? 6 : mode === "relics3" || mode === "moments" || mode === "weatherdaily" || mode === "tilesafter" || mode === "packets" || mode === "relics4" || mode === "bagsshop" || mode === "seasons" ? 10 : mode === "rankslooks" ? 4 : 0;
+    const inset = mode === "garden" ? 6 : mode === "relics3" || mode === "moments" || mode === "weatherdaily" || mode === "tilesafter" || mode === "packets" || mode === "relics4" || mode === "bagsshop" || mode === "seasons" || mode === "ascension" ? 10 : mode === "rankslooks" ? 4 : 0;
     // Some sheets have unevenly spaced rows: cut them at the empty gaps instead
     const edges = ROW_EDGES[mode] ? [...ROW_EDGES[mode].map((f) => Math.round(f * H)), H] : null;
     const x0 = Math.round(col * cellW) + inset;
@@ -164,7 +171,7 @@ const OUT = 256;
     const w = Math.round((col + 1) * cellW) - inset - x0;
     const h = (edges ? edges[row] : Math.round((row + 1) * cellH)) - inset - y0;
     // The lawn sheet's cells each have their own shade: read it from the cell's corner
-    const perCell = mode === "lawn" || mode === "relics3" || mode === "moments" || mode === "weatherdaily" || mode === "tilesafter" || mode === "packets" || mode === "relics4" || mode === "bagsshop" || mode === "seasons";
+    const perCell = mode === "lawn" || mode === "relics3" || mode === "moments" || mode === "weatherdaily" || mode === "tilesafter" || mode === "packets" || mode === "relics4" || mode === "bagsshop" || mode === "seasons" || mode === "ascension";
     const at = (perCell ? (y0 + 4) * W + x0 + 4 : 2) * C;
     const bg = perCell ? [data[at], data[at + 1], data[at + 2]] : sheetBg;
     const rgba = Buffer.alloc(w * h * 4);

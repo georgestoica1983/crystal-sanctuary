@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { LINE_TIERS } from "@/lib/lineTiers";
+import Badge from "@/components/Badge";
 import { FloorScoreBreakdown, PathSimulationResult, RelicId, ScoreSource } from "@/types/game";
 import { soundEngine } from "@/lib/audio";
 import { artify } from "@/components/ArtText";
@@ -498,7 +499,12 @@ export default function LineScoreShow({
             </motion.span>
           ) : (
             <motion.span key="done" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-amber-100/70">
-              {bestLine && <span className="font-black text-fuchsia-200">✨ Best line ever! </span>}
+              {bestLine && (
+                <span className="font-black text-fuchsia-200">
+                  <Badge id="best-line" size={18} className="mr-1 align-[-4px]" />
+                  Best line ever!{" "}
+                </span>
+              )}
               {fire > 0 && <span className="font-black text-amber-200">{FIRE_NAMES[fire]} </span>}
               {/* The sum only when there's nothing to celebrate (the numbers are on screen anyway) */}
               {!bestLine && fire === 0 && (

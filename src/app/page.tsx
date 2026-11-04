@@ -2758,7 +2758,7 @@ export default function OneStrokeTacticianPage() {
       ascLevel = unlockAscensionAfter(runLogRef.current?.asc ?? 0);
     }
     const unlocked = save ? takeNewUnlocks().map((u) => ({ id: u.id, icon: u.icon, name: u.name })) : [];
-    if (ascLevel !== null) unlocked.push({ id: "", icon: "🔥", name: `Ascension ${ascLevel}` });
+    if (ascLevel !== null) unlocked.push({ id: `asc-${ascLevel}`, icon: "🔥", name: `Ascension ${ascLevel}` });
     const progress = loadUnlockProgress();
     const deepestSeason = Math.floor(progress.highestBed / 3) + 1;
     const next = getNextStarUnlocks(progress);

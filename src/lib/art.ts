@@ -76,7 +76,7 @@ export const toolArt = (id: string) => icon(`tool-${kebab(id)}`);
 export const upgradeArt = (id: string) => icon(`upgrade-${kebab(id)}`);
 export const tagArt = (id: string) => icon(`tag-${kebab(id)}`);
 /** Small badges (public/art/icons/badge-*.webp) shown next to text and numbers */
-export type BadgeId = "star" | "crown" | "flame" | "lock" | "golden" | "iridescent" | "radiant" | "seed";
+export type BadgeId = "star" | "crown" | "flame" | "lock" | "golden" | "iridescent" | "radiant" | "seed" | "best-line";
 export const badgeArt = (id: BadgeId) => icon(`badge-${id}`);
 /** Garden moments (public/art/icons/misc-*.webp): the Gardener, Swap, the Journal, Today's garden… */
 export type MiscArtId = "gardener" | "swap" | "no-safe-line" | "journal" | "daily" | "music" | "hint" | "rotate-phone" | "boss-reroll"
@@ -105,11 +105,20 @@ const UNLOCK_ART: Record<string, string> = {
   "c-otter": "companion-otter",
   "c-butterfly": "companion-sprite",
   "c-fox": "companion-fox",
+  // Ascension seals (an unlocked level shows its seal)
+  "asc-1": "asc-1",
+  "asc-2": "asc-2",
+  "asc-3": "asc-3",
+  "asc-4": "asc-4",
+  "asc-5": "asc-5",
+  "asc-6": "asc-6",
   "g-thorny": "bag-thorny",
   "g-acorn": "bag-acorn",
   "g-berry": "bag-berry",
   "g-lean": "bag-lean",
 };
+/** Ascension seals 0–6 (0 = the normal game) */
+export const ascensionArt = (level: number) => icon(`asc-${Math.max(0, Math.min(6, level))}`);
 /** Starting bags (rules v24+), e.g. THORNY → bag-thorny */
 export const bagArt = (id: string) => icon(`bag-${kebab(id)}`);
 /** Rare Shop moments (rules v24+), e.g. FREE_REROLL → shop-free-reroll; a Sale is shop-sale */
