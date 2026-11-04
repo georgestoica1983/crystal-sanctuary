@@ -405,7 +405,7 @@ export function BagPanel({
         ))}
         {shown.length === 0 && <span className="text-[12px] text-white/60">The bag is empty.</span>}
       </div>
-      <div className="mt-1 text-[10px] leading-snug text-white/50">
+      <div className="mt-1 text-[10px] leading-snug text-white/60">
         Next tiles to refill the board.
         {garden.discardPile.length > 0 &&
           ` Then your ${garden.discardPile.length} used tiles get shuffled back in.`}
@@ -418,7 +418,7 @@ export function BagPanel({
           {levels.map(({ t, lv }) => (
             <div
               key={t}
-              className={`flex items-center gap-1 rounded-md px-1.5 py-1 ${lv > 0 ? "bg-lime-300/10 text-lime-100" : "bg-white/[0.03] text-white/45"}`}
+              className={`flex items-center gap-1 rounded-md px-1.5 py-1 ${lv > 0 ? "bg-lime-300/10 text-lime-100" : "bg-white/[0.03] text-white/60"}`}
             >
               <EntityIcon type={t} size={16} />
               <span className="min-w-0 leading-tight">
@@ -428,7 +428,7 @@ export function BagPanel({
             </div>
           ))}
         </div>
-        <div className="mt-1 text-[10px] leading-snug text-white/45">Fertilizer in the Shop levels a tile type up for the rest of the Run.</div>
+        <div className="mt-1 text-[10px] leading-snug text-white/60">Fertilizer in the Shop levels a tile type up for the rest of the Run.</div>
       </div>
     </motion.div>
   );
@@ -483,7 +483,7 @@ function SeasonMap({
           {i > 0 && <span className={`h-0.5 w-6 rounded-full ${i <= done ? "bg-emerald-300" : "bg-white/15"}`} />}
           <span
             className={`flex flex-col items-center gap-0.5 text-[10px] tabular-nums font-bold ${
-              i <= done ? "text-emerald-200" : i === done + 1 ? "text-white/80" : "text-white/35"
+              i <= done ? "text-emerald-200" : i === done + 1 ? "text-white/80" : "text-white/60"
             }`}
           >
             <span
@@ -509,7 +509,7 @@ function SeasonMap({
         </React.Fragment>
       ))}
     </div>
-      {done === 2 && <div className="mt-1 text-center text-[10px] text-white/50">Next: Season {season + 1}</div>}
+      {done === 2 && <div className="mt-1 text-center text-[10px] text-white/60">Next: Season {season + 1}</div>}
     </div>
   );
 }
@@ -527,29 +527,18 @@ function SeasonDots({
   onBossTap?: () => void;
 }) {
   const at = gardenIndex % 3;
+  // The label already says Small, Big or Boss bed; only the coming Boss shows here
+  // (one row of dots on the Season row: the lines left)
+  if (!boss || at >= 2) return null;
   return (
-    <span className="ml-1.5 inline-flex items-center gap-[3px] align-middle" aria-label={`Bed ${at + 1} of 3 this Season`}>
-      {[0, 1].map((i) => (
-        <span
-          key={i}
-          className={`rounded-full h-1.5 w-1.5 ${
-            i < at ? "bg-amber-300/80" : i === at ? "bg-amber-200 ring-2 ring-amber-200/30" : "bg-white/20"
-          }`}
-        />
-      ))}
-      {boss && at < 2 ? (
-        <button
-          type="button"
-          onClick={onBossTap}
-          aria-label={`Boss ahead: ${boss.name}. Tap for its rule.`}
-          className="ml-1 inline-flex h-7 w-7 items-center justify-center rounded-full bg-rose-400/15 ring-1 ring-rose-300/40 active:scale-90"
-        >
-          <BossIcon id={boss.id} size={24} />
-        </button>
-      ) : (
-        <span className={`rounded-full h-2 w-2 ${at === 2 ? "bg-amber-200 ring-2 ring-amber-200/30" : "bg-white/20"}`} />
-      )}
-    </span>
+    <button
+      type="button"
+      onClick={onBossTap}
+      aria-label={`Boss ahead: ${boss.name}. Tap for its rule.`}
+      className="ml-1.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-rose-400/15 ring-1 ring-rose-300/40 align-middle active:scale-90"
+    >
+      <BossIcon id={boss.id} size={24} />
+    </button>
   );
 }
 
@@ -744,7 +733,7 @@ export function RunGardenClearModal({
               <Sparkles className="w-3.5 h-3.5" /> Your best on this bed
             </div>
           )}
-          {stars < 3 && <div className="mt-0.5 text-[12px] leading-snug text-white/50">Next time: {STAR_HINT[stars]}</div>}
+          {stars < 3 && <div className="mt-0.5 text-[12px] leading-snug text-white/60">Next time: {STAR_HINT[stars]}</div>}
           <SeasonMap season={season} clearedKind={kind} bestStars={info.seasonBestStars} />
           {season > RUN_FINAL_SEASON && (
             <div className="mt-2 rounded-lg border border-violet-300/40 bg-violet-500/10 px-2.5 py-1 text-[12px] text-violet-100">
@@ -798,14 +787,14 @@ export function RunGardenClearModal({
             💮 Full bloom! +{info.fullBloomBonus} 🌱
           </motion.div>
         ) : info.fullBloomAt ? (
-          <div className="text-center text-[12px] text-white/55">
+          <div className="text-center text-[12px] text-white/60">
             Full bloom at {fmt(info.fullBloomAt)} pays +{FULL_BLOOM_SEEDS} 🌱 more
           </div>
         ) : null}
 
         {/* Where the Seeds came from, for anyone who wants it */}
         <details className="group rounded-xl border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-[12px] text-white/70">
-          <summary className="cursor-pointer list-none text-center font-semibold text-white/55 [&::-webkit-details-marker]:hidden">
+          <summary className="cursor-pointer list-none text-center font-semibold text-white/60 [&::-webkit-details-marker]:hidden">
             How you earned it <span className="inline-block transition group-open:rotate-180">▾</span>
           </summary>
           <div className="mt-1.5 space-y-1">
@@ -839,7 +828,7 @@ export function RunGardenClearModal({
             <div className="mt-0.5 flex flex-wrap items-center justify-center text-[14px] font-black text-white leading-snug">
               {info.unlocked.map((u, i) => (
                 <span key={u.name} className="inline-flex items-center gap-1">
-                  {i > 0 && <span className="mx-1 text-white/40">·</span>}
+                  {i > 0 && <span className="mx-1 text-white/60">·</span>}
                   {u.id ? <UnlockIcon item={{ id: u.id, icon: u.icon }} size={22} /> : u.icon} {u.name}
                 </span>
               ))}
@@ -919,7 +908,7 @@ export function RunSavedRest({
           Season {season} is done and your Run is saved on this device. Open Bloomline any time and you&apos;ll pick up
           right here, before the Shop.
         </p>
-        <p className="text-[14px] text-white/50">You can close the game now.</p>
+        <p className="text-[14px] text-white/60">You can close the game now.</p>
         <button
           type="button"
           onClick={onKeepPlaying}
@@ -1001,7 +990,7 @@ function GardenCodeRow({ code, fromCode, reached, score }: { code: string; fromC
   return (
     <div className="flex flex-wrap items-center gap-x-2 gap-y-1.5 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2">
       <div className="flex-1">
-        <div className="text-[12px] text-white/45">{fromCode ? "Garden code (a friend's)" : "Garden code"}</div>
+        <div className="text-[12px] text-white/60">{fromCode ? "Garden code (a friend's)" : "Garden code"}</div>
         <div className="whitespace-nowrap tabular-nums text-[14px] font-bold text-teal-100">{code}</div>
       </div>
       <button
@@ -1065,7 +1054,7 @@ function DailyResultCard({ dateKey, record, streak }: { dateKey: string; record:
           </div>
         ))}
       </div>
-      <div className="mt-1.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[12px] text-white/50">
+      <div className="mt-1.5 flex flex-wrap items-center justify-center gap-x-2 gap-y-0.5 text-[12px] text-white/60">
         {DAILY_LEGEND.filter(([cell]) => dailyGridRows(record).some((row) => row.includes(cell))).map(([cell, text]) => (
           <span key={cell} className="inline-flex items-center gap-0.5">
             <DailyCell cell={cell} size={14} /> {text}
@@ -1255,7 +1244,7 @@ export function RunOverModal({
         )}
 
         <div className="rounded-xl border border-white/10 bg-white/[0.04] p-2.5 space-y-1.5 text-[12px]">
-          <div className="text-[12px] font-semibold text-white/45">Your harvest</div>
+          <div className="text-[12px] font-semibold text-white/60">Your harvest</div>
           {harvest.map((h, i) => (
             <motion.div
               key={h.label}
@@ -1283,7 +1272,7 @@ export function RunOverModal({
           )}
           {relicCounts.size > 0 && (
             <div className="pt-1">
-              <div className="text-[12px] text-white/45 mb-1">
+              <div className="text-[12px] text-white/60 mb-1">
                 Relics gathered{newSet.size > 0 ? ` · ${newSet.size} found for the first time` : ""}
               </div>
               <div className="flex flex-wrap gap-1.5">

@@ -255,9 +255,11 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
   const all = (Object.keys(pages) as PageId[]).filter((id) => !UNCOUNTED.includes(id)).flatMap((id) => pages[id]);
   const total = all.filter((e) => e.found).length;
   const pct = Math.round((total / all.length) * 100);
-  const screens = Math.max(1, Math.ceil(pages[page].length / fit.perScreen));
+  // What you've found comes first, then what's still to find (the page's count says how many)
+  const pageEntries = [...pages[page]].sort((a, b) => Number(b.found) - Number(a.found));
+  const screens = Math.max(1, Math.ceil(pageEntries.length / fit.perScreen));
   const at = Math.min(screen, screens - 1);
-  const entries = pages[page].slice(at * fit.perScreen, (at + 1) * fit.perScreen);
+  const entries = pageEntries.slice(at * fit.perScreen, (at + 1) * fit.perScreen);
   const go = (d: number) => {
     setScreen(Math.max(0, Math.min(screens - 1, at + d)));
     setPicked(null);
@@ -278,7 +280,7 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
               {pct >= 100 && <span className="ml-1 text-amber-200">✨ complete</span>}
             </div>
             {pct < 100 && (
-              <div className="text-[12px] text-white/45">
+              <div className="text-[12px] text-white/60">
                 {pct < 25 ? "25%: Botanist title" : pct < 50 ? "50%: Pressed Petal line" : pct < 75 ? "75%: Herbarium board" : "100%: Golden Leaf line"}
               </div>
             )}
@@ -345,7 +347,7 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
               </span>
               {/* New since last visit: the same small dot as on the page chips, in the corner clear of the art */}
               {isNew(e) && <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-lime-300" aria-label="new" />}
-              <span className={`w-full line-clamp-2 text-center text-[10px] leading-tight ${e.found ? "text-white/75" : "text-white/45"}`}>
+              <span className={`w-full line-clamp-2 text-center text-[10px] leading-tight ${e.found ? "text-white/75" : "text-white/60"}`}>
                 {e.found ? e.name : "Not yet"}
               </span>
             </motion.button>

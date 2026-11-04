@@ -208,7 +208,7 @@ function buildPages(): GuidePage[] {
         <>
           <div className="flex gap-3 items-center">
             <Tile type="HERO" label="YOU" size={48} />
-            <span className="text-xl text-white/40" aria-hidden="true">→</span>
+            <span className="text-xl text-white/60" aria-hidden="true">→</span>
             <Tile type="EXIT" label="EXIT" size={48} />
           </div>
           <Bullets

@@ -91,7 +91,7 @@ export default function LooksModal({
               role="tab"
               aria-selected={tab === k}
               onClick={() => setTab(k)}
-              className={`flex-1 h-9 rounded-lg text-[14px] font-bold transition ${tab === k ? "bg-white/[0.12] text-white" : "text-white/55"}`}
+              className={`flex-1 h-9 rounded-lg text-[14px] font-bold transition ${tab === k ? "bg-white/[0.12] text-white" : "text-white/60"}`}
             >
               {label}
             </button>
@@ -121,7 +121,7 @@ export default function LooksModal({
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-x-1.5">
                       <span className="text-[14px] font-bold">{def.sanctuaryShortName ?? def.shortName}</span>
-                      <span className="text-[10px] tabular-nums text-white/55">{companionStartText(id)}</span>
+                      <span className="text-[10px] tabular-nums text-white/60">{companionStartText(id)}</span>
                       {isNext && unlocked && (
                         <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-100">
                           Next run

@@ -314,7 +314,7 @@ export function PracticeCoach({
               </button>
             )}
             {step === "intro" && (
-              <button type="button" onClick={onQuit} className="w-full py-1.5 text-[12px] font-semibold text-white/55">
+              <button type="button" onClick={onQuit} className="w-full py-1.5 text-[12px] font-semibold text-white/60">
                 Leave the practice
               </button>
             )}

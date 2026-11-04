@@ -299,14 +299,14 @@ export default function ScoreTally({
         {/* 2. One equation */}
         <div className="text-center text-[20px] font-semibold tabular-nums">
           <span className="text-sky-200">{fmt(Math.round(chipsShown))}</span>
-          <span className="text-white/55 text-[16px] font-normal"> value </span>
-          <span className="text-white/45">×</span>{" "}
+          <span className="text-white/60 text-[16px] font-normal"> value </span>
+          <span className="text-white/60">×</span>{" "}
           <span className="text-emerald-200">{fmt(Math.round(multShown))}</span>
-          <span className="text-white/55 text-[16px] font-normal"> length</span>
+          <span className="text-white/60 text-[16px] font-normal"> length</span>
           {xShown !== 1 && (
             <>
               {" "}
-              <span className="text-white/45">×</span> <span className="text-fuchsia-200">{xShown}</span>
+              <span className="text-white/60">×</span> <span className="text-fuchsia-200">{xShown}</span>
             </>
           )}
         </div>
@@ -321,14 +321,14 @@ export default function ScoreTally({
         <details className="group rounded-xl border border-white/10 bg-white/[0.03] px-3 py-1.5">
           <summary className="flex h-10 cursor-pointer list-none items-center justify-between text-[16px] font-semibold text-white/80">
             See how
-            <span className="text-white/45 transition group-open:rotate-180" aria-hidden="true">▾</span>
+            <span className="text-white/60 transition group-open:rotate-180" aria-hidden="true">▾</span>
           </summary>
           <div className="space-y-2.5 pb-2 pt-1">
             <div className="space-y-1">
               <div className="text-[14px] font-semibold text-sky-300/90">Value {fmt(breakdown.chips)}</div>
               {valueTop.shown.map((l) => detailRow(l, "text-sky-50/90"))}
               {valueTop.more > 0 && (
-                <div className="text-[14px] text-white/55">
+                <div className="text-[14px] text-white/60">
                   + {valueTop.more} more (+{valueTop.moreValue})
                 </div>
               )}
@@ -337,7 +337,7 @@ export default function ScoreTally({
               <div className="text-[14px] font-semibold text-emerald-300/90">Length {fmt(breakdown.mult)}</div>
               {lengthTop.shown.map((l) => detailRow(l, "text-emerald-50/90"))}
               {lengthTop.more > 0 && (
-                <div className="text-[14px] text-white/55">
+                <div className="text-[14px] text-white/60">
                   + {lengthTop.more} more (+{lengthTop.moreValue})
                 </div>
               )}

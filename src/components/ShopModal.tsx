@@ -111,12 +111,12 @@ function PriceChip({ sold, blocked, affordable, cost, deal = false }: { sold: bo
     <span
       className={`absolute top-1 right-1 flex items-center gap-0.5 rounded-md px-1 text-[10px] leading-[15px] tabular-nums font-black ${
         sold
-          ? "text-white/50"
+          ? "text-white/60"
           : deal && !blocked
           ? "bg-rose-400/30 text-rose-50 ring-1 ring-rose-300/60"
           : affordable && !blocked
           ? "bg-amber-400/20 text-amber-200"
-          : "bg-white/[0.06] text-white/40"
+          : "bg-white/[0.06] text-white/60"
       }`}
     >
       {sold ? "✓" : blocked ? <Lock className="w-3 h-3" /> : (
@@ -440,6 +440,11 @@ export default function ShopModal({
     const base = scorePreview?.__base ?? 0;
     return base > 0 && gain > 0 ? Math.max(1, Math.round((gain / base) * 100)) : 0;
   };
+  // One gain chip at a time: on the offer you tapped, or else on the best one for your line
+  const bestGainId = ordered
+    .filter((o) => !soldIds.includes(o.id) && gainPct(scorePreview?.[o.id] ?? 0) > 0)
+    .sort((a, b) => (scorePreview?.[b.id] ?? 0) - (scorePreview?.[a.id] ?? 0))[0]?.id;
+
   const blockedOf = (o: ShopOffer) =>
     (o.kind === "RELIC" && slotsFull) || (o.kind === "TOOL" && toolsHeld >= MAX_TOOLS) || (o.kind === "PACKET" && packetsHeld >= MAX_PACKETS);
 
@@ -552,7 +557,7 @@ export default function ShopModal({
         type="button"
         disabled={sold || blocked || !affordable}
         onClick={() => onBuy(offer)}
-        className="h-11 w-full rounded-xl bg-amber-300 text-slate-950 font-bold text-[16px] active:scale-95 transition disabled:bg-white/10 disabled:text-white/45"
+        className="h-11 w-full rounded-xl bg-amber-300 text-slate-950 font-bold text-[16px] active:scale-95 transition disabled:bg-white/10 disabled:text-white/60"
       >
         {sold
           ? "Bought"
@@ -599,7 +604,7 @@ export default function ShopModal({
             </div>
           )}
           {preview !== undefined && !sold && (
-            <div className={`text-[12px] tabular-nums font-black ${preview > 0 ? "text-emerald-300" : "text-white/55"}`}>
+            <div className={`text-[12px] tabular-nums font-black ${preview > 0 ? "text-emerald-300" : "text-white/60"}`}>
               {preview > 0
                 ? `≈ +${preview.toLocaleString()}${gainPct(preview) ? ` (+${gainPct(preview)}%)` : ""} on your best line`
                 : offer.relicId && RELIC_REGISTRY[offer.relicId]?.category === "XMULT"
@@ -704,7 +709,9 @@ export default function ShopModal({
                 {/* What it does, at a glance */}
                 <span className="w-full text-center text-[10px] leading-[1.2] text-white/65 line-clamp-3 [@media(max-height:700px)]:line-clamp-2">{artify(glanceOf(offer, info))}</span>
                 {/* Top row, above the art: what it adds to your best line (or New) on the left, the price on the right */}
-                {!sold && gainPct(scorePreview?.[offer.id] ?? 0) > 0 ? (
+                {!sold &&
+                gainPct(scorePreview?.[offer.id] ?? 0) > 0 &&
+                (pickedValid?.kind === "OFFER" ? pickedValid.id === offer.id : offer.id === bestGainId) ? (
                   <span className="absolute top-1 left-1 rounded-md bg-emerald-400/20 px-1 text-[10px] leading-[15px] tabular-nums font-black text-emerald-200">
                     {/* Short enough to sit beside the price: +45%, or ×2.9 from double up */}
                     {gainPct(scorePreview?.[offer.id] ?? 0) >= 100
@@ -714,7 +721,8 @@ export default function ShopModal({
                 ) : (
                   newKinds?.includes(offer.kind) &&
                   !sold && (
-                    <span className="absolute top-1 left-1 rounded-md bg-lime-300 px-1 text-[10px] leading-[15px] font-black text-slate-950">New</span>
+                    // New kinds wear a small dot, not a word
+                    <span aria-label="New" className="absolute top-1.5 left-1.5 h-2 w-2 rounded-full bg-lime-300" />
                   )
                 )}
                 <PriceChip sold={sold} blocked={blocked} affordable={affordable} cost={offer.cost} deal={offer.wasCost !== undefined} />
@@ -732,7 +740,7 @@ export default function ShopModal({
         {/* Your relics: tap one to see it or sell it */}
         <div className="shrink-0">
           {/* Legendary relics sit on the label line, so they never need a row of their own */}
-          <div className="mb-1 text-[12px] font-semibold text-white/55 truncate">
+          <div className="mb-1 text-[12px] font-semibold text-white/60 truncate">
             Your relics · {commonOwned.length}/{MAX_COMMON_RELICS}
             {legendaryOwned.length > 0 && (
               <span className="text-amber-200">
@@ -775,7 +783,7 @@ export default function ShopModal({
               <div className="text-[14px] font-semibold text-rose-50">{BOSS_RULE_REGISTRY[bossReroll.id].name}</div>
             </div>
             {bossReroll.done ? (
-              <span className="shrink-0 text-[12px] text-white/55">Rerolled ✓</span>
+              <span className="shrink-0 text-[12px] text-white/60">Rerolled ✓</span>
             ) : (
               <button
                 type="button"
@@ -949,12 +957,12 @@ export default function ShopModal({
                     <div className="min-w-0 space-y-0.5">
                       <div className="text-[14px] font-bold">{g.name}</div>
                       <p className="text-[14px] leading-snug text-white/80">{artify(g.what)}</p>
-                      <p className="text-[12px] leading-snug text-white/55">{artify(g.how)}</p>
+                      <p className="text-[12px] leading-snug text-white/60">{artify(g.how)}</p>
                     </div>
                   </div>
                 );
               })}
-              <div className="pt-1 text-[12px] font-semibold text-white/55">Also in the Shop</div>
+              <div className="pt-1 text-[12px] font-semibold text-white/60">Also in the Shop</div>
               {SHOP_GUIDE_MORE.map((m) => (
                 <p key={m.name} className="text-[14px] leading-snug text-white/75">
                   <b className="text-white/90">{m.name}:</b> {artify(m.text)}

@@ -419,7 +419,7 @@ export default function LineScoreShow({
             {fmt(value)}
           </motion.span>
         </div>
-        <span className="pb-[3px] text-[16px] leading-none text-white/35 font-black">×</span>
+        <span className="pb-[3px] text-[16px] leading-none text-white/60 font-black">×</span>
         <div className="flex flex-col items-center min-w-[36px]">
           <span className="text-[12px] font-semibold text-emerald-300/80">Length</span>
           <motion.span key={`l${pulse?.box === "length" ? pulse.key : 0}`} animate={pop("length")} className="text-[20px] font-display font-semibold tabular-nums leading-none text-emerald-100">
@@ -429,7 +429,7 @@ export default function LineScoreShow({
         {xMult !== 1 && (
           // A column like Value and Length: label on top, the number the same size and on the same line
           <>
-            <span className="pb-[3px] text-[16px] leading-none text-white/35 font-black">×</span>
+            <span className="pb-[3px] text-[16px] leading-none text-white/60 font-black">×</span>
             <div className="flex flex-col items-center min-w-[36px]">
               <span className="text-[12px] font-semibold text-fuchsia-300/80">Bonus</span>
               <motion.span
@@ -489,7 +489,7 @@ export default function LineScoreShow({
               {caption.text}
             </motion.span>
           ) : total === null ? (
-            <motion.span key="walk" className="text-white/45">
+            <motion.span key="walk" className="text-white/60">
               {tierName ? (
                 <span className="font-black" style={{ color: tierColor }}>
                   {tierName}!{" "}

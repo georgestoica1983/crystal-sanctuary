@@ -4232,12 +4232,12 @@ export default function OneStrokeTacticianPage() {
                   return (
                     <span aria-label={`Life ${live} of ${floorStartHero.maxHp}`}>
                       ❤️{" "}
-                      {live !== start && <span className="text-white/45">{start}</span>}
-                      {live !== start && <span className="text-white/45"> → </span>}
+                      {live !== start && <span className="text-white/60">{start}</span>}
+                      {live !== start && <span className="text-white/60"> → </span>}
                       <motion.b key={live} initial={{ scale: 1.35 }} animate={{ scale: 1 }} className={`inline-block ${tone}`}>
                         {live}
                       </motion.b>
-                      <span className="text-white/50">/{floorStartHero.maxHp}</span>
+                      <span className="text-white/60">/{floorStartHero.maxHp}</span>
                     </span>
                   );
                 })()}
@@ -4553,7 +4553,7 @@ export default function OneStrokeTacticianPage() {
                 <div className="text-[16px] font-bold text-amber-100">Skip this Small bed?</div>
                 <div className="text-[14px] leading-snug text-white/85">
                   You get <b className="text-amber-100"><SupplyIcon kind="tag" id={skipTag} size={22} className="mr-0.5 align-[-6px]" />{SKIP_TAGS[skipTag].name}</b>: {SKIP_TAGS[skipTag].text}.
-                  <span className="block text-white/55">
+                  <span className="block text-white/60">
                     You give up this bed&apos;s Seeds and Shop, Life doesn&apos;t come back, and the Big bed&apos;s target grows +
                     {Math.round((RUN_SKIP_TARGET_MULT - 1) * 100)}%.
                   </span>
@@ -4842,12 +4842,12 @@ export default function OneStrokeTacticianPage() {
                   <div className="text-[12px] font-semibold text-amber-200">How to score big</div>
                   <div className="mt-1 flex items-end justify-center gap-4 tabular-nums font-black">
                     <span className="flex flex-col items-center">
-                      <span className="text-[12px] font-sans font-semibold text-white/55">Short way</span>
+                      <span className="text-[12px] font-sans font-semibold text-white/60">Short way</span>
                       <span className="text-[20px] text-white/70">{demoScores?.short.toLocaleString()}</span>
                     </span>
-                    <span className="pb-1 text-[14px] text-white/40">vs</span>
+                    <span className="pb-1 text-[14px] text-white/60">vs</span>
                     <span className="flex flex-col items-center">
-                      <span className="text-[12px] font-sans font-semibold text-white/55">Long way</span>
+                      <span className="text-[12px] font-sans font-semibold text-white/60">Long way</span>
                       <span className="text-[32px] text-amber-200">{demoScores?.long.toLocaleString()}</span>
                     </span>
                   </div>
@@ -4952,7 +4952,7 @@ export default function OneStrokeTacticianPage() {
                 ) : pocketMayTalk && !usedOnce.packet && runPackets.length > 0 ? (
                   <span className="text-white/60">Tap a packet to use it</span>
                 ) : (
-                  <span className="text-white/40">
+                  <span className="text-white/60">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={miscArt("pocket")} alt="" aria-hidden="true" draggable={false} className="mr-1 inline-block h-5 w-5 align-[-5px] object-contain opacity-80" />
                     Your pocket
@@ -4983,7 +4983,7 @@ export default function OneStrokeTacticianPage() {
                 <img src={packetArt(runPackets[packetAsk])} alt="" aria-hidden="true" draggable={false} className="mx-auto h-20 w-20 object-contain" />
                 <div className="text-[20px] font-display font-semibold">{SEED_PACKETS[runPackets[packetAsk]].name}</div>
                 <p className="text-[14px] leading-snug text-white/80">{artify(SEED_PACKETS[runPackets[packetAsk]].text)}</p>
-                <p className="text-[12px] text-white/50">
+                <p className="text-[12px] text-white/60">
                   {SEED_PACKETS[runPackets[packetAsk]].nextLine ? "It waits for your next line." : "It works right away."} One use.
                 </p>
                 <button

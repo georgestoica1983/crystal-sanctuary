@@ -755,7 +755,7 @@ export function TopHUD({
         value: (
           <>
             {hero.hp}
-            <span className="text-[10px] font-bold text-white/40">/{hero.maxHp}</span>
+            <span className="text-[10px] font-bold text-white/60">/{hero.maxHp}</span>
           </>
         ),
         color: lowMagic ? "text-rose-300" : "text-white",
@@ -776,7 +776,7 @@ export function TopHUD({
     const menuTile =
       "h-[60px] w-full rounded-xl bg-white/[0.05] border border-white/[0.07] px-3 flex flex-col items-start justify-center gap-0.5 text-left text-[14px] font-semibold text-white/90 active:bg-white/[0.1] transition";
     const menuTileTop = "flex items-center gap-1.5 whitespace-nowrap";
-    const menuTileSub = "text-[12px] font-normal text-white/55";
+    const menuTileSub = "text-[12px] font-normal text-white/60";
     return artify(
       <div
         className={`w-full max-w-game mx-auto select-none ${
@@ -859,7 +859,7 @@ export function TopHUD({
           {showRelics && relicCounts.length > 0 && (
             <div className="absolute left-0 right-0 top-full mt-1 z-40 rounded-xl bg-[#203226] border border-white/[0.12] shadow-xl p-2 space-y-1.5 max-h-[calc(60dvh/var(--ui-zoom,1))] overflow-y-auto">
               <div className="flex items-center justify-between px-1">
-                <span className="text-[12px] font-semibold text-white/50">Your relics</span>
+                <span className="text-[12px] font-semibold text-white/60">Your relics</span>
                 <button
                   type="button"
                   onClick={() => setShowRelics(false)}
@@ -928,7 +928,7 @@ export function TopHUD({
                       aria-selected={menuTab === t}
                       onClick={() => setMenuTab(t)}
                       className={`flex-1 h-9 rounded-lg text-[14px] font-bold transition ${
-                        menuTab === t ? "bg-white/[0.12] text-white" : "text-white/55"
+                        menuTab === t ? "bg-white/[0.12] text-white" : "text-white/60"
                       }`}
                     >
                       {t === "PLAY" ? "Play" : "Settings"}
@@ -955,14 +955,14 @@ export function TopHUD({
                             )}
                           </span>
                           {next && (
-                            <span className="block truncate text-[12px] text-white/55">
+                            <span className="block truncate text-[12px] text-white/60">
                               Next: <UnlockIcon item={next} /> {next.name} · {next.needText}
                             </span>
                           )}
                         </span>
                         <span className="shrink-0 flex flex-col items-end leading-none" aria-label={`${totalStars} stars`}>
                           <span className="text-[16px] tabular-nums font-black text-amber-200"><Badge id="star" /> {totalStars}</span>
-                          <span className="mt-0.5 text-[10px] text-white/50">stars</span>
+                          <span className="mt-0.5 text-[10px] text-white/60">stars</span>
                         </span>
                       </div>
                     );
@@ -1053,7 +1053,7 @@ export function TopHUD({
                 <div className={`grid grid-cols-2 content-start gap-2 [&>*:last-child:nth-child(odd)]:col-span-2 ${menuTab === "SETTINGS" ? "" : "invisible"}`} aria-hidden={menuTab !== "SETTINGS"}>
                   <button type="button" className={menuTile} onClick={onToggleSound} aria-pressed={soundEnabled}>
                     <span className={menuTileTop}>
-                      {soundEnabled ? <Volume2 className="w-4 h-4 text-white/80" /> : <VolumeX className="w-4 h-4 text-white/50" />} Sound
+                      {soundEnabled ? <Volume2 className="w-4 h-4 text-white/80" /> : <VolumeX className="w-4 h-4 text-white/60" />} Sound
                     </span>
                     <span className={menuTileSub}>{soundEnabled ? "On" : "Off"}</span>
                   </button>
@@ -1367,7 +1367,7 @@ export function TopHUD({
                 value: (
                   <>
                     {hero.hp}
-                    <span className="text-[10px] font-bold text-white/55">/{hero.maxHp}</span>
+                    <span className="text-[10px] font-bold text-white/60">/{hero.maxHp}</span>
                   </>
                 ),
                 color: "text-white",
@@ -1834,7 +1834,8 @@ export function BottomControls({
       <div
         className={
           mode === "RUN"
-            ? `grid ${["grid-cols-2", "grid-cols-3", "grid-cols-4"][(swap ? 1 : 0) + (skip ? 1 : 0)]} gap-2 [&>button]:w-full [&>button]:min-w-0 [&>button]:flex [&>button]:items-center [&>button]:justify-center [&>button]:px-1 [&>button]:whitespace-nowrap ${
+            ? // Clear line is a small icon button; the actions that matter get the width
+              `grid ${["grid-cols-[3.5rem_1fr]", "grid-cols-[3.5rem_1fr_1fr]", "grid-cols-[3.5rem_1fr_1fr_1fr]"][(swap ? 1 : 0) + (skip ? 1 : 0)]} gap-2 [&>button]:w-full [&>button]:min-w-0 [&>button]:flex [&>button]:items-center [&>button]:justify-center [&>button]:px-1 [&>button]:whitespace-nowrap ${
                 // Four buttons: labels only, so each one stays on a single line
                 swap && skip ? "[&_svg]:hidden" : ""
               }`
@@ -1845,12 +1846,12 @@ export function BottomControls({
           type="button"
           disabled={isResolving}
           onClick={onResetFloorStroke}
+          aria-label="Clear line"
+          title="Clear line"
           className={mode === "RUN" ? "h-11 [@media(min-height:800px)]:h-14 rounded-2xl bg-white/[0.05] border border-white/[0.08] text-[14px] font-semibold text-white/85 active:scale-95 transition disabled:opacity-35" : "flex-1 h-10 px-2 rounded-xl whitespace-nowrap bg-[#17221B]/80 hover:bg-[#233328]/90 border border-indigo-500/40 text-[12px] tabular-nums font-bold text-indigo-200 hover:text-white shadow-[0_0_15px_rgba(99,102,241,0.15)] active:scale-95 transition disabled:opacity-40"}
         >
           {mode === "RUN" ? (
-            <span className="inline-flex items-center gap-1.5">
-              <Eraser className="w-4 h-4 text-white/60" /> Clear line
-            </span>
+            <Eraser className="!block w-5 h-5 text-white/75" aria-hidden="true" />
           ) : (
             "CLEAR LINE"
           )}

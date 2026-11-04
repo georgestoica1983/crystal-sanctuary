@@ -137,7 +137,7 @@ export default function LineMeter({
             );
           })}
         </span>
-        <span className="shrink-0 text-white/45 tabular-nums">
+        <span className="shrink-0 text-white/60 tabular-nums">
           {next ? `${next.minTiles - tiles} → ${next.name}` : "top tier"}
         </span>
       </span>
@@ -201,7 +201,7 @@ export default function LineMeter({
               {toGo !== undefined && toGo > 0 && !wilts && (
                 <span
                   className={`text-[12px] font-bold whitespace-nowrap ${
-                    clears ? "text-amber-200" : enough ? "text-lime-200" : "text-white/55"
+                    clears ? "text-amber-200" : enough ? "text-lime-200" : "text-white/60"
                   }`}
                 >
                   {fire >= 2 ? (fire === 5 ? "✓ Legendary bloom: 100× what's needed" : fire === 4 ? "✓ Mega bloom: 10× what's needed" : fire === 3 ? "✓ Wild bloom: 5× what's needed" : "✓ Double bloom: 2× what's needed") : clears ? "✓ Clears the bed" : enough ? "Enough! Head to the gate" : `${fmt(toGo - points)} to go`}
@@ -224,7 +224,7 @@ export default function LineMeter({
                 <span className="font-black text-emerald-300">+{fmt(gain)}</span>
               </motion.span>
             </AnimatePresence>
-            <span className="ml-auto shrink-0 whitespace-nowrap text-white/50">
+            <span className="ml-auto shrink-0 whitespace-nowrap text-white/60">
               <span className={magicCost > 0 ? "text-rose-200" : ""}>❤️{magicCost > 0 ? `−${magicCost}` : "±0"}</span>
               {" · "}
               {tiles - 1}/{tilesOnBoard}

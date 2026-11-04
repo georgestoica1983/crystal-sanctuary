@@ -106,7 +106,7 @@ export default function AscensionPicker({
         <div className="flex items-center justify-between">
           <div>
             <div className="text-[16px] font-bold">New Garden Run</div>
-            <div className="text-[12px] text-white/55">Pick a companion. Each one plays differently.</div>
+            <div className="text-[12px] text-white/60">Pick a companion. Each one plays differently.</div>
           </div>
         </div>
 
@@ -129,7 +129,7 @@ export default function AscensionPicker({
               spellCheck={false}
               className="w-full rounded-lg border border-white/15 bg-black/30 px-2.5 py-2 tabular-nums text-[16px] tracking-wider text-white placeholder:text-white/25 outline-none focus:border-teal-300/70"
             />
-            <div className="text-[12px] leading-snug text-white/55">
+            <div className="text-[12px] leading-snug text-white/60">
               {code
                 ? "Same beds, Shops and Bosses as theirs. Code gardens stay off the leaderboard."
                 : codeTyped
@@ -142,7 +142,7 @@ export default function AscensionPicker({
                 setCodeOpen(false);
                 setCodeText("");
               }}
-              className="text-[12px] font-semibold text-white/50 underline underline-offset-2"
+              className="text-[12px] font-semibold text-white/60 underline underline-offset-2"
             >
               Grow a fresh garden instead
             </button>
@@ -181,7 +181,7 @@ export default function AscensionPicker({
                   <EntityIcon type="HERO" companionId={id} size={30} />
                   <span className="min-w-0">
                     <span className="block text-[14px] font-bold leading-tight">{def.sanctuaryShortName ?? def.shortName}</span>
-                    <span className="block text-[10px] text-white/55 tabular-nums">{companionStartText(id)}</span>
+                    <span className="block text-[10px] text-white/60 tabular-nums">{companionStartText(id)}</span>
                   </span>
                 </span>
                 <span className="block mt-1 text-[12px] leading-snug text-white/70">{COMPANION_RULES[id]}</span>
@@ -232,7 +232,7 @@ export default function AscensionPicker({
                   ) : (
                     <Backpack className="h-8 w-8 p-1 text-white/75" aria-hidden="true" />
                   )}
-                  <span className={`text-[12px] font-semibold leading-none ${locked ? "text-white/45" : "text-white/85"}`}>{name}</span>
+                  <span className={`text-[12px] font-semibold leading-none ${locked ? "text-white/60" : "text-white/85"}`}>{name}</span>
                   {locked && (
                     <span className="absolute top-0.5 right-0.5">
                       <Badge id="lock" />
@@ -246,7 +246,7 @@ export default function AscensionPicker({
             {bagPeek ? (
               <>
                 <b className="text-white/85">{STARTING_BAGS[bagPeek].name}:</b> {STARTING_BAGS[bagPeek].text}{" "}
-                <span className="text-white/50">
+                <span className="text-white/60">
                   <Badge id="lock" /> {bagUnlockFor(bagPeek).needText}
                 </span>
               </>
@@ -263,7 +263,7 @@ export default function AscensionPicker({
         </div>
 
         {unlocked === 0 ? (
-          <div className="text-[12px] text-white/45"><Badge id="lock" /> Harder Ascension levels: clear the Season 3 Boss.</div>
+          <div className="text-[12px] text-white/60"><Badge id="lock" /> Harder Ascension levels: clear the Season 3 Boss.</div>
         ) : (
         <div className="space-y-1.5">
           <div className="text-[12px] font-semibold text-white/60">Difficulty · each level keeps the ones below it</div>

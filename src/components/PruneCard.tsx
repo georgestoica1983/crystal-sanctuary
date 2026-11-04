@@ -144,7 +144,7 @@ export default function PruneSheet({
 
         {screens > 1 && <Pager at={at} count={screens} onGo={(d) => setScreen(at + d)} />}
 
-        <p className="text-[14px] leading-snug text-white/55">Numbers are base values. Thorns and Spikes grow each Season.</p>
+        <p className="text-[14px] leading-snug text-white/60">Numbers are base values. Thorns and Spikes grow each Season.</p>
 
         <button
           type="button"
@@ -155,7 +155,7 @@ export default function PruneSheet({
             setPicked(null);
             onClose();
           }}
-          className="h-12 w-full rounded-xl bg-lime-300 text-slate-950 text-[16px] font-bold active:scale-95 transition disabled:bg-white/10 disabled:text-white/50"
+          className="h-12 w-full rounded-xl bg-lime-300 text-slate-950 text-[16px] font-bold active:scale-95 transition disabled:bg-white/10 disabled:text-white/60"
         >
           {blockedText ??
             (picked
