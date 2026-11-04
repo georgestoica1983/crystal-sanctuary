@@ -4210,7 +4210,7 @@ export default function OneStrokeTacticianPage() {
                   return (
                     <span aria-label={`Life ${live} of ${floorStartHero.maxHp}`}>
                       ❤️{" "}
-                      {live !== start && <span className="text-white/45 line-through">{start}</span>}
+                      {live !== start && <span className="text-white/45">{start}</span>}
                       {live !== start && <span className="text-white/45"> → </span>}
                       <motion.b key={live} initial={{ scale: 1.35 }} animate={{ scale: 1 }} className={`inline-block ${tone}`}>
                         {live}
@@ -4940,9 +4940,9 @@ lesson
                 ) : armedPacket ? (
                   <span className="text-lime-100">✓ {SEED_PACKETS[armedPacket].name} on your next line</span>
                 ) : !usedOnce.tool && runTools.length > 0 ? (
-                  <span className="text-amber-200/85">Tap a tool, then a tile</span>
+                  <span className="text-white/60">Tap a tool, then a tile</span>
                 ) : !usedOnce.packet && runPackets.length > 0 ? (
-                  <span className="text-fuchsia-200/85">Tap a packet to use it</span>
+                  <span className="text-white/60">Tap a packet to use it</span>
                 ) : (
                   <span className="text-white/40">
                     {/* eslint-disable-next-line @next/next/no-img-element */}

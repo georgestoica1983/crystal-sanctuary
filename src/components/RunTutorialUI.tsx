@@ -29,7 +29,7 @@ export function RunLessonGoal({ lesson, status }: { lesson: RunLesson; status: L
           : "border-white/[0.1] bg-white/[0.03] text-white/70"
       }`}
     >
-      <span className="font-semibold">🎯 {lesson.goalLabel}</span>
+      <span className="font-semibold">Goal: {lesson.goalLabel}</span>
       <span className="tabular-nums text-[12px] text-right">
         {status ? (status.ok ? "✓ let go!" : status.detail) : ""}
       </span>

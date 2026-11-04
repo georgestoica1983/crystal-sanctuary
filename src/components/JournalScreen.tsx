@@ -337,16 +337,16 @@ export default function JournalScreen({ open, onClose }: { open: boolean; onClos
               onClick={() => setPicked(picked?.id === e.id ? null : e)}
               aria-label={e.found ? e.name : `Not found yet: ${e.hint}`}
               className={`relative aspect-square rounded-xl border flex flex-col items-center justify-center gap-1 px-1 ${
-                picked?.id === e.id ? "border-amber-300 bg-amber-400/10" : e.found ? "border-white/10 bg-white/[0.05]" : "border-dashed border-white/10 bg-black/20"
+                picked?.id === e.id ? "border-amber-300 bg-amber-400/10" : e.found ? "border-white/10 bg-white/[0.05]" : "border-white/[0.06] bg-white/[0.025]"
               }`}
             >
-              <span style={e.found ? undefined : { filter: "brightness(0) opacity(0.35)" }} className="flex items-center justify-center">
+              <span style={e.found ? undefined : { filter: "brightness(0) invert(0.55) sepia(0.4) hue-rotate(50deg) opacity(0.55)" }} className="flex items-center justify-center">
                 {e.art}
               </span>
               {/* New since last visit: the same small dot as on the page chips, in the corner clear of the art */}
               {isNew(e) && <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-lime-300" aria-label="new" />}
-              <span className={`w-full line-clamp-2 text-center text-[10px] leading-tight ${e.found ? "text-white/75" : "text-white/30"}`}>
-                {e.found ? e.name : "?"}
+              <span className={`w-full line-clamp-2 text-center text-[10px] leading-tight ${e.found ? "text-white/75" : "text-white/45"}`}>
+                {e.found ? e.name : "Not yet"}
               </span>
             </motion.button>
           ))}

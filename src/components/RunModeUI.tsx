@@ -147,20 +147,22 @@ export function RunHudStrip({
           )}
         </div>
         <div
-          className="shrink-0 flex items-center gap-1"
+          className="shrink-0 flex items-center gap-[2px]"
           aria-label={`${garden.strokesLeft} ${garden.strokesLeft === 1 ? "line" : "lines"} left`}
           title="Lines left in this bed"
         >
           {Array.from({ length: strokesTotal }, (_, i) => (
             <span
               key={i}
-              className={`w-2.5 h-2.5 rounded-full ${i < strokesUsed ? "bg-white/15" : "bg-teal-300"}`}
+              className={`w-2 h-2 rounded-full ${i < strokesUsed ? "bg-white/15" : "bg-teal-300"}`}
             />
           ))}
           <span className="ml-0.5 text-[14px] text-white/70">
             <span className="tabular-nums font-black text-white/85">{garden.strokesLeft}</span>
-            {/* The dots say it on a phone; the word joins where there's room */}
-            <span className="hidden min-[480px]:inline"> {garden.strokesLeft === 1 ? "line" : "lines"}</span>
+            {/* "3 left" on a phone; "3 lines left" where there's room */}
+            <span className="text-[12px]">
+              <span className="hidden min-[480px]:inline"> {garden.strokesLeft === 1 ? "line" : "lines"}</span> left
+            </span>
           </span>
         </div>
       </div>

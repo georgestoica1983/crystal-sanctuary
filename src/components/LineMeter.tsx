@@ -108,11 +108,11 @@ export default function LineMeter({
   // A line that spends most of your Life leaves little for the next lines
   const costly = !wilts && magicCost >= 3 && magicCost * 2 > magicNow;
   if (drawing && wilts && wiltReason) {
-    bottom = <span className="text-rose-200 font-semibold">⚠ {wiltReason}</span>;
+    bottom = <span className="text-rose-200 font-semibold">⛔ {wiltReason}</span>;
   } else if (drawing && costly) {
     bottom = (
       <span className="text-amber-200 font-semibold">
-        ⚠ Uses {magicCost} of {magicNow} ❤️ · little left for later lines
+        Uses {magicCost} of {magicNow} ❤️ · little left for later lines
       </span>
     );
   } else if (drawing && showShortLineTip) {
