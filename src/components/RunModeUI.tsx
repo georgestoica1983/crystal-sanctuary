@@ -37,6 +37,7 @@ import { artify } from "@/components/ArtText";
 import { formatScore } from "@/lib/formatScore";
 import { FEEDBACK_URL, markFeedbackAsked, shouldAskFeedback, track } from "@/lib/analytics";
 import UnlockIcon from "@/components/UnlockIcon";
+import { FULL_BLOOM_SEEDS } from "@/lib/runReplay";
 
 const fmt = formatScore;
 
@@ -336,6 +337,10 @@ export interface RunClearInfo {
   target: number;
   strokesLeft: number;
   clearReward: number;
+  /** Rules v26+: Seeds for a full bloom (1.5× the target) */
+  fullBloomBonus?: number;
+  /** Rules v26+: the score a full bloom needed */
+  fullBloomAt?: number;
   strokeBonus: number;
   interest: number;
   /** Interest cap with relics (Squirrel's Stash raises it) */
@@ -672,6 +677,9 @@ export function RunGardenClearModal({
   const stars = getRunBedStars(info.score, info.target, info.strokesLeft);
   const lines = [
     { label: `${getRunGardenKindLabel(kind)} cleared`, value: info.clearReward },
+    ...(info.fullBloomBonus
+      ? [{ label: <span className="text-lime-200">🌸 Full bloom (1.5× the target)</span>, value: info.fullBloomBonus }]
+      : []),
     {
       label: (
         <>
@@ -777,6 +785,21 @@ export function RunGardenClearModal({
             </div>
           </div>
         )}
+
+        {/* Rules v26: a full bloom (1.5× the target) pays more; a miss says what it needed */}
+        {info.fullBloomBonus ? (
+          <motion.div
+            initial={{ scale: 0.7, opacity: 0 }}
+            animate={{ scale: [0.7, 1.12, 1], opacity: 1, transition: { delay: 0.45, duration: 0.45 } }}
+            className="text-center text-[15px] font-bold text-lime-200"
+          >
+            🌸 Full bloom! +{info.fullBloomBonus} 🌱
+          </motion.div>
+        ) : info.fullBloomAt ? (
+          <div className="text-center text-[12.5px] text-white/55">
+            Full bloom at {fmt(info.fullBloomAt)} pays +{FULL_BLOOM_SEEDS} 🌱 more
+          </div>
+        ) : null}
 
         {/* Where the Seeds came from, for anyone who wants it */}
         <details className="group rounded-xl border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-[12px] text-white/70">

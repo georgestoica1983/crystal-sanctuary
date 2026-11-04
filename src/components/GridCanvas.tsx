@@ -786,6 +786,23 @@ export default function GridCanvas({
                   </div>
                 );
               }
+              // Rules v26: bare ground a line left behind (no line can cross it this bed)
+              if (cell.type === "VOID" && cell.bare) {
+                return (
+                  <div
+                    key={cell.id}
+                    data-row={r}
+                    data-col={c}
+                    aria-label="Bare ground: nothing grows here this bed"
+                    className="relative rounded-xl pointer-events-none overflow-hidden border border-[#5a4026]/50 shadow-[inset_0_2px_10px_rgba(0,0,0,0.65)]"
+                    style={{ background: "radial-gradient(circle at 35% 30%, #4a3420 0%, #2f2014 55%, #20150d 100%)" }}
+                  >
+                    <span aria-hidden="true" className="absolute left-[22%] top-[30%] h-[9%] w-[9%] rounded-full bg-[#6b4e30]/70" />
+                    <span aria-hidden="true" className="absolute left-[58%] top-[55%] h-[7%] w-[7%] rounded-full bg-[#6b4e30]/60" />
+                    <span aria-hidden="true" className="absolute left-[40%] top-[70%] h-[6%] w-[6%] rounded-full bg-[#7a5a38]/50" />
+                  </div>
+                );
+              }
               if (cell.type === "VOID") {
                 return (
                   <div

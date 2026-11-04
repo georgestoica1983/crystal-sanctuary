@@ -31,6 +31,7 @@ import {
 } from "@/lib/engine";
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import { RELIC_SET_SIZE, RELIC_SET_X } from "@/lib/relicTags";
+import { bedTargetPreview, RUN_LOG_VERSION } from "@/lib/runReplay";
 import RelicIcon from "@/components/RelicIcon";
 import { artify } from "@/components/ArtText";
 
@@ -275,7 +276,9 @@ function buildPages(): GuidePage[] {
               <>Each Season: <B>Small</B>, <B>Big</B> and <B>Boss</B> garden.</>,
               <>Targets rise every Season, and Thorns get stronger.</>,
               <>Boss gardens have a twist. Beat one for a Legendary relic. Its icon shows on the Season dots ahead of time (tap it). Don't like it? The Shop can reroll it once per Season for 6 🌱.</>,
-              <>From Season 4 the targets climb faster every Season. Only a build that multiplies keeps up.</>,
+              <>From Season 2 the targets climb every Season, and each new Season adds 2 Thorns and a Spike to your bag. Only a build that multiplies keeps up.</>,
+              <>🌸 Clear a bed with 1.5× its target for a full bloom: +3 🌱. A bare clear pays a little less.</>,
+              <>🪨 From Season 4, about a third of the tiles a line uses stay bare for the rest of the bed, so plan your first line.</>,
               <>Clearing a Garden Bed pays 🌱 Seeds: {RUN_CLEAR_REWARD.SMALL}/{RUN_CLEAR_REWARD.BIG}/{RUN_CLEAR_REWARD.BOSS}, +1 per unused line, +1 per {RUN_INTEREST_STEP} 🌱 you&apos;ve saved (max +{RUN_INTEREST_MAX}).</>,
               <>In the Shop: buy relics and boosts, or reroll ({RUN_REROLL_BASE_COST} 🌱). You can hold {MAX_COMMON_RELICS} relics.</>,
               <>🌱 Fertilizer levels up one tile type for the whole Run: every one of those tiles on a line adds more Value. It stacks.</>,
@@ -297,9 +300,9 @@ function buildPages(): GuidePage[] {
             {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
               <div key={n} className="grid grid-cols-4 odd:bg-white/[0.03] text-white/80">
                 <span className="px-2 py-0.5">{n}</span>
-                <span className="px-2 py-0.5">{fmt(scaleRunTarget(getRunGardenTarget(n, "SMALL"), runLateTargetMult(n, true, true)))}</span>
-                <span className="px-2 py-0.5">{fmt(scaleRunTarget(getRunGardenTarget(n, "BIG"), runLateTargetMult(n, true, true)))}</span>
-                <span className="px-2 py-0.5">{fmt(scaleRunTarget(getRunGardenTarget(n, "BOSS"), runLateTargetMult(n, true, true)))}</span>
+                <span className="px-2 py-0.5">{fmt(bedTargetPreview(n, "SMALL", RUN_LOG_VERSION))}</span>
+                <span className="px-2 py-0.5">{fmt(bedTargetPreview(n, "BIG", RUN_LOG_VERSION))}</span>
+                <span className="px-2 py-0.5">{fmt(bedTargetPreview(n, "BOSS", RUN_LOG_VERSION))}</span>
               </div>
             ))}
           </div>

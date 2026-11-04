@@ -274,6 +274,8 @@ export interface GridCell {
   value: number;
   label?: string;
   bagTile?: SeedTile; // Run mode: the Seed Bag tile before any boss twist
+  /** Rules v26+: bare ground left by a line (from Season 4); no line can cross it this bed */
+  bare?: boolean;
   /** The Drought (rules v20): these Berries still score but give no Life back */
   dry?: boolean;
   /** Thick Brambles (rules v20): extra Life this Thorn costs (its points stay the same) */

@@ -62,6 +62,10 @@ import {
   STARTING_BAGS,
   shopMomentFor,
   applyRunShopReroll,
+  bedTargetPreview,
+  growWilderBag,
+  fullBloomTarget,
+  FULL_BLOOM_SEEDS,
 } from "@/lib/runReplay";
 import { verifyRunSubmission } from "@/lib/server/runLeaderboard";
 import { completedRelicSets, RELIC_SET_X } from "@/lib/relicTags";
@@ -1348,6 +1352,56 @@ refused("malformed action", submit({ ...clone(), a: [{ k: "s", p: [99] }] }));
     if (!replay.ok || replay.score !== bot.expected) replays = false;
   }
   check(`v25 bot Runs replay (most offers seen in a Shop: ${maxOffers})`, replays && maxOffers <= 4);
+}
+
+// Rules v26: harder Seasons
+{
+  const t = (season: number, kind: "SMALL" | "BIG" | "BOSS", v: number) => bedTargetPreview(season, kind, v);
+  check("v26 Season 1 targets match v25", (["SMALL", "BIG", "BOSS"] as const).every((k) => t(1, k, 26) === t(1, k, 25)));
+  check(
+    `v26 climbs from Season 2 (S2 Small ${t(2, "SMALL", 25)} → ${t(2, "SMALL", 26)}, S3 Boss ${t(3, "BOSS", 25)} → ${t(3, "BOSS", 26)})`,
+    [2, 3, 4, 5, 6, 7, 8].every((n) => t(n, "SMALL", 26) > t(n, "SMALL", 25) && t(n, "BOSS", 26) > t(n, "BOSS", 25))
+  );
+  const grown = growWilderBag(generateRunSeedBag("wild"), "wild", 2);
+  check("a new Season adds 2 Thorns and a Spike to the bag", grown.length === generateRunSeedBag("wild").length + 3);
+  // Full bloom: 1.5× the target pays 3 more; a bare clear 1 less (v26 only)
+  const garden = createRunReplayer("bloom-pay", "KNIGHT", 26).state.garden;
+  const pay = (score: number, v: number) =>
+    getRunBloomResult({ garden: { ...garden, score }, stats: { hp: 10, maxHp: 10, shield: 0, weapon: 0, gold: 0 }, runSeed: "bloom-pay", relics: [], logVersion: v }).payout;
+  const bare = pay(garden.target, 26);
+  const full = pay(fullBloomTarget(garden.target), 26);
+  const old = pay(garden.target, 25);
+  check(`full bloom pays +${FULL_BLOOM_SEEDS} (bare ${bare.total}, full ${full.total}, v25 ${old.total})`, full.total === bare.total + FULL_BLOOM_SEEDS && bare.total === old.total - 1);
+  // Whole v26 Runs: the bag grows each Season, bare ground appears from Season 4, and replays agree
+  let bagGrew = false;
+  let bareSeen = 0;
+  let replays = true;
+  let deepest = 0;
+  for (let n = 1; n <= 8; n++) {
+    const bot = playBotRun(`hard-run-${n}`, "KNIGHT", 13, 0, true, 26);
+    const r = createRunReplayer(`hard-run-${n}`, "KNIGHT", 26);
+    const startBag = r.state.bag.length;
+    for (const a of bot.log.a) {
+      r.apply(a);
+      if (r.state.phase === "PLAY") bareSeen += r.state.grid.flat().filter((c) => c.bare).length > 0 ? 1 : 0;
+    }
+    if (r.state.garden.gardenIndex >= 3 && r.state.bag.length >= startBag + 3 - 1) bagGrew = true;
+    deepest = Math.max(deepest, bot.state.gardensBloomed);
+    const replay = replayRun(JSON.parse(JSON.stringify(bot.log)));
+    if (!replay.ok || replay.score !== bot.expected) replays = false;
+  }
+  check("the bag grows wilder in a v26 Run", bagGrew);
+  check(`bare ground shows from Season 4 (deepest bot Run: ${deepest} beds, ${bareSeen} boards with bare ground)`, deepest < 9 || bareSeen > 0);
+  check("v26 bot Runs replay", replays);
+  check("no bare ground under v25", (() => {
+    const bot = playBotRun("hard-run-1", "KNIGHT", 13, 0, true, 25);
+    const r = createRunReplayer("hard-run-1", "KNIGHT", 25);
+    for (const a of bot.log.a) {
+      r.apply(a);
+      if (r.state.grid.flat().some((c) => c.bare)) return false;
+    }
+    return true;
+  })());
 }
 
 // Daily Garden: today's seed, the Keeper, Ascension 0, and nothing after the Season 3 Boss

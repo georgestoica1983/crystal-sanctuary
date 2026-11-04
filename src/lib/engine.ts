@@ -3627,11 +3627,18 @@ export const RUN_GENTLE_SEASON1_TARGETS: Record<RunGardenKind, number> = {
 };
 
 /** A Garden Bed's target; `gentleStart` (rules v11+, the default) eases Season 1 */
-export function getRunGardenTarget(season: number, kind: RunGardenKind, gentleStart = true): number {
+/** Rules v26+: Big and Boss beds climb further above the Small bed */
+export const RUN_GARDEN_TARGET_MULT_V26: Record<RunGardenKind, number> = {
+  SMALL: 1,
+  BIG: 1.6,
+  BOSS: 2.3,
+};
+
+export function getRunGardenTarget(season: number, kind: RunGardenKind, gentleStart = true, steeperBeds = false): number {
   if (gentleStart && Math.floor(season) <= 1) return RUN_GENTLE_SEASON1_TARGETS[kind];
   const base = getRunSeasonBaseTarget(season);
   if (kind === "SMALL") return base;
-  const raw = base * RUN_GARDEN_TARGET_MULT[kind];
+  const raw = base * (steeperBeds ? RUN_GARDEN_TARGET_MULT_V26 : RUN_GARDEN_TARGET_MULT)[kind];
   const step = raw >= 100000 ? 2500 : 50;
   return Math.round(raw / step) * step;
 }
@@ -3709,7 +3716,18 @@ export const RUN_LATE_TARGET_SEASON = 4;
  */
 export const RUN_STEEP_TARGET_STEP = 0.25;
 export const RUN_STEEP_ENDLESS_GROWTH = 1.3;
-export const runLateTargetMult = (season: number, lateTargets: boolean, steep = false) => {
+/**
+ * Rules v26: the climb starts in Season 2 (Season 1 stays gentle) and grows
+ * this much each Season up to the last listed one; Endless grows as in v23
+ */
+export const RUN_EARLY_CLIMB_STEP = 0.3;
+export const runLateTargetMult = (season: number, lateTargets: boolean, steep = false, earlyClimb = false) => {
+  if (earlyClimb) {
+    const s = Math.floor(season);
+    if (s <= 1) return 1;
+    const climb = 1 + RUN_EARLY_CLIMB_STEP * (Math.min(s, RUN_FINAL_SEASON) - 1);
+    return climb * Math.pow(RUN_STEEP_ENDLESS_GROWTH, Math.max(0, s - RUN_FINAL_SEASON));
+  }
   if (!lateTargets || season < RUN_LATE_TARGET_SEASON) return 1;
   if (!steep) return RUN_LATE_TARGET_MULT;
   const s = Math.floor(season);
@@ -3734,8 +3752,13 @@ export function getRunClearPayout(params: {
   interestBase?: number;
   /** Garden upgrades (rules v18+): a higher interest cap */
   interestBonus?: number;
+  /** Rules v26+: a bare clear pays this much less… */
+  rewardCut?: number;
+  /** …and a full bloom (1.5× the target) pays this much more */
+  fullBloomBonus?: number;
 }): {
   clearReward: number;
+  fullBloomBonus: number;
   strokeBonus: number;
   interest: number;
   interestCap: number;
@@ -3744,7 +3767,8 @@ export function getRunClearPayout(params: {
   total: number;
 } {
   const relics = params.relics ?? [];
-  const clearReward = RUN_CLEAR_REWARD[params.kind];
+  const clearReward = Math.max(0, RUN_CLEAR_REWARD[params.kind] - (params.rewardCut ?? 0));
+  const fullBloomBonus = params.fullBloomBonus ?? 0;
   const strokeBonus = Math.max(0, params.strokesLeft) * (relics.includes("SUN_HAT") ? 2 : 1);
   const cap =
     params.interestBase !== undefined
@@ -3755,12 +3779,13 @@ export function getRunClearPayout(params: {
   const relicBonus = relics.includes("SEED_PURSE") ? 2 : 0;
   return {
     clearReward,
+    fullBloomBonus,
     strokeBonus,
     interest,
     interestCap: capWithBonus,
     relicBonus,
     welcomeBonus: params.welcomeBonus ?? 0,
-    total: clearReward + strokeBonus + interest + relicBonus + (params.welcomeBonus ?? 0),
+    total: clearReward + fullBloomBonus + strokeBonus + interest + relicBonus + (params.welcomeBonus ?? 0),
   };
 }
 
@@ -4010,6 +4035,8 @@ export function createRunGarden(params: {
   steepTargets?: boolean;
   /** Rules v23+: this Season's Boss was rerolled in the Shop */
   bossRerolled?: boolean;
+  /** Rules v26+: the climb from Season 2 and steeper Big and Boss beds */
+  earlyClimb?: boolean;
   /** Rules v11+: gentler Season 1 targets */
   gentleStart?: boolean;
   /** Ascension (rules v8+): harder targets, stronger Thorns, fewer Swaps / Boss lines */
@@ -4063,8 +4090,8 @@ export function createRunGarden(params: {
         season,
         kind,
         target: scaleRunTarget(
-          getRunGardenTarget(season, kind, params.gentleStart ?? false),
-          (params.targetMult ?? 1) * runLateTargetMult(season, Boolean(params.lateTargets), params.steepTargets)
+          getRunGardenTarget(season, kind, params.gentleStart ?? false, params.earlyClimb),
+          (params.targetMult ?? 1) * runLateTargetMult(season, Boolean(params.lateTargets), params.steepTargets, params.earlyClimb)
         ),
         score: 0,
         strokesLeft: kind === "BOSS" && params.bossLines ? params.bossLines : RUN_STROKES_PER_GARDEN,

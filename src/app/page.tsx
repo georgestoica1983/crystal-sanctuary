@@ -174,6 +174,13 @@ import {
   runRulesUseSteepTargets,
   runRulesUseBossReroll,
   shopMomentFor,
+  bedTargetPreview,
+  refillAfterLine,
+  growWilderBag,
+  runRulesUseHarderSeasons,
+  isFullBloom,
+  fullBloomTarget,
+  FULL_BLOOM_SEEDS,
   comingBossSeason,
   BOSS_REROLL_COST,
   finishShopOffers,
@@ -347,6 +354,8 @@ function relicPayoff(b: FloorScoreBreakdown, relicCount: number): number | null 
 const GOAL_CARD_HIDE_AFTER = 3;
 const RUN_ONLY_NOTICE = "The Sanctuary is in Run mode for now. Gauntlet, past Dailies and the Crafter are resting.";
 
+/** The first bare ground of rules v26 gets one notice */
+const BARE_NOTICE_KEY = "ost_bare_ground_seen_v1";
 /** First use of a garden tool / Seed packet (their rows say how until then) */
 const TOOL_USED_KEY = "ost_tool_used_v1";
 const PACKET_USED_KEY = "ost_packet_used_v1";
@@ -1255,6 +1264,17 @@ export default function OneStrokeTacticianPage() {
     }, ms);
     resolutionTimersRef.current.push(id);
   }, []);
+  /** A notice shown once per device (a new rule meeting the player for the first time) */
+  const noticeOnce = (key: string, msg: string) => {
+    try {
+      if (window.localStorage.getItem(key)) return;
+      window.localStorage.setItem(key, "1");
+    } catch {
+      return;
+    }
+    // After the line's refill settles, so a reset doesn't clear it
+    window.setTimeout(() => handleNotice(msg), 400);
+  };
 
   const resetRunWithDungeon = useCallback(
     (
@@ -2097,13 +2117,20 @@ export default function OneStrokeTacticianPage() {
     if (mode === "RUN" && runGarden) {
       // Lay out the next garden of the run from a fresh shuffle of the bag
       const nextIndex = runGarden.gardenIndex + 1;
+      // Rules v26: a new Season's Thorns and Spike join the bag (as in the replay)
+      const wilder = runRulesUseHarderSeasons(runLogRef.current?.v ?? RUN_LOG_VERSION) && nextIndex % 3 === 0;
+      const bagNext = wilder ? growWilderBag(runBag, dungeon.seedKey, Math.floor(nextIndex / 3) + 1) : runBag;
+      if (wilder) {
+        setRunBag(bagNext);
+        window.setTimeout(() => handleNotice("🌿 A new Season: the garden grows wilder. 2 Thorns and a Spike joined your bag."), 900);
+      }
       const next = createNextRunGarden({
         stats: baseStats,
         classId: nextClassId,
         relics: activeRelics,
         upgrades: runUpgrades,
         runSeed: dungeon.seedKey,
-        bag: runBag,
+        bag: bagNext,
         gardenIndex: nextIndex,
         // A resumed older Run keeps its own rules (it replays on the server)
         logVersion: runLogRef.current?.v,
@@ -2524,7 +2551,20 @@ export default function OneStrokeTacticianPage() {
         endRunMode("MISSED_TARGET", scored, history, afterStroke);
       } else {
         // Refill the tiles this stroke used; the Companion restarts at home
-        const refill = refillRunGarden(strokeGrid, path, scored, dungeon.seedKey);
+        // The same refill as the replay (rules v26: some tiles stay bare from Season 4)
+        const refill = refillAfterLine({
+          grid: strokeGrid,
+          path,
+          garden: scored,
+          runSeed: dungeon.seedKey,
+          logVersion: runLogRef.current?.v ?? RUN_LOG_VERSION,
+          hero: afterStroke,
+          classId: heroClassId,
+          relics: activeRelics,
+        });
+        if (refill.grid.some((row) => row.some((c) => c.bare)) && !strokeGrid.some((row) => row.some((c) => c.bare))) {
+          noticeOnce(BARE_NOTICE_KEY, "🪨 Some tiles stayed bare. From Season 4, about a third of the tiles a line uses don't regrow this bed.");
+        }
         if (practiceStep === "intro" || practiceStep === "draw") {
           setPracticeStep("regrow");
           setPracticeCollapsed(false);
@@ -2687,6 +2727,7 @@ export default function OneStrokeTacticianPage() {
       target: garden.target,
       strokesLeft: garden.strokesLeft,
       ...payout,
+      fullBloomAt: runRulesUseHarderSeasons(runLogRef.current?.v ?? RUN_LOG_VERSION) ? fullBloomTarget(garden.target) : undefined,
       gemsBefore: stats.gold,
       legendary,
       relicsAfter,
@@ -2735,10 +2776,7 @@ export default function OneStrokeTacticianPage() {
       ? null
       : {
           label: `${nextPos.season > garden.season ? `Season ${nextPos.season} · ` : ""}${shortBedName(nextPos.kind)}`,
-          target: scaleRunTarget(
-            getRunGardenTarget(nextPos.season, nextPos.kind, runRulesUseGentleStart(v)),
-            runLateTargetMult(nextPos.season, runRulesUseLateTargets(v), runRulesUseSteepTargets(v))
-          ),
+          target: bedTargetPreview(nextPos.season, nextPos.kind, v),
           boss: nextBoss,
         };
     return { seasonBestStars, newBestStars: saved.improved, unlocked, deepestSeason, nextUnlock, nextBed };
@@ -3081,6 +3119,7 @@ export default function OneStrokeTacticianPage() {
           target: b.garden.target,
           strokesLeft: b.garden.strokesLeft,
           ...b.payout,
+          fullBloomAt: runRulesUseHarderSeasons(r.log.v) ? fullBloomTarget(b.garden.target) : undefined,
           gemsBefore: b.afterStroke.gold,
           legendary: b.legendary,
           relicsAfter: b.relicsAfter,
@@ -5146,10 +5185,7 @@ lesson
             ? (() => {
                 const next = getRunGardenPosition(currentFloorIndex + 1);
                 const v = runLogRef.current?.v ?? RUN_LOG_VERSION;
-                return `Season ${next.season} · ${shortBedName(next.kind)} · target ${scaleRunTarget(
-                  getRunGardenTarget(next.season, next.kind, runRulesUseGentleStart(v)),
-                  runLateTargetMult(next.season, runRulesUseLateTargets(v), runRulesUseSteepTargets(v))
-                ).toLocaleString()}`;
+                return `Season ${next.season} · ${shortBedName(next.kind)} · target ${bedTargetPreview(next.season, next.kind, v).toLocaleString()}`;
               })()
             : dungeon.floors[currentFloorIndex + 1]
             ? isSanctuary

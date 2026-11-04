@@ -40,6 +40,10 @@ import {
   NO_RUN_UPGRADES,
   pickLegendaryRelic,
   refillRunGarden,
+  scaleRunTarget,
+  getRunGardenTarget,
+  runLateTargetMult,
+  RUN_STROKES_PER_GARDEN,
   RELIC_REGISTRY,
   RUN_WEEDOUT_MAX_TILES,
   simulatePath,
@@ -190,6 +194,7 @@ export function startRunGarden(
     bossV20: runRulesUseV20Bosses(logVersion),
     weather: runRulesUseWeather(logVersion),
     lateTargets: runRulesUseLateTargets(logVersion),
+    earlyClimb: runRulesUseHarderSeasons(logVersion),
     ...ascensionGardenParams(rules),
   });
   return { bag, hero, ...first };
@@ -266,6 +271,10 @@ export function getRunBloomResult(params: {
     welcomeBonus: runWelcomeBonusFor(params.logVersion ?? RUN_LOG_VERSION, garden.gardenIndex, params.asc),
     interestBase: ascensionRules(runAscensionFor(params.logVersion ?? RUN_LOG_VERSION, params.asc)).interestBase,
     interestBonus: upgradeInterestBonus(params.gardenUpgrades ?? []),
+    // Rules v26: a bare clear pays 1 less, a full bloom 3 more
+    ...(runRulesUseHarderSeasons(params.logVersion ?? RUN_LOG_VERSION)
+      ? { rewardCut: 1, fullBloomBonus: isFullBloom(garden) ? FULL_BLOOM_SEEDS : 0 }
+      : {}),
   });
   // Scaling relics owned while the garden bloomed grow
   const countersAfter = growRelicCountersOnBloom(params.counters ?? {}, relics, garden);
@@ -507,6 +516,77 @@ export const runRulesUseRareShops = (logVersion: number) => logVersion >= 20;
 export const runRulesUseLateTargets = (logVersion: number) => logVersion >= 20;
 /** v23: the late climb keeps steepening each Season (runLateTargetMult) */
 export const runRulesUseSteepTargets = (logVersion: number) => logVersion >= 23;
+/**
+ * v26: harder Seasons. The target climb starts in Season 2 with steeper Big
+ * and Boss beds; each new Season adds Thorns and a Spike to the bag; a bed
+ * cleared at 1.5× its target (full bloom) pays more and a bare clear less;
+ * and from Season 4 some tiles a line uses stay bare for the rest of the bed.
+ */
+export const runRulesUseHarderSeasons = (logVersion: number) => logVersion >= 26;
+export const FULL_BLOOM_MULT = 1.5;
+export const FULL_BLOOM_SEEDS = 3;
+export const fullBloomTarget = (target: number) => Math.round(target * FULL_BLOOM_MULT);
+export const isFullBloom = (garden: { score: number; target: number }) => garden.score >= fullBloomTarget(garden.target);
+
+/** Tiles a new Season adds to the bag (rules v26+) */
+export const WILDER_BAG: Array<{ type: "ENEMY" | "TRAP"; count: number; min: number; max: number }> = [
+  { type: "ENEMY", count: 2, min: 3, max: 6 },
+  { type: "TRAP", count: 1, min: 2, max: 4 },
+];
+/** The garden grows wilder: a new Season's tiles join the bag (seeded) */
+export function growWilderBag(bag: SeedTile[], runSeed: string, season: number): SeedTile[] {
+  const rng = mulberry32(hashStringToSeed(`wild-${runSeed}-s${season}`));
+  const added: SeedTile[] = [];
+  for (const w of WILDER_BAG)
+    for (let i = 0; i < w.count; i++) added.push({ type: w.type, value: w.min + Math.floor(rng() * (w.max - w.min + 1)) });
+  return [...bag, ...added];
+}
+
+/** A coming bed's target under a Run's rules (before Ascension), for previews */
+export function bedTargetPreview(season: number, kind: RunGardenState["kind"], logVersion: number): number {
+  return scaleRunTarget(
+    getRunGardenTarget(season, kind, runRulesUseGentleStart(logVersion), runRulesUseHarderSeasons(logVersion)),
+    runLateTargetMult(season, runRulesUseLateTargets(logVersion), runRulesUseSteepTargets(logVersion), runRulesUseHarderSeasons(logVersion))
+  );
+}
+
+/** From this Season some used tiles stay bare (rules v26+) */
+export const BARE_GROUND_SEASON = 4;
+export const BARE_GROUND_CHANCE = 1 / 3;
+/**
+ * Refills the tiles a line used. Rules v26+, from Season 4: about one in three
+ * of them stays bare ground for the rest of the bed, unless that would leave
+ * no safe line (then they all regrow).
+ */
+export function refillAfterLine(params: {
+  grid: GridCell[][];
+  path: GridCoord[];
+  garden: RunGardenState;
+  runSeed: string;
+  logVersion: number;
+  hero: HeroStats;
+  classId: HeroClassId;
+  relics: RelicId[];
+}): { grid: GridCell[][]; state: RunGardenState } {
+  const { grid, path, garden, runSeed } = params;
+  const refill = refillRunGarden(grid, path, garden, runSeed);
+  if (!runRulesUseHarderSeasons(params.logVersion) || garden.season < BARE_GROUND_SEASON) return refill;
+  const strokeNo = (garden.strokesTotal ?? RUN_STROKES_PER_GARDEN) - garden.strokesLeft;
+  const rng = mulberry32(hashStringToSeed(`bare-${runSeed}-g${garden.gardenIndex}-l${strokeNo}`));
+  const picked = path.filter((c) => {
+    const t = grid[c.row]?.[c.col]?.type;
+    return t !== "HERO" && t !== "EXIT" && rng() < BARE_GROUND_CHANCE;
+  });
+  if (picked.length === 0) return refill;
+  const bared = refill.grid.map((row) => row.map((cell) => cell));
+  for (const c of picked) {
+    const cell = bared[c.row][c.col];
+    bared[c.row][c.col] = { id: `${cell.id}-bare`, row: c.row, col: c.col, type: "VOID", value: 0, bare: true };
+  }
+  if (!hasSurvivableRunLine(bared, params.hero, runModifierFor(params.logVersion), params.classId, params.relics)) return refill;
+  return { grid: bared, state: refill.state };
+}
+
 /** v23: the Shop can reroll the coming Boss, once per Season */
 export const runRulesUseBossReroll = (logVersion: number) => logVersion >= 23;
 export const BOSS_REROLL_COST = 6;
@@ -907,6 +987,7 @@ export function createNextRunGarden(params: {
     weather: runRulesUseWeather(v),
     lateTargets: runRulesUseLateTargets(v),
     steepTargets: runRulesUseSteepTargets(v),
+    earlyClimb: runRulesUseHarderSeasons(v),
     bossRerolled: Boolean(params.bossRerolls?.includes(getRunGardenPosition(params.gardenIndex).season)),
     ...ascensionGardenParams(rules),
   });
@@ -1047,9 +1128,13 @@ export function getRunPathError(
  *      Shop moments from Season 2 (a Sale, a free reroll, two for one).
  * v25: a Shop shows 4 offers at most (at least one relic), drawn from the
  *      Season's full Shop, so it fits one screen.
+ * v26: harder Seasons: the climb starts in Season 2, Big and Boss beds are
+ *      steeper (×1.6, ×2.3), each Season adds 2 Thorns and a Spike to the bag,
+ *      a full bloom (1.5× the target) pays +3 Seeds and a bare clear 1 less,
+ *      and from Season 4 a third of a line's tiles stay bare for the bed.
  * Older logs still replay with their own rules.
  */
-export const RUN_LOG_VERSION = 25;
+export const RUN_LOG_VERSION = 26;
 export const RUN_LOG_MIN_VERSION = 2;
 /** Rule set of new Runs (the current version) */
 export const RUN_MODIFIER: ModifierId = runModifierFor(RUN_LOG_VERSION);
@@ -1383,7 +1468,16 @@ export function createRunReplayer(
         s.garden = scored;
         s.phase = "OVER";
       } else {
-        const refill = refillRunGarden(s.grid, path, scored, runSeed);
+        const refill = refillAfterLine({
+          grid: s.grid,
+          path,
+          garden: scored,
+          runSeed,
+          logVersion,
+          hero: afterStroke,
+          classId: s.classId,
+          relics: s.relics,
+        });
         s.grid = refill.grid;
         s.garden = refill.state;
         s.startHero = afterStroke;
@@ -1580,6 +1674,10 @@ export function createRunReplayer(
     // A Companion only changes when a free trial garden ends (back to the Keeper)
     if (action.h !== s.classId && action.h !== "KNIGHT") return "Companion changed mid-run";
     s.classId = action.h;
+    // Rules v26: a new Season's Thorns and Spike join the bag
+    if (runRulesUseHarderSeasons(logVersion) && (s.garden.gardenIndex + 1) % 3 === 0) {
+      s.bag = growWilderBag(s.bag, runSeed, Math.floor((s.garden.gardenIndex + 1) / 3) + 1);
+    }
     const next = createNextRunGarden({
       stats: s.shop.stats,
       classId: s.classId,
