@@ -146,27 +146,31 @@ export default function LineMeter({
 
   return artify(
     <div
-      className={`relative w-full max-w-game min-w-0 h-[78px] rounded-xl border px-3 py-1.5 flex flex-col transition-colors ${
+      className={`relative w-full max-w-game min-w-0 h-[78px] rounded-xl border px-3 py-1.5 flex flex-col overflow-hidden transition-colors ${
         drawing || intro ? "justify-center border-white/[0.07] bg-white/[0.04]" : "justify-end border-transparent bg-transparent"
       }`}
       aria-live="polite"
     >
       {!drawing && intro ? (
-        <div className="flex items-center gap-2.5">
+        // The button sits beside the heading so the text gets the full width;
+        // if a text is still too tall for the card it scrolls inside, never spills out
+        <div className="flex items-start gap-2.5 min-h-0 max-h-full">
           <div className="w-9 h-9 shrink-0 flex items-center justify-center">{intro.icon}</div>
-          <div className="min-w-0 flex-1 text-[14px] leading-snug text-white/85">
-            <span className="text-[12px] font-semibold text-teal-200/80 block">
-              {intro.label ?? "New tile"}{intro.total > 1 ? ` · ${intro.total - 1} more` : ""}
-            </span>
+          <div className="min-w-0 min-h-0 max-h-full flex-1 overflow-y-auto text-[14px] leading-snug text-white/85">
+            <div className="flex items-center justify-between gap-2">
+              <span className="min-w-0 truncate text-[12px] font-semibold text-teal-200/80">
+                {intro.label ?? "New tile"}{intro.total > 1 ? ` · ${intro.total - 1} more` : ""}
+              </span>
+              <button
+                type="button"
+                onClick={intro.onNext}
+                className="h-6 shrink-0 px-3 rounded-md bg-teal-300 text-slate-950 text-[12px] font-bold active:scale-95 relative after:absolute after:-inset-2 after:content-['']"
+              >
+                {intro.total > 1 ? "Next" : "Got it"}
+              </button>
+            </div>
             <b className="text-white">{intro.name}</b> {intro.text}
           </div>
-          <button
-            type="button"
-            onClick={intro.onNext}
-            className="h-9 shrink-0 px-3 rounded-lg bg-teal-300 text-slate-950 text-[12px] font-bold active:scale-95"
-          >
-            {intro.total > 1 ? "Next" : "Got it"}
-          </button>
         </div>
       ) : !drawing ? (
         <div className="text-[14px] leading-snug text-white/70 text-center">
