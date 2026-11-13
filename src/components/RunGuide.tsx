@@ -32,7 +32,7 @@ import {
 import { getRelicDisplay } from "@/lib/sanctuaryCopy";
 import { RELIC_SET_SIZE, RELIC_SET_X } from "@/lib/relicTags";
 import { BOSS_REROLL_COST, bedTargetPreview, RUN_LOG_VERSION } from "@/lib/runReplay";
-import { bagArt, shopMomentArt, tagArt, toolArt, upgradeArt } from "@/lib/art";
+import { badgeArt, bagArt, shopMomentArt, tagArt, toolArt, upgradeArt } from "@/lib/art";
 
 /** A small picture at the start of a guide line, sized like the text */
 function GuideArt({ src }: { src: string }) {
@@ -291,7 +291,7 @@ function buildPages(): GuidePage[] {
               <>In the Shop: buy relics and boosts, or reroll ({RUN_REROLL_BASE_COST} 🌱). You can hold {MAX_COMMON_RELICS} relics.</>,
               <>🌱 Fertilizer levels up one tile type for the whole Run: every one of those tiles on a line adds more Value. It stacks.</>,
               <><GuideArt src={toolArt("SUNLIT")} /> Garden tools (hold 2): tap one under the board, then a tile. The upgrade stays on that tile in your bag for the whole Run (Dew dries after 3 lines). <GuideArt src={toolArt("ECHO")} /> Echo makes a tile score twice and can join another upgrade.</>,
-              <>✦ Shimmering tiles are special: Golden +30 Value, Iridescent +2 Length, Radiant ×1.25 on any line through them. Your bag starts with one; the Shop sometimes sells more.</>,
+              <><GuideArt src={badgeArt("golden")} /> Shimmering tiles are special: 💛 Golden +30 Value, 🔮 Iridescent +2 Length, 💠 Radiant ×1.25 on any line through them. The badge in a tile&apos;s corner shows which. Your bag starts with one; the Shop sometimes sells more.</>,
               <><GuideArt src={tagArt("RELIC")} /> Before your first line on a Small bed you can skip it for a Tag. You lose its Seeds and Shop, and the Big bed after it gets 50% harder.</>,
               <><GuideArt src={shopMomentArt("SALE")} /> From Season 2 a Shop is sometimes rare: a Sale, a free reroll, or a relic for free.</>,
               <><GuideArt src={bagArt("ACORN")} /> Earn starting bags by playing (Thorny, Acorn, Berry, Lean) and pick one on the New Run sheet. Each changes the tiles you grow.</>,

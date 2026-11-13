@@ -995,10 +995,12 @@ export default function GridCanvas({
                     >
                       {/* What it adds, so a special tile never reads as the Exit or YOU */}
                       <span
-                        className="tile-tag absolute top-0.5 left-0.5 rounded-full bg-black/55 px-1 text-[10px] font-black leading-[14px] whitespace-nowrap"
+                        className="tile-tag absolute top-0.5 left-0.5 flex items-center gap-px rounded-full bg-black/60 pl-0.5 pr-1 text-[10px] font-black leading-[14px] tabular-nums whitespace-nowrap"
                         aria-hidden="true"
                       >
-                        ✦ {EDITION_LOOK[cell.bagTile.ed].short}
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={badgeArt(EDITION_LOOK[cell.bagTile.ed].badge)} alt="" draggable={false} className="h-[12px] w-[12px] object-contain" />
+                        <span className={EDITION_LOOK[cell.bagTile.ed].tone}>{EDITION_LOOK[cell.bagTile.ed].amount}</span>
                       </span>
                     </span>
                   )}
@@ -1839,10 +1841,12 @@ function calmPlateClass(t: {
  */
 /** Board tile glyph: themed icon with its number in a small badge */
 /** Special tiles (rules v14+): a shimmer that says what they add */
-const EDITION_LOOK: Record<string, { label: string; tag: string; short: string }> = {
-  GOLDEN: { label: "Golden", tag: "+30 Value", short: "+30" },
-  IRIDESCENT: { label: "Iridescent", tag: "+2 Length", short: "+2 Len" },
-  RADIANT: { label: "Radiant", tag: "×1.25", short: "×1.25" },
+// On the tile: the painted badge, then the amount in the colour the meter uses for it
+// (Value blue, Length green, multipliers pink), so no word is needed
+const EDITION_LOOK: Record<string, { label: string; tag: string; badge: "golden" | "iridescent" | "radiant"; amount: string; tone: string }> = {
+  GOLDEN: { label: "Golden", tag: "+30 Value", badge: "golden", amount: "+30", tone: "text-sky-300" },
+  IRIDESCENT: { label: "Iridescent", tag: "+2 Length", badge: "iridescent", amount: "+2", tone: "text-emerald-300" },
+  RADIANT: { label: "Radiant", tag: "×1.25", badge: "radiant", amount: "×1.25", tone: "text-fuchsia-300" },
 };
 
 /** The garden board is a lawn: tile objects sit in grass (set by GridCanvas) */
