@@ -110,18 +110,26 @@ export interface LessonResultInfo {
   isLast: boolean;
   /** Seedling Season level just played (1-based) */
   level: number;
+  /** The first part of a two-part level is done (the short way): on to the long way */
+  warmup?: boolean;
+  /** Both of the player's lines, side by side */
+  compare?: { short: number; long: number };
 }
 
 export function RunLessonResult({
   info,
   onNext,
   onRetry,
+  onContinue,
 }: {
   info: LessonResultInfo | null;
   onNext: () => void;
   onRetry: () => void;
+  /** After the first part of a two-part level */
+  onContinue: () => void;
 }) {
   if (!info) return null;
+  const times = info.compare && info.compare.short > 0 ? Math.round(info.compare.long / info.compare.short) : null;
   return artify(
     <div className="ui-zoom fixed inset-0 z-50 bg-black/70 backdrop-blur-[2px] flex items-end sm:items-center justify-center p-3">
       <motion.div
@@ -133,7 +141,9 @@ export function RunLessonResult({
             : "border-amber-300/70 bg-gradient-to-b from-[#2A1F0E] to-[#140F0A]"
         }`}
       >
-        {info.ok ? (
+        {info.warmup ? (
+          <div className="text-xl font-black">That&apos;s the short way</div>
+        ) : info.ok ? (
           <div className="flex items-center gap-2.5">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={miscArt("level-cleared")} alt="" aria-hidden="true" draggable={false} className="h-12 w-12 shrink-0 object-contain" />
@@ -142,8 +152,33 @@ export function RunLessonResult({
         ) : (
           <div className="text-xl font-black">Not quite</div>
         )}
+        {info.compare && (
+          // Your two lines on the same board, side by side
+          <div className="grid grid-cols-2 gap-2 text-center">
+            <div className="rounded-xl bg-white/[0.05] px-2 py-2">
+              <div className="text-[12px] font-semibold text-white/60">Your short way</div>
+              <div className="text-[20px] font-bold tabular-nums text-white/70">{info.compare.short.toLocaleString()}</div>
+            </div>
+            <div className="rounded-xl bg-amber-300/10 border border-amber-300/30 px-2 py-2">
+              <div className="text-[12px] font-semibold text-amber-100/80">Your long way</div>
+              <div className="text-[26px] font-bold tabular-nums text-amber-200 leading-tight">{info.compare.long.toLocaleString()}</div>
+            </div>
+            {times !== null && times > 1 && (
+              <div className="col-span-2 text-[14px] font-bold text-amber-100">{times}× the points, on the same board</div>
+            )}
+          </div>
+        )}
         <p className="text-[14px] leading-snug text-white/90">{info.text}</p>
-        {info.ok ? (
+        {info.warmup ? (
+          <button
+            type="button"
+            onClick={onContinue}
+            className="w-full py-2.5 rounded-xl bg-emerald-300 text-slate-950 text-xs font-black flex items-center justify-center gap-1.5"
+          >
+            Now the long way
+            <ArrowRight className="w-4 h-4 shrink-0" />
+          </button>
+        ) : info.ok ? (
           <div className="grid grid-cols-[1fr_2fr] gap-2">
             <button
               type="button"

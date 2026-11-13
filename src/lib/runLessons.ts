@@ -47,6 +47,15 @@ export interface RunLesson {
   success: string;
   /** Shown when the line reached the Exit but missed the goal */
   failHint: string;
+  /** A first part drawn before the main goal (the short way, so the long way has something to beat) */
+  warmup?: {
+    step: string;
+    goalLabel: string;
+    solution: GridCoord[];
+    checkGoal: RunLesson["checkGoal"];
+    /** Shown after the first part */
+    done: (points: number, tiles: number) => string;
+  };
 }
 
 const TOKENS: Record<string, EntityType> = {
@@ -121,25 +130,40 @@ export const RUN_LESSONS: RunLesson[] = [
     title: "Longer = more points",
     icon: "📏",
     learn: "",
-    steps: ["Take the long way round."],
-    goalLabel: "Score 200 or more",
+    steps: ["Now the long way: round the top to the 🌈 Exit."],
+    goalLabel: "Score 150 or more",
     hero: hero(10),
     grid: board("L3", [
       "G2 G2 G2 G2 G2",
       "G2 . . . G2",
-      "H A G2 G2 G2",
+      "H G2 A G2 G2",
       ". . . . .",
       ". . . . .",
     ]),
     solution: path(
-      [2, 0], [1, 0], [0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [1, 4], [2, 4], [2, 3], [2, 2], [2, 1]
+      [2, 0], [1, 0], [0, 0], [0, 1], [0, 2], [0, 3], [0, 4], [1, 4], [2, 4], [2, 3], [2, 2]
     ),
-    checkGoal: (sim, b) => ({
-      ok: reached(sim) && b.total >= 200,
-      detail: `${b.total.toLocaleString()} points (need 200)`,
-    }),
-    success: "The short way scores 0. The long way scores 240. Longer lines multiply your points.",
-    failHint: "Go around every Acorn before the Exit.",
+    checkGoal: (sim, b) => {
+      const total = reached(sim) ? b.total : 0;
+      return { ok: total >= 150, detail: `${total.toLocaleString()} points (need 150)` };
+    },
+    success: "Every tile adds Value and grows Length, and the two multiply. That's why long lines win.",
+    failHint: "Go round the top, through the Acorns, then to the Exit.",
+    // First the player draws the short way, so the long way has something to beat
+    warmup: {
+      step: "First the short way: go straight to the 🌈 Exit.",
+      goalLabel: "Reach the Exit in 3 tiles",
+      solution: path([2, 0], [2, 1], [2, 2]),
+      checkGoal: (sim) => {
+        const short = sim.steps.length <= 3;
+        return {
+          ok: reached(sim) && short,
+          detail: !sim.endsOnExit ? "Go straight to the 🌈 Exit" : short ? "Short way ✓" : "Too long for now: go straight",
+        };
+      },
+      done: (points, tiles) =>
+        `${tiles} tiles, ${points.toLocaleString()} points. Now draw the long way round on the same board and compare.`,
+    },
   },
   {
     id: "thorn-trade",

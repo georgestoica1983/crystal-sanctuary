@@ -489,6 +489,8 @@ export default function OneStrokeTacticianPage() {
   // Hands-on lessons, the guided Practice Garden, and the welcome / Help menu
   const [lessonIndex, setLessonIndex] = useState<number | null>(null);
   const [lessonResult, setLessonResult] = useState<LessonResultInfo | null>(null);
+  // A lesson with a first part (the short way): its score once drawn, null before
+  const [lessonShortScore, setLessonShortScore] = useState<number | null>(null);
   const [showLessonGhost, setShowLessonGhost] = useState<boolean>(false);
   // "How to score big" demo on the Longer = more points lesson: short way, long way, then a card
   const [lessonDemo, setLessonDemo] = useState<"short" | "long" | "card" | null>(null);
@@ -896,6 +898,18 @@ export default function OneStrokeTacticianPage() {
   const activeTutorialStage = TUTORIAL_STAGES[tutorialStageIndex] ?? TUTORIAL_STAGES[0];
   // A hands-on Run lesson replaces the board, stats and relics while it's open
   const lesson = lessonIndex !== null ? RUN_LESSONS[lessonIndex] ?? null : null;
+  // What the lesson asks right now: its first part (the short way) until that's drawn
+  const lessonWarmup = lesson?.warmup && lessonShortScore === null ? lesson.warmup : null;
+  const lessonView: RunLesson | null =
+    lesson && lessonWarmup
+      ? {
+          ...lesson,
+          steps: [lessonWarmup.step],
+          goalLabel: lessonWarmup.goalLabel,
+          solution: lessonWarmup.solution,
+          checkGoal: lessonWarmup.checkGoal,
+        }
+      : lesson;
   // "Before you begin": Back works like Start
   useBackClose(showGoalCard && Boolean(runGarden) && !lesson, () => setShowGoalCard(false));
   const activeGrid = lesson
@@ -1659,9 +1673,10 @@ export default function OneStrokeTacticianPage() {
     const at = (ms: number, fn: () => void) => demoTimersRef.current.push(window.setTimeout(fn, ms));
     const start = l.solution[0];
     const exit = findEntityCoord(l.grid, "EXIT");
+    const shortWay = l.warmup?.solution ?? (exit ? [start, exit] : [start]);
     setLessonDemo("short");
     at(400, () => setDrawnPath([start]));
-    if (exit) at(900, () => setDrawnPath([start, exit]));
+    shortWay.slice(1).forEach((_, i) => at(900 + i * 420, () => setDrawnPath(shortWay.slice(0, i + 2))));
     at(2700, () => {
       setLessonDemo("long");
       setDrawnPath([start]);
@@ -1678,9 +1693,11 @@ export default function OneStrokeTacticianPage() {
     track(how === "skip" ? "demo_skip" : "demo_done");
   };
 
-  const startLesson = (index: number, autoDemo = true) => {
+  /** keepShort: back to the long way, keeping the short way already drawn */
+  const startLesson = (index: number, autoDemo = true, keepShort = false) => {
     const next = RUN_LESSONS[index];
     if (!next) return;
+    if (!keepShort) setLessonShortScore(null);
     stopLessonDemo();
     setLessonDemo(null);
     clearResolutionTimers();
@@ -1702,7 +1719,8 @@ export default function OneStrokeTacticianPage() {
     setActiveResolutionStep(null);
     setRetractNotice(null);
     setPhase("PLANNING");
-    if (autoDemo && next.id === DEMO_LESSON_ID) {
+    // (a lesson the player draws in two parts doesn't need the demo first)
+    if (autoDemo && next.id === DEMO_LESSON_ID && !next.warmup) {
       track("demo_start");
       playLessonDemo(next);
     }
@@ -1726,7 +1744,8 @@ export default function OneStrokeTacticianPage() {
       const sim = simulatePath(l.grid, path, l.hero, runModifierFor(RUN_LOG_VERSION), "KNIGHT", []);
       return calculateFloorScoreBreakdown(sim, l.hero, path.length, []).total;
     };
-    return { short: exit ? score([l.solution[0], exit]) : 0, long: score(l.solution) };
+    const shortWay = l.warmup?.solution ?? (exit ? [l.solution[0], exit] : null);
+    return { short: shortWay ? score(shortWay) : 0, long: score(l.solution) };
   }, []);
 
   useEffect(() => {
@@ -2588,11 +2607,24 @@ export default function OneStrokeTacticianPage() {
     sim: ReturnType<typeof simulatePath>,
     path: GridCoord[]
   ) => {
-    if (!lesson || lessonIndex === null) return;
+    if (!lesson || !lessonView || lessonIndex === null) return;
     const breakdown = calculateFloorScoreBreakdown(sim, lesson.hero, path.length, []);
-    const status = lesson.checkGoal(sim, breakdown, lesson.hero);
+    const status = lessonView.checkGoal(sim, breakdown, lesson.hero);
     setActiveResolutionStep(null);
     setPhase("FLOOR_CLEARED");
+    // The first part (the short way) done: keep its score, then on to the long way
+    if (lessonWarmup && status.ok) {
+      setLessonShortScore(breakdown.total);
+      setLessonResult({
+        ok: true,
+        warmup: true,
+        text: lessonWarmup.done(breakdown.total, path.length),
+        scoreLine: "",
+        isLast: false,
+        level: lessonIndex + 1,
+      });
+      return;
+    }
     if (status.ok) {
       soundEngine.playFloorClear();
       const reached = Math.max(lessonsProgress, lessonIndex + 1);
@@ -2605,7 +2637,11 @@ export default function OneStrokeTacticianPage() {
     }
     setLessonResult({
       ok: status.ok,
-      text: status.ok ? lesson.success : `${lesson.failHint} (${status.detail})`,
+      text: status.ok ? lesson.success : `${lessonWarmup ? "Go straight to the Exit this time." : lesson.failHint} (${status.detail})`,
+      compare:
+        status.ok && lesson.warmup && lessonShortScore !== null
+          ? { short: lessonShortScore, long: breakdown.total }
+          : undefined,
       scoreLine: `${breakdown.chips} Value × ${breakdown.mult} Length = ${breakdown.total.toLocaleString()} · Life ${lesson.hero.hp} → ${sim.finalStats.hp}`,
       isLast: lessonIndex === RUN_LESSONS.length - 1,
       level: lessonIndex + 1,
@@ -4166,7 +4202,7 @@ export default function OneStrokeTacticianPage() {
         runCard={
           lesson && lessonIndex !== null ? (
             // A lesson sits where a Run shows its bed, so the board keeps its size
-            <RunLessonCoach lesson={lesson} index={lessonIndex} total={SEEDLING_LEVELS} />
+            <RunLessonCoach lesson={lessonView ?? lesson} index={lessonIndex} total={SEEDLING_LEVELS} />
           ) : mode === "RUN" && !isInteractiveTutorial && !lesson && runGarden && !(phase === "DEFEAT" && runOver === null) ? (
             <div className="relative">
             <RunHudStrip
@@ -4207,10 +4243,10 @@ export default function OneStrokeTacticianPage() {
             <>
               <div className="relative min-h-0 flex-1">{meterInner}</div>
               <RunLessonGoal
-                lesson={lesson}
+                lesson={lessonView ?? lesson}
                 status={
                   drawnPath.length >= 2 && !lessonDemo
-                    ? lesson.checkGoal(
+                    ? (lessonView ?? lesson).checkGoal(
                         simulation,
                         calculateFloorScoreBreakdown(simulation, lesson.hero, drawnPath.length, []),
                         lesson.hero
@@ -4665,7 +4701,7 @@ export default function OneStrokeTacticianPage() {
               ghostGuidePath={
                 lesson
                   ? showLessonGhost || lessonIndex === 0
-                    ? lesson.solution
+                    ? (lessonView ?? lesson).solution
                     : undefined
                   : isInteractiveTutorial
                   ? activeTutorialStage.ghostGuidePath
@@ -4896,7 +4932,7 @@ export default function OneStrokeTacticianPage() {
               }}
               className="text-[12px] font-semibold text-amber-200/90 underline underline-offset-2"
             >
-              ▶ Watch the 10-second demo again
+              ▶ Watch a 10-second demo
             </button>
           )}
 
@@ -5298,7 +5334,9 @@ export default function OneStrokeTacticianPage() {
 
       <RunLessonResult
         info={lessonResult}
-        onRetry={() => lessonIndex !== null && startLesson(lessonIndex, false)}
+        // A missed long way keeps the short way already drawn
+        onRetry={() => lessonIndex !== null && startLesson(lessonIndex, false, !lessonResult?.ok && lessonShortScore !== null)}
+        onContinue={() => lessonIndex !== null && startLesson(lessonIndex, false, true)}
         onNext={() => {
           if (lessonIndex === null) return;
           if (lessonIndex >= RUN_LESSONS.length - 1) {
