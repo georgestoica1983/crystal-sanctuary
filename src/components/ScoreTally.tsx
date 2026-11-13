@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { BossRuleId, FloorScoreBreakdown, FloorStarBreakdown, RelicId, ScoreSource } from "@/types/game";
 import { BOSS_RULE_REGISTRY, RELIC_REGISTRY } from "@/lib/engine";
 import { soundEngine } from "@/lib/audio";
-import { themeArt, tileArt } from "@/lib/art";
+import { tagArt, themeArt, tileArt } from "@/lib/art";
 import Badge from "@/components/Badge";
 import RelicIcon from "@/components/RelicIcon";
 import { artify } from "@/components/ArtText";
@@ -340,8 +340,12 @@ export default function ScoreTally({
         </div>
 
         {payoffOn && relicBonus != null && stage >= 4 && (
-          <div className="rounded-xl border border-violet-300/40 bg-violet-500/10 px-3 py-2 text-center text-[16px] text-violet-100">
-            ✨ Your relics and boosts added <b className="text-white">+{fmt(relicBonus)}</b> to this line
+          <div className="flex items-center justify-center gap-2 rounded-xl border border-amber-300/30 bg-amber-300/[0.08] px-3 py-2 text-[16px] text-amber-50">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={tagArt("relic")} alt="" aria-hidden="true" draggable={false} className="h-6 w-6 shrink-0 object-contain" />
+            <span>
+              Your relics and boosts added <b className="text-white">+{fmt(relicBonus)}</b> to this line
+            </span>
           </div>
         )}
 

@@ -2,7 +2,7 @@
 
 import { useBackClose } from "@/lib/backClose";
 import { DoneButton } from "@/components/SheetBits";
-import { ArrowRight, BookOpen, Eye, GraduationCap } from "lucide-react";
+import { ArrowRight, BookOpen, Eye, GraduationCap, Play } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { LessonGoalStatus, PRACTICE_GARDEN_GEMS, PRACTICE_GARDEN_TARGET, RUN_LESSONS, RunLesson } from "@/lib/runLessons";
@@ -410,7 +410,9 @@ export function RunHelpMenu({
             onClick={onResumeLessons}
             className={`${option} border-amber-300/70 bg-amber-400/10`}
           >
-            <div className="text-sm font-black">▶ Continue lessons ({lessonsProgress + 1}/{totalLessons})</div>
+            <div className="flex items-center gap-1.5 text-sm font-black">
+              <Play className="w-4 h-4 shrink-0" aria-hidden="true" /> Continue lessons · Level {lessonsProgress + 1} of {SEEDLING_LEVELS}
+            </div>
             <div className="text-[12px] text-amber-100/80">Pick up where you left off.</div>
           </button>
         )}

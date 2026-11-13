@@ -495,7 +495,15 @@ function SeasonMap({
                   : "border-white/15"
               }`}
             >
-              {i <= done ? "✓" : k === "BOSS" ? <Badge id="crown" /> : "🌼"}
+              {i <= done ? (
+                "✓"
+              ) : k === "BOSS" ? (
+                <Badge id="crown" />
+              ) : (
+                // The painted bloom: a bud for the Small bed, a fuller flower for the Big one
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={dailyArt(k === "SMALL" ? 1 : 2)} alt="" aria-hidden="true" draggable={false} className="h-[18px] w-[18px] object-contain" />
+              )}
             </span>
             {k === "SMALL" ? "Small" : k === "BIG" ? "Big" : "Boss"}
             {bestStars && (

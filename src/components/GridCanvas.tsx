@@ -1092,7 +1092,7 @@ export default function GridCanvas({
                     <motion.span
                       initial={{ opacity: 0, x: "-50%", y: 6, scale: 0.8 }}
                       animate={{ opacity: 1, x: "-50%", y: 0, scale: 1 }}
-                      className="tile-tag absolute bottom-0.5 left-1/2 whitespace-nowrap rounded-full bg-amber-200 px-1.5 py-0.5 text-[10px] font-black text-slate-950 shadow-[0_0_14px_rgba(251,191,36,0.8)] pointer-events-none z-40"
+                      className="tile-tag absolute bottom-0.5 left-1/2 whitespace-nowrap rounded-full bg-amber-200 px-1.5 py-0.5 text-[10px] font-black text-slate-950 pointer-events-none z-40"
                     >
                       ✓ Bloom
                     </motion.span>
@@ -1112,7 +1112,7 @@ export default function GridCanvas({
 
                   {hintStepNum !== undefined && !stepSim && !isHeroCell && (
                     <span className="absolute top-1 left-1 bg-amber-400 text-slate-950 tabular-nums font-black text-[10px] px-1 py-0.5 rounded shadow leading-none pointer-events-none z-20">
-                      💡{hintCoords.length > 1 ? hintStepNum : ""}
+                      {artify(<>💡{hintCoords.length > 1 ? hintStepNum : ""}</>)}
                     </span>
                   )}
 
@@ -1121,7 +1121,7 @@ export default function GridCanvas({
                       className={`tile-tag absolute top-1 right-1 whitespace-nowrap text-[10px] tabular-nums font-bold px-1.5 py-0.5 rounded leading-none pointer-events-none z-20 ${
                         isFirstDeathCell
                           ? isSanctuary
-                            ? "bg-amber-300 text-slate-950 font-black shadow-[0_0_8px_#FDE047]"
+                            ? "bg-amber-300 text-slate-950 font-black"
                             : "bg-[#F43F5E] text-white shadow-[0_0_8px_#F43F5E]"
                           : crossSim
                           ? "bg-emerald-400 text-slate-950 font-black shadow-[0_0_10px_rgba(16,185,129,0.85)]"
@@ -1132,7 +1132,7 @@ export default function GridCanvas({
                           : isExitCell
                           ? "bg-purple-500 text-white shadow"
                           : isEnemyNeutralized
-                          ? "bg-emerald-300 text-slate-950 font-black shadow-[0_0_10px_rgba(52,211,153,0.85)]"
+                          ? "bg-emerald-300 text-slate-950 font-black"
                           : "bg-[#0D140F]/90 border border-[#CFEA8F]/40 text-cyan-200"
                       }`}
                     >
@@ -1142,7 +1142,7 @@ export default function GridCanvas({
                         ? `✦#${stepSim.stepIndex}`
                         : isEnemyNeutralized
                         ? isSanctuary
-                          ? "🌸"
+                          ? "✓"
                           : `✓ #${stepSim.stepIndex}`
                         : `#${stepSim.stepIndex}`}
                     </span>
@@ -1153,11 +1153,10 @@ export default function GridCanvas({
                     <motion.span
                       initial={{ scale: 0.5, y: 4, opacity: 0 }}
                       animate={{ scale: 1, y: 0, opacity: 1 }}
-                      className="tile-tag absolute -top-2 left-1 whitespace-nowrap bg-gradient-to-r from-amber-300 via-yellow-400 to-amber-500 text-slate-950 tabular-nums font-black text-[10px] px-1.5 py-0.5 rounded-full border border-white/70 shadow-[0_0_12px_rgba(250,204,21,0.95)] leading-none pointer-events-none z-30"
+                      className="tile-tag absolute -top-2 left-1 whitespace-nowrap bg-amber-300 text-slate-950 tabular-nums font-black text-[10px] px-1.5 py-0.5 rounded-full leading-none pointer-events-none z-30"
                     >
-                      {isSanctuary
-                        ? artify(<>🌰<span className="tile-tag-long"> ACORN</span> x{stepSim.goldComboCount}</>)
-                        : `COMBO x${stepSim.goldComboCount}`}
+                      {/* An Acorn streak: the Acorn and how many in a row */}
+                      {isSanctuary ? artify(<>🌰 ×{stepSim.goldComboCount}</>) : `Combo ×${stepSim.goldComboCount}`}
                     </motion.span>
                   )}
 
@@ -1652,14 +1651,14 @@ function StepFloatingBadge({
       return artify(
         <span
           aria-label={`Needs ${needed} more Life`}
-          className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-amber-300 text-slate-950 border border-white/60 shadow-[0_0_12px_rgba(251,191,36,0.95)] tracking-tight whitespace-nowrap"
+          className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-amber-300 text-slate-950 whitespace-nowrap"
         >
           ❤️ +{needed}
         </span>
       );
     }
     return artify(
-      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-[#F43F5E] text-white border border-white/40 shadow-[0_0_12px_rgba(244,63,94,0.95)] tracking-tighter uppercase whitespace-nowrap">
+      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-[#F43F5E] text-whiteer uppercase whitespace-nowrap">
         ❤️ {step.hpDelta}
       </span>
     );
@@ -1667,24 +1666,24 @@ function StepFloatingBadge({
 
   if (step.shatteredShield) {
     return artify(
-      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-bold bg-[#CFEA8F] text-slate-950 shadow-[0_0_10px_rgba(207,234,143,0.8)] whitespace-nowrap">
-        {isSanctuary ? <>🧤 0<span className="tile-tag-long"> GLOVES</span></> : "❄️ 0 SHD"}
+      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-bold bg-[#CFEA8F] text-slate-950 whitespace-nowrap">
+        {isSanctuary ? "🧤 0" : "0 SHD"}
       </span>
     );
   }
 
   if (step.trapDodgedDiagonally) {
     return artify(
-      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-bold bg-emerald-300 text-slate-950 shadow-[0_0_10px_rgba(52,211,153,0.85)] whitespace-nowrap">
-        {isSanctuary ? <>🌸<span className="tile-tag-long"> HOPPED!</span></> : "⚡ DODGED"}
+      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-bold bg-emerald-300 text-slate-950 whitespace-nowrap">
+        {isSanctuary ? "Free ↗" : "Dodged"}
       </span>
     );
   }
 
   if (step.spikedBootsTriggered) {
     return artify(
-      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-amber-400 text-slate-950 shadow-[0_0_10px_rgba(245,158,11,0.9)] whitespace-nowrap">
-        🥾 +{step.weaponDelta} {isSanctuary ? "✂️" : "WPN"}
+      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-amber-400 text-slate-950 whitespace-nowrap">
+        +{step.weaponDelta} {isSanctuary ? "✂️" : "WPN"}
       </span>
     );
   }
@@ -1694,24 +1693,24 @@ function StepFloatingBadge({
     if (isSanctuary) {
       return artify(
         <span
-          className={`tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold shadow-md whitespace-nowrap ${
+          className={`tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold whitespace-nowrap ${
             dmg < 0
-              ? "bg-rose-400 text-slate-950 border border-white/40 shadow-[0_0_10px_rgba(251,113,133,0.75)]"
-              : "bg-emerald-300 text-slate-950 shadow-[0_0_10px_rgba(52,211,153,0.85)]"
+              ? "bg-rose-400 text-slate-950"
+              : "bg-emerald-300 text-slate-950"
           }`}
         >
-          {dmg < 0 ? `${dmg} ❤️` : dmg > 0 ? `+${dmg} ❤️` : <>🌸<span className="tile-tag-long"> ✓</span></>}
+          {dmg < 0 ? `${dmg} ❤️` : dmg > 0 ? `+${dmg} ❤️` : "0 ❤️"}
         </span>
       );
     }
     return artify(
       <span
-        className={`tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold shadow-md whitespace-nowrap ${
+        className={`tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold whitespace-nowrap ${
           dmg < 0
-            ? "bg-[#F43F5E] text-white border border-red-300/40 shadow-[0_0_10px_rgba(244,63,94,0.75)]"
+            ? "bg-[#F43F5E] text-white"
             : dmg > 0
-            ? "bg-emerald-400 text-slate-950 shadow-[0_0_10px_rgba(16,185,129,0.8)]"
-            : "bg-[#CFEA8F] text-slate-950 shadow-[0_0_10px_rgba(207,234,143,0.75)]"
+            ? "bg-emerald-400 text-slate-950"
+            : "bg-[#CFEA8F] text-slate-950"
         }`}
       >
         {dmg < 0 ? `${dmg} HP` : dmg > 0 ? `+${dmg}🩸 HP` : "0 DMG"}
@@ -1724,13 +1723,13 @@ function StepFloatingBadge({
   if (step.cell.type === "SHIELD") {
     if (step.vampireTransmuteWeapon && step.vampireTransmuteWeapon > 0) {
       return artify(
-        <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-rose-500 text-white shadow-[0_0_10px_rgba(244,63,94,0.85)] whitespace-nowrap">
+        <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-rose-500 text-white whitespace-nowrap">
           🩸 +{step.vampireTransmuteWeapon} WPN
         </span>
       );
     }
     return artify(
-      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-sky-300 text-slate-950 shadow-[0_0_10px_rgba(56,189,248,0.8)] whitespace-nowrap">
+      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-sky-300 text-slate-950 whitespace-nowrap">
         +{step.shieldDelta} {isSanctuary ? "🧤" : "SHD"}
       </span>
     );
@@ -1738,7 +1737,7 @@ function StepFloatingBadge({
 
   if (step.cell.type === "WEAPON") {
     return artify(
-      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-amber-300 text-slate-950 shadow-[0_0_10px_rgba(251,191,36,0.85)] whitespace-nowrap">
+      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-amber-300 text-slate-950 whitespace-nowrap">
         +{step.weaponDelta} {isSanctuary ? "✂️" : "WPN"}
       </span>
     );
@@ -1747,12 +1746,12 @@ function StepFloatingBadge({
   if (step.cell.type === "POTION") {
     return artify(
       <span
-        className={`tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold shadow-md whitespace-nowrap ${
+        className={`tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold whitespace-nowrap ${
           step.hpDelta < 0
-            ? "bg-rose-400 text-slate-950 shadow-[0_0_10px_rgba(244,63,94,0.8)]"
+            ? "bg-rose-400 text-slate-950"
             : step.hpDelta === 0
             ? "bg-white/85 text-slate-900"
-            : "bg-emerald-300 text-slate-950 shadow-[0_0_10px_rgba(52,211,153,0.85)]"
+            : "bg-emerald-300 text-slate-950"
         }`}
       >
         {step.hpDelta < 0
@@ -1768,7 +1767,7 @@ function StepFloatingBadge({
 
   if (step.cell.type === "GOLD") {
     return artify(
-      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-[#FDE047] text-slate-950 shadow-[0_0_10px_rgba(250,204,21,0.85)] whitespace-nowrap">
+      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-[#FDE047] text-slate-950 whitespace-nowrap">
         +{step.goldDelta} {isSanctuary ? "🌰" : "GLD"}
         {step.shieldDelta > 0 ? ` +${step.shieldDelta}🧤` : ""}
         {step.hpDelta > 0 ? ` +${step.hpDelta}❤️` : ""}
@@ -1778,7 +1777,7 @@ function StepFloatingBadge({
 
   if (step.cell.type === "TRAP") {
     return artify(
-      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-rose-400 text-slate-950 shadow-[0_0_10px_rgba(251,113,133,0.8)] whitespace-nowrap">
+      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-rose-400 text-slate-950 whitespace-nowrap">
         {step.hpDelta} {isSanctuary ? "❤️" : "HP"}
       </span>
     );
@@ -1786,8 +1785,8 @@ function StepFloatingBadge({
 
   if (step.cell.type === "EXIT") {
     return artify(
-      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-amber-200 text-slate-950 border border-white/50 shadow-[0_0_12px_rgba(244,114,182,0.9)] whitespace-nowrap">
-        {isSanctuary ? "🌈 EXIT ✓" : "EXIT ✓"}
+      <span className="tile-tag px-1.5 py-0.5 rounded-full text-[10px] tabular-nums font-extrabold bg-amber-200 text-slate-950 whitespace-nowrap">
+        Exit ✓
       </span>
     );
   }

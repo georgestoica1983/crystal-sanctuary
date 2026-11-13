@@ -148,6 +148,7 @@ import RunGuide, { RUN_GUIDE_STORAGE_KEY } from "@/components/RunGuide";
 import RunLeaderboardModal from "@/components/RunLeaderboard";
 import { submitRunToLeaderboard } from "@/lib/runLeaderboard";
 import LineMeter from "@/components/LineMeter";
+import { Play } from "lucide-react";
 import LineCompare from "@/components/LineCompare";
 import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import {
@@ -4911,7 +4912,7 @@ export default function OneStrokeTacticianPage() {
                 className="absolute inset-0 z-[60] flex items-start justify-between rounded-2xl p-2 text-left"
               >
                 <span className="rounded-full bg-black/60 px-2.5 py-1 text-[12px] font-semibold text-amber-100">
-                  ▶ Demo · {lessonDemo === "short" ? "the short way" : "the long way"}
+                  <Play className="mr-1 inline-block h-3 w-3 align-[-1px]" aria-hidden="true" />Demo · {lessonDemo === "short" ? "the short way" : "the long way"}
                 </span>
                 <span className="rounded-full bg-black/60 px-2.5 py-1 text-[12px] font-semibold text-white/80">
                   Skip ›
@@ -4930,7 +4931,7 @@ export default function OneStrokeTacticianPage() {
               }}
               className="text-[12px] font-semibold text-amber-200/90 underline underline-offset-2"
             >
-              ▶ Watch a 10-second demo
+              <Play className="mr-1 inline-block h-3 w-3 align-[-1px]" aria-hidden="true" />Watch a 10-second demo
             </button>
           )}
 
