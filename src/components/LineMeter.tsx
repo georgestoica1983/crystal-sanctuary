@@ -23,6 +23,7 @@ export default function LineMeter({
   xMult,
   previousPoints,
   lastTileValue,
+  lastTileLife = 0,
   reachesArchway,
   wilts,
   wiltReason,
@@ -48,6 +49,8 @@ export default function LineMeter({
   previousPoints: number;
   /** Value the newest tile added */
   lastTileValue: number;
+  /** Life the newest tile changed: negative for a Thorn or Spike, positive for Berries */
+  lastTileLife?: number;
   reachesArchway: boolean;
   wilts: boolean;
   /** Why the line would wilt, e.g. "🌺6 hits 4 ❤️ (🧤 blocked 2) · you have 3" */
@@ -226,6 +229,12 @@ export default function LineMeter({
               >
                 {lastTileValue > 0 ? `+${lastTileValue} value, ` : ""}+1 length →{" "}
                 <span className="font-black text-emerald-300">+{fmt(gain)}</span>
+                {/* The trade, right where it happens: what this tile cost or gave in Life */}
+                {lastTileLife !== 0 && (
+                  <span className={`font-black ${lastTileLife < 0 ? "text-rose-300" : "text-emerald-300"}`}>
+                    {" · "}{lastTileLife < 0 ? `−${-lastTileLife}` : `+${lastTileLife}`} ❤️
+                  </span>
+                )}
               </motion.span>
             </AnimatePresence>
             <span className="ml-auto shrink-0 whitespace-nowrap text-white/60">

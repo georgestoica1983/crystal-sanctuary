@@ -1137,6 +1137,8 @@ export default function OneStrokeTacticianPage() {
       now,
       previousPoints: prevPath.length >= 2 ? Math.round(prev.chips * prev.mult * prev.xMult) : 0,
       lastTileValue: Math.max(0, now.chips - prev.chips),
+      // Life the newest tile took (Thorn, Spike) or gave back (Berries)
+      lastTileLife: prevPath.length >= 1 ? simulation.finalStats.hp - prevSim.finalStats.hp : 0,
       tilesOnBoard,
     };
   }, [
@@ -3996,6 +3998,7 @@ export default function OneStrokeTacticianPage() {
                   xMult={lineMeter.now.xMult}
                   previousPoints={lineMeter.previousPoints}
                   lastTileValue={lineMeter.lastTileValue}
+                  lastTileLife={lineMeter.lastTileLife}
                   reachesArchway={simulation.canCommit}
                   wilts={!simulation.survives}
                   wiltReason={explainWilt(simulation)?.short ?? null}
