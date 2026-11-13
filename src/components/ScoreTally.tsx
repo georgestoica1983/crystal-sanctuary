@@ -33,7 +33,8 @@ interface ScoreTallyProps {
   targetScore?: number;
   continueLabel?: string;
   /** e.g. "Half this line would have scored 186 — yours scored 742 (4×)" */
-  halfLineNote?: string | null;
+  /** A short rating of the line by its length (Garden Run) */
+  lineRating?: { text: string; short: boolean } | null;
   /** What relics and boosts added to this line (the Shop's payoff, while it is new) */
   relicBonus?: number | null;
   /** Extra teaching block shown with the result (e.g. your line vs a long line) */
@@ -100,7 +101,7 @@ export default function ScoreTally({
   runningTotalLabel = "Visit total",
   targetScore,
   continueLabel,
-  halfLineNote,
+  lineRating,
   relicBonus = null,
   extra,
   onContinue,
@@ -274,13 +275,39 @@ export default function ScoreTally({
           >
             {stage >= 4 ? fmt(Math.round(totalShown)) : "?"}
           </motion.div>
-          <div className="mt-1.5 text-[16px] text-white/80">
-            {runningTotalLabel}{" "}
-            <b className="tabular-nums text-white">{fmt(stage >= 4 ? Math.round(runShown) : runTotalBefore)}</b>
-            {targetScore != null && <span className="text-white/60"> of {fmt(targetScore)}</span>}
-            {bedDone && stage >= 4 && <span className="font-bold text-lime-200"> · Bed cleared</span>}
-            {parPercent != null && stage >= 4 && <span className="text-teal-200"> · {parPercent}% of par</span>}
-          </div>
+          {lineRating && stage >= 4 && (
+            <div className={`mt-1.5 text-[16px] font-bold ${lineRating.short ? "text-amber-100/90 font-semibold" : "text-lime-200"}`}>
+              {lineRating.text}
+            </div>
+          )}
+          {targetScore != null ? (
+            // A bed: what you have so far and what clears it, each with its own label
+            <div className="mt-2.5">
+              <div className="grid grid-cols-2 gap-2">
+                <div className="rounded-xl bg-white/[0.05] px-2 py-1.5">
+                  <div className="text-[12px] font-semibold text-white/60">Your bed total</div>
+                  <div className="text-[20px] font-bold tabular-nums text-white leading-tight">
+                    {fmt(stage >= 4 ? Math.round(runShown) : runTotalBefore)}
+                  </div>
+                </div>
+                <div className="rounded-xl bg-white/[0.05] px-2 py-1.5">
+                  <div className="text-[12px] font-semibold text-white/60">Goal to clear</div>
+                  <div className="text-[20px] font-bold tabular-nums text-white/85 leading-tight">{fmt(targetScore)}</div>
+                </div>
+              </div>
+              {stage >= 4 && (
+                <div className={`mt-1.5 text-[14px] font-bold ${bedDone ? "text-lime-200" : "text-white/70"}`}>
+                  {bedDone ? "✓ Bed cleared" : `${fmt(targetScore - bedTotal)} more to clear it`}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="mt-1.5 text-[16px] text-white/80">
+              {runningTotalLabel}{" "}
+              <b className="tabular-nums text-white">{fmt(stage >= 4 ? Math.round(runShown) : runTotalBefore)}</b>
+              {parPercent != null && stage >= 4 && <span className="text-teal-200"> · {parPercent}% of par</span>}
+            </div>
+          )}
           <AnimatePresence>
             {stage >= 4 && !instant && (
               <motion.div
@@ -358,8 +385,6 @@ export default function ScoreTally({
             )}
           </div>
         </details>
-
-        {halfLineNote && stage >= 4 && <div className="text-center text-[14px] leading-snug text-emerald-100/90">📏 {halfLineNote}</div>}
 
         {extra && stage >= 4 && <div>{extra}</div>}
 

@@ -11,7 +11,7 @@ import { BossBeaten, BossIntro, BOSS_LOOK } from "@/components/BossMoments";
 import TipCard from "@/components/TipCard";
 import { DoneButton } from "@/components/SheetBits";
 import { loadTipsOn, markTipSeen, takeCloser, saveTipsOn, SPIKE_TIP, takeNextTip, tipDueThisBed, toolReminderTip, type Tip } from "@/lib/tips";
-import { countRunStarted, runsStarted, TEACHING_RUNS } from "@/lib/playCount";
+import { countRunStarted, runsStarted } from "@/lib/playCount";
 import IntroSplash from "@/components/IntroSplash";
 import { watchUiScale } from "@/lib/uiScale";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -153,6 +153,7 @@ import { AnimatePresence, MotionConfig, motion } from "framer-motion";
 import {
   FIRST_LINE_DONE_KEY,
   getLineTier,
+  LINE_RATING_WORDS,
   LONG_LINE_LEARNED_KEY,
   LONG_LINE_LEARNED_TILES,
   SEEN_TILE_INTROS_KEY,
@@ -405,7 +406,7 @@ export default function OneStrokeTacticianPage() {
     runStroke?: {
       target: number;
       continueLabel: string;
-      halfLineNote: string | null;
+      lineRating: { text: string; short: boolean };
       /** What relics and boosts added to this line (shown while they are new) */
       relicBonus: number | null;
       compare: {
@@ -2416,26 +2417,13 @@ export default function OneStrokeTacticianPage() {
       return;
     }
 
-    // Teaching: what half of this line would have scored
-    let halfLineNote: string | null = null;
-    // (only in a player's first Runs: after that it is noise)
-    if (path.length >= 6 && breakdown.total > 0 && runsStarted() <= TEACHING_RUNS) {
-      const half = path.slice(0, Math.ceil(path.length / 2));
-      const halfSim = simulatePath(
-        currentFloor.grid,
-        half,
-        floorStartHero,
-        dungeon.modifierId,
-        heroClassId,
-        activeRelicsForBoard
-      );
-      const hb = calculateFloorScoreBreakdown(halfSim, floorStartHero, half.length, activeRelicsForBoard, strokeCtx);
-      const halfPoints = Math.round(hb.chips * hb.mult * hb.xMult);
-      if (halfPoints > 0 && breakdown.total > halfPoints) {
-        const ratio = Math.round((breakdown.total / halfPoints) * 10) / 10;
-        halfLineNote = `Half this line (${half.length} tiles) would score about ${halfPoints.toLocaleString()}. The full ${path.length} tiles scored ${breakdown.total.toLocaleString()}, ${ratio}× as much.`;
-      }
-    }
+    // A short rating of the line by its length, in plain words
+    // (counted like Length, home and Exit included; praise starts at 10 tiles)
+    const lineTier = getLineTier(path.length);
+    const lineRating =
+      path.length < SHORT_LINE_NUDGE_TILES || !LINE_RATING_WORDS[lineTier.level]
+        ? { text: `Short line: ${path.length} tiles. Longer lines score far more.`, short: true }
+        : { text: `${LINE_RATING_WORDS[lineTier.level]} ${path.length} tiles`, short: false };
     // First-time players (and the Practice Garden): compare with a long line
     const teachCompare = !longLineLearned || Boolean(practiceStep);
     if (path.length >= LONG_LINE_LEARNED_TILES && !longLineLearned) {
@@ -2529,7 +2517,7 @@ export default function OneStrokeTacticianPage() {
       isFinal: false,
       clearReward: 0,
       runStroke: {
-        halfLineNote,
+        lineRating,
         relicBonus: relicPayoff(breakdown, activeRelics.length),
         compare: teachCompare
           ? {
@@ -5262,7 +5250,7 @@ export default function OneStrokeTacticianPage() {
         runningTotalLabel={tally?.runStroke ? "This bed" : undefined}
         targetScore={tally?.runStroke?.target}
         continueLabel={tally?.runStroke?.continueLabel}
-        halfLineNote={tally?.runStroke?.halfLineNote ?? null}
+        lineRating={tally?.runStroke?.lineRating ?? null}
         relicBonus={tally?.runStroke?.relicBonus ?? null}
         extra={
           tally?.runStroke?.compare &&

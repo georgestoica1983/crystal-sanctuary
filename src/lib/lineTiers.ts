@@ -17,6 +17,13 @@ export const LINE_TIERS: LineTier[] = [
   { level: 4, name: "Grand garden", minTiles: 20, color: "#FBBF24" },
 ];
 
+/** How the score card rates a line, by its tier (shorter lines get a nudge instead) */
+export const LINE_RATING_WORDS: Record<number, string> = {
+  2: "Good line!",
+  3: "Great line!",
+  4: "🌟 Grand line!",
+};
+
 export function getLineTier(tiles: number): LineTier {
   let tier = LINE_TIERS[0];
   for (const t of LINE_TIERS) if (tiles >= t.minTiles) tier = t;
