@@ -776,7 +776,7 @@ export function TopHUD({
     const menuTile =
       "h-[60px] w-full rounded-xl bg-white/[0.05] border border-white/[0.07] px-3 flex flex-col items-start justify-center gap-0.5 text-left text-[14px] font-semibold text-white/90 active:bg-white/[0.1] transition";
     const menuTileTop = "flex items-center gap-1.5 whitespace-nowrap";
-    const menuTileSub = "text-[12px] font-normal text-white/60";
+    const menuTileSub = "w-full truncate text-[12px] font-normal text-white/60";
     return artify(
       <div
         className={`w-full max-w-game mx-auto select-none ${
@@ -960,9 +960,11 @@ export function TopHUD({
                             </span>
                           )}
                         </span>
-                        <span className="shrink-0 flex flex-col items-end leading-none" aria-label={`${totalStars} stars`}>
-                          <span className="text-[16px] tabular-nums font-black text-amber-200"><Badge id="star" /> {totalStars}</span>
-                          <span className="mt-0.5 text-[10px] text-white/60">stars</span>
+                        {/* One line: the star, the count, the word */}
+                        <span className="shrink-0 flex items-center gap-1 whitespace-nowrap" aria-label={`${totalStars} ${totalStars === 1 ? "star" : "stars"}`}>
+                          <Badge id="star" />
+                          <span className="text-[16px] tabular-nums font-black text-amber-200">{totalStars}</span>
+                          <span className="text-[12px] font-semibold text-white/60">{totalStars === 1 ? "star" : "stars"}</span>
                         </span>
                       </div>
                     );
@@ -978,25 +980,26 @@ export function TopHUD({
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-2">
-                    {onOpenJournal && (
-                      <button type="button" className={`${menuTile} col-span-2`} onClick={() => { setShowRunMenu(false); onOpenJournal(); }}>
-                        <span className={menuTileTop}><BookOpen className="w-4 h-4 text-white/75" /> Journal</span>
-                        <span className={menuTileSub}>
-                          Your collection
-                          {journalNew > 0 && (
-                            <span className="ml-1.5 inline-flex items-center gap-1 font-semibold text-lime-200">
-                              <span className="h-1.5 w-1.5 rounded-full bg-lime-300" aria-hidden="true" />
-                              {journalNew} new
-                            </span>
-                          )}
-                        </span>
-                      </button>
-                    )}
+                  {onOpenJournal && (
+                    <button type="button" className={menuTile} onClick={() => { setShowRunMenu(false); onOpenJournal(); }}>
+                      <span className={menuTileTop}><BookOpen className="w-4 h-4 text-white/75" /> Journal</span>
+                      <span className={menuTileSub}>
+                        Your collection
+                        {journalNew > 0 && (
+                          <span className="ml-1.5 inline-flex items-center gap-1 font-semibold text-lime-200">
+                            <span className="h-1.5 w-1.5 rounded-full bg-lime-300" aria-hidden="true" />
+                            {journalNew} new
+                          </span>
+                        )}
+                      </span>
+                    </button>
+                  )}
+                  {/* A tile left alone on the last row takes the whole row, so the grid never has a hole */}
+                  <div className="grid grid-cols-2 gap-2.5 [&>*:last-child:nth-child(odd)]:col-span-2">
                     {bagPanel && (
                       <button type="button" className={menuTile} onClick={() => setShowBag((v) => !v)} aria-expanded={showBag}>
                         <span className={menuTileTop}><Backpack className="w-4 h-4 text-white/75" /> Bag &amp; levels</span>
-                        <span className={menuTileSub}>{bagCount ?? ""} tiles left · Garden levels</span>
+                        <span className={menuTileSub}>{bagCount ?? ""} tiles left</span>
                       </button>
                     )}
                     {onOpenLooks && (
@@ -1017,26 +1020,26 @@ export function TopHUD({
                         <span className={menuTileSub}>Best Runs</span>
                       </button>
                     )}
-                    {FEEDBACK_URL && (
-                      <a
-                        href={FEEDBACK_URL}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`${menuTile} col-span-2`}
-                        onClick={() => {
-                          track("feedback_open", { from: "menu" });
-                          setShowRunMenu(false);
-                        }}
-                      >
-                        <span className={menuTileTop}><MessageCircle className="w-4 h-4 text-white/75" /> Feedback</span>
-                        <span className={menuTileSub}>1 minute</span>
-                      </a>
-                    )}
                   </div>
+                  {FEEDBACK_URL && (
+                    <a
+                      href={FEEDBACK_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={menuTile}
+                      onClick={() => {
+                        track("feedback_open", { from: "menu" });
+                        setShowRunMenu(false);
+                      }}
+                    >
+                      <span className={menuTileTop}><MessageCircle className="w-4 h-4 text-white/75" /> Feedback</span>
+                      <span className={menuTileSub}>1 minute</span>
+                    </a>
+                  )}
                   {bagPanel && showBag && <div>{bagPanel}</div>}
 
                   {(onNewRun || onEndRun) && (
-                    <div className="grid grid-cols-2 gap-2 pt-0.5">
+                    <div className="grid grid-cols-2 gap-2 pt-0.5 [&>*:last-child:nth-child(odd)]:col-span-2">
                       {onNewRun && (
                         <button type="button" className={`${menuTile} !h-12 !flex-row !items-center !justify-center`} onClick={() => { setShowRunMenu(false); onNewRun(); }}>
                           <RefreshCw className="w-4 h-4 text-white/80" /> New Run

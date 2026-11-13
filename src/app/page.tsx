@@ -4882,16 +4882,14 @@ export default function OneStrokeTacticianPage() {
                   className="w-full max-w-[320px] rounded-2xl border border-amber-300/40 bg-[#1B281F] p-4 text-center text-white"
                 >
                   <div className="text-[12px] font-semibold text-amber-200">How to score big</div>
-                  <div className="mt-1 flex items-end justify-center gap-4 tabular-nums font-black">
-                    <span className="flex flex-col items-center">
-                      <span className="text-[12px] font-sans font-semibold text-white/60">Short way</span>
-                      <span className="text-[20px] text-white/70">{demoScores?.short.toLocaleString()}</span>
-                    </span>
-                    <span className="pb-1 text-[14px] text-white/60">vs</span>
-                    <span className="flex flex-col items-center">
-                      <span className="text-[12px] font-sans font-semibold text-white/60">Long way</span>
-                      <span className="text-[32px] text-amber-200">{demoScores?.long.toLocaleString()}</span>
-                    </span>
+                  {/* Labels on one row, the numbers on one shared baseline under them */}
+                  <div className="mt-2 grid grid-cols-[1fr_auto_1fr] items-baseline gap-x-3 tabular-nums">
+                    <span className="text-[14px] font-semibold text-white/60">Short way</span>
+                    <span />
+                    <span className="text-[14px] font-semibold text-white/60">Long way</span>
+                    <span className="text-[32px] font-black leading-tight text-white/70">{demoScores?.short.toLocaleString()}</span>
+                    <span className="text-[14px] font-semibold text-white/60">vs</span>
+                    <span className="text-[32px] font-black leading-tight text-amber-200">{demoScores?.long.toLocaleString()}</span>
                   </div>
                   <div className="mt-2 text-[14px] leading-snug text-white/85">
                     Points = <b>Value × Length</b>. Longer lines through good tiles multiply your points.

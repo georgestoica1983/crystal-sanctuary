@@ -4,7 +4,7 @@ import Badge from "@/components/Badge";
 import BossIcon from "@/components/BossIcon";
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
-import { RefreshCw, ArrowRight, Lock } from "lucide-react";
+import { RefreshCw, ArrowRight, Lock, TrendingUp } from "lucide-react";
 import {
   BossRuleId,
   RelicCounters,
@@ -464,7 +464,7 @@ export default function ShopModal({
         <img src={tileArt(offer.tile.type) ?? ""} alt="" aria-hidden="true" draggable={false} style={{ width: size * 0.75, height: size * 0.75 }} className="object-contain" />
       </span>
     ) : offer.kind === "FERT" && offer.fert ? (
-      <span className="relative" style={{ width: size, height: size }}>
+      <span className="relative block shrink-0" style={{ width: size, height: size }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img src={tileArt(offer.fert) ?? ""} alt="" aria-hidden="true" draggable={false} className="h-full w-full object-contain" />
         <Badge id="seed" size={14} className="absolute -bottom-1 -right-1.5" />
@@ -702,18 +702,27 @@ export default function ShopModal({
                 } ${sold ? "opacity-45" : ""}`}
               >
                 {offerIcon(offer, 26)}
-                <span className="w-full text-center text-[10px] font-bold leading-tight line-clamp-2">{name}</span>
+                {/* Names get a two-line slot, so every card's text starts at the same height */}
+                <span className="w-full h-[2.5em] shrink-0 flex items-center justify-center text-center text-[10px] font-bold leading-tight">
+                  <span className="line-clamp-2">{name}</span>
+                </span>
                 {/* What it does, at a glance */}
                 <span className="w-full text-center text-[10px] leading-[1.2] text-white/65 line-clamp-3 [@media(max-height:700px)]:line-clamp-2">{artify(glanceOf(offer, info))}</span>
-                {/* Top row, above the art: what it adds to your best line (or New) on the left, the price on the right */}
+                {/* Top row, above the art: what it adds to your best line (or New) on the left, the price on the right.
+                    Under 400px wide the cards are too narrow for both, so the gain shows as an arrow (the number is in the detail below) */}
                 {!sold &&
                 gainPct(scorePreview?.[offer.id] ?? 0) > 0 &&
                 (pickedValid?.kind === "OFFER" ? pickedValid.id === offer.id : offer.id === bestGainId) ? (
-                  <span className="absolute top-1 left-1 rounded-md bg-emerald-400/20 px-1 text-[10px] leading-[15px] tabular-nums font-black text-emerald-200">
-                    {/* Short enough to sit beside the price: +45%, or ×2.9 from double up */}
-                    {gainPct(scorePreview?.[offer.id] ?? 0) >= 100
-                      ? `×${(1 + gainPct(scorePreview?.[offer.id] ?? 0) / 100).toFixed(1)}`
-                      : `+${gainPct(scorePreview?.[offer.id] ?? 0)}%`}
+                  <span
+                    aria-label={`Adds ${gainPct(scorePreview?.[offer.id] ?? 0)}% to your best line`}
+                    className="absolute top-1 left-1 flex h-[15px] items-center rounded-md bg-emerald-400/20 px-1 text-[10px] leading-none tabular-nums font-black text-emerald-200"
+                  >
+                    <TrendingUp className="h-3 w-3 min-[400px]:hidden" aria-hidden="true" />
+                    <span className="hidden min-[400px]:inline">
+                      {gainPct(scorePreview?.[offer.id] ?? 0) >= 100
+                        ? `×${(1 + gainPct(scorePreview?.[offer.id] ?? 0) / 100).toFixed(1)}`
+                        : `+${gainPct(scorePreview?.[offer.id] ?? 0)}%`}
+                    </span>
                   </span>
                 ) : (
                   newKinds?.includes(offer.kind) &&
@@ -833,9 +842,9 @@ export default function ShopModal({
             onClick={onReroll}
             disabled={gems < rerollCost}
             aria-label={`Reroll the offers for ${rerollCost} Seeds`}
-            className="h-12 rounded-xl px-2 border border-white/15 bg-white/[0.06] text-white/90 font-semibold text-[14px] flex items-center justify-center gap-1.5 active:scale-95 transition disabled:opacity-40"
+            className="h-12 rounded-xl px-2 border border-white/15 bg-white/[0.06] text-white/90 font-semibold text-[14px] flex items-center justify-center gap-1 active:scale-95 transition disabled:opacity-40"
           >
-            <RefreshCw className="w-4 h-4 shrink-0" />
+            <RefreshCw className={`w-4 h-4 shrink-0 ${canPrune ? "hidden min-[360px]:block" : ""}`} />
             {canPrune ? (
               <span className="flex flex-col items-start leading-[1.1]">
                 <span className="text-[14px]">Reroll</span>
@@ -853,10 +862,10 @@ export default function ShopModal({
               disabled={pruned}
               aria-haspopup="dialog"
               aria-label={pruned ? "Pruned this Shop" : `Prune a tile from your bag for ${RUN_PRUNE_COST} Seeds`}
-              className="h-12 rounded-xl px-2 border border-white/15 bg-white/[0.06] text-white/90 font-semibold flex items-center justify-center gap-1.5 active:scale-95 transition disabled:opacity-40"
+              className="h-12 rounded-xl px-2 border border-white/15 bg-white/[0.06] text-white/90 font-semibold flex items-center justify-center gap-1 active:scale-95 transition disabled:opacity-40"
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={tileArt("WEAPON") ?? ""} alt="" aria-hidden="true" draggable={false} className="h-6 w-6 shrink-0 object-contain" />
+              <img src={tileArt("WEAPON") ?? ""} alt="" aria-hidden="true" draggable={false} className="hidden min-[360px]:block h-5 w-5 shrink-0 object-contain" />
               <span className="flex flex-col items-start leading-[1.1]">
                 <span className="text-[14px]">{pruned ? "Pruned" : "Prune"}</span>
                 <span className="text-[12px] text-white/65">{pruned ? "✓" : `${RUN_PRUNE_COST} 🌱`}</span>

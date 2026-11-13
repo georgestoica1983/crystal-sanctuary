@@ -276,7 +276,8 @@ export default function ScoreTally({
             {stage >= 4 ? fmt(Math.round(totalShown)) : "?"}
           </motion.div>
           {lineRating && stage >= 4 && (
-            <div className={`mt-1.5 text-[16px] font-bold ${lineRating.short ? "text-amber-100/90 font-semibold" : "text-lime-200"}`}>
+            // Praise is bold; the short-line nudge is a quieter note that wraps evenly if it must
+            <div className={`mt-1.5 [text-wrap:balance] ${lineRating.short ? "text-[14px] font-semibold leading-snug text-amber-100/85" : "text-[16px] font-bold text-lime-200"}`}>
               {lineRating.text}
             </div>
           )}
