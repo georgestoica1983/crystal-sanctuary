@@ -887,20 +887,25 @@ export default function ShopModal({
             <motion.div
               initial={{ scale: 0.92, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              className="w-full rounded-2xl border border-amber-300/40 bg-[#24301f] p-4 text-center shadow-2xl space-y-2"
+              className="w-full rounded-2xl border border-amber-300/40 bg-[#24301f] p-4 shadow-2xl space-y-2.5"
             >
-              <div className="flex justify-center">
-                {SHOP_GUIDE[firstCard].sample ? (
-                  offerIcon(SHOP_GUIDE[firstCard].sample!, 52)
-                ) : (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={tileArt("WEAPON") ?? ""} alt="" aria-hidden="true" draggable={false} className="h-[52px] w-[52px] object-contain" />
-                )}
+              {/* Picture beside the heading; the explanation reads left-aligned under it */}
+              <div className="flex items-center gap-3">
+                <div className="shrink-0">
+                  {SHOP_GUIDE[firstCard].sample ? (
+                    offerIcon(SHOP_GUIDE[firstCard].sample!, 48)
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={tileArt("WEAPON") ?? ""} alt="" aria-hidden="true" draggable={false} className="h-12 w-12 object-contain" />
+                  )}
+                </div>
+                <div className="min-w-0">
+                  <div className="text-[14px] font-semibold text-amber-200/90">New in the Shop</div>
+                  <div className="text-[20px] font-display font-semibold leading-tight">{SHOP_GUIDE[firstCard].name}</div>
+                </div>
               </div>
-              <div className="text-[14px] font-semibold text-amber-200/90">New in the Shop</div>
-              <div className="text-[20px] font-display font-semibold leading-tight">{SHOP_GUIDE[firstCard].name}</div>
-              <p className="text-[14px] leading-snug text-white/85">{artify(SHOP_GUIDE[firstCard].what)}</p>
-              <p className="text-[14px] leading-snug text-white/65">{artify(SHOP_GUIDE[firstCard].how)}</p>
+              <p className="text-[16px] leading-snug text-white/90">{artify(SHOP_GUIDE[firstCard].what)}</p>
+              <p className="text-[14px] leading-snug text-white/70">{artify(SHOP_GUIDE[firstCard].how)}</p>
               <div className="flex gap-2 pt-1">
                 <button
                   type="button"

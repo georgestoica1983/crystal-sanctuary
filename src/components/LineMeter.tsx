@@ -159,7 +159,7 @@ export default function LineMeter({
         // if a text is still too tall for the card it scrolls inside, never spills out
         <div className="flex items-start gap-2.5 min-h-0 max-h-full">
           <div className="w-9 h-9 shrink-0 flex items-center justify-center">{intro.icon}</div>
-          <div className="min-w-0 min-h-0 max-h-full flex-1 overflow-y-auto text-[14px] leading-snug text-white/85">
+          <div className="min-w-0 min-h-0 max-h-full flex-1 overflow-y-auto overflow-x-hidden text-[14px] leading-snug text-white/85">
             <div className="flex items-center justify-between gap-2">
               <span className="min-w-0 truncate text-[12px] font-semibold text-teal-200/80">
                 {intro.label ?? "New tile"}{intro.total > 1 ? ` · ${intro.total - 1} more` : ""}

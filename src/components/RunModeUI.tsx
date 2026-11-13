@@ -4,7 +4,7 @@ import Badge from "@/components/Badge";
 import BossIcon from "@/components/BossIcon";
 import React, { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { ArrowRight, PartyPopper, Sparkles, Trophy } from "lucide-react";
+import { ArrowRight, ChevronDown, PartyPopper, Sparkles, Trophy } from "lucide-react";
 import EntityIcon from "@/components/EntityIcon";
 import { BossRuleId, GridCell, GridCoord, RelicCounters, RelicId, RunGardenState } from "@/types/game";
 import {
@@ -741,7 +741,6 @@ export function RunGardenClearModal({
               <Sparkles className="w-3.5 h-3.5" /> Your best on this bed
             </div>
           )}
-          {stars < 3 && <div className="mt-0.5 text-[12px] leading-snug text-white/60">Next time: {STAR_HINT[stars]}</div>}
           <SeasonMap season={season} clearedKind={kind} bestStars={info.seasonBestStars} />
           {season > RUN_FINAL_SEASON && (
             <div className="mt-2 rounded-lg border border-violet-300/40 bg-violet-500/10 px-2.5 py-1 text-[12px] text-violet-100">
@@ -756,11 +755,11 @@ export function RunGardenClearModal({
           animate={{ y: 0, opacity: 1, transition: { delay: 0.6 } }}
           className="flex items-center justify-center gap-2"
         >
-          <span className="rounded-2xl border border-amber-300/50 bg-amber-400/15 px-4 py-2 text-[26px] font-display font-semibold tabular-nums text-amber-100">
+          <span className="h-14 flex items-center rounded-2xl border border-amber-300/50 bg-amber-400/15 px-4 text-[26px] font-display font-semibold tabular-nums text-amber-100">
             +{info.total} 🌱
           </span>
           {!!info.lifeBonus && (
-            <span className="rounded-2xl border border-rose-300/40 bg-rose-400/10 px-3 py-2 text-[20px] font-display font-semibold text-rose-100">
+            <span className="h-14 flex items-center rounded-2xl border border-rose-300/40 bg-rose-400/10 px-4 text-[20px] font-display font-semibold tabular-nums text-rose-100">
               +{info.lifeBonus} ❤️
             </span>
           )}
@@ -794,16 +793,12 @@ export function RunGardenClearModal({
           >
             💮 Full bloom! +{info.fullBloomBonus} 🌱
           </motion.div>
-        ) : info.fullBloomAt ? (
-          <div className="text-center text-[12px] text-white/60">
-            Full bloom at {fmt(info.fullBloomAt)} pays +{FULL_BLOOM_SEEDS} 🌱 more
-          </div>
         ) : null}
 
         {/* Where the Seeds came from, for anyone who wants it */}
         <details className="group rounded-xl border border-white/10 bg-white/[0.03] px-2.5 py-1.5 text-[12px] text-white/70">
-          <summary className="cursor-pointer list-none text-center font-semibold text-white/60 [&::-webkit-details-marker]:hidden">
-            How you earned it <span className="inline-block transition group-open:rotate-180">▾</span>
+          <summary className="flex cursor-pointer list-none items-center justify-center gap-1 font-semibold text-white/60 [&::-webkit-details-marker]:hidden">
+            Seeds and stars <ChevronDown className="h-3.5 w-3.5 transition group-open:rotate-180" aria-hidden="true" />
           </summary>
           <div className="mt-1.5 space-y-1">
             <div className="flex justify-between gap-2">
@@ -820,6 +815,26 @@ export function RunGardenClearModal({
               <span>Your Seeds</span>
               <span className="tabular-nums">{info.gemsBefore} → {info.gemsBefore + info.total} 🌱</span>
             </div>
+            {/* How to do better, and the next unlock: here rather than as small lines on the card */}
+            {(stars < 3 || (!info.fullBloomBonus && info.fullBloomAt) || info.nextUnlock) && (
+              <div className="border-t border-white/10 pt-1 space-y-1 leading-snug">
+                {stars < 3 && <div>Next time: {STAR_HINT[stars]}</div>}
+                {!info.fullBloomBonus && !!info.fullBloomAt && (
+                  <div>
+                    Full bloom at {fmt(info.fullBloomAt)} pays +{FULL_BLOOM_SEEDS} 🌱 more
+                  </div>
+                )}
+                {info.nextUnlock && (
+                  <div>
+                    <Badge id="star" /> {info.nextUnlock.have} · next:{" "}
+                    <span className="font-semibold text-white/85">
+                      {info.nextUnlock.id && <UnlockIcon item={{ id: info.nextUnlock.id, icon: info.nextUnlock.icon ?? "" }} />} {info.nextUnlock.text}
+                    </span>{" "}
+                    at {info.nextUnlock.stars} <Badge id="star" />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </details>
 
@@ -828,9 +843,9 @@ export function RunGardenClearModal({
           <motion.div
             initial={{ scale: 0.7, opacity: 0 }}
             animate={{ scale: [0.7, 1.08, 1], opacity: 1, transition: { delay: 0.6, duration: 0.45 } }}
-            className="rounded-xl border border-violet-300/50 bg-violet-500/15 px-3 py-2 text-center"
+            className="rounded-xl border border-amber-300/40 bg-amber-300/[0.08] px-3 py-2 text-center"
           >
-            <div className="flex items-center justify-center gap-1 text-[12px] font-semibold text-violet-200">
+            <div className="flex items-center justify-center gap-1 text-[12px] font-semibold text-amber-200">
               <PartyPopper className="w-3.5 h-3.5" /> New for you
             </div>
             <div className="mt-0.5 flex flex-wrap items-center justify-center text-[14px] font-black text-white leading-snug">
@@ -841,18 +856,10 @@ export function RunGardenClearModal({
                 </span>
               ))}
             </div>
-            <div className="text-[10px] text-white/60">See it in ☰ → Companions &amp; looks</div>
+            <div className="text-[12px] text-white/60">See it in the menu, under Companions</div>
           </motion.div>
         )}
 
-        {info.nextUnlock && (
-          <div className="text-center text-[12px] text-white/60">
-            <Badge id="star" /> {info.nextUnlock.have} · next: <span className="font-semibold text-white/85">
-              {info.nextUnlock.id && <UnlockIcon item={{ id: info.nextUnlock.id, icon: info.nextUnlock.icon ?? "" }} />} {info.nextUnlock.text}
-            </span> at{" "}
-            {info.nextUnlock.stars} <Badge id="star" />
-          </div>
-        )}
 
         {legendary && (
           <div className="rounded-xl border border-amber-300/50 bg-amber-400/10 px-3 py-2 text-xs text-amber-50">
